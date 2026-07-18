@@ -1,0 +1,14 @@
+{
+  "name": "readirect-v2",
+  "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @readirect/web dev",
+    "build:web": "pnpm --filter @readirect/web build",
+    "test:web": "pnpm --filter @readirect/web test",
+    "test:e2e": "pnpm --filter @readirect/web test:e2e"
+  }
+}

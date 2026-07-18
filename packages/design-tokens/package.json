@@ -1,0 +1,9 @@
+{
+  "name": "@readirect/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./colors.css": "./src/colors.css"
+  }
+}

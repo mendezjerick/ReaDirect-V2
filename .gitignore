@@ -1,0 +1,54 @@
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# JavaScript and frontend output
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# PHP and Laravel output
+vendor/
+apps/api/rr.exe
+apps/api/storage/*.key
+apps/api/storage/logs/
+apps/api/bootstrap/cache/*.php
+
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.uv-cache/
+
+# Speech and model caches
+.cache/
+models/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+services/tts/storage/cache/*
+!services/tts/storage/cache/.gitkeep
+
+# Licensed or local-only Live2D SDK files
+CubismSdkForWeb-*.zip
+apps/web/vendor/live2d/
+apps/web/public/assets/live2d/core/
+
+# Local runtime files
+.runtime/
+*.log
+*.pid
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
