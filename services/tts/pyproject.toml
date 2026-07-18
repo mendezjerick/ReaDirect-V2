@@ -1,0 +1,44 @@
+[project]
+name = "readirect-tts"
+version = "0.0.0"
+description = "ReaDirect VoxCPM2 speech generation service"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "fastapi",
+  "huggingface-hub",
+  "numpy",
+  "python-multipart",
+  "soundfile",
+  "torch==2.11.0",
+  "torchaudio==2.11.0",
+  "transformers",
+  "uvicorn",
+  "voxcpm==2.0.3",
+  "websockets",
+]
+
+[dependency-groups]
+dev = [
+  "httpx",
+  "pytest",
+  "ruff",
+]
+
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch" }
+torchaudio = { index = "pytorch" }
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100

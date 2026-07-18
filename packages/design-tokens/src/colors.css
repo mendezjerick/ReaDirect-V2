@@ -1,0 +1,65 @@
+/*
+ * Default theme color values live only in theme token files. Components,
+ * TypeScript, canvas renderers, and SVG must consume these semantic variables.
+ */
+:root {
+  --color-transparent: transparent;
+
+  --color-surface-page: #f7efdc;
+  --color-surface-frame: #f1e3c3;
+  --color-surface-panel: #fffdf7;
+  --color-surface-notice: #fff0e7;
+  --color-surface-muted: #f4f2ec;
+
+  --color-text-primary: #102a43;
+  --color-text-secondary: #40566d;
+  --color-text-muted: #5c7084;
+  --color-text-on-action: #ffffff;
+
+  --color-border-warm: #dfc994;
+  --color-border-soft: #ead9c8;
+  --color-border-strong: #8f6b32;
+  --color-frame-depth: #c9ae70;
+
+  --color-action-primary: #c94712;
+  --color-action-primary-hover: #b83d0d;
+  --color-action-primary-pressed: #a73509;
+  --color-action-primary-depth: #892b08;
+  --color-action-secondary: #ffffff;
+  --color-action-secondary-hover: #fff5ed;
+
+  --color-success: #247451;
+  --color-success-soft: #e8f6ef;
+  --color-warning: #9a5a00;
+  --color-warning-soft: #fff4d6;
+  --color-danger: #b42318;
+  --color-danger-soft: #feeceb;
+  --color-focus: #1769d2;
+
+  --color-accent-coral-soft: #f29a6a;
+  --color-accent-sun: #f3c85b;
+  --color-fallback-portrait-surface: #7fb3b6;
+  --color-fallback-portrait-depth: #b65b6b;
+
+  --color-live2d-recolor-base: #000000;
+  --color-live2d-canvas-clear: transparent;
+
+  --color-clara-hair: #5faf67;
+  --color-clara-hair-outline: #356b3f;
+  --color-clara-hair-highlight: #a8d8aa;
+  --color-clara-hair-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 72%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-hair-deep-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 44%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-glasses: #000000;
+  --color-clara-skin-primary: #ffa461;
+  --color-clara-skin-shade: #cf7442;
+  --color-clara-hoodie: #000000;
+  --color-clara-strings: #ead8b7;
+}

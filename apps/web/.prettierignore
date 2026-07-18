@@ -1,0 +1,5 @@
+dist/
+node_modules/
+public/assets/live2d/
+test-results/
+vendor/

@@ -1,0 +1,23 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "CherryGoth.moc3",
+		"Textures": [
+			"CherryGoth.8192/texture_00.png"
+		],
+		"Physics": "CherryGoth.physics3.json",
+		"DisplayInfo": "CherryGoth.cdi3.json"
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": []
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		}
+	]
+}
