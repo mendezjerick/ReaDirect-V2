@@ -1,0 +1,24 @@
+{
+  "name": "readirect/game-two",
+  "description": "ReaDirect game-two Laravel module",
+  "type": "library",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.3",
+    "illuminate/database": "^13.20",
+    "illuminate/routing": "^13.20",
+    "illuminate/support": "^13.20"
+  },
+  "autoload": {
+    "psr-4": {
+      "ReaDirect\\Games\\GameTwo\\": "backend/src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "ReaDirect\\Games\\GameTwo\\GameTwoServiceProvider"
+      ]
+    }
+  }
+}

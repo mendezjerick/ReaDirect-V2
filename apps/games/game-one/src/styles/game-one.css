@@ -1,0 +1,122 @@
+.game-one {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: max(0.75rem, env(safe-area-inset-top))
+    max(0.75rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom))
+    max(0.75rem, env(safe-area-inset-left));
+  background: var(--color-surface-page);
+}
+
+.game-one__stage {
+  width: min(100%, 27rem);
+  min-height: min(46rem, calc(100svh - 1.5rem));
+  aspect-ratio: 9 / 16;
+  display: grid;
+  overflow: hidden;
+  border: 3px solid var(--color-border-strong);
+  border-radius: var(--radius-frame);
+  background: var(--color-surface-frame);
+  box-shadow: var(--shadow-panel-depth);
+}
+
+.game-one__panel,
+.game-one__play-panel {
+  display: grid;
+  align-content: center;
+  gap: 1.25rem;
+  padding: clamp(1.25rem, 6vw, 2rem);
+  text-align: center;
+}
+
+.game-one__panel h1 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-display-family);
+  font-size: clamp(2.5rem, 12vw, 4rem);
+  line-height: 1;
+}
+
+.game-one__eyebrow,
+.game-one__summary {
+  margin: 0;
+}
+
+.game-one__eyebrow {
+  color: var(--color-action-primary);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.game-one__summary {
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+.game-one__actions,
+.game-one__play-actions {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.game-one button {
+  min-height: 3.5rem;
+  padding: 0.8rem 1rem;
+  border: 2px solid var(--color-action-primary-depth);
+  border-radius: var(--radius-control);
+  background: var(--color-action-primary);
+  box-shadow: 0 5px 0 var(--color-action-primary-depth);
+  color: var(--color-text-on-action);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.game-one button:active {
+  translate: 0 3px;
+  box-shadow: 0 2px 0 var(--color-action-primary-depth);
+}
+
+.game-one button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.game-one button.game-one__secondary {
+  border-color: var(--color-border-warm);
+  background: var(--color-action-secondary);
+  box-shadow: 0 5px 0 var(--color-frame-depth);
+  color: var(--color-text-primary);
+}
+
+.game-one button.game-one__text-button {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-text-secondary);
+}
+
+.game-one__play-panel {
+  grid-template-rows: 1fr auto;
+}
+
+.game-one__canvas-host {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  border: 3px dashed var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-panel);
+  color: var(--color-text-secondary);
+  font-weight: 800;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-one button {
+    transition: none;
+  }
+}

@@ -1,0 +1,224 @@
+.learner-dashboard {
+  height: 100vh;
+  height: 100svh;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-y: auto;
+  padding: max(1rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+  background: var(--color-surface-page);
+}
+
+.learner-dashboard .surface {
+  width: 100%;
+}
+
+.learner-dashboard .surface--frame {
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-frame);
+  background: var(--color-surface-frame);
+  box-shadow: var(--shadow-panel-depth);
+}
+
+.learner-dashboard .surface--padding-roomy {
+  padding: 1.25rem;
+}
+
+.learner-dashboard__shell {
+  width: min(100%, 68rem);
+  margin: 0 auto;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.learner-dashboard__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.learner-dashboard__header h1,
+.learner-dashboard__primary-card h2,
+.learner-dashboard__games h2,
+.learner-dashboard__achievements h2 {
+  margin: 0;
+  font-family: var(--font-display-family);
+  line-height: 1.08;
+}
+
+.learner-dashboard__header h1 {
+  font-size: clamp(2rem, 8vw, 3.25rem);
+}
+
+.learner-dashboard__eyebrow,
+.learner-dashboard__next-label {
+  margin: 0 0 0.35rem;
+  color: var(--color-action-primary);
+  font-family: var(--font-display-family);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.learner-dashboard__identity {
+  display: grid;
+  justify-items: end;
+  gap: 0.2rem;
+  padding: 0.7rem 0.9rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-notice);
+  background: var(--color-surface-panel);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.learner-dashboard__identity strong {
+  color: var(--color-text-primary);
+  font-size: 1rem;
+}
+
+.learner-dashboard__primary-card {
+  min-height: 19rem;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.learner-dashboard__primary-card h2 {
+  max-width: 24ch;
+  font-size: clamp(1.65rem, 7vw, 2.5rem);
+}
+
+.learner-dashboard__primary-action {
+  width: min(100%, 38rem);
+  min-height: 7rem;
+}
+
+.learner-dashboard__button-icon {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 0.8rem;
+  font-size: 0.75rem;
+}
+
+.learner-dashboard__support-copy,
+.learner-dashboard__games p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.learner-dashboard__notice {
+  min-height: 1.5rem;
+  margin: 0;
+  color: var(--color-success);
+  font-weight: 650;
+}
+
+.learner-dashboard__games {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.25rem;
+  border: 2px solid var(--color-border-soft);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-panel);
+}
+
+.learner-dashboard__games-action {
+  width: 100%;
+}
+
+.learner-dashboard__section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.learner-dashboard__section-heading > span {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  font-weight: 700;
+}
+
+.learner-dashboard__achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.learner-dashboard__achievement-grid li {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 0.9rem 0.65rem;
+  border: 2px solid var(--color-border-soft);
+  border-radius: var(--radius-notice);
+  background: var(--color-surface-panel);
+  text-align: center;
+}
+
+.learner-dashboard__achievement-grid li > span:last-child {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.learner-dashboard__achievement-star {
+  color: var(--color-text-muted);
+  font-size: clamp(2.5rem, 13vw, 4rem);
+  line-height: 1;
+  opacity: 0.18;
+}
+
+@media (min-width: 48rem) {
+  .learner-dashboard {
+    padding: 2rem;
+  }
+
+  .learner-dashboard__games {
+    grid-template-columns: 1fr auto;
+    padding: 1.5rem 1.75rem;
+  }
+
+  .learner-dashboard__games-action {
+    width: auto;
+    min-width: 15rem;
+  }
+
+  .learner-dashboard__achievement-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .learner-dashboard .surface--padding-roomy {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .learner-dashboard__achievement-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .learner-dashboard__primary-action,
+  .learner-dashboard__games-action {
+    transition: none;
+  }
+}
