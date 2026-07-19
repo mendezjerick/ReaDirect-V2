@@ -12,9 +12,32 @@ This guide complements:
 - `READIRECT_REVAMP_TECH_STACK.md`
 - `READIRECT_REVAMP_PROJECT_STRUCTURE.md`
 - `READIRECT_REVAMP_VIEWPORT_STANDARD.md`
+- `READIRECT_REVAMP_MAIN_TRANSITION_STANDARD.md`
 
 It does not define assessment scoring, audio processing, backend behavior, or
 lesson-routing rules.
+
+## Top Rule: Shared Components First
+
+Shared components must be used as much as possible. New pages should primarily
+compose established design-system components instead of recreating containers,
+buttons, page shells, typography, icons, feedback surfaces, or interaction
+patterns locally.
+
+- Search the existing shared component packages and feature foundations before
+  creating new markup or styles.
+- Extend an existing component through typed variants, sizes, slots, or props
+  when the requested design remains part of the same component family.
+- Do not copy and paste component markup or CSS between pages. Repeated visual
+  or behavioral patterns must be extracted into a shared component.
+- Page components should own page composition and page-specific content;
+  reusable appearance, states, accessibility, and responsive behavior belong
+  in shared components.
+- A page-local component is acceptable only when it is genuinely unique or its
+  reusable API is not yet understood. Once a second use appears, or a clear
+  cross-page role is established, promote it to the appropriate shared package.
+- Shared components must consume the design tokens and viewport rules in this
+  guide so fixes and future theme changes propagate throughout the system.
 
 ## Approved Frontend Foundation
 
@@ -235,7 +258,7 @@ Recommended fluid values:
 Tokens must use semantic names. Components should reference roles such as
 `action-primary` or `surface-panel`, not raw color names such as `orange-500`.
 
-### Mandatory theme-ready color rule
+### Mandatory theme-ready visual rule
 
 Every frontend color must come from a semantic CSS custom property. This is a
 hard architectural rule so that future themes can replace the palette without
@@ -262,6 +285,12 @@ rewriting components.
   variable rather than the literal `transparent` keyword in components.
 - A theme change must update every visible color, including custom cursors,
   particle effects, loading fallbacks, and theme-aware character overrides.
+- Theme-specific artwork must also come from semantic CSS custom properties.
+  Responsive background pairs use separate mobile and desktop asset tokens so
+  that a theme can replace both compositions without editing page components.
+- Page and component styles must reference asset roles such as
+  `var(--asset-home-background-mobile)`, never a theme filename such as
+  `T1mobile.png` directly.
 
 The canonical default theme is
 `packages/design-tokens/src/colors.css`. Additional themes must provide the
@@ -272,6 +301,10 @@ and contrast testing, but their semantic roles must remain stable.
 
 ```css
 :root {
+  /* Theme artwork */
+  --asset-home-background-mobile: url("/assets/backgrounds/T1mobile.png");
+  --asset-home-background-desktop: url("/assets/backgrounds/T1desktop.png");
+
   /* Font families */
   --font-display-family: "Fredoka", ui-rounded, system-ui, sans-serif;
   --font-reading-family: "Lexend", system-ui, sans-serif;
@@ -550,6 +583,27 @@ Every button must define:
 - Pressed.
 - Disabled.
 - Busy when an operation takes time.
+
+### Button press commit rule
+
+Button activation must visibly complete its tactile press before its normal
+function changes or replaces the current interface. A CSS `:active` state alone
+is not sufficient because it ends as soon as the pointer is released.
+
+- On activation, hold an explicit pressed or `committing` state that moves the
+  button downward and compresses its fake depth.
+- Normal button functions must wait for a short commit interval before running.
+  Use approximately `180ms`, with an acceptable range of `160ms` to `220ms`.
+- Navigation, route changes, modal replacement, and other immediate surface
+  changes must not occur until the commit interval finishes.
+- Block repeated activation while the button is committing. Expose this state
+  accessibly through `disabled`, `aria-disabled`, or the component's busy state.
+- When reduced motion is requested, remove the animation delay and execute the
+  action immediately.
+- Continuous controls, hold-to-act controls, and urgent safety actions are
+  exempt when delaying their behavior would make the interaction incorrect.
+- Component tests must verify that a screen-changing action does not run before
+  its commit interval ends.
 
 Pressed styling must move a tactile button down by approximately `4px` to `5px`
 while reducing its solid lower depth. This creates the game-button press
@@ -920,6 +974,82 @@ Recommended limits:
 - Do not use continuous floating motion on buttons.
 - Do not animate large layout distances for routine state changes.
 - Respect `prefers-reduced-motion`.
+
+### Intro reveal sequence
+
+The intro uses one fixed upper focal point so its elements do not jump as the
+sequence advances. This anchor sits at the end of the top content region rather
+than at the exact center of the viewport:
+
+1. `ReaDirect` fades in at the intro's upper focal anchor.
+2. The title remains stationary for `2000ms`.
+3. The title moves upward by `80px` over `650ms` using the
+   `[0.16, 1, 0.3, 1]` ease-out curve.
+4. The shared primary button fades into the focal point vacated by the title.
+5. The button remains disabled and outside the accessibility interaction flow
+   until its reveal begins.
+
+Do not animate the parent brand container. The title and action animate
+independently over the same fixed grid cell. Ma'am Clara's stage also remains
+positionally fixed and uses opacity-only entrance motion. With reduced motion,
+show the final title and button positions immediately.
+
+### Link-start route transition
+
+The intro-to-home handoff uses the shared `LinkStartTransition`. It is inspired
+by the sensation of entering a colorful light tunnel, but it must remain an
+original ReaDirect implementation and follow the vector-like visual rules in
+this guide.
+
+`READIRECT_REVAMP_MAIN_TRANSITION_STANDARD.md` is the canonical specification
+for its exact timing, cylinder generation, responsive density, route lifecycle,
+theme contract, accessibility behavior, approved placements, and tests. This
+section is only a design-system summary and must not override that standard.
+
+- The pressed button must finish its `180ms` commit state before the route
+  transition begins.
+- The complete light-tunnel animation runs for `3000ms`. Its ignition, streak
+  acceleration, cover, route swap, and reveal must be distributed across that
+  duration; do not finish the visual effect early and leave an artificial wait.
+- The tunnel must use a dense field of long, thick, round-ended rods rather
+  than a sparse set of short speed lines. These rods remain moving and visible
+  through most of the three-second sequence before the solid cover completes.
+- Generate successive rod waves continuously at a fixed cadence so the tunnel
+  never empties during the cover expansion. Do not limit the effect to a fixed
+  number of waves. Rod rendering stops only on the frame where the solid cover
+  has completely filled the viewport; rods must not disappear during a
+  partially covered frame.
+- Render flat, solid radial streaks with rounded ends from one stable vanishing
+  point. Do not use gradients, photographic bloom, raster video, or blur
+  filters.
+- Expand a solid theme-colored cover from the vanishing point. Change routes
+  only after that cover fills the viewport, then clear the cover to reveal the
+  destination already mounted underneath.
+- Preload the destination's responsive, theme-selected background while the
+  source page is idle. Preload only the asset matching the active viewport.
+- The transition must be a shared application-level overlay rather than
+  page-local markup. It must survive the route change without remounting or
+  flashing between page backgrounds.
+- Canvas colors must be resolved from semantic CSS custom properties. Canvas
+  rendering code must not contain literal colors.
+- Use a deterministic streak field, cap canvas pixel density, and reduce the
+  streak count on mobile. Rendering must stop when the one-shot transition
+  finishes.
+- The overlay must block repeated input while active, remain decorative to
+  assistive technology, and transfer focus to the destination route after it
+  clears.
+- With reduced motion enabled, skip the light tunnel and navigate immediately.
+
+Required semantic roles:
+
+```css
+--color-transition-link-core
+--color-transition-link-cover
+--color-transition-link-primary
+--color-transition-link-secondary
+--color-transition-link-accent
+--color-transition-link-shadow
+```
 
 Motion for React reference:
 

@@ -276,8 +276,14 @@ try {
     foreach ($speechService in $speechServices) {
         $entrypointPath = Join-Path $speechService.Directory 'main.py'
         $pythonPath = Join-Path $speechService.Directory '.venv\Scripts\python.exe'
+        $entrypointSource = if (Test-Path -LiteralPath $entrypointPath) {
+            Get-Content -LiteralPath $entrypointPath -Raw
+        }
+        else {
+            ''
+        }
 
-        if ((Get-Item -LiteralPath $entrypointPath).Length -le 1) {
+        if ([string]::IsNullOrWhiteSpace($entrypointSource)) {
             Add-SkippedService -Name $speechService.Name -Reason 'The FastAPI entrypoint is still empty.'
             continue
         }

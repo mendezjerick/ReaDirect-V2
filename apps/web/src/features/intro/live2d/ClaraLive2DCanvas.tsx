@@ -101,6 +101,7 @@ export function ClaraLive2DCanvas({
 
         onStateChange("ready");
         setStatusMessage("Ma'am Clara is ready");
+        previousFrameTime = performance.now();
         animationFrame = requestAnimationFrame(frame);
       } catch (error) {
         if (abortController.signal.aborted) {

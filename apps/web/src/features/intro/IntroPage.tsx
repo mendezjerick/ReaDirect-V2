@@ -1,7 +1,12 @@
 import { motion, useReducedMotion } from "motion/react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 
+import {
+  ROUTE_TRANSITION_PRESS_COMMIT_MS,
+  useRouteTransition,
+} from "../../components/transitions/RouteTransitionProvider";
+import { BigButton } from "../../components/ui/BigButton";
+import { preloadCssImageToken } from "../../utils/preloadCssImageToken";
 import { ClaraStage } from "./ClaraStage";
 import type { ClaraEmotion } from "./live2d/ClaraExpressionController";
 import { PointerTrail } from "./PointerTrail";
@@ -15,12 +20,26 @@ export const INTRO_EXPRESSION_SEQUENCE = [
 ] as const satisfies readonly ClaraEmotion[];
 
 const INTRO_EXPRESSION_DURATION_MS = 2000;
+export const INTRO_CENTER_HOLD_MS = 2000;
+export const INTRO_ACTION_COMMIT_DELAY_MS = ROUTE_TRANSITION_PRESS_COMMIT_MS;
+const INTRO_TITLE_RISE_PX = 80;
 
 export function IntroPage() {
-  const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
+  const { beginRouteTransition, isTransitioning } = useRouteTransition();
   const [expressionIndex, setExpressionIndex] = useState(0);
+  const [introReady, setIntroReady] = useState(Boolean(reduceMotion));
+  const homeBackgroundPreloadRef = useRef<HTMLImageElement | null>(null);
   const expression = INTRO_EXPRESSION_SEQUENCE[expressionIndex];
+
+  useEffect(() => {
+    const assetToken =
+      window.innerWidth >= 768
+        ? "--asset-home-background-desktop"
+        : "--asset-home-background-mobile";
+
+    homeBackgroundPreloadRef.current = preloadCssImageToken(assetToken);
+  }, []);
 
   useEffect(() => {
     if (reduceMotion) {
@@ -37,8 +56,22 @@ export function IntroPage() {
     return () => window.clearInterval(interval);
   }, [reduceMotion]);
 
+  useEffect(() => {
+    if (reduceMotion) {
+      setIntroReady(true);
+      return;
+    }
+
+    const timeout = window.setTimeout(
+      () => setIntroReady(true),
+      INTRO_CENTER_HOLD_MS,
+    );
+
+    return () => window.clearTimeout(timeout);
+  }, [reduceMotion]);
+
   const continueToHome = () => {
-    navigate("/home");
+    beginRouteTransition("/home");
   };
 
   return (
@@ -54,38 +87,47 @@ export function IntroPage() {
       <VectorCursor />
 
       <section className="intro-page__content">
-        <motion.div
-          className="intro-page__brand"
-          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: reduceMotion ? 0 : -14 }}
-          transition={{
-            opacity: { duration: reduceMotion ? 0 : 0.55, ease: "easeOut" },
-            y: {
-              delay: reduceMotion ? 0 : 1,
-              duration: reduceMotion ? 0 : 0.35,
-              ease: [0.22, 1, 0.36, 1],
-            },
-          }}
-        >
-          <h1 id="intro-title" className="intro-page__title">
-            ReaDirect
-          </h1>
-
-          <motion.button
-            type="button"
-            className="intro-page__continue"
-            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
+        <div className="intro-page__brand">
+          <motion.h1
+            id="intro-title"
+            className="intro-page__title"
+            initial={reduceMotion ? false : { opacity: 0, y: 0 }}
+            animate={{ opacity: 1, y: introReady ? -INTRO_TITLE_RISE_PX : 0 }}
             transition={{
-              delay: reduceMotion ? 0 : 1.12,
-              duration: reduceMotion ? 0 : 0.42,
+              opacity: {
+                duration: reduceMotion ? 0 : 0.6,
+                ease: "easeOut",
+              },
+              y: {
+                duration: reduceMotion ? 0 : 0.65,
+                ease: [0.16, 1, 0.3, 1],
+              },
+            }}
+          >
+            ReaDirect
+          </motion.h1>
+
+          <motion.div
+            className="intro-page__continue-wrap"
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: introReady ? 1 : 0 }}
+            transition={{
+              delay: reduceMotion || !introReady ? 0 : 0.14,
+              duration: reduceMotion ? 0 : 0.5,
               ease: "easeOut",
             }}
-            onClick={continueToHome}
+            aria-hidden={!introReady}
           >
-            Tap to continue
-          </motion.button>
-        </motion.div>
+            <BigButton
+              className="intro-page__continue"
+              committing={isTransitioning}
+              disabled={!introReady}
+              onClick={continueToHome}
+            >
+              Tap to continue
+            </BigButton>
+          </motion.div>
+        </div>
 
         <ClaraStage emotion={expression} />
       </section>

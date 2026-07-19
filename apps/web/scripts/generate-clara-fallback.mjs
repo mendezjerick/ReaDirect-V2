@@ -15,6 +15,45 @@ const publicOutput = path.join(
   webRoot,
   "public/assets/live2d/clara/stills/clara-default.png",
 );
+const previewOutput = process.env.CLARA_PREVIEW_OUTPUT
+  ? path.resolve(repositoryRoot, process.env.CLARA_PREVIEW_OUTPUT)
+  : null;
+const previewFrameHeight = process.env.CLARA_PREVIEW_FRAME_HEIGHT;
+const previewFrameY = process.env.CLARA_PREVIEW_FRAME_Y;
+
+if ((previewFrameHeight || previewFrameY) && !previewOutput) {
+  throw new Error(
+    "CLARA_PREVIEW_OUTPUT is required when preview crop values are supplied.",
+  );
+}
+
+const previewCropPlugin = {
+  name: "clara-preview-crop",
+  enforce: "pre",
+  transform(source, id) {
+    if (!id.endsWith("ClaraWebGLRenderer.ts")) {
+      return null;
+    }
+
+    let transformedSource = source;
+
+    if (previewFrameHeight) {
+      transformedSource = transformedSource.replace(
+        /const PASSPORT_FRAME_HEIGHT = [-\d.]+;/,
+        `const PASSPORT_FRAME_HEIGHT = ${Number(previewFrameHeight)};`,
+      );
+    }
+
+    if (previewFrameY) {
+      transformedSource = transformedSource.replace(
+        /const PASSPORT_FRAME_Y = [-\d.]+;/,
+        `const PASSPORT_FRAME_Y = ${Number(previewFrameY)};`,
+      );
+    }
+
+    return transformedSource;
+  },
+};
 
 const captureSize = 512;
 const captureScale = 2;
@@ -70,6 +109,7 @@ const captureStyles = `
 const server = await createServer({
   root: webRoot,
   logLevel: "error",
+  plugins: previewOutput ? [previewCropPlugin] : [],
   server: {
     host: "127.0.0.1",
     port: 4175,
@@ -133,22 +173,32 @@ try {
     throw new Error("Clara's capture stage has no visible bounds.");
   }
 
-  await mkdir(path.dirname(runtimeOutput), { recursive: true });
-  await mkdir(path.dirname(publicOutput), { recursive: true });
+  const primaryOutput = previewOutput ?? runtimeOutput;
+
+  await mkdir(path.dirname(primaryOutput), { recursive: true });
   await page.screenshot({
-    path: runtimeOutput,
+    path: primaryOutput,
     type: "png",
     clip: stageBounds,
     omitBackground: true,
   });
-  await copyFile(runtimeOutput, publicOutput);
+
+  if (!previewOutput) {
+    await mkdir(path.dirname(publicOutput), { recursive: true });
+    await copyFile(runtimeOutput, publicOutput);
+  }
+
   await context.close();
 
   console.log(
-    `Generated Clara's ${outputSize}x${outputSize} default fallback portrait.`,
+    previewOutput
+      ? `Generated Clara's ${outputSize}x${outputSize} crop preview.`
+      : `Generated Clara's ${outputSize}x${outputSize} default fallback portrait.`,
   );
-  console.log(runtimeOutput);
-  console.log(publicOutput);
+  console.log(primaryOutput);
+  if (!previewOutput) {
+    console.log(publicOutput);
+  }
 } finally {
   await browser?.close();
   await server.close();

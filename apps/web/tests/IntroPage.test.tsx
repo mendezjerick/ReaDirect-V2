@@ -2,6 +2,12 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 
+import {
+  LINK_START_DURATION_MS,
+  LINK_START_ROUTE_SWAP_MS,
+} from "../src/components/transitions/LinkStartTransition";
+import { RouteTransitionProvider } from "../src/components/transitions/RouteTransitionProvider";
+
 vi.mock("../src/features/intro/live2d/ClaraLive2DCanvas", () => ({
   ClaraLive2DCanvas: () => (
     <canvas className="clara-stage__canvas" aria-hidden="true" />
@@ -18,6 +24,8 @@ vi.mock("motion/react", async (importOriginal) => {
 });
 
 import {
+  INTRO_ACTION_COMMIT_DELAY_MS,
+  INTRO_CENTER_HOLD_MS,
   INTRO_EXPRESSION_SEQUENCE,
   IntroPage,
 } from "../src/features/intro/IntroPage";
@@ -25,10 +33,19 @@ import {
 function renderIntro() {
   return render(
     <MemoryRouter initialEntries={["/"]}>
-      <Routes>
-        <Route path="/" element={<IntroPage />} />
-        <Route path="/home" element={<div>Home route</div>} />
-      </Routes>
+      <RouteTransitionProvider>
+        <Routes>
+          <Route path="/" element={<IntroPage />} />
+          <Route
+            path="/home"
+            element={
+              <div data-route-focus tabIndex={-1}>
+                Home route
+              </div>
+            }
+          />
+        </Routes>
+      </RouteTransitionProvider>
     </MemoryRouter>,
   );
 }
@@ -61,27 +78,102 @@ describe("IntroPage", () => {
     }
   });
 
-  it("introduces ReaDirect and Ma'am Clara", () => {
-    renderIntro();
+  it("holds the centered title for two seconds before revealing the action", () => {
+    vi.useFakeTimers();
 
-    expect(
-      screen.getByRole("heading", { name: "ReaDirect" }),
-    ).toBeInTheDocument();
-    expect(screen.getByAltText("Ma'am Clara")).toHaveAttribute(
-      "src",
-      "/assets/live2d/clara/stills/clara-default.png",
-    );
-    expect(
-      screen.getByRole("button", { name: "Tap to continue" }),
-    ).toBeEnabled();
+    try {
+      const { container, unmount } = renderIntro();
+      const continueButton = container.querySelector<HTMLButtonElement>(
+        ".intro-page__continue",
+      );
+
+      expect(
+        screen.getByRole("heading", { name: "ReaDirect" }),
+      ).toBeInTheDocument();
+      expect(screen.getByAltText("Ma'am Clara")).toHaveAttribute(
+        "src",
+        "/assets/live2d/clara/stills/clara-default.png",
+      );
+      expect(continueButton).toBeDisabled();
+
+      act(() => vi.advanceTimersByTime(INTRO_CENTER_HOLD_MS - 1));
+      expect(continueButton).toBeDisabled();
+
+      act(() => vi.advanceTimersByTime(1));
+      expect(
+        screen.getByRole("button", { name: "Tap to continue" }),
+      ).toBeEnabled();
+
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
-  it("continues to the reserved home route", () => {
-    renderIntro();
+  it("reveals the fallback portrait only after the image loads", () => {
+    const { container } = renderIntro();
+    const portrait = screen.getByAltText("Ma'am Clara");
+    const stage = container.querySelector<HTMLElement>(".clara-stage");
 
-    fireEvent.click(screen.getByRole("button", { name: "Tap to continue" }));
+    expect(portrait).toHaveAttribute("data-load-state", "loading");
+    expect(stage?.style.transform).not.toContain("translate");
 
-    expect(screen.getByText("Home route")).toBeInTheDocument();
+    fireEvent.load(portrait);
+
+    expect(portrait).toHaveAttribute("data-load-state", "loaded");
+  });
+
+  it("shows the press commit before continuing to the home route", () => {
+    vi.useFakeTimers();
+
+    try {
+      const { unmount } = renderIntro();
+      act(() => vi.advanceTimersByTime(INTRO_CENTER_HOLD_MS));
+
+      const continueButton = screen.getByRole("button", {
+        name: "Tap to continue",
+      });
+
+      fireEvent.click(continueButton);
+
+      expect(continueButton).toBeDisabled();
+      expect(continueButton).toHaveAttribute("data-press-state", "committing");
+      expect(screen.queryByText("Home route")).not.toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(INTRO_ACTION_COMMIT_DELAY_MS - 1));
+      expect(screen.queryByText("Home route")).not.toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(1));
+      expect(
+        document.querySelector('[data-route-transition="link-start"]'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText("Home route")).not.toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(LINK_START_ROUTE_SWAP_MS - 1));
+      expect(screen.queryByText("Home route")).not.toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(1));
+      expect(screen.getByText("Home route")).toBeInTheDocument();
+      expect(
+        document.querySelector('[data-route-transition="link-start"]'),
+      ).toBeInTheDocument();
+
+      act(() =>
+        vi.advanceTimersByTime(
+          LINK_START_DURATION_MS - LINK_START_ROUTE_SWAP_MS,
+        ),
+      );
+      expect(
+        document.querySelector('[data-route-transition="link-start"]'),
+      ).not.toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(20));
+      expect(screen.getByText("Home route")).toHaveFocus();
+
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("prevents the browser copy action on the intro surface", () => {
