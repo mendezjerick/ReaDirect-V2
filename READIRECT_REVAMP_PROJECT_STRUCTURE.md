@@ -5,6 +5,29 @@ This document defines the required repository and asset structure for ReaDirect-
 ```text
 ReaDirect-V2/
 |-- apps/
+|   |-- games/
+|   |   |-- lobby/
+|   |   |   |-- src/
+|   |   |   |-- tests/
+|   |   |   |-- package.json
+|   |   |   \-- README.md
+|   |   |-- game-one/
+|   |   |   |-- src/
+|   |   |   |-- backend/
+|   |   |   |-- assets/
+|   |   |   |-- tests/
+|   |   |   |-- GAME_DESIGN.md
+|   |   |   |-- composer.json
+|   |   |   \-- package.json
+|   |   \-- game-two/
+|   |       |-- src/
+|   |       |-- backend/
+|   |       |-- assets/
+|   |       |-- tests/
+|   |       |-- GAME_DESIGN.md
+|   |       |-- composer.json
+|   |       \-- package.json
+|   |
 |   |-- web/
 |   |   |-- public/
 |   |   |   \-- assets/
@@ -31,6 +54,7 @@ ReaDirect-V2/
 |       |-- bootstrap/
 |       |-- config/
 |       |-- database/
+|       |-- public/
 |       |-- routes/
 |       |-- storage/
 |       |-- tests/
@@ -127,6 +151,9 @@ ReaDirect-V2/
 |-- READIRECT_REVAMP_ASSESSMENT_GUIDE.md
 |-- READIRECT_REVAMP_AUDIO_PREPROCESSING_AND_RECORDING_STANDARD.md
 |-- READIRECT_REVAMP_FRONTEND_DESIGN_SYSTEM.md
+|-- READIRECT_REVAMP_GAME_DATABASE_AND_API_STANDARD.md
+|-- READIRECT_REVAMP_GAME_MODULE_STANDARD.md
+|-- READIRECT_REVAMP_GAME_TECH_STACK.md
 |-- READIRECT_REVAMP_PROJECT_STRUCTURE.md
 |-- READIRECT_REVAMP_TECH_STACK.md
 |-- READIRECT_REVAMP_USER_ROLES_AND_DASHBOARDS.md
@@ -142,6 +169,37 @@ ReaDirect-V2/
 ```
 
 ## Main Applications
+
+### apps/games
+
+Contains the owner-controlled game lobby and at most two independently developed
+game modules. These folders are source packages compiled into apps/web and,
+when accepted, locally loaded Laravel packages used by apps/api. They are not
+separate deployments, databases, schemas, domains, iframes, or microfrontends.
+
+The required slots are:
+
+~~~text
+apps/games/
+|-- lobby/
+|-- game-one/
+\-- game-two/
+~~~
+
+The lobby owns game selection, game-username onboarding, separate learner and
+guest leaderboard views, queued achievement presentation, and the
+owner-controlled game registry.
+
+Each contributor repository root must match its assigned game-one or game-two
+directory exactly. Each game contains its React frontend, selected KAPLAY or
+PixiJS runtime, Laravel package, migrations, tests, runtime assets, editable
+asset sources, licenses, and completed GAME_DESIGN.md.
+
+Every game is governed by:
+
+- READIRECT_REVAMP_GAME_TECH_STACK.md
+- READIRECT_REVAMP_GAME_MODULE_STANDARD.md
+- READIRECT_REVAMP_GAME_DATABASE_AND_API_STANDARD.md
 
 ### `apps/web`
 
@@ -191,6 +249,26 @@ Examples include:
 - Web fonts
 
 The browser-ready assets are derived from the master assets. Editable source files must not be placed in the public directory.
+
+### Self-contained game-module assets
+
+Contributor game repositories are the approved exception to the top-level
+master-asset location because their repository roots must merge directly into a
+game slot.
+
+~~~text
+apps/games/<slot>/
+|-- assets/
+|   |-- source/
+|   \-- licenses/
+\-- src/
+    \-- assets/
+~~~
+
+Editable and production-source game assets belong in assets/source. License and
+attribution evidence belongs in assets/licenses. Optimized runtime assets belong
+in src/assets and are imported by the module so Vite fingerprints them. Game
+assets must not be placed in another game's directories.
 
 ## Live2D Assets
 
@@ -335,6 +413,29 @@ The required main divisions are:
 ```text
 ReaDirect-V2/
 |-- apps/
+|   |-- games/
+|   |   |-- lobby/
+|   |   |   |-- src/
+|   |   |   |-- tests/
+|   |   |   |-- package.json
+|   |   |   \-- README.md
+|   |   |-- game-one/
+|   |   |   |-- src/
+|   |   |   |-- backend/
+|   |   |   |-- assets/
+|   |   |   |-- tests/
+|   |   |   |-- GAME_DESIGN.md
+|   |   |   |-- composer.json
+|   |   |   \-- package.json
+|   |   \-- game-two/
+|   |       |-- src/
+|   |       |-- backend/
+|   |       |-- assets/
+|   |       |-- tests/
+|   |       |-- GAME_DESIGN.md
+|   |       |-- composer.json
+|   |       \-- package.json
+|   |
 |   |-- web/
 |   |   |-- public/
 |   |   |   \-- assets/
@@ -361,6 +462,7 @@ ReaDirect-V2/
 |       |-- bootstrap/
 |       |-- config/
 |       |-- database/
+|       |-- public/
 |       |-- routes/
 |       |-- storage/
 |       |-- tests/
@@ -457,6 +559,9 @@ ReaDirect-V2/
 |-- READIRECT_REVAMP_ASSESSMENT_GUIDE.md
 |-- READIRECT_REVAMP_AUDIO_PREPROCESSING_AND_RECORDING_STANDARD.md
 |-- READIRECT_REVAMP_FRONTEND_DESIGN_SYSTEM.md
+|-- READIRECT_REVAMP_GAME_DATABASE_AND_API_STANDARD.md
+|-- READIRECT_REVAMP_GAME_MODULE_STANDARD.md
+|-- READIRECT_REVAMP_GAME_TECH_STACK.md
 |-- READIRECT_REVAMP_PROJECT_STRUCTURE.md
 |-- READIRECT_REVAMP_TECH_STACK.md
 |-- READIRECT_REVAMP_USER_ROLES_AND_DASHBOARDS.md

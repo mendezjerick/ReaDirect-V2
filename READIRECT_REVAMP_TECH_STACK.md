@@ -21,6 +21,7 @@ This file defines the approved technology stack for ReaDirect. Only the technolo
 - TanStack Query
 - React Hook Form
 - Zod
+- KAPLAY
 - PixiJS
 - Laravel Echo
 - pusher-js
@@ -36,6 +37,23 @@ This file defines the approved technology stack for ReaDirect. Only the technolo
 - Service Worker API
 - Web App Manifest
 - SVG
+
+## Game Development
+
+- React is mandatory for every game route, menu, and host boundary.
+- Each game must use exactly one approved combination:
+  - React plus KAPLAY
+  - React plus PixiJS
+- KAPLAY and PixiJS must not power the same main gameplay canvas.
+- Phaser is prohibited and must never be installed, imported, bundled, copied,
+  or loaded from a CDN.
+- Games are portrait-only, touch-first, single-player 2D modules within the
+  existing React application.
+- Tiled Map Editor is optional for tile-based game asset production.
+- A bounded top-down educational RPG is the maximum approved game scope.
+
+The complete dependency, lifecycle, input, asset, backend, and scope rules are
+defined in READIRECT_REVAMP_GAME_TECH_STACK.md.
 
 ## Character Runtime
 
@@ -145,3 +163,4 @@ This file defines the approved technology stack for ReaDirect. Only the technolo
 - Krita
 - Penpot
 - Audacity
+- Tiled Map Editor
