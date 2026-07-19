@@ -37,6 +37,24 @@ under `C:\Program Files`. If `pnpm` is not available directly, use:
 corepack pnpm install --frozen-lockfile
 ```
 
+## Local launcher
+
+Start every currently configured ReaDirect service from the repository root:
+
+```powershell
+.\start.ps1
+```
+
+Stop the services without relying on the active launcher terminal:
+
+```powershell
+.\stop.ps1
+```
+
+The launcher stores verified process IDs and start times under the ignored
+`.runtime` directory. The stop script uses that manifest and only falls back to
+known ports when the listener can be verified as a process from this repository.
+
 ## Live2D Cubism SDK
 
 The open Cubism Web Framework is downloaded from Live2D's official GitHub
