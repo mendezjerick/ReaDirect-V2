@@ -24,6 +24,8 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = $PSScriptRoot
 $runtimeDirectory = Join-Path $repositoryRoot '.runtime'
 $logDirectory = Join-Path $runtimeDirectory 'logs'
+$serviceManifestPath = Join-Path $runtimeDirectory 'services.json'
+$stopRequestPath = Join-Path $runtimeDirectory 'stop-requested'
 $bindAddress = '0.0.0.0'
 $runningProcesses = [System.Collections.Generic.List[object]]::new()
 $serviceResults = [System.Collections.Generic.List[object]]::new()
@@ -92,6 +94,33 @@ function Add-SkippedService {
         })
 }
 
+function Save-ServiceManifest {
+    $services = @(
+        $runningProcesses | ForEach-Object {
+            $_.Process.Refresh()
+
+            [ordered]@{
+                Name         = $_.Name
+                ProcessId    = $_.Process.Id
+                StartTimeUtc = $_.Process.StartTime.ToUniversalTime().ToString('o')
+                Port         = $_.Port
+                Url          = $_.Url
+            }
+        }
+    )
+
+    $manifest = [ordered]@{
+        Version        = 1
+        RepositoryRoot = $repositoryRoot
+        UpdatedAtUtc   = [DateTime]::UtcNow.ToString('o')
+        Services       = $services
+    }
+
+    $temporaryManifestPath = "$serviceManifestPath.tmp"
+    $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $temporaryManifestPath -Encoding UTF8
+    Move-Item -LiteralPath $temporaryManifestPath -Destination $serviceManifestPath -Force
+}
+
 function Start-ManagedProcess {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -127,6 +156,7 @@ function Start-ManagedProcess {
     }
 
     $runningProcesses.Add($processRecord)
+    Save-ServiceManifest
     return $processRecord
 }
 
@@ -196,6 +226,7 @@ function Get-LanAddresses {
 }
 
 New-Item -ItemType Directory -Force -Path $logDirectory | Out-Null
+Remove-Item -LiteralPath $stopRequestPath -Force -ErrorAction SilentlyContinue
 
 Write-Host 'ReaDirect local launcher' -ForegroundColor Green
 Write-Host "Repository: $repositoryRoot"
@@ -335,6 +366,12 @@ try {
     while ($true) {
         Start-Sleep -Seconds 1
 
+        if (Test-Path -LiteralPath $stopRequestPath) {
+            Write-Host ''
+            Write-Host 'Stop requested by stop.ps1.' -ForegroundColor Cyan
+            break
+        }
+
         foreach ($processRecord in $runningProcesses) {
             $processRecord.Process.Refresh()
             if ($processRecord.Process.HasExited) {
@@ -354,4 +391,7 @@ finally {
             }
         }
     }
+
+    Remove-Item -LiteralPath $serviceManifestPath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $stopRequestPath -Force -ErrorAction SilentlyContinue
 }
