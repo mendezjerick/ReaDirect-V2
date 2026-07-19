@@ -30,6 +30,7 @@ export function ClaraStage({
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading",
   );
+  const [portraitLoaded, setPortraitLoaded] = useState(false);
   const presentation: ClaraPresentationState = {
     emotion,
     speaking,
@@ -39,12 +40,12 @@ export function ClaraStage({
   return (
     <motion.figure
       className="clara-stage"
-      initial={reduceMotion ? false : { opacity: 0, y: 22 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={reduceMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{
         delay: reduceMotion ? 0 : 0.22,
-        duration: reduceMotion ? 0 : 0.7,
-        ease: [0.22, 1, 0.36, 1],
+        duration: reduceMotion ? 0 : 0.55,
+        ease: "easeOut",
       }}
       aria-label="Ma'am Clara"
       data-live2d-model={CLARA_RUNTIME_MODEL_PATH}
@@ -53,11 +54,19 @@ export function ClaraStage({
       data-clara-speaking={speaking}
     >
       <div className="clara-stage__portrait-wrap">
-        <img
+        <motion.img
           className="clara-stage__portrait"
           src={CLARA_PORTRAIT_PATH}
           alt="Ma'am Clara"
           draggable="false"
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: portraitLoaded ? 1 : 0 }}
+          transition={{
+            duration: reduceMotion ? 0 : 0.55,
+            ease: "easeOut",
+          }}
+          data-load-state={portraitLoaded ? "loaded" : "loading"}
+          onLoad={() => setPortraitLoaded(true)}
         />
       </div>
       <Suspense fallback={null}>

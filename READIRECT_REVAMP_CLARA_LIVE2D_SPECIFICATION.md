@@ -44,7 +44,7 @@ values:
 ```ts
 const PASSPORT_FRAME_HEIGHT = 4.55;
 const PASSPORT_FRAME_X = 0;
-const PASSPORT_FRAME_Y = -1.245;
+const PASSPORT_FRAME_Y = -1.28015625;
 
 const modelMatrix = this.getModelMatrix();
 modelMatrix.setHeight(PASSPORT_FRAME_HEIGHT);
@@ -58,11 +58,17 @@ identical at every responsive breakpoint.
 | ----------------------- | -------------: | ----------------------------------------------------------- |
 | `PASSPORT_FRAME_HEIGHT` |         `4.55` | Approved model zoom; 30% closer than the earlier `3.5` crop |
 | `PASSPORT_FRAME_X`      |            `0` | Keeps Clara centered on her native horizontal origin        |
-| `PASSPORT_FRAME_Y`      |       `-1.245` | Preserves the approved top margin at the closer zoom        |
+| `PASSPORT_FRAME_Y`      |  `-1.28015625` | Lowers Clara by 9px in the canonical 512px capture          |
 | Viewport aspect ratio   |        `1 / 1` | Maintains the passport-style square                         |
 
 The crop must show Clara's head, hair, shoulders, and the approved amount of
 upper torso. The lower body is intentionally outside the viewport.
+
+The vertical value is derived from a `9px` downward correction in the canonical
+`512 x 512` CSS capture: `9 / 512 x 2 = 0.03515625` model-position units. The
+previous `-1.245` value minus that correction produces `-1.28015625`. This
+leaves intentional breathing room above Clara's hair while preserving the
+square crop and scaling the composition proportionally at other viewport sizes.
 
 ## Approved Appearance Override
 
@@ -338,10 +344,49 @@ the original `assets/live2d/source/clara/` files untouched.
 
 ### Generated Default Fallback
 
-The default fallback is a deterministic `1024 x 1024` transparent PNG rendered
-from the real model. It uses the approved `4.55`, `0`, `-1.245` passport crop,
-the default theme's Clara color variables, the hidden `collar` drawable, and a
-stable pose with breathing and physics disabled.
+The approved fallback alignment is the finalized
+`clara-live2d-mimic-crop-raised-18px-preview.png`. Both active fallback copies
+must remain byte-identical to this asset. The additional `18px` upward framing
+correction applies only to the PNG; the approved Live2D matrix and runtime
+behavior remain unchanged.
+
+The default fallback is a deterministic `1024 x 1024` transparent PNG derived
+from a wider render of the real model. It uses the default theme's Clara color
+variables, the hidden `collar` drawable, and a stable pose with breathing and
+physics disabled. The wider source prevents the passport viewport from clipping
+model pixels before the fallback crop is selected.
+
+#### Finalized fallback crop logic
+
+The fallback is produced in two stages. These values are exact and must not be
+estimated by eye.
+
+1. Render a `512 x 512` CSS stage at device scale `2`, producing a
+   `1024 x 1024` transparent source image.
+2. For this capture only, use model frame height `2.45`, X position `0`, and Y
+   position `-0.28`. These preview values reveal Clara's full visible exported
+   artwork and must never replace the runtime passport matrix.
+3. Crop a `552 x 552` square from source coordinate `x = 236`, `y = 37`.
+4. Resize that crop to `1024 x 1024` with Lanczos resampling and preserve RGBA
+   transparency.
+5. Copy the finalized PNG byte-for-byte to both active fallback locations.
+
+The unadjusted Live2D-mimic crop begins at `x = 236`, `y = 27`. The final crop
+increases source Y by `10px`, moving the visible character upward. Because the
+`552px` source crop is enlarged to `1024px`, the visible correction is:
+
+```text
+10 x (1024 / 552) = 18.5507 output pixels
+```
+
+This is the approved approximately `18px` raised fallback. Do not apply an
+additional CSS translation to the portrait wrapper or canvas.
+
+Final alignment source:
+
+```text
+assets/live2d/previews/clara-live2d-mimic-crop-raised-18px-preview.png
+```
 
 Canonical generated copy:
 
@@ -355,17 +400,43 @@ Browser copy:
 apps/web/public/assets/live2d/clara/stills/clara-default.png
 ```
 
-Regenerate both copies after any approved crop, model, drawable visibility, or
-default Clara palette change:
+Regenerate the wider source after any approved crop, model, drawable
+visibility, or default Clara palette change:
 
 ```powershell
+$env:CLARA_PREVIEW_OUTPUT = 'assets/live2d/previews/clara-full-model-square-preview.png'
+$env:CLARA_PREVIEW_FRAME_HEIGHT = '2.45'
+$env:CLARA_PREVIEW_FRAME_Y = '-0.28'
 corepack pnpm --filter @readirect/web live2d:generate-fallback
+
+Remove-Item Env:CLARA_PREVIEW_OUTPUT
+Remove-Item Env:CLARA_PREVIEW_FRAME_HEIGHT
+Remove-Item Env:CLARA_PREVIEW_FRAME_Y
 ```
 
-The generator is `apps/web/scripts/generate-clara-fallback.mjs`. It renders a
-`512 x 512` CSS stage at device scale `2`, uses reduced motion for a stable
-pose, and captures the stage without a page background. Do not manually edit
-the generated PNG or replace it with a screenshot of the surrounding page.
+Apply the exact crop and copy it to both fallback locations:
+
+```powershell
+ffmpeg -y `
+  -i '.\assets\live2d\previews\clara-full-model-square-preview.png' `
+  -vf 'crop=552:552:236:37,scale=1024:1024:flags=lanczos,format=rgba' `
+  -frames:v 1 -update 1 `
+  '.\assets\live2d\previews\clara-live2d-mimic-crop-raised-18px-preview.png'
+
+Copy-Item `
+  '.\assets\live2d\previews\clara-live2d-mimic-crop-raised-18px-preview.png' `
+  '.\assets\live2d\runtime\clara\stills\clara-default.png' -Force
+
+Copy-Item `
+  '.\assets\live2d\previews\clara-live2d-mimic-crop-raised-18px-preview.png' `
+  '.\apps\web\public\assets\live2d\clara\stills\clara-default.png' -Force
+```
+
+The generator is `apps/web/scripts/generate-clara-fallback.mjs`. It uses
+reduced motion for a stable pose and captures without a page background. The
+unparameterized generator creates the direct runtime capture and therefore is
+not the final approved fallback workflow. Do not replace the finalized PNG with
+a screenshot of the surrounding page.
 
 A raster fallback cannot inherit CSS color variables. Every future theme that
 changes Clara's palette must provide its own generated fallback and select it
@@ -587,6 +658,22 @@ The stage has three runtime states:
 The current transition duration is `220ms ease-out`. Reduced-motion mode
 removes this transition.
 
+Live2D movement must begin as soon as the renderer becomes ready. Do not freeze
+Clara during the portrait-to-canvas crossfade; breathing, physics, expressions,
+and active look tracking continue naturally underneath the transition.
+
+The fallback portrait itself must not pop into view when its PNG finishes
+loading. Its image element starts visually hidden and fades to full visibility
+over approximately `550ms ease-out` after the load event. This entrance works
+in addition to the stage entrance and must not interfere with the later
+portrait-to-Live2D crossfade. Reduced-motion mode reveals the loaded portrait
+immediately.
+
+The Clara stage entrance must be opacity-only. Do not animate the stage's
+`x`, `y`, scale, or rotation while the fallback is visible; positional entrance
+motion makes the fixed crop appear to jump immediately before Live2D takes
+over.
+
 The fallback wrapper and Live2D canvas must both fill the complete square with
 the same crop. The fallback must not add its own card, border, background,
 rounded frame, or fake depth because those elements would disappear when the
@@ -641,7 +728,7 @@ Without explicit approval, implementations must use:
 ```text
 Height: 4.55
 X:      0
-Y:     -1.245
+Y:     -1.28015625
 Ratio:  1 / 1
 ```
 
@@ -650,7 +737,7 @@ Ratio:  1 / 1
 A Ma'am Clara implementation is compliant only when:
 
 - [ ] The stage is a responsive square.
-- [ ] The matrix values are exactly `4.55`, `0`, and `-1.245`.
+- [ ] The matrix values are exactly `4.55`, `0`, and `-1.28015625`.
 - [ ] Clara is horizontally centered.
 - [ ] The approved head-and-upper-torso crop matches the intro page.
 - [ ] The top of her hair remains inside the square during idle motion.

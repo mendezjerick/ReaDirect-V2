@@ -3,6 +3,9 @@
  * TypeScript, canvas renderers, and SVG must consume these semantic variables.
  */
 :root {
+  --asset-home-background-mobile: url("/assets/backgrounds/T1mobile.png");
+  --asset-home-background-desktop: url("/assets/backgrounds/T1desktop.png");
+
   --color-transparent: transparent;
 
   --color-surface-page: #f7efdc;
@@ -40,6 +43,13 @@
   --color-accent-sun: #f3c85b;
   --color-fallback-portrait-surface: #7fb3b6;
   --color-fallback-portrait-depth: #b65b6b;
+
+  --color-transition-link-core: #fffdf7;
+  --color-transition-link-cover: #fffdf7;
+  --color-transition-link-primary: #5faf67;
+  --color-transition-link-secondary: #f3c85b;
+  --color-transition-link-accent: #f29a6a;
+  --color-transition-link-shadow: #356b3f;
 
   --color-live2d-recolor-base: #000000;
   --color-live2d-canvas-clear: transparent;
