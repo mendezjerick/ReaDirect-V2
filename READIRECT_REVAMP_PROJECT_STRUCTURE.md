@@ -123,6 +123,12 @@ ReaDirect-V2/
 |   |-- licenses/
 |   \-- asset-manifest.json
 |
+|-- content/
+|   |-- README.md
+|   |-- lexicon/
+|   |-- assessments/
+|   \-- lessons/
+|
 |-- packages/
 |   |-- shared-types/
 |   |   \-- package.json
@@ -149,7 +155,9 @@ ReaDirect-V2/
 |
 |-- READIRECT_REVAMP_ASR_GUIDE.md
 |-- READIRECT_REVAMP_ASSESSMENT_GUIDE.md
+|-- READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md
 |-- READIRECT_REVAMP_AUDIO_PREPROCESSING_AND_RECORDING_STANDARD.md
+|-- READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md
 |-- READIRECT_REVAMP_FRONTEND_DESIGN_SYSTEM.md
 |-- READIRECT_REVAMP_GAME_DATABASE_AND_API_STANDARD.md
 |-- READIRECT_REVAMP_GAME_MODULE_STANDARD.md
@@ -187,8 +195,11 @@ apps/games/
 ~~~
 
 The lobby owns game selection, game-username onboarding, separate learner and
-guest leaderboard views, queued achievement presentation, and the
-owner-controlled game registry.
+guest leaderboard views, and the owner-controlled game registry. It is an entry
+surface for queued game-achievement presentation, but it consumes the central
+achievement feature defined by
+`READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`; it does not own a private
+queue or overlay.
 
 Each contributor repository root must match its assigned game-one or game-two
 directory exactly. Each game contains its React frontend, selected KAPLAY or
@@ -205,9 +216,24 @@ Every game is governed by:
 
 Contains the React learner application, teacher interface, Live2D character integration, PixiJS effects, lesson screens, assessment screens, microphone controls, and frontend API communication.
 
+Cross-feature achievement gallery, queue, and unlock presentation components
+belong under `apps/web/src/features/achievements/`. The Learner Dashboard and
+Game Lobby both compose that shared feature.
+
 ### `apps/api`
 
 Contains the Laravel application responsible for authentication, learner and teacher records, lessons, assessment results, scoring records, progress, PostgreSQL operations, and communication with the ASR and TTS services.
+
+## Authored Content CSVs
+
+The root `content/` directory contains versioned, reviewed assessment forms,
+lesson pools, and shared lexicon CSV sources. Its schemas, validation,
+publication, and learner-selection rules are defined by
+`READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md`.
+
+Laravel imports approved versions into PostgreSQL. The root CSV files are not
+served directly to the browser. `docs/content/` remains explanatory
+documentation and must not be used as the runtime content source.
 
 ## Speech Services
 
@@ -531,6 +557,12 @@ ReaDirect-V2/
 |   |-- licenses/
 |   \-- asset-manifest.json
 |
+|-- content/
+|   |-- README.md
+|   |-- lexicon/
+|   |-- assessments/
+|   \-- lessons/
+|
 |-- packages/
 |   |-- shared-types/
 |   |   \-- package.json
@@ -557,7 +589,9 @@ ReaDirect-V2/
 |
 |-- READIRECT_REVAMP_ASR_GUIDE.md
 |-- READIRECT_REVAMP_ASSESSMENT_GUIDE.md
+|-- READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md
 |-- READIRECT_REVAMP_AUDIO_PREPROCESSING_AND_RECORDING_STANDARD.md
+|-- READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md
 |-- READIRECT_REVAMP_FRONTEND_DESIGN_SYSTEM.md
 |-- READIRECT_REVAMP_GAME_DATABASE_AND_API_STANDARD.md
 |-- READIRECT_REVAMP_GAME_MODULE_STANDARD.md

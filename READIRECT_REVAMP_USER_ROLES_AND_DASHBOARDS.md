@@ -7,6 +7,10 @@ This guide describes the role hierarchy, dashboard ownership, visible dashboard
 content, and access boundaries. It does not define every route, controller,
 database field, or page component.
 
+Learner achievement keys, unlock criteria, gallery positions, shared queue, and
+presentation behavior are defined by
+`READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`.
+
 ## Role Model
 
 ReaDirect uses five user-facing roles.
@@ -48,17 +52,31 @@ labels.
 
 ## Assessment And Lesson Flow Rule
 
-Assessments are purely for assessment.
+Assessments provide assessment evidence and fixed progression gates.
 
-The ReaDirect Assessment score does not determine where a learner starts. Every
-learner starts from the same learner starting point. The assessment result is
-stored as assessment evidence and shown in staff/learner reporting, but it does
-not place the learner into a different starting track.
+Every learner follows the same required sequence:
+
+~~~text
+Diagnostic Assessment
+    -> sequential required lessons
+    -> Final Assessment
+~~~
+
+Required lessons remain locked until the learner completes the Diagnostic
+Assessment. Completion unlocks the first required lesson. The assessment score
+is stored and reported, but it does not place the learner into a different
+starting track, reorder lessons, skip lessons, or select different lesson
+content.
+
+Required lessons unlock sequentially. Completing the current required lesson
+unlocks the next required lesson. Completing the full required lesson sequence
+unlocks the Final Assessment.
 
 Lessons are the ReaDirect learning content unit. ReaDirect includes a
-developer-made minimum lesson set. Teachers can add optional lessons from the
-Teacher Dashboard. Those teacher-created lessons display on the Learner
-Dashboard as optional learning items.
+developer-made minimum lesson set, and that required set is sequential.
+Teachers can add optional lessons from the Teacher Dashboard. Those
+teacher-created lessons display on the Learner Dashboard as optional learning
+items and do not block the required sequence or Final Assessment.
 
 Detailed lesson creation rules belong in a separate lesson guide.
 
@@ -109,6 +127,26 @@ System Administrator page portal and ASR review tools:
 
 - Page Portals provide direct navigation into controlled admin/test pages
   without making those pages part of the normal learner or staff flow.
+- All Page Portals use the dedicated portal-system Learner `KW000`, Kristen
+  Rhine Wright. This account is visible only in the System Administrator Page
+  Portals workspace and is excluded from learner analytics, totals, reports,
+  class lists, and school or Teacher learner directories.
+- `KW000` remains available through the normal Learner sign-in for direct
+  workflow testing. An active Page Portal run blocks ordinary sign-in and
+  invalidates any ordinary session that existed before the run.
+- Page Portal entry must reset Kristen first, then create the same persisted
+  prerequisite records that the real learner workflow would create before the
+  chosen target. A portal must never invent a parallel or display-only progress
+  state.
+- Leaving or ending a Page Portal resets Kristen to `before_diagnostic` and
+  revokes its session. Expired runs must receive the same cleanup.
+- The Page Portals workspace provides a manual reset control. Resetting revokes
+  every active Kristen session, ends any active portal run, clears persisted
+  assessment and lesson progress, retains the account, and writes a staff audit
+  log. The reset requires an explicit confirmation step.
+- Portal destinations remain disabled until the corresponding real assessment
+  and lesson save records exist. A page must not mark prerequisites complete
+  using placeholder data.
 - IsoLetter Sandbox is the direct Nu testing page for isolated-letter audio.
   It shows expected letter, predicted class, confidence, top predictions,
   class probabilities, special-class results, audio-quality result, and the
@@ -214,17 +252,42 @@ Portals, IsoLetter Sandbox, True Sandbox, or Equivalence Book.
 Dashboard entry: Learner Dashboard.
 
 The Learner Dashboard gives the learner a simple reading path and next action.
-The confirmed learner flow is assessment-first. Lesson flow details are defined
-separately.
+The confirmed learner flow is Diagnostic Assessment, sequential required
+lessons, then Final Assessment.
+
+The dashboard has one fixed primary-action position. Its control keeps the same
+large size and location while its label and behavior change with the
+authenticated account's persisted progress:
+
+~~~text
+Before Diagnostic completion:
+Start or Resume Diagnostic Assessment
+
+After Diagnostic completion:
+Start Lesson <number or title> when no saved attempt exists
+Continue Lesson <number or title> when an incomplete saved attempt exists
+
+After all required lessons:
+Start or Resume Final Assessment
+~~~
+
+Only the currently required primary action is shown. The previous action
+disappears when its stage is complete. Leaving an incomplete lesson for the
+dashboard does not reset it. The fixed primary action becomes Continue Lesson
+and resumes the learner from the latest confirmed lesson save state.
 
 It contains:
 
 - Learner identity, display name, learner code, and current stage.
-- Primary next action.
+- One dominant fixed-position primary next action.
 - Part 1 Score summary.
 - Final reading profile when available.
-- Star rewards.
+- A clearly visible but secondary Games action.
+- A prominent achievement holder with fixed badge positions, earned
+  achievement artwork, and locked silhouettes with visible criteria.
 - Diagnostic Assessment start or resume action.
+- Current required lesson start or continue action when unlocked.
+- Saved position and completion state for the current required lesson.
 - Final Assessment start or resume action when available.
 - Latest Diagnostic Assessment task scores.
 - Latest Final Assessment task scores when available.
@@ -234,11 +297,12 @@ It contains:
 
 Learner controls include:
 
-- Start or resume Diagnostic Assessment.
+- Use the one current primary action for Diagnostic Assessment, the current
+  sequential lesson, or Final Assessment.
+- Open the Game Lobby through a smaller secondary action.
 - View progress.
-- Start or resume Final Assessment.
 - Open optional teacher-created lessons when available.
-- View rewards.
+- View achievements.
 - View help.
 
 Access rule: a Learner only sees learner-facing reading flow. Staff dashboards,
@@ -280,6 +344,18 @@ management screens.
   Assessment terminology based on the run type being shown.
 - Assessment results do not create lesson placement or different learner
   starting tracks.
+- Diagnostic Assessment completion unlocks the first required lesson.
+- Required lessons unlock one at a time in their defined order.
+- Every started lesson has a persistent save state tied uniquely to the
+  authenticated learner or verified guest.
+- Leaving a lesson for the dashboard or closing the application preserves the
+  latest confirmed lesson position.
+- An incomplete saved lesson changes the primary action to Continue Lesson and
+  resumes at that saved position.
+- One account can never load, overwrite, or continue another account's lesson
+  save state.
+- Completion of all required lessons unlocks the Final Assessment.
+- Optional teacher-created lessons do not block required progression.
 - Lesson dashboards use lesson terminology only.
 
 ## Out Of Scope

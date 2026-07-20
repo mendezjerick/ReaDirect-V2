@@ -39,6 +39,32 @@
   --color-danger-soft: #feeceb;
   --color-focus: #1769d2;
 
+  /* Professional staff workspace */
+  --color-staff-page: #eef2f3;
+  --color-staff-sidebar: #102a43;
+  --color-staff-sidebar-active: #244866;
+  --color-staff-sidebar-hover: #1b3b57;
+  --color-staff-sidebar-text: #fffdf7;
+  --color-staff-sidebar-muted: #bfd0dc;
+  --color-staff-sidebar-disabled: #7790a1;
+  --color-staff-navigation-overlay: color-mix(
+    in srgb,
+    var(--color-staff-sidebar) 68%,
+    var(--color-transparent)
+  );
+  --color-staff-card-depth: #d5dfe2;
+  --color-staff-chart-track: #e5ebee;
+  --color-staff-chart-fill: #c94712;
+
+  --radius-control: 1rem;
+  --radius-notice: 1.25rem;
+  --radius-panel: 1.5rem;
+  --radius-frame: 2rem;
+  --radius-pill: 999px;
+
+  --shadow-panel-depth: 0 7px 0 var(--color-frame-depth);
+  --shadow-button-depth: 0 7px 0 var(--color-action-primary-depth);
+
   --color-accent-coral-soft: #f29a6a;
   --color-accent-sun: #f3c85b;
   --color-fallback-portrait-surface: #7fb3b6;

@@ -1,5 +1,10 @@
 # ReaDirect Revamp ASR Guide
 
+Authored CSV targets, Filipino pronunciation review, fixed assessment forms,
+and lesson-content selection are defined by
+`READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md`. This guide remains
+authoritative for how Nu and Mu process those targets.
+
 Purpose: define the ASR and post-ASR scoring behavior for the ReaDirect revamp.
 
 It is not an endpoint contract. Preprocessing, screens, routes, and request

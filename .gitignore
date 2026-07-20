@@ -18,6 +18,7 @@ apps/api/rr.exe
 apps/api/storage/*.key
 apps/api/storage/logs/
 apps/api/bootstrap/cache/*.php
+apps/api/.phpunit.result.cache
 
 # Python environments and caches
 .venv/

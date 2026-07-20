@@ -1,6 +1,7 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("motion/react", async (importOriginal) => {
   const motion = await importOriginal<typeof import("motion/react")>();
@@ -12,19 +13,61 @@ vi.mock("motion/react", async (importOriginal) => {
 });
 
 import { LearnerDashboardPage } from "../src/features/learner-dashboard/LearnerDashboardPage";
+import { createAppQueryClient } from "../src/app/AppProviders";
+
+const learnerSession = {
+  token: "learner-token",
+  learner: {
+    id: 1,
+    learner_code: "KW000",
+    full_name: "Kristen Rhine Wright",
+    first_name: "Kristen",
+    account_purpose: "portal_system",
+    school: null,
+    grade_level: null,
+    section: null,
+    progress: {
+      stage: "before_diagnostic",
+      current_required_lesson_order: null,
+    },
+  },
+  session: { expires_at: "2026-07-20T12:00:00+00:00" },
+};
 
 function renderDashboard() {
+  window.sessionStorage.setItem(
+    "readirect.learner-session",
+    JSON.stringify(learnerSession),
+  );
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(learnerSession), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    ),
+  );
+  const queryClient = createAppQueryClient();
+
   return render(
-    <MemoryRouter initialEntries={["/learner/dashboard"]}>
-      <Routes>
-        <Route path="/learner/dashboard" element={<LearnerDashboardPage />} />
-        <Route path="/learner/games" element={<div>Lobby route</div>} />
-      </Routes>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={["/learner/dashboard"]}>
+        <Routes>
+          <Route path="/learner/dashboard" element={<LearnerDashboardPage />} />
+          <Route path="/learner/games" element={<div>Lobby route</div>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
 describe("LearnerDashboardPage", () => {
+  afterEach(() => {
+    window.sessionStorage.clear();
+    vi.unstubAllGlobals();
+  });
+
   it("keeps the required learning action visually primary", () => {
     renderDashboard();
 
@@ -42,6 +85,8 @@ describe("LearnerDashboardPage", () => {
     expect(
       screen.getByText("Complete the Diagnostic Assessment"),
     ).toBeInTheDocument();
+    expect(screen.getByText("Welcome, Kristen!")).toBeInTheDocument();
+    expect(screen.getByText("KW000")).toBeInTheDocument();
   });
 
   it("opens the game lobby from the secondary game action", () => {

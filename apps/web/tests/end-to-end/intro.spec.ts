@@ -42,4 +42,38 @@ test("intro fits the viewport and continues to home", async ({ page }) => {
   expect(homePageSize.scrollHeight).toBeLessThanOrEqual(
     homePageSize.clientHeight,
   );
+
+  await page.getByRole("button", { name: "Staff login" }).click();
+  await expect(page).toHaveURL(/\/staff\/login$/);
+  await expect(
+    page.getByRole("heading", { name: "Welcome back" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Username or email")).toBeVisible();
+  await expect(page.getByLabel("Password")).toBeVisible();
+
+  const staffLoginPageSize = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+
+  expect(staffLoginPageSize.scrollWidth).toBeLessThanOrEqual(
+    staffLoginPageSize.clientWidth,
+  );
+
+  await page.goto("/staff/system-admin");
+  await expect(
+    page.getByRole("heading", { name: "System overview" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("PostgreSQL connection is healthy."),
+  ).toBeVisible();
+
+  const dashboardPageSize = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+
+  expect(dashboardPageSize.scrollWidth).toBeLessThanOrEqual(
+    dashboardPageSize.clientWidth,
+  );
 });

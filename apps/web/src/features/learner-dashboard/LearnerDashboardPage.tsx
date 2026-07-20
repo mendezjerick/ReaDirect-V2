@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import {
+  clearLearnerSession,
+  getLearnerSession,
+  loadLearnerSession,
+  logoutLearner,
+} from "../learner-auth/learnerApi";
 import "./learner-dashboard.css";
 
 const achievementSlots = [
@@ -34,11 +41,62 @@ function GamesIcon() {
 export function LearnerDashboardPage() {
   const navigate = useNavigate();
   const gamesCommit = useButtonCommit();
+  const logoutCommit = useButtonCommit();
   const [assessmentNotice, setAssessmentNotice] = useState("");
+  const storedSession = loadLearnerSession();
+  const sessionQuery = useQuery({
+    queryKey: ["learner-session", storedSession?.token],
+    queryFn: () => getLearnerSession(storedSession?.token ?? ""),
+    enabled: Boolean(storedSession?.token),
+    initialData: storedSession
+      ? { learner: storedSession.learner, session: storedSession.session }
+      : undefined,
+  });
+  const logoutMutation = useMutation({
+    mutationFn: () => logoutLearner(storedSession?.token ?? ""),
+    onSettled: () => {
+      clearLearnerSession();
+      navigate("/learner/login");
+    },
+  });
+  const learner = sessionQuery.data?.learner;
+
+  useEffect(() => {
+    if (sessionQuery.isError) {
+      clearLearnerSession();
+    }
+  }, [sessionQuery.isError]);
 
   const openGames = () => {
     gamesCommit.commit(() => navigate("/learner/games"));
   };
+
+  if (!storedSession || sessionQuery.isError) {
+    return (
+      <main
+        className="learner-dashboard learner-dashboard--signed-out"
+        data-route-focus
+        tabIndex={-1}
+      >
+        <Surface kind="frame" padding="roomy">
+          <p className="learner-dashboard__eyebrow">Your reading path</p>
+          <h1>
+            {sessionQuery.isError
+              ? "Your session ended"
+              : "Reader sign-in needed"}
+          </h1>
+          <p>
+            {sessionQuery.isError
+              ? "Your account may have been reset. Sign in again to continue."
+              : "Enter your Learner Code before opening your dashboard."}
+          </p>
+          <BigButton size="regular" onClick={() => navigate("/learner/login")}>
+            Go to reader sign in
+          </BigButton>
+        </Surface>
+      </main>
+    );
+  }
 
   return (
     <main
@@ -51,15 +109,30 @@ export function LearnerDashboardPage() {
         <header className="learner-dashboard__header">
           <div>
             <p className="learner-dashboard__eyebrow">Your reading path</p>
-            <h1>Welcome, Reader!</h1>
+            <h1>Welcome, {learner?.first_name ?? "Reader"}!</h1>
           </div>
           <div
             className="learner-dashboard__identity"
             aria-label="Learner identity"
           >
-            <span>Getting started</span>
-            <strong>AA000</strong>
+            <span>
+              {learner?.progress.stage === "before_diagnostic"
+                ? "Getting started"
+                : "Reading in progress"}
+            </span>
+            <strong>{learner?.learner_code}</strong>
           </div>
+          <BigButton
+            className="learner-dashboard__logout"
+            variant="quiet"
+            size="regular"
+            committing={logoutCommit.committing}
+            busy={logoutMutation.isPending}
+            busyLabel="Signing out"
+            onClick={() => logoutCommit.commit(() => logoutMutation.mutate())}
+          >
+            Sign out
+          </BigButton>
         </header>
 
         <Surface

@@ -1,0 +1,104 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("motion/react", async (importOriginal) => {
+  const motion = await importOriginal<typeof import("motion/react")>();
+  return { ...motion, useReducedMotion: () => false };
+});
+
+import { createAppQueryClient } from "../src/app/AppProviders";
+import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
+import { LearnerLoginPage } from "../src/features/learner-auth/LearnerLoginPage";
+
+function renderLogin() {
+  return render(
+    <QueryClientProvider client={createAppQueryClient()}>
+      <MemoryRouter initialEntries={["/learner/login"]}>
+        <Routes>
+          <Route path="/learner/login" element={<LearnerLoginPage />} />
+          <Route
+            path="/learner/dashboard"
+            element={<div>Learner dashboard route</div>}
+          />
+          <Route path="/home" element={<div>Home route</div>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+describe("LearnerLoginPage", () => {
+  afterEach(() => {
+    window.sessionStorage.clear();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it("keeps learner inputs large and simple", () => {
+    renderLogin();
+
+    expect(
+      screen.getByRole("heading", { name: "Ready to read?" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("Learner Code")).toHaveAttribute(
+      "maxlength",
+      "5",
+    );
+    expect(screen.getByRole("button", { name: "Let's go!" })).toBeEnabled();
+  });
+
+  it("normalizes the learner code and waits for the button press before login", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          token: "learner-token",
+          learner: {
+            id: 1,
+            learner_code: "KW000",
+            full_name: "Kristen Rhine Wright",
+            first_name: "Kristen",
+            account_purpose: "portal_system",
+            school: null,
+            grade_level: null,
+            section: null,
+            progress: {
+              stage: "before_diagnostic",
+              current_required_lesson_order: null,
+            },
+          },
+          session: { expires_at: "2026-07-20T12:00:00+00:00" },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderLogin();
+
+    fireEvent.change(screen.getByLabelText("Learner Code"), {
+      target: { value: "kw000" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "rhine359" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Let's go!" }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BUTTON_PRESS_COMMIT_MS);
+    });
+
+    expect(screen.getByText("Learner dashboard route")).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/learners/login",
+      expect.objectContaining({
+        body: JSON.stringify({ learner_code: "KW000", password: "rhine359" }),
+      }),
+    );
+    expect(
+      window.sessionStorage.getItem("readirect.learner-session"),
+    ).toContain("KW000");
+  });
+});
