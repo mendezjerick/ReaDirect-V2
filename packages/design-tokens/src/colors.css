@@ -3,8 +3,28 @@
  * TypeScript, canvas renderers, and SVG must consume these semantic variables.
  */
 :root {
-  --asset-home-background-mobile: url("/assets/backgrounds/T1mobile.png");
-  --asset-home-background-desktop: url("/assets/backgrounds/T1desktop.png");
+  --asset-learner-flow-background-mobile: url("/assets/backgrounds/T1mobile.png");
+  --asset-learner-flow-background-desktop: url("/assets/backgrounds/T1desktop.png");
+  --asset-home-background-mobile: var(--asset-learner-flow-background-mobile);
+  --asset-home-background-desktop: var(--asset-learner-flow-background-desktop);
+  --asset-theme-t1-preview: url("/assets/backgrounds/T1mobile.png");
+  --asset-theme-t2-preview: url("/assets/backgrounds/T2mobile.jpg");
+
+  --font-display-family:
+    "Fredoka", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  --font-pixel-family:
+    "Jersey 20", "Pixelify Sans", "Courier New", ui-monospace, monospace;
+  --font-reading-family: "Lexend", "Trebuchet MS", system-ui, sans-serif;
+  --font-interface-family: var(--font-reading-family);
+
+  --font-display: clamp(2.25rem, 1.8rem + 2vw, 3.25rem);
+  --font-page-title: clamp(1.875rem, 1.6rem + 1.2vw, 2.5rem);
+  --font-panel-title: clamp(1.5rem, 1.35rem + 0.7vw, 1.875rem);
+  --font-learner-prompt: clamp(1.3125rem, 1.18rem + 0.5vw, 1.625rem);
+  --font-button-large: clamp(1.1875rem, 1.08rem + 0.4vw, 1.375rem);
+  --font-body-large: clamp(1.125rem, 1.06rem + 0.25vw, 1.25rem);
+  --font-body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --font-support: clamp(0.875rem, 0.84rem + 0.15vw, 1rem);
 
   --color-transparent: transparent;
 

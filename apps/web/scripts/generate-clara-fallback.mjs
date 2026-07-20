@@ -7,13 +7,21 @@ import { createServer } from "vite";
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(scriptDirectory, "..");
 const repositoryRoot = path.resolve(webRoot, "../..");
+const themeId = process.env.CLARA_THEME_ID ?? "t1";
+
+if (themeId !== "t1" && themeId !== "t2") {
+  throw new Error(`Unsupported Clara fallback theme: ${themeId}`);
+}
+
+const fallbackFileName =
+  themeId === "t1" ? "clara-default.png" : `clara-${themeId}.png`;
 const runtimeOutput = path.join(
   repositoryRoot,
-  "assets/live2d/runtime/clara/stills/clara-default.png",
+  `assets/live2d/runtime/clara/stills/${fallbackFileName}`,
 );
 const publicOutput = path.join(
   webRoot,
-  "public/assets/live2d/clara/stills/clara-default.png",
+  `public/assets/live2d/clara/stills/${fallbackFileName}`,
 );
 const previewOutput = process.env.CLARA_PREVIEW_OUTPUT
   ? path.resolve(repositoryRoot, process.env.CLARA_PREVIEW_OUTPUT)
@@ -81,6 +89,7 @@ const captureStyles = `
   }
 
   .intro-page__brand,
+  .theme-selector,
   .pointer-trail,
   .vector-cursor {
     display: none !important;
@@ -133,6 +142,15 @@ try {
     reducedMotion: "reduce",
     colorScheme: "light",
   });
+  await context.addInitScript(
+    ({ selectedTheme, storageKey }) => {
+      window.localStorage.setItem(storageKey, selectedTheme);
+      if (document.documentElement) {
+        document.documentElement.dataset.theme = selectedTheme;
+      }
+    },
+    { selectedTheme: themeId, storageKey: "readirect.theme" },
+  );
   const page = await context.newPage();
 
   await page.route("**/*", async (route) => {
@@ -193,7 +211,7 @@ try {
   console.log(
     previewOutput
       ? `Generated Clara's ${outputSize}x${outputSize} crop preview.`
-      : `Generated Clara's ${outputSize}x${outputSize} default fallback portrait.`,
+      : `Generated Clara's ${outputSize}x${outputSize} ${themeId} fallback portrait.`,
   );
   console.log(primaryOutput);
   if (!previewOutput) {

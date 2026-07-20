@@ -7,6 +7,8 @@ import {
 } from "../../components/transitions/RouteTransitionProvider";
 import { BigButton } from "../../components/ui/BigButton";
 import { preloadCssImageToken } from "../../utils/preloadCssImageToken";
+import { ThemeSelector } from "../theme/ThemeSelector";
+import { useTheme } from "../theme/ThemeProvider";
 import { ClaraStage } from "./ClaraStage";
 import type { ClaraEmotion } from "./live2d/ClaraExpressionController";
 import { PointerTrail } from "./PointerTrail";
@@ -26,6 +28,7 @@ const INTRO_TITLE_RISE_PX = 80;
 
 export function IntroPage() {
   const reduceMotion = useReducedMotion();
+  const { theme } = useTheme();
   const { beginRouteTransition, isTransitioning } = useRouteTransition();
   const [expressionIndex, setExpressionIndex] = useState(0);
   const [introReady, setIntroReady] = useState(Boolean(reduceMotion));
@@ -35,11 +38,11 @@ export function IntroPage() {
   useEffect(() => {
     const assetToken =
       window.innerWidth >= 768
-        ? "--asset-home-background-desktop"
-        : "--asset-home-background-mobile";
+        ? "--asset-learner-flow-background-desktop"
+        : "--asset-learner-flow-background-mobile";
 
     homeBackgroundPreloadRef.current = preloadCssImageToken(assetToken);
-  }, []);
+  }, [theme]);
 
   useEffect(() => {
     if (reduceMotion) {
@@ -76,7 +79,7 @@ export function IntroPage() {
 
   return (
     <main
-      className="intro-page"
+      className="intro-page learner-typography-page"
       aria-labelledby="intro-title"
       onContextMenu={(event) => event.preventDefault()}
       onCopy={(event) => event.preventDefault()}
@@ -85,6 +88,7 @@ export function IntroPage() {
     >
       <PointerTrail />
       <VectorCursor />
+      <ThemeSelector />
 
       <section className="intro-page__content">
         <div className="intro-page__brand">

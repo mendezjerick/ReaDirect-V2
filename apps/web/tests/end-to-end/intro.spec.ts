@@ -5,10 +5,42 @@ test("intro fits the viewport and continues to home", async ({ page }) => {
 
   const title = page.getByRole("heading", { name: "ReaDirect" });
   const continueButton = page.getByRole("button", { name: "Tap to continue" });
+  const meadowTheme = page.getByRole("button", { name: "Use Meadow theme" });
+  const winterTheme = page.getByRole("button", { name: "Use Winter theme" });
 
   await expect(title).toBeVisible();
   await expect(continueButton).toBeVisible();
+  await expect(meadowTheme).toBeVisible();
+  await expect(winterTheme).toBeVisible();
   await expect(page.getByAltText("Ma'am Clara")).toBeVisible();
+  await expect(page.locator("main.intro-page")).toHaveCSS(
+    "font-family",
+    /Jersey 20/,
+  );
+  const continueFontSize = await continueButton.evaluate(
+    (element) => window.getComputedStyle(element).fontSize,
+  );
+  expect(Number.parseFloat(continueFontSize)).toBeGreaterThanOrEqual(30);
+
+  const themeChoiceSize = await winterTheme.boundingBox();
+  expect(themeChoiceSize).not.toBeNull();
+  expect(
+    Math.abs(themeChoiceSize!.width - themeChoiceSize!.height),
+  ).toBeLessThan(1);
+
+  await winterTheme.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "t2");
+  await expect(winterTheme).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByAltText("Ma'am Clara")).toHaveAttribute(
+    "src",
+    "/assets/live2d/clara/stills/clara-t2.png",
+  );
+  const winterPrimaryColor = await page.evaluate(() =>
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--color-action-primary")
+      .trim(),
+  );
+  expect(winterPrimaryColor).toBe("#355fa8");
 
   const pageSize = await page.evaluate(() => ({
     clientHeight: document.documentElement.clientHeight,
@@ -28,6 +60,11 @@ test("intro fits the viewport and continues to home", async ({ page }) => {
   await expect(routeTransition).toBeHidden();
   await expect(page.getByRole("button", { name: "Let's Read!" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Staff login" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "t2");
+  await expect(page.locator("main.home-page")).toHaveCSS(
+    "background-image",
+    /T2(?:mobile|desktop)\.jpg/,
+  );
 
   const homePageSize = await page.evaluate(() => ({
     clientHeight: document.documentElement.clientHeight,

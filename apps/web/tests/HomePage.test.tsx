@@ -30,6 +30,7 @@ describe("HomePage", () => {
   it("keeps the home hierarchy to one primary and one quiet action", () => {
     renderHome();
 
+    expect(screen.getByRole("main")).toHaveClass("learner-flow-page");
     const actions = screen.getByRole("region", { name: "Home actions" });
     const buttons = within(actions).getAllByRole("button");
 

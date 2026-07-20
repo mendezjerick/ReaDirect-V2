@@ -11,17 +11,36 @@ interface LobbyLocationState {
 const gameSlots = [
   {
     key: "game-one",
-    title: "Game One",
-    description: "Contributor game slot one",
+    title: "Letter Quest",
+    description: "Spot the letters and keep your streak going.",
+    label: "Letters",
     route: "/learner/games/game-one",
+    accessibleName: "Open Game One",
   },
   {
     key: "game-two",
-    title: "Game Two",
-    description: "Contributor game slot two",
+    title: "Word Trail",
+    description: "Follow the trail and practice simple words.",
+    label: "Words",
     route: "/learner/games/game-two",
+    accessibleName: "Open Game Two",
   },
 ] as const;
+
+function GameSymbol({ index }: { index: number }) {
+  return index === 0 ? (
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M13 48V16h18c8 0 14 5 14 13s-6 13-14 13H22" />
+      <path d="M22 24h9c3 0 5 2 5 5s-2 5-5 5h-9M49 14v10M44 19h10" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M10 18h44v32H10V18Z" />
+      <path d="M19 28h8v8h-8zM31 28h14M19 41h26" />
+      <path d="m48 10 6 8-6 8" />
+    </svg>
+  );
+}
 
 export function GameLobbyPage() {
   const navigate = useNavigate();
@@ -52,7 +71,7 @@ export function GameLobbyPage() {
 
   return (
     <main
-      className="game-lobby"
+      className="game-lobby learner-flow-page"
       aria-label="Game Lobby"
       data-route-focus
       tabIndex={-1}
@@ -61,15 +80,16 @@ export function GameLobbyPage() {
         <header className="game-lobby__header">
           <div>
             <p className="game-lobby__eyebrow">ReaDirect Games</p>
-            <h1>Game Lobby</h1>
-            <p>Choose a game and have fun practicing.</p>
+            <h1>Choose a Game</h1>
+            <p>Play, practice, and have fun.</p>
           </div>
           <button
             className="game-lobby__back-button"
             type="button"
+            aria-label="Back to Dashboard"
             onClick={() => navigate("/learner/dashboard")}
           >
-            Back to Dashboard
+            <span aria-hidden="true">←</span> Dashboard
           </button>
         </header>
 
@@ -83,10 +103,8 @@ export function GameLobbyPage() {
             </span>
             <div>
               <p className="game-lobby__eyebrow">One quick step</p>
-              <h2 id="game-username-title">Create your game username</h2>
-              <p>
-                This name will be used across the lobby and both game slots.
-              </p>
+              <h2 id="game-username-title">Pick a game name</h2>
+              <p>Choose a short name to use while you play.</p>
             </div>
 
             <form onSubmit={submitUsername} noValidate>
@@ -132,29 +150,34 @@ export function GameLobbyPage() {
             >
               <div className="game-lobby__section-heading">
                 <div>
-                  <p className="game-lobby__eyebrow">Pick one</p>
-                  <h2 id="available-games-title">Available games</h2>
+                  <p className="game-lobby__eyebrow">Pick your challenge</p>
+                  <h2 id="available-games-title">Ready to play?</h2>
                 </div>
-                <span>2 game slots</span>
+                <span>2 games</span>
               </div>
 
               <div className="game-lobby__game-grid">
                 {gameSlots.map((game, index) => (
                   <article className="game-lobby__game-card" key={game.key}>
-                    <span
-                      className="game-lobby__game-number"
-                      aria-hidden="true"
-                    >
-                      {index + 1}
-                    </span>
-                    <h3>{game.title}</h3>
-                    <p>{game.description}</p>
+                    <div className="game-lobby__game-visual">
+                      <span className="game-lobby__game-symbol">
+                        <GameSymbol index={index} />
+                      </span>
+                      <span className="game-lobby__game-label">
+                        {game.label}
+                      </span>
+                    </div>
+                    <div className="game-lobby__game-copy">
+                      <h3>{game.title}</h3>
+                      <p>{game.description}</p>
+                    </div>
                     <button
                       className="game-lobby__game-button"
                       type="button"
+                      aria-label={game.accessibleName}
                       onClick={() => navigate(game.route)}
                     >
-                      Open {game.title}
+                      Play now
                     </button>
                   </article>
                 ))}
@@ -166,12 +189,10 @@ export function GameLobbyPage() {
               aria-labelledby="learner-leaderboard-title"
             >
               <div>
-                <p className="game-lobby__eyebrow">Learners</p>
-                <h2 id="learner-leaderboard-title">Top 10</h2>
+                <p className="game-lobby__eyebrow">Coming soon</p>
+                <h2 id="learner-leaderboard-title">Top Readers</h2>
               </div>
-              <p>
-                No verified scores yet. This skeleton is ready for game data.
-              </p>
+              <p>Your best game scores will appear here.</p>
             </section>
           </>
         )}

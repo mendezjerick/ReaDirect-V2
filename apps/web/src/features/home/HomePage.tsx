@@ -32,7 +32,7 @@ export function HomePage() {
 
   return (
     <main
-      className="home-page"
+      className="home-page learner-flow-page"
       aria-label="ReaDirect home"
       data-route-focus
       tabIndex={-1}

@@ -144,8 +144,8 @@ Deep hair shadow:
   ArtMesh56, ArtMesh57, ArtMesh68, ArtMesh72,
   ArtMesh94, ArtMesh95, ArtMesh97, ArtMesh98
 
-Glasses:
-  ArtMesh6
+Always-black accessories:
+  ArtMesh6, ArtMesh30
 
 Primary skin:
   ArtMesh59, ArtMesh77, ArtMesh83, ArtMesh99
@@ -176,6 +176,9 @@ Values `2` through `10` select alternate or exported color variants and must
 not be used for the default presentation. `ArtMesh6` must then receive
 `--color-clara-glasses`. Every theme must define that token as black; Clara's
 glasses must not change color with the rest of her theme palette.
+
+`ArtMesh30` is the question mark shown by the confused expression. It must use
+the same always-black `--color-clara-glasses` token in every theme.
 
 The primary skin meshes are the visible light face and neck bases. The skin
 shade group contains the corresponding nose, lower-face, neck, and eye-area

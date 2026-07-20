@@ -7,7 +7,6 @@
     max(0.75rem, env(safe-area-inset-right))
     max(0.75rem, env(safe-area-inset-bottom))
     max(0.75rem, env(safe-area-inset-left));
-  background: var(--color-surface-page);
 }
 
 .game-two__stage {

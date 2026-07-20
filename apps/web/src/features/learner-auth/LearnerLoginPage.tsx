@@ -47,7 +47,7 @@ export function LearnerLoginPage() {
 
   return (
     <main
-      className="learner-login-page"
+      className="learner-login-page learner-flow-page"
       aria-labelledby="learner-login-title"
       data-route-focus
       tabIndex={-1}

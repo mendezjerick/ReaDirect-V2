@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./colors.css": "./src/colors.css"
+    "./colors.css": "./src/colors.css",
+    "./themes/t2.css": "./src/themes/t2.css"
   }
 }

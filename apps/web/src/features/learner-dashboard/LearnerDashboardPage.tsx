@@ -14,27 +14,59 @@ import {
 import "./learner-dashboard.css";
 
 const achievementSlots = [
-  { key: "first-steps", criteria: "Complete the Diagnostic Assessment" },
-  { key: "lesson-one", criteria: "Complete your first lesson" },
-  { key: "word-helper", criteria: "Practice ten words" },
-  { key: "steady-reader", criteria: "Complete three lessons" },
-  { key: "game-starter", criteria: "Finish your first game session" },
-  { key: "final-reader", criteria: "Complete the Final Assessment" },
+  {
+    key: "first-steps",
+    name: "First Step",
+    criteria: "Complete the Diagnostic Assessment",
+  },
+  {
+    key: "lesson-one",
+    name: "Lesson One",
+    criteria: "Complete your first lesson",
+  },
+  { key: "word-helper", name: "Word Helper", criteria: "Practice ten words" },
+  {
+    key: "steady-reader",
+    name: "Steady Reader",
+    criteria: "Complete three lessons",
+  },
+  {
+    key: "game-starter",
+    name: "Game Starter",
+    criteria: "Finish your first game session",
+  },
+  {
+    key: "final-reader",
+    name: "Final Reader",
+    criteria: "Complete the Final Assessment",
+  },
 ] as const;
 
 function LearningIcon() {
   return (
-    <span className="learner-dashboard__button-icon" aria-hidden="true">
-      Aa
-    </span>
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M7 10c7-1 12 1 17 5v25c-5-4-10-6-17-5V10Z" />
+      <path d="M41 10c-7-1-12 1-17 5v25c5-4 10-6 17-5V10Z" />
+      <path d="M12 17c3 0 5 .6 8 2M12 23c3 0 5 .6 8 2M36 17c-3 0-5 .6-8 2M36 23c-3 0-5 .6-8 2" />
+    </svg>
   );
 }
 
 function GamesIcon() {
   return (
-    <span className="learner-dashboard__button-icon" aria-hidden="true">
-      Play
-    </span>
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M16 17h16c7 0 11 6 10 14l-1 5c-.7 4-5 5-8 2l-5-5h-8l-5 5c-3 3-7.3 2-8-2l-1-5c-1-8 3-14 10-14Z" />
+      <path d="M14 25h8M18 21v8M31 24h.1M35 28h.1" />
+    </svg>
+  );
+}
+
+function TrophyIcon() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M15 8h18v8c0 8-4 13-9 13s-9-5-9-13V8Z" />
+      <path d="M15 12H8v3c0 6 4 9 9 9M33 12h7v3c0 6-4 9-9 9M24 29v7M17 40h14M20 36h8" />
+    </svg>
   );
 }
 
@@ -74,7 +106,7 @@ export function LearnerDashboardPage() {
   if (!storedSession || sessionQuery.isError) {
     return (
       <main
-        className="learner-dashboard learner-dashboard--signed-out"
+        className="learner-dashboard learner-dashboard--signed-out learner-flow-page"
         data-route-focus
         tabIndex={-1}
       >
@@ -100,119 +132,150 @@ export function LearnerDashboardPage() {
 
   return (
     <main
-      className="learner-dashboard"
+      className="learner-dashboard learner-flow-page"
       aria-label="Learner dashboard"
       data-route-focus
       tabIndex={-1}
     >
       <div className="learner-dashboard__shell">
-        <header className="learner-dashboard__header">
-          <div>
-            <p className="learner-dashboard__eyebrow">Your reading path</p>
-            <h1>Welcome, {learner?.first_name ?? "Reader"}!</h1>
-          </div>
-          <div
-            className="learner-dashboard__identity"
-            aria-label="Learner identity"
+        <Surface
+          className="learner-dashboard__header-surface"
+          kind="panel"
+          padding="normal"
+        >
+          <header
+            className="learner-dashboard__header"
+            aria-label="Learner summary"
           >
-            <span>
-              {learner?.progress.stage === "before_diagnostic"
-                ? "Getting started"
-                : "Reading in progress"}
-            </span>
-            <strong>{learner?.learner_code}</strong>
-          </div>
-          <BigButton
-            className="learner-dashboard__logout"
-            variant="quiet"
-            size="regular"
-            committing={logoutCommit.committing}
-            busy={logoutMutation.isPending}
-            busyLabel="Signing out"
-            onClick={() => logoutCommit.commit(() => logoutMutation.mutate())}
-          >
-            Sign out
-          </BigButton>
-        </header>
+            <div>
+              <p className="learner-dashboard__eyebrow">Your reading path</p>
+              <h1>Welcome, {learner?.first_name ?? "Reader"}!</h1>
+            </div>
+            <div className="learner-dashboard__header-actions">
+              <div
+                className="learner-dashboard__identity"
+                aria-label="Learner identity"
+              >
+                <span>
+                  {learner?.progress.stage === "before_diagnostic"
+                    ? "Getting started"
+                    : "Reading in progress"}
+                </span>
+                <strong>{learner?.learner_code}</strong>
+              </div>
+              <BigButton
+                className="learner-dashboard__logout"
+                variant="quiet"
+                size="regular"
+                committing={logoutCommit.committing}
+                busy={logoutMutation.isPending}
+                busyLabel="Signing out"
+                onClick={() =>
+                  logoutCommit.commit(() => logoutMutation.mutate())
+                }
+              >
+                Sign out
+              </BigButton>
+            </div>
+          </header>
+        </Surface>
 
         <Surface
-          className="learner-dashboard__primary-card"
+          className="learner-dashboard__primary-card learner-dashboard__entrance"
           kind="frame"
           padding="roomy"
         >
-          <p className="learner-dashboard__next-label">Your next step</p>
-          <h2>Let&apos;s find your reading starting point.</h2>
+          <div className="learner-dashboard__primary-symbol">
+            <LearningIcon />
+          </div>
+          <div className="learner-dashboard__primary-copy">
+            <p className="learner-dashboard__next-label">Your next step</p>
+            <h2>Find your reading starting point.</h2>
+            <p>Complete this once to open your lessons.</p>
+          </div>
           <BigButton
             className="learner-dashboard__primary-action"
-            leadingIcon={<LearningIcon />}
+            aria-label="Start Diagnostic Assessment"
             onClick={() =>
               setAssessmentNotice(
                 "The Diagnostic Assessment will connect here next.",
               )
             }
           >
-            Start Diagnostic Assessment
+            Start Diagnostic
           </BigButton>
-          <p className="learner-dashboard__support-copy">
-            Finish this first to unlock your lessons.
-          </p>
           <p className="learner-dashboard__notice" aria-live="polite">
             {assessmentNotice}
           </p>
         </Surface>
 
-        <section
-          className="learner-dashboard__games"
-          aria-labelledby="learner-games-title"
-        >
-          <div>
-            <p className="learner-dashboard__eyebrow">Take a playful break</p>
-            <h2 id="learner-games-title">Games</h2>
-            <p>Visit the Game Lobby and choose a game.</p>
-          </div>
-          <BigButton
-            className="learner-dashboard__games-action"
-            variant="secondary"
-            size="regular"
-            leadingIcon={<GamesIcon />}
-            committing={gamesCommit.committing}
-            onClick={openGames}
+        <div className="learner-dashboard__quick-grid">
+          <Surface
+            className="learner-dashboard__utility-card learner-dashboard__entrance"
+            kind="panel"
+            padding="normal"
           >
-            Open Game Lobby
-          </BigButton>
-        </section>
-
-        <Surface
-          className="learner-dashboard__achievements"
-          kind="frame"
-          padding="roomy"
-        >
-          <div className="learner-dashboard__section-heading">
-            <div>
-              <p className="learner-dashboard__eyebrow">Your collection</p>
-              <h2>Achievements</h2>
+            <div className="learner-dashboard__utility-heading">
+              <span className="learner-dashboard__utility-icon">
+                <GamesIcon />
+              </span>
+              <div>
+                <p className="learner-dashboard__eyebrow">Play and practice</p>
+                <h2>Games</h2>
+              </div>
             </div>
-            <span>0 of {achievementSlots.length}</span>
-          </div>
+            <p>Two quick games are ready for you.</p>
+            <BigButton
+              className="learner-dashboard__games-action"
+              aria-label="Open Game Lobby"
+              variant="secondary"
+              size="regular"
+              committing={gamesCommit.committing}
+              onClick={openGames}
+            >
+              Open Games
+            </BigButton>
+          </Surface>
 
-          <ul
-            className="learner-dashboard__achievement-grid"
-            aria-label="Locked achievements"
+          <Surface
+            className="learner-dashboard__utility-card learner-dashboard__entrance"
+            kind="panel"
+            padding="normal"
           >
-            {achievementSlots.map((achievement, index) => (
-              <li key={achievement.key}>
-                <span
-                  className="learner-dashboard__achievement-star"
-                  aria-hidden="true"
+            <div className="learner-dashboard__utility-heading">
+              <span className="learner-dashboard__utility-icon">
+                <TrophyIcon />
+              </span>
+              <div>
+                <p className="learner-dashboard__eyebrow">Your collection</p>
+                <h2>Achievements</h2>
+              </div>
+              <span className="learner-dashboard__achievement-count">
+                0/{achievementSlots.length}
+              </span>
+            </div>
+
+            <ul
+              className="learner-dashboard__achievement-preview"
+              aria-label="Locked achievements"
+            >
+              {achievementSlots.map((achievement) => (
+                <li
+                  key={achievement.key}
+                  aria-label={`${achievement.name}: ${achievement.criteria}`}
                 >
-                  ★
-                </span>
-                <strong>Achievement {index + 1}</strong>
-                <span>{achievement.criteria}</span>
-              </li>
-            ))}
-          </ul>
-        </Surface>
+                  <span
+                    className="learner-dashboard__achievement-star"
+                    aria-hidden="true"
+                  >
+                    ★
+                  </span>
+                  <strong>{achievement.name}</strong>
+                </li>
+              ))}
+            </ul>
+          </Surface>
+        </div>
       </div>
     </main>
   );

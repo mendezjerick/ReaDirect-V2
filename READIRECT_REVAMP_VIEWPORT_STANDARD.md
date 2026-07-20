@@ -195,12 +195,21 @@ Text must remain readable without zooming.
 Recommended minimums:
 
 ```text
-Body text: 16px
-Button text: 16px
-Primary learner prompts: 20px or larger
+Professional staff body text: 16px
+Learner support text: 18px
+Learner interface body text: 21px
+Learner secondary button text: 24px
+Primary learner prompts: 28px
+Primary learner button text: 30px
 ```
 
-Critical learner instructions must not be reduced solely to fit more content on screen.
+Jersey 20 is the default learner interface font. The Intro and every
+`learner-flow-page` use the shared enlarged learner scale. Authored reading
+content uses Lexend at the appropriate approved learner size.
+
+Critical learner instructions and controls must not be reduced solely to fit
+more content on screen. Recompose the layout or divide the content into smaller
+steps instead.
 
 Long content must be divided into smaller steps.
 
