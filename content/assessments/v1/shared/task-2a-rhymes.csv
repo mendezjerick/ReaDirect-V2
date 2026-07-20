@@ -1,0 +1,11 @@
+assessment_version,form_type,task_key,item_key,sort_order,content_id,word_one_key,word_one,word_two_key,word_two,is_rhyme,correct_response,difficulty_band,pronunciation_review,status
+v1,shared,task-2a,task-2a-01,1,assessment-v1-task-2a-01,word:cat,cat,word:hat,hat,true,yes,easy,approved,active
+v1,shared,task-2a,task-2a-02,2,assessment-v1-task-2a-02,word:sun,sun,word:fun,fun,true,yes,easy,approved,active
+v1,shared,task-2a,task-2a-03,3,assessment-v1-task-2a-03,word:pig,pig,word:map,map,false,no,easy,approved,active
+v1,shared,task-2a,task-2a-04,4,assessment-v1-task-2a-04,word:bed,bed,word:red,red,true,yes,easy,approved,active
+v1,shared,task-2a,task-2a-05,5,assessment-v1-task-2a-05,word:cup,cup,word:net,net,false,no,easy,approved,active
+v1,shared,task-2a,task-2a-06,6,assessment-v1-task-2a-06,word:kid,kid,word:bus,bus,false,no,easy,approved,active
+v1,shared,task-2a,task-2a-07,7,assessment-v1-task-2a-07,word:log,log,word:dog,dog,true,yes,easy,approved,active
+v1,shared,task-2a,task-2a-08,8,assessment-v1-task-2a-08,word:man,man,word:fan,fan,true,yes,easy,approved,active
+v1,shared,task-2a,task-2a-09,9,assessment-v1-task-2a-09,word:run,run,word:top,top,false,no,easy,approved,active
+v1,shared,task-2a,task-2a-10,10,assessment-v1-task-2a-10,word:hen,hen,word:pen,pen,true,yes,easy,approved,active

@@ -1,0 +1,117 @@
+.learner-login-page {
+  display: grid;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  place-items: center;
+  overflow-y: auto;
+  padding: max(1rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+  background: var(--color-surface-page);
+}
+
+.learner-login-page__stage {
+  width: min(100%, 34rem);
+}
+
+.learner-login-card {
+  border-radius: var(--radius-frame);
+}
+
+.learner-login-card > .surface {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.learner-login-card__header {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.learner-login-card__icon {
+  display: grid;
+  width: 5.25rem;
+  height: 5.25rem;
+  place-items: center;
+  border: 3px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  color: var(--color-action-primary);
+  background: var(--color-surface-notice);
+  box-shadow: 0 5px 0 var(--color-frame-depth);
+}
+
+.learner-login-card__icon svg {
+  width: 3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.learner-login-card__header p {
+  margin: 0 0 0.35rem;
+  color: var(--color-action-primary);
+  font-family: var(--font-display-family);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.learner-login-card__header h1 {
+  margin: 0;
+  font-family: var(--font-display-family);
+  font-size: clamp(2rem, 10vw, 3rem);
+  line-height: 1.05;
+}
+
+.learner-login-card__header div > span {
+  display: block;
+  margin-top: 0.65rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.learner-login-form {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.learner-login-form .text-field__label,
+.learner-login-form .text-field__input {
+  font-size: 1rem;
+}
+
+.learner-login-form .text-field__input {
+  min-height: 3.75rem;
+}
+
+.learner-login-form__submit {
+  width: 100%;
+  margin-top: 0.3rem;
+}
+
+.learner-login-form__error {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  font-weight: 650;
+}
+
+.learner-login-card__back {
+  justify-self: center;
+}
+
+@media (min-width: 48rem) {
+  .learner-login-page {
+    padding: 2rem;
+  }
+
+  .learner-login-card > .surface {
+    padding: 2.5rem;
+  }
+}

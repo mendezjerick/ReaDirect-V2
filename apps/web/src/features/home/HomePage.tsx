@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 import { BigButton } from "../../components/ui/BigButton";
+import { useButtonCommit } from "../../components/ui/useButtonCommit";
 
 function BookIcon() {
   return (
@@ -15,6 +18,18 @@ function BookIcon() {
 }
 
 export function HomePage() {
+  const navigate = useNavigate();
+  const learnerLoginCommit = useButtonCommit();
+  const staffLoginCommit = useButtonCommit();
+
+  const openLearnerLogin = () => {
+    learnerLoginCommit.commit(() => navigate("/learner/login"));
+  };
+
+  const openStaffLogin = () => {
+    staffLoginCommit.commit(() => navigate("/staff/login"));
+  };
+
   return (
     <main
       className="home-page"
@@ -28,6 +43,8 @@ export function HomePage() {
         <BigButton
           className="home-page__read-button"
           leadingIcon={<BookIcon />}
+          committing={learnerLoginCommit.committing}
+          onClick={openLearnerLogin}
         >
           Let&apos;s Read!
         </BigButton>
@@ -36,6 +53,8 @@ export function HomePage() {
           className="home-page__staff-button"
           variant="secondary"
           size="regular"
+          committing={staffLoginCommit.committing}
+          onClick={openStaffLogin}
         >
           Staff login
         </BigButton>

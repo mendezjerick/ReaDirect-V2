@@ -13,6 +13,8 @@ This guide complements:
 - `READIRECT_REVAMP_PROJECT_STRUCTURE.md`
 - `READIRECT_REVAMP_VIEWPORT_STANDARD.md`
 - `READIRECT_REVAMP_MAIN_TRANSITION_STANDARD.md`
+- `READIRECT_REVAMP_LESSON_AND_ASSESSMENT_INTERACTION_STANDARD.md`
+- `READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`
 
 It does not define assessment scoring, audio processing, backend behavior, or
 lesson-routing rules.
@@ -141,6 +143,92 @@ For learner-facing screens:
 
 Large elements must still have hierarchy. If every element is equally large,
 the learner cannot tell what to do first.
+
+## Learner Dashboard Action Hierarchy
+
+The Learner Dashboard has one dominant primary-action slot above its secondary
+content. It must be the first actionable element the learner notices after the
+identity header.
+
+The slot keeps the same large button size, visual weight, and responsive
+position while the authenticated account's persisted progression changes its
+action:
+
+~~~text
+Diagnostic Assessment
+    -> Start Lesson <number or title>
+    -> Continue Lesson <number or title> while a saved attempt is incomplete
+    -> Final Assessment
+~~~
+
+The completed stage disappears instead of remaining as a competing button.
+Layout must not jump when the primary action changes. Start Lesson and Continue
+Lesson use the same primary component and geometry. Continue Lesson resumes the
+latest persisted save state belonging to the authenticated learner or verified
+guest rather than restarting the lesson.
+
+The Games action is clearly visible but smaller and visually secondary. It must
+not appear before, overlap, or compete with the required learning action.
+
+The achievement holder follows the primary action and Games action. It remains
+easy to discover, uses fixed badge positions, and shows locked silhouettes with
+visible criteria. Supporting scores, progress, optional lessons, help, and
+other controls use lower visual emphasis.
+
+The achievement gallery, shared queued unlock overlay, slow-pop animation, and
+acknowledgement behavior are defined by
+`READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`. Pages and games must compose
+that shared feature instead of recreating it.
+
+## Professional Staff Workspace
+
+Staff dashboards use a professional, clean extension of the ReaDirect visual
+language. They must feel like the same product without reproducing the
+oversized learner activity layout inside administrative tools.
+
+The public Staff login page remains an entry surface and therefore keeps the
+full vector-game treatment: themed background artwork, a layered frame and
+panel, a large primary action, rounded controls, and visible solid fake depth.
+
+After staff login, dashboards must retain these ReaDirect foundations:
+
+- Semantic theme variables for every color and theme-controlled asset.
+- Solid vector-like fills with no gradients, glass effects, or photographic
+  interface texture.
+- Lexend typography for dashboard content, forms, tables, and controls.
+- Fredoka only for the ReaDirect brand and short high-level page titles.
+- Shared buttons, surfaces, fields, badges, focus treatment, and responsive
+  foundations.
+- The standard tactile button commit interval before navigation or major
+  interface replacement.
+- Clear warm accents, navy structure, rounded geometry, and accessible status
+  colors.
+
+Professional dashboard adjustments are required:
+
+- Use smaller radii, tighter spacing, and denser information layouts than
+  learner activities.
+- Keep tables, filters, charts, and ordinary data cards primarily flat.
+- Limit solid fake depth to approximately `2px` to `3px` on data cards,
+  navigation selection, and routine staff controls.
+- Reserve stronger depth for the ReaDirect brand mark and genuinely primary
+  actions.
+- Use a persistent sidebar on desktop and a compact top header on mobile.
+- Stack dashboard regions into one readable column on mobile; do not force
+  desktop tables or panels into horizontal overflow.
+- Use CSS or authored SVG for simple charts unless another approved technology
+  is added to the technology stack.
+- Keep motion short and functional. Do not add learner pointer trails, custom
+  cursors, celebration effects, or continuous decorative animation.
+- Do not place Ma'am Clara in a staff dashboard unless the project owner
+  explicitly requests her for that page.
+- Do not apply the ReaDirect Link Start Transition to staff navigation unless
+  that route change is added to the transition standard's approved placement
+  list.
+
+The intended result is clean operational software with recognizable ReaDirect
+geometry and color—not generic corporate software and not an oversized learner
+game screen.
 
 ## Typography
 

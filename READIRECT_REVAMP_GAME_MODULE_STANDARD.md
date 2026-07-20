@@ -4,6 +4,10 @@ This standard defines how the game lobby and at most two independently developed
 games connect to ReaDirect. It is mandatory for the owner-controlled lobby,
 game-one, game-two, and every contributor repository.
 
+The central catalog, account-level award rules, shared queue, gallery, and
+shared unlock overlay are defined by
+`READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`.
+
 ## Non-Negotiable Architecture
 
 ReaDirect has one deployed React application, one Laravel API, and one
@@ -500,6 +504,10 @@ Simple games:
 
 ## Achievements
 
+Game achievements integrate with the central achievement system. The lobby and
+games consume the shared queue and `AchievementUnlockOverlay`; they must not
+fork the animation, acknowledgement logic, catalog, or persistence.
+
 Contributors provide, for each proposed achievement:
 
 - Achievement name.
@@ -520,9 +528,9 @@ Achievement rules:
 - Earned achievements fill their corresponding fixed position.
 
 After a session, newly earned achievements are queued for the first subsequent
-lobby visit. The lobby dims behind a centered slow-pop presentation. Only the
-achievement, its name, and Tap to continue remain prominent. Multiple
-achievements appear sequentially in first-earned order.
+lobby visit. The shared overlay dims the lobby behind a centered slow-pop
+presentation. Only the achievement, its name, and Tap to continue remain
+prominent. Multiple achievements appear sequentially in first-earned order.
 
 Acknowledgement is persisted after each tap. Closing the lobby leaves remaining
 items queued. Reduced-motion mode uses a gentle fade without changing the

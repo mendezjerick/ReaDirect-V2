@@ -5,6 +5,10 @@ identity, sessions, saves, progression, results, leaderboards, and achievements.
 It is mandatory because independently developed game data must merge into the
 main ReaDirect PostgreSQL database without manual reconstruction.
 
+The cross-feature achievement catalog, Reading Journey criteria, shared queue,
+and presentation contract are defined by
+`READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`.
+
 ## One Database and One Schema
 
 All game data uses:
@@ -266,8 +270,8 @@ higher.
 
 - id.
 - achievement_key: permanent globally unique key.
-- source_type: lesson or game.
-- source_key: lesson or permanent game key.
+- source_type: assessment, lesson, or game.
+- source_key: permanent assessment, lesson, or game key.
 - name: learner-facing achievement name.
 - unlock_criteria: visible learner-facing criteria.
 - display_order: unique fixed gallery position.
@@ -284,7 +288,8 @@ main owner assigns the permanent key, fixed ordering, and artwork.
 - id.
 - account owner key supplied by the central authentication model.
 - achievement_id.
-- source_session_id: nullable for non-game achievements.
+- matching source reference: nullable assessment run, lesson progress, or game
+  session/result reference according to source_type.
 - earned_at.
 - acknowledged_at: nullable.
 - award_evidence: limited JSONB.
@@ -299,9 +304,10 @@ A unique constraint on account owner and achievement_id ensures an achievement
 is earned once. Account-level ownership allows lesson achievements to exist
 before the player creates a game username or first enters the lobby.
 
-Unacknowledged rows form the lobby presentation queue. Ordering is earned_at
+Unacknowledged rows form the shared achievement presentation queue. Ordering is earned_at
 ascending, then id ascending. Acknowledging one achievement updates only that
-row. Closing the lobby leaves every remaining row unacknowledged.
+row. Closing the Dashboard or Game Lobby leaves every remaining row
+unacknowledged.
 
 ## Achievement Transaction
 
@@ -383,8 +389,10 @@ POST   /api/learner/games/profile
 PATCH  /api/learner/games/profile/username
 
 GET    /api/learner/games/leaderboards
-GET    /api/learner/games/achievements
-POST   /api/learner/games/achievements/<achievement>/acknowledge
+
+GET    /api/achievements
+GET    /api/achievements/queue
+POST   /api/achievements/<account-achievement>/acknowledge
 
 POST   /api/learner/games/<game-key>/sessions
 GET    /api/learner/games/<game-key>/save
@@ -393,9 +401,10 @@ POST   /api/learner/games/<game-key>/new-game
 POST   /api/learner/games/<game-key>/sessions/<session>/complete
 ```
 
-The learner prefix is the learner-facing application area and also serves
-verified guests after their guest session is resolved. Authorization derives
-the actual audience.
+The learner prefix is the learner-facing game application area and also serves
+verified guests after their guest session is resolved. The central achievement
+routes omit the game prefix because assessment, lesson, and game awards share
+them. Authorization derives the actual account and audience in both cases.
 
 Game-specific routes remain below:
 

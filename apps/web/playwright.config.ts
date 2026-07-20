@@ -24,10 +24,19 @@ export default defineConfig({
       hasTouch: width <= 768,
     },
   })),
-  webServer: {
-    command: "corepack pnpm dev --host 127.0.0.1 --port 4173",
-    url: "http://127.0.0.1:4173",
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: "corepack pnpm dev --host 127.0.0.1 --port 4173",
+      url: "http://127.0.0.1:4173",
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
+    {
+      command: "php artisan serve --host 127.0.0.1 --port 8000",
+      cwd: "../api",
+      url: "http://127.0.0.1:8000/up",
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
+  ],
 });

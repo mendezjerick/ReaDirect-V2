@@ -1,0 +1,11 @@
+assessment_version,form_type,task_key,item_key,sort_order,content_id,target_key,display_text,spoken_target,syllable_guide,syllable_count,grapheme_pattern,phoneme_guide,has_consonant_cluster,has_consonant_digraph,has_consonant_multigraph,is_irregular,asr_model,difficulty_band,pronunciation_review,status
+v1,shared,task-2b,task-2b-01,1,assessment-v1-task-2b-01,word:bag,bag,bag,bag,1,CVC,B AE G,false,false,false,false,mu,easy,approved,active
+v1,shared,task-2b,task-2b-02,2,assessment-v1-task-2b-02,word:cap,cap,cap,cap,1,CVC,K AE P,false,false,false,false,mu,easy,approved,active
+v1,shared,task-2b,task-2b-03,3,assessment-v1-task-2b-03,word:gum,gum,gum,gum,1,CVC,G AH M,false,false,false,false,mu,easy,approved,active
+v1,shared,task-2b,task-2b-04,4,assessment-v1-task-2b-04,word:hip,hip,hip,hip,1,CVC,HH IH P,false,false,false,false,mu,easy,approved,active
+v1,shared,task-2b,task-2b-05,5,assessment-v1-task-2b-05,word:lap,lap,lap,lap,1,CVC,L AE P,false,false,false,false,mu,easy,approved,active
+v1,shared,task-2b,task-2b-06,6,assessment-v1-task-2b-06,word:mug,mug,mug,mug,1,CVC,M AH G,false,false,false,false,mu,easy,approved,active
+v1,shared,task-2b,task-2b-07,7,assessment-v1-task-2b-07,word:nap,nap,nap,nap,1,CVC,N AE P,false,false,false,false,mu,easy,approved,active
+v1,shared,task-2b,task-2b-08,8,assessment-v1-task-2b-08,word:pet,pet,pet,pet,1,CVC,P EH T,false,false,false,false,mu,easy,approved,active
+v1,shared,task-2b,task-2b-09,9,assessment-v1-task-2b-09,word:sit,sit,sit,sit,1,CVC,S IH T,false,false,false,false,mu,easy,approved,active
+v1,shared,task-2b,task-2b-10,10,assessment-v1-task-2b-10,word:tub,tub,tub,tub,1,CVC,T AH B,false,false,false,false,mu,easy,approved,active

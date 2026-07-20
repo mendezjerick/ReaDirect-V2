@@ -1,0 +1,11 @@
+assessment_version,form_type,task_key,item_key,sort_order,story_question_order,content_id,story_key,question_type,question_text,choice_a,choice_b,choice_c,choice_d,correct_choice_key,correct_answer_text,asr_model,difficulty_band,pronunciation_review,status
+v1,shared,task-3b,task-3b-story-1-who,1,1,assessment-v1-task-3b-story-1-who,story:lena-at-park,who,Who goes to the park?,Lena,Rosa,Mia,Ben,a,Lena,none,easy,approved,active
+v1,shared,task-3b,task-3b-story-1-what,2,2,assessment-v1-task-3b-story-1-what,story:lena-at-park,what,What does Lena take?,A pail,A ball,A bag,A book,b,A ball,none,easy,approved,active
+v1,shared,task-3b,task-3b-story-1-where,3,3,assessment-v1-task-3b-story-1-where,story:lena-at-park,where,Where does Lena go?,The garden,The market,The park,The school,c,The park,none,easy,approved,active
+v1,shared,task-3b,task-3b-story-1-when,4,4,assessment-v1-task-3b-story-1-when,story:lena-at-park,when,When does Lena go to the park?,On Sunday,On Monday,On Tuesday,On Friday,a,On Sunday,none,easy,approved,active
+v1,shared,task-3b,task-3b-story-1-why,5,5,assessment-v1-task-3b-story-1-why,story:lena-at-park,why,Why does Lena go to the park?,To eat,To sleep,To play,To read,c,To play,none,easy,approved,active
+v1,shared,task-3b,task-3b-story-2-who,6,1,assessment-v1-task-3b-story-2-who,story:rosa-at-garden,who,Who goes to the garden?,Lena,Ben,Rosa,Mia,c,Rosa,none,easy,approved,active
+v1,shared,task-3b,task-3b-story-2-what,7,2,assessment-v1-task-3b-story-2-what,story:rosa-at-garden,what,What does Rosa pick?,A ball,A book,A tomato,A seed,c,A tomato,none,easy,approved,active
+v1,shared,task-3b,task-3b-story-2-where,8,3,assessment-v1-task-3b-story-2-where,story:rosa-at-garden,where,Where does Rosa go?,The park,The school,The market,The garden,d,The garden,none,easy,approved,active
+v1,shared,task-3b,task-3b-story-2-when,9,4,assessment-v1-task-3b-story-2-when,story:rosa-at-garden,when,When does Rosa go to the garden?,On Sunday,On Tuesday,On Friday,On Monday,d,On Monday,none,easy,approved,active
+v1,shared,task-3b,task-3b-story-2-why,10,5,assessment-v1-task-3b-story-2-why,story:rosa-at-garden,why,Why does Rosa go to the garden?,To play,To sleep,To eat,To read,c,To eat,none,easy,approved,active

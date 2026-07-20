@@ -1,0 +1,27 @@
+content_version,status,lesson_key,content_id,sort_order,target_type,target_key,uppercase_form,lowercase_form,display_text,spoken_target,asr_model,difficulty_band,pronunciation_review,display_fingerprint,context_word_key,context_word,highlighted_display,missing_display,eligible_mission_1,eligible_mission_2,eligible_mission_3
+v1,active,required-lesson-1,lesson-v1-letter-a,1,letter,letter:a,A,a,A a,A,nu,foundational,approved,display:a-a,proper-name:ana,Ana,Ana,Ana - _na,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-b,2,letter,letter:b,B,b,B b,B,nu,foundational,approved,display:b-b,word:bag,bag,Bag,bag - _ag,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-c,3,letter,letter:c,C,c,C c,C,nu,foundational,approved,display:c-c,word:cat,cat,Cat,cat - _at,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-d,4,letter,letter:d,D,d,D d,D,nu,foundational,approved,display:d-d,word:dog,dog,Dog,dog - _og,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-e,5,letter,letter:e,E,e,E e,E,nu,foundational,approved,display:e-e,word:ear,ear,Ear,ear - _ar,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-f,6,letter,letter:f,F,f,F f,F,nu,foundational,approved,display:f-f,word:fan,fan,Fan,fan - _an,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-g,7,letter,letter:g,G,g,G g,G,nu,foundational,approved,display:g-g,word:gum,gum,Gum,gum - _um,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-h,8,letter,letter:h,H,h,H h,H,nu,foundational,approved,display:h-h,word:hat,hat,Hat,hat - _at,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-i,9,letter,letter:i,I,i,I i,I,nu,foundational,approved,display:i-i,word:it,it,It,it - _t,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-j,10,letter,letter:j,J,j,J j,J,nu,foundational,approved,display:j-j,word:jam,jam,Jam,jam - _am,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-k,11,letter,letter:k,K,k,K k,K,nu,foundational,approved,display:k-k,word:kid,kid,Kid,kid - _id,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-l,12,letter,letter:l,L,l,L l,L,nu,foundational,approved,display:l-l,word:lip,lip,Lip,lip - _ip,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-m,13,letter,letter:m,M,m,M m,M,nu,foundational,approved,display:m-m,word:map,map,Map,map - _ap,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-n,14,letter,letter:n,N,n,N n,N,nu,foundational,approved,display:n-n,word:net,net,Net,net - _et,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-o,15,letter,letter:o,O,o,O o,O,nu,foundational,approved,display:o-o,word:on,on,On,on - _n,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-p,16,letter,letter:p,P,p,P p,P,nu,foundational,approved,display:p-p,word:pen,pen,Pen,pen - _en,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-q,17,letter,letter:q,Q,q,Q q,Q,nu,foundational,approved,display:q-q,,,,,true,false,false
+v1,active,required-lesson-1,lesson-v1-letter-r,18,letter,letter:r,R,r,R r,R,nu,foundational,approved,display:r-r,word:red,red,Red,red - _ed,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-s,19,letter,letter:s,S,s,S s,S,nu,foundational,approved,display:s-s,word:sun,sun,Sun,sun - _un,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-t,20,letter,letter:t,T,t,T t,T,nu,foundational,approved,display:t-t,word:top,top,Top,top - _op,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-u,21,letter,letter:u,U,u,U u,U,nu,foundational,approved,display:u-u,word:up,up,Up,up - _p,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-v,22,letter,letter:v,V,v,V v,V,nu,foundational,approved,display:v-v,word:van,van,Van,van - _an,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-w,23,letter,letter:w,W,w,W w,W,nu,foundational,approved,display:w-w,word:web,web,Web,web - _eb,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-x,24,letter,letter:x,X,x,X x,X,nu,foundational,approved,display:x-x,,,,,true,false,false
+v1,active,required-lesson-1,lesson-v1-letter-y,25,letter,letter:y,Y,y,Y y,Y,nu,foundational,approved,display:y-y,word:yam,yam,Yam,yam - _am,true,true,true
+v1,active,required-lesson-1,lesson-v1-letter-z,26,letter,letter:z,Z,z,Z z,Z,nu,foundational,approved,display:z-z,word:zip,zip,Zip,zip - _ip,true,true,true

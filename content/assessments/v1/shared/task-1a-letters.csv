@@ -1,0 +1,11 @@
+assessment_version,form_type,task_key,item_key,sort_order,content_id,target_key,uppercase_form,lowercase_form,display_text,spoken_target,asr_model,difficulty_band,confusion_group,pronunciation_review,status
+v1,shared,task-1a,task-1a-01,1,assessment-v1-task-1a-01,letter:a,A,a,A a,A,nu,easy,a-h-j-k,approved,active
+v1,shared,task-1a,task-1a-02,2,assessment-v1-task-1a-02,letter:c,C,c,C c,C,nu,easy,c-z,approved,active
+v1,shared,task-1a,task-1a-03,3,assessment-v1-task-1a-03,letter:f,F,f,F f,F,nu,easy,none,approved,active
+v1,shared,task-1a,task-1a-04,4,assessment-v1-task-1a-04,letter:k,K,k,K k,K,nu,easy,a-h-j-k,approved,active
+v1,shared,task-1a,task-1a-05,5,assessment-v1-task-1a-05,letter:l,L,l,L l,L,nu,easy,none,approved,active
+v1,shared,task-1a,task-1a-06,6,assessment-v1-task-1a-06,letter:m,M,m,M m,M,nu,easy,m-n,approved,active
+v1,shared,task-1a,task-1a-07,7,assessment-v1-task-1a-07,letter:o,O,o,O o,O,nu,easy,none,approved,active
+v1,shared,task-1a,task-1a-08,8,assessment-v1-task-1a-08,letter:p,P,p,P p,P,nu,easy,b-d-e-g-p-t-v,approved,active
+v1,shared,task-1a,task-1a-09,9,assessment-v1-task-1a-09,letter:s,S,s,S s,S,nu,easy,none,approved,active
+v1,shared,task-1a,task-1a-10,10,assessment-v1-task-1a-10,letter:u,U,u,U u,U,nu,easy,none,approved,active

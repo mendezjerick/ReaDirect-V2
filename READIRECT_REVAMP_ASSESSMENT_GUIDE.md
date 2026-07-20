@@ -2,6 +2,18 @@
 
 Purpose: define the ReaDirect Assessment task rules for the revamp.
 
+Learner-facing assessment layout, recorder review, Retry, Submit, no-Skip
+behavior, neutral item feedback, and responsive interaction are defined by
+`READIRECT_REVAMP_LESSON_AND_ASSESSMENT_INTERACTION_STANDARD.md`.
+
+Diagnostic and Final Assessment achievement keys, completion criteria,
+granting, and presentation are defined by
+`READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`.
+
+Fixed Diagnostic and Final content forms, CSV schemas, content review, and
+assessment-content isolation are defined by
+`READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md`.
+
 This guide uses the name ReaDirect Assessment for the assessment tool. It
 defines Task 1A, Task 2A, Task 2B, Task 3A, and Task 3B.
 
@@ -25,11 +37,23 @@ Included:
 
 Excluded:
 
-- Module placement.
-- Module recommendation.
-- Module routing.
-- Module mastery.
-- Dashboard progression.
+- Score-based lesson placement or recommendation.
+- Score-based lesson routing or mastery.
+- Required-lesson content and internal lesson progression.
+
+## Assessment Placement In The Learner Flow
+
+The Diagnostic Assessment is the first required learner-dashboard action.
+Required lessons remain locked until the Diagnostic Assessment run is complete.
+Completion unlocks the first required lesson, regardless of the resulting score
+or reading profile.
+
+The Final Assessment remains locked until every required sequential lesson is
+complete. Diagnostic and Final Assessment scores remain assessment evidence;
+they do not choose, reorder, skip, or replace lessons.
+
+The learner dashboard owns which current action is displayed. The lesson
+standard owns sequential lesson unlocking.
 
 ## Assessment Shape
 
@@ -209,13 +233,25 @@ Their final reading score is recorded as 0 and their final reading profile is
 The Task 3A passage reading time limit is 60 seconds. Reading stops at this
 limit. Words not reached within the time limit are counted as incorrect words.
 
+Before Task 3A begins, an eligible learner chooses between the two fixed story
+options in the shared assessment form. Story selection is not scored.
+
+- The learner may change the highlighted choice before confirming it.
+- Confirming the choice persists its permanent story key on the assessment run.
+- Refreshing, reopening, or resuming returns the same confirmed story.
+- A confirmed story cannot be rerolled or replaced during that run.
+- The selected story supplies the one Task 3A passage administered to the
+  learner and the five linked Task 3B questions.
+- Diagnostic and Final runs expose the same two story choices.
+
 ## Task 3A: Passage Reading
 
 Task 3A checks oral passage reading.
 
 Rules:
 
-- The learner reads one assessment passage aloud.
+- The shared form contains two authored passages, and the learner reads only the
+  passage selected before Task 3A.
 - The passage reading recording is capped at 60 seconds.
 - Mu produces a raw transcript.
 - Expected-aware processing produces the final scoring passage transcript.
@@ -262,6 +298,12 @@ Eligibility:
 Rules:
 
 - The learner receives 5 comprehension questions.
+- The shared form contains 10 authored questions: 5 for each story.
+- Only the five questions linked to the confirmed story are administered.
+- Each story's five questions cover Who, What, Where, When, and Why exactly once.
+- Each story contains one canonical person, thing, place, time, and purpose for
+  those questions. It must not introduce a competing fact that could also answer
+  one of the five questions.
 - Each question has 4 answer choices.
 - The task therefore contains 20 visible choices in total.
 - The learner selects one answer per question.
@@ -327,8 +369,9 @@ Task 1A Letter Pronunciation
    Task 2A score = 10
    -> Task 2B Word Pronunciation
    -> Part 1 Score results page
+   -> choose and confirm Story 1 or Story 2
    -> Task 3A Passage Reading
-   -> Task 3B Comprehension Check
+   -> five Task 3B questions linked to the selected story
    -> final reading score
    -> final reading profile
 ```
@@ -338,6 +381,8 @@ Task 1A Letter Pronunciation
 - Store every task score separately.
 - Store the Part 1 Score separately.
 - Store the ReaDirect Assessment level derived from the Part 1 Score.
+- Store the confirmed Task 3 story key on the assessment run before Task 3A
+  begins.
 - Store Task 3A passage evidence and reading accuracy separately from the Part 1
   Score.
 - Store Task 3B comprehension score, selected choices, and comprehension
@@ -349,4 +394,6 @@ Task 1A Letter Pronunciation
 - Keep Mu raw transcript and repair metadata available for Task 2B and Task 3A
   review, but do not score from raw model evidence directly.
 - Keep selected-choice evidence available for Task 2A and Task 3B review.
-- Do not include module placement logic in this assessment guide.
+- Store completion state for each Diagnostic and Final Assessment run so the
+  learner dashboard can apply its fixed progression gates.
+- Do not use an assessment score to choose, reorder, skip, or replace lessons.

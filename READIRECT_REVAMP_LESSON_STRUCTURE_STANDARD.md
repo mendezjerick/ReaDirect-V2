@@ -2,6 +2,91 @@
 
 This document defines the required lesson structure, content formatting, ASR routing, and comprehension flow for ReaDirect-V2.
 
+Learner-facing mission layout, recorder review, Submit, Skip, Next, kinetic
+typography, no-image rules, and responsive activity behavior are defined by
+`READIRECT_REVAMP_LESSON_AND_ASSESSMENT_INTERACTION_STANDARD.md`.
+
+Required-lesson achievement keys, criteria, granting, and presentation are
+defined by `READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`.
+
+Required-lesson CSV schemas, target identities, pronunciation restrictions,
+content pools, selection cycles, and immutable activity snapshots are defined by
+`READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md`.
+
+## Course-Level Lesson Unlock Sequence
+
+The developer-made required lesson set is sequential.
+
+~~~text
+Complete Diagnostic Assessment
+    -> unlock required lesson 1
+    -> complete required lesson 1
+    -> unlock required lesson 2
+    -> continue one lesson at a time
+    -> complete the final required lesson
+    -> unlock Final Assessment
+~~~
+
+Rules:
+
+- Required lessons remain locked before Diagnostic Assessment completion.
+- Diagnostic score does not select a different lesson or starting point.
+- Only the first incomplete required lesson is available as the current
+  required lesson.
+- Completing the current required lesson unlocks the next lesson in the
+  centrally defined order.
+- Learners cannot skip a locked required lesson.
+- Completion and unlock state are authoritative server data.
+- Optional teacher-created lessons do not change the required order and do not
+  block Final Assessment.
+- Restarting the application, opening the Game Lobby, or playing a game does not
+  change required lesson progression.
+
+## Lesson Save And Resume State
+
+Every started lesson has a persistent save state owned by and tied uniquely to
+the authenticated learner or verified guest. Laravel and PostgreSQL persist,
+validate, and retrieve that account-owned record. Lesson progress must not exist
+only in React state, browser storage, an audio service, or an individual
+activity component.
+
+The save state records enough information to resume the exact current lesson
+without repeating completed lesson work. It must include:
+
+- Learner identity through an internal authenticated key.
+- Permanent lesson key and lesson-content version.
+- Current lesson status: not started, in progress, or completed.
+- Current activity section and item position.
+- Completed section and item identifiers.
+- Confirmed responses or result references required to preserve progress.
+- Save-state schema version.
+- Last confirmed save time.
+
+Save behavior:
+
+- Create the lesson save state when the learner starts a lesson.
+- Save automatically after each completed item or other documented stable
+  checkpoint.
+- Attempt a final checkpoint before returning to the Learner Dashboard.
+- Resume only from the latest checkpoint confirmed by Laravel.
+- Keep one current save state per learner and lesson.
+- Enforce ownership on every load and write so one account can never read,
+  overwrite, or continue another account's lesson save.
+- Never use a game save table for lesson progress.
+- Never unlock the next required lesson from an in-progress save.
+- Mark the lesson completed only after every required part succeeds.
+- Preserve the completed record after the next lesson unlocks.
+
+If the learner exits, returns to the dashboard, refreshes, signs out, or later
+signs in again, the current required lesson resumes from its latest confirmed
+account-owned save state. The dashboard primary action reads Continue Lesson
+followed by its number or title. If the lesson has never been started, it reads
+Start Lesson followed by its number or title.
+
+If a save request fails, the interface must not claim that the newest position
+was saved. It must retain the pending checkpoint long enough to retry when
+practical and give the learner a clear retry or safe-return message.
+
 ## Core Lesson Sequence
 
 Lessons must follow this progression:
@@ -245,14 +330,17 @@ Each comprehension item must contain:
 ```text
 One simple sentence
         ↓
-One 5W1H question
+One 5W question
         ↓
 One spoken answer
 ```
 
-The learner first reads the simple sentence using Mu.
+The learner reads the simple sentence visually. The sentence reading is not a
+separate recording or scored interaction in this mission.
 
-The system then presents one comprehension question.
+Ma'am Clara then asks one comprehension question through audio. A short
+question-type token such as `WHO?` may be shown, but the complete question is
+not displayed as a permanent dialogue line.
 
 The learner answers the question aloud.
 
@@ -265,11 +353,7 @@ The system compares the raw transcript with the hidden expected answer and accep
 ```text
 Simple sentence is displayed
         ↓
-Learner reads the sentence
-        ↓
-Mu returns the raw sentence transcript
-        ↓
-One comprehension question is displayed and spoken
+Ma'am Clara asks one comprehension question through audio
         ↓
 Learner answers aloud
         ↓
@@ -284,7 +368,7 @@ The hidden expected answer must not be provided to Mu before transcription.
 
 ## Question Types
 
-Comprehension readings must use the simple 5W1H question types:
+Comprehension readings must use the simple 5W question types:
 
 ```text
 Who
@@ -292,7 +376,6 @@ What
 Where
 When
 Why
-How
 ```
 
 Each sentence must lead to only one question.
@@ -407,28 +490,6 @@ the plant is dry
 because the plant is dry
 ```
 
-## How Example
-
-```text
-Reading sentence:
-Rosa waters the plant with a cup.
-
-Question:
-How does Rosa water the plant?
-
-Hidden expected answer:
-with a cup
-```
-
-Accepted answers may include:
-
-```text
-with a cup
-a cup
-she uses a cup
-rosa uses a cup
-```
-
 ## Comprehension Sentence Rules
 
 Comprehension sentences must:
@@ -467,7 +528,8 @@ When does Rosa water the plant?
 
 ## Comprehension Item Data Structure
 
-Each comprehension item must contain two separate Mu interactions.
+Each comprehension item contains one displayed sentence and one spoken-answer
+Mu interaction.
 
 Example:
 
@@ -476,14 +538,10 @@ Example:
   "activity_type": "comprehension_reading",
   "question_type": "who",
   "reading": {
-    "display_text": "Rosa waters the plant.",
-    "spoken_target": "rosa waters the plant",
-    "asr_model": "mu",
-    "case_sensitive": false,
-    "punctuation_sensitive": false
+    "display_text": "Rosa waters the plant."
   },
   "question": {
-    "display_text": "Who waters the plant?",
+    "audio_prompt_text": "Who waters the plant?",
     "expected_answer": "rosa",
     "accepted_answers": [
       "rosa",
@@ -546,7 +604,6 @@ Word drill result
 Phrase drill result
 Sentence drill result
 Paragraph-reading result
-Comprehension-reading result
 Spoken-comprehension-answer result
 ```
 
@@ -661,19 +718,6 @@ Expected answer:
 because it is dry
 ```
 
-### Comprehension Reading — How
-
-```text
-Reading sentence:
-Rosa waters the plant with a cup.
-
-Question:
-How does Rosa water the plant?
-
-Expected answer:
-with a cup
-```
-
 ## Hard Rules
 
 1. Letters must display uppercase and lowercase together, such as `Aa`.
@@ -686,7 +730,7 @@ with a cup
 8. Paragraphs must follow normal capitalization and punctuation.
 9. Paragraph reading must remain separate from comprehension readings.
 10. Paragraph reading must not include fluency or timing evaluation.
-11. Each comprehension sentence must lead to only one 5W1H question.
+11. Each comprehension sentence must lead to only one 5W question.
 12. Comprehension answers must be spoken.
 13. Mu must transcribe the spoken answer before expected-answer comparison.
 14. Hidden expected answers must never alter Mu's raw transcription.
