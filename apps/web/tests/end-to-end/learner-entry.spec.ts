@@ -45,6 +45,12 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
   await expect(
     page.getByRole("heading", { name: "Ready to read?" }),
   ).toBeVisible();
+  const expectedBackground =
+    (page.viewportSize()?.width ?? 0) >= 768 ? "T1desktop.png" : "T1mobile.png";
+  await expect(page.locator("main.learner-flow-page")).toHaveCSS(
+    "background-image",
+    new RegExp(expectedBackground),
+  );
   await page.getByLabel("Learner Code").fill("kw000");
   await page.getByLabel("Password").fill("rhine359");
   await page.getByRole("button", { name: "Let's go!" }).click();
@@ -53,6 +59,22 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
     page.getByRole("heading", { name: "Welcome, Kristen!" }),
   ).toBeVisible();
   await expect(page.getByText("KW000")).toBeVisible();
+  const primaryActionFontSize = await page
+    .getByRole("button", { name: "Start Diagnostic Assessment" })
+    .evaluate((element) => window.getComputedStyle(element).fontSize);
+  expect(Number.parseFloat(primaryActionFontSize)).toBeGreaterThanOrEqual(30);
+  await expect(page.locator("main.learner-flow-page")).toHaveCSS(
+    "background-image",
+    new RegExp(expectedBackground),
+  );
+  await expect(page.locator("main.learner-flow-page")).toHaveCSS(
+    "font-family",
+    /Jersey 20/,
+  );
+  const learnerHeaderBackground = await page
+    .locator(".learner-dashboard__header-surface")
+    .evaluate((element) => window.getComputedStyle(element).backgroundColor);
+  expect(learnerHeaderBackground).not.toBe("rgba(0, 0, 0, 0)");
 
   const pageSize = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,

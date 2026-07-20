@@ -104,7 +104,8 @@ System Administrator controls include:
 
 - AI service status.
 - Agent display mode.
-- Learner font mode.
+- Learner font mode. The canonical default is Jersey 20 for learner interface
+  chrome, with Lexend reserved for authored reading content.
 - Agent voice stage.
 - Schools.
 - Teachers.

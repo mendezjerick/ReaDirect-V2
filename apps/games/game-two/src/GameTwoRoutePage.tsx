@@ -14,7 +14,7 @@ export function GameTwoRoutePage() {
 
   return (
     <main
-      className="game-two"
+      className="game-two learner-flow-page"
       aria-label="Game Two"
       data-route-focus
       tabIndex={-1}

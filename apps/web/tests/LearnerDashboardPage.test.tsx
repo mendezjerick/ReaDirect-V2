@@ -71,6 +71,14 @@ describe("LearnerDashboardPage", () => {
   it("keeps the required learning action visually primary", () => {
     renderDashboard();
 
+    expect(screen.getByRole("main")).toHaveClass("learner-flow-page");
+    expect(
+      screen.getByRole("banner", { name: "Learner summary" }).parentElement,
+    ).toHaveClass(
+      "surface",
+      "surface--panel",
+      "learner-dashboard__header-surface",
+    );
     const primaryAction = screen.getByRole("button", {
       name: /start diagnostic assessment/i,
     });
@@ -80,10 +88,12 @@ describe("LearnerDashboardPage", () => {
 
     expect(primaryAction).toHaveClass("learner-dashboard__primary-action");
     expect(gameAction).toHaveClass("learner-dashboard__games-action");
-    expect(screen.getByText(/unlock your lessons/i)).toBeInTheDocument();
+    expect(screen.getByText(/open your lessons/i)).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(6);
     expect(
-      screen.getByText("Complete the Diagnostic Assessment"),
+      screen.getByRole("listitem", {
+        name: /first step: complete the diagnostic assessment/i,
+      }),
     ).toBeInTheDocument();
     expect(screen.getByText("Welcome, Kristen!")).toBeInTheDocument();
     expect(screen.getByText("KW000")).toBeInTheDocument();

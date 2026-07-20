@@ -111,7 +111,7 @@ const COLOR_OVERRIDE_GROUPS = [
   },
   {
     colorVariable: "--color-clara-glasses",
-    drawableIds: ["ArtMesh6"],
+    drawableIds: ["ArtMesh6", "ArtMesh30"],
   },
   {
     colorVariable: "--color-clara-skin-primary",

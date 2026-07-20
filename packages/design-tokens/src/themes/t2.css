@@ -1,0 +1,88 @@
+/* Theme 2: winter blue. Every override remains semantic and theme-scoped. */
+:root[data-theme="t2"] {
+  --asset-learner-flow-background-mobile: url("/assets/backgrounds/T2mobile.jpg");
+  --asset-learner-flow-background-desktop: url("/assets/backgrounds/T2desktop.jpg");
+
+  --color-transparent: transparent;
+
+  --color-surface-page: #edf3fb;
+  --color-surface-frame: #dfe9f7;
+  --color-surface-panel: #f9fbff;
+  --color-surface-notice: #eef5ff;
+  --color-surface-muted: #e6edf6;
+
+  --color-text-primary: #112640;
+  --color-text-secondary: #39506d;
+  --color-text-muted: #5c7390;
+  --color-text-on-action: #ffffff;
+
+  --color-border-warm: #bfd0e6;
+  --color-border-soft: #d9e4f2;
+  --color-border-strong: #4f6f9f;
+  --color-frame-depth: #93abd0;
+
+  --color-action-primary: #355fa8;
+  --color-action-primary-hover: #2d538f;
+  --color-action-primary-pressed: #264778;
+  --color-action-primary-depth: #1d3760;
+  --color-action-secondary: #ffffff;
+  --color-action-secondary-hover: #f1f6ff;
+
+  --color-success: #247451;
+  --color-success-soft: #e8f6ef;
+  --color-warning: #9a5a00;
+  --color-warning-soft: #fff4d6;
+  --color-danger: #b42318;
+  --color-danger-soft: #feeceb;
+  --color-focus: #1769d2;
+
+  --color-staff-page: #e9f0f8;
+  --color-staff-sidebar: #163156;
+  --color-staff-sidebar-active: #264b76;
+  --color-staff-sidebar-hover: #1f4066;
+  --color-staff-sidebar-text: #f9fbff;
+  --color-staff-sidebar-muted: #c2d1e4;
+  --color-staff-sidebar-disabled: #7f96b2;
+  --color-staff-navigation-overlay: color-mix(
+    in srgb,
+    var(--color-staff-sidebar) 68%,
+    var(--color-transparent)
+  );
+  --color-staff-card-depth: #cfdbeb;
+  --color-staff-chart-track: #dfe8f2;
+  --color-staff-chart-fill: #355fa8;
+
+  --color-accent-coral-soft: #7ea2de;
+  --color-accent-sun: #c8daf8;
+  --color-fallback-portrait-surface: #7c98c3;
+  --color-fallback-portrait-depth: #516d9d;
+
+  --color-transition-link-core: #f9fbff;
+  --color-transition-link-cover: #f9fbff;
+  --color-transition-link-primary: #5d84d1;
+  --color-transition-link-secondary: #a8c2f1;
+  --color-transition-link-accent: #7ea2de;
+  --color-transition-link-shadow: #39598f;
+
+  --color-live2d-recolor-base: #000000;
+  --color-live2d-canvas-clear: transparent;
+
+  --color-clara-hair: #6f90cb;
+  --color-clara-hair-outline: #3d5d95;
+  --color-clara-hair-highlight: #c5d6f4;
+  --color-clara-hair-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 72%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-hair-deep-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 44%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-glasses: #000000;
+  --color-clara-skin-primary: #ffa461;
+  --color-clara-skin-shade: #cf7442;
+  --color-clara-hoodie: #1a3154;
+  --color-clara-strings: #e6eef9;
+}

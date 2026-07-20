@@ -1,12 +1,14 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   LINK_START_DURATION_MS,
   LINK_START_ROUTE_SWAP_MS,
 } from "../src/components/transitions/LinkStartTransition";
 import { RouteTransitionProvider } from "../src/components/transitions/RouteTransitionProvider";
+import { ThemeProvider } from "../src/features/theme/ThemeProvider";
+import { THEME_STORAGE_KEY } from "../src/features/theme/theme";
 
 vi.mock("../src/features/intro/live2d/ClaraLive2DCanvas", () => ({
   ClaraLive2DCanvas: () => (
@@ -33,24 +35,31 @@ import {
 function renderIntro() {
   return render(
     <MemoryRouter initialEntries={["/"]}>
-      <RouteTransitionProvider>
-        <Routes>
-          <Route path="/" element={<IntroPage />} />
-          <Route
-            path="/home"
-            element={
-              <div data-route-focus tabIndex={-1}>
-                Home route
-              </div>
-            }
-          />
-        </Routes>
-      </RouteTransitionProvider>
+      <ThemeProvider>
+        <RouteTransitionProvider>
+          <Routes>
+            <Route path="/" element={<IntroPage />} />
+            <Route
+              path="/home"
+              element={
+                <div data-route-focus tabIndex={-1}>
+                  Home route
+                </div>
+              }
+            />
+          </Routes>
+        </RouteTransitionProvider>
+      </ThemeProvider>
     </MemoryRouter>,
   );
 }
 
 describe("IntroPage", () => {
+  afterEach(() => {
+    window.localStorage.removeItem(THEME_STORAGE_KEY);
+    delete document.documentElement.dataset.theme;
+  });
+
   it("declares the deterministic intro expression order", () => {
     expect(INTRO_EXPRESSION_SEQUENCE).toEqual([
       "default",
@@ -83,6 +92,9 @@ describe("IntroPage", () => {
 
     try {
       const { container, unmount } = renderIntro();
+      expect(container.querySelector("main")).toHaveClass(
+        "learner-typography-page",
+      );
       const continueButton = container.querySelector<HTMLButtonElement>(
         ".intro-page__continue",
       );
@@ -121,6 +133,28 @@ describe("IntroPage", () => {
     fireEvent.load(portrait);
 
     expect(portrait).toHaveAttribute("data-load-state", "loaded");
+  });
+
+  it("switches and persists the selected theme immediately", () => {
+    renderIntro();
+
+    const winterTheme = screen.getByRole("button", {
+      name: "Use Winter theme",
+    });
+
+    expect(
+      screen.getByRole("button", { name: "Use Meadow theme" }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(winterTheme);
+
+    expect(winterTheme).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement).toHaveAttribute("data-theme", "t2");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t2");
+    expect(screen.getByAltText("Ma'am Clara")).toHaveAttribute(
+      "src",
+      "/assets/live2d/clara/stills/clara-t2.png",
+    );
   });
 
   it("shows the press commit before continuing to the home route", () => {

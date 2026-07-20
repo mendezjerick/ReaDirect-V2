@@ -4,8 +4,9 @@ Purpose: define the visual language, reusable frontend surfaces, typography,
 buttons, responsive behavior, and reference component patterns for ReaDirect-V2.
 
 This guide applies to learner-facing React interfaces. Staff dashboards may use
-denser tables and controls, but they must reuse the same colors, typography,
-focus treatment, and component foundations.
+denser tables, controls, and the documented professional font exception, but
+they must reuse the same semantic tokens, focus treatment, and component
+foundations.
 
 This guide complements:
 
@@ -69,7 +70,8 @@ The main design characteristics are:
 - Dark navy text for a calm, dependable visual anchor.
 - Orange as the main action color.
 - Large rounded containers and pill-shaped controls.
-- Chunky headings and large button labels.
+- Large Jersey 20 pixel typography for learner headings, interface text, and
+  button labels.
 - Solid offset depth that makes containers and buttons feel game-like.
 - One clear primary action in each learner panel.
 - Generous whitespace between instructions and controls.
@@ -126,6 +128,26 @@ screen is otherwise minimal.
 The target appearance is a minimal vector game interface, not flat corporate
 software and not realistic three-dimensional rendering.
 
+### Pixel-game typography rules
+
+Pixel typography is a mandatory part of the learner design language, not a
+page-specific decoration.
+
+- Jersey 20 is the default interface face from the Intro through Home, learner
+  sign-in, dashboard, assessments, lessons, Game Lobby, and games.
+- Learner headings, buttons, badges, navigation, short instructions, and status
+  labels use Jersey 20 through shared semantic font variables.
+- Keep Jersey 20 deliberately large. Its minimum primary-button size is `30px`;
+  reducing it to conventional dashboard sizes breaks the intended design.
+- Use only one pixel family in the rendered interface. Pixelify Sans is a local
+  loading fallback, not a second decorative font to mix into a page.
+- Authored reading content switches to Lexend so children evaluate clean
+  letterforms rather than stylized pixel glyphs.
+- Authenticated staff workspaces remain professional Lexend interfaces and do
+  not inherit learner pixel typography.
+- Font selection and scale must be applied through shared page scopes and
+  tokens, never through page-local literal family names.
+
 ## Big And Simple Rules
 
 For learner-facing screens:
@@ -143,6 +165,30 @@ For learner-facing screens:
 
 Large elements must still have hierarchy. If every element is equally large,
 the learner cannot tell what to do first.
+
+## Mandatory Learner Background Readability
+
+The themed learner background is decorative artwork. It must never become the
+direct reading surface for required content.
+
+- Required headings, instructions, identity information, progress, status,
+  form labels, and controls must sit inside an opaque semantic `Frame`, `Panel`,
+  `Notice`, or action surface.
+- Transparent headers floating over illustrated backgrounds are prohibited.
+  Learner dashboard identity headers and Game Lobby headers use solid panels.
+- Background artwork may remain visible in gutters and deliberate empty space
+  between containers, but not through the readable surface itself.
+- Solve contrast with a solid vector surface and semantic colors. Do not use a
+  blurred overlay, gradient, glass effect, text shadow, or translucent scrim to
+  rescue unreadable text.
+- Verify readability against both the mobile and desktop artwork for every
+  theme. A clear area in one crop does not make direct-on-art text acceptable.
+- Decorative text may appear outside a panel only when it is not required to
+  understand, navigate, or complete the learner flow.
+
+This rule applies to all learner routes, including future assessments and
+lessons. The artwork supports the visual identity; containers carry the
+information.
 
 ## Learner Dashboard Action Hierarchy
 
@@ -196,7 +242,8 @@ After staff login, dashboards must retain these ReaDirect foundations:
 - Solid vector-like fills with no gradients, glass effects, or photographic
   interface texture.
 - Lexend typography for dashboard content, forms, tables, and controls.
-- Fredoka only for the ReaDirect brand and short high-level page titles.
+- Fredoka only for the ReaDirect brand and short high-level staff page titles.
+- Jersey 20 is not used inside authenticated professional staff workspaces.
 - Shared buttons, surfaces, fields, badges, focus treatment, and responsive
   foundations.
 - The standard tactile button commit interval before navigation or major
@@ -234,104 +281,143 @@ game screen.
 
 ### Font families
 
-Use the following font pairing:
+Jersey 20 is the canonical default font for the learner experience. Its large,
+blocky pixel forms reinforce the vector-game language and remain visible on
+small screens. The approved roles are:
 
-- **Fredoka** for display headings, short learner prompts, badges, and large
-  button labels.
-- **Lexend** for instructions, passages, form labels, helper text, dashboard
-  content, and longer reading text.
-- `ui-rounded`, `system-ui`, and `sans-serif` as fallbacks.
+- **Jersey 20** for the Intro, Home, learner sign-in, learner dashboard,
+  learner-facing navigation, Game Lobby, game chrome, headings, short prompts,
+  badges, support labels, and button labels.
+- **Lexend** for authored letters, words, phrases, sentences, passages,
+  comprehension text, longer instructions, form-heavy staff content, tables,
+  and dense professional interfaces.
+- **Fredoka** only for the ReaDirect brand and short high-level titles inside
+  the professional staff workspace.
+- **Pixelify Sans** as the first local fallback if Jersey 20 cannot load.
+- `ui-monospace`, `ui-rounded`, `system-ui`, and `sans-serif` only as final
+  platform fallbacks appropriate to the role.
 
-Fredoka supplies the friendly, rounded personality. Lexend supplies a calmer
-reading face for longer content. Do not use Fredoka for passages or dense staff
-tables.
+Jersey 20 is provided as one regular face. Do not depend on unavailable Jersey
+20 weight variants or synthetic bolding. Establish learner hierarchy through
+the approved size tokens, color, spacing, and component depth. Lexend remains
+mandatory wherever letterform clarity and sustained reading are more important
+than interface personality.
 
-Both families are available in the Google Fonts repository under the SIL Open
-Font License 1.1:
+The approved families are available in the Google Fonts repository under the
+SIL Open Font License 1.1:
 
-- <https://github.com/google/fonts/tree/main/ofl/fredoka>
+- <https://github.com/google/fonts/tree/main/ofl/jersey20>
+- <https://github.com/google/fonts/tree/main/ofl/pixelifysans>
 - <https://github.com/google/fonts/tree/main/ofl/lexend>
+- <https://github.com/google/fonts/tree/main/ofl/fredoka>
 
 Font files must be self-hosted. Runtime pages must not depend on a third-party
 font CDN.
+
+Font families and the learner type scale are semantic variables owned by
+`packages/design-tokens`. Components must use `--font-pixel-family`,
+`--font-display-family`, `--font-reading-family`, `--font-interface-family`, and
+the approved type-scale variables. Literal family stacks are allowed only in
+the token definition and required `@font-face` declarations.
+
+The shared `learner-typography-page` scope applies the learner family and scale
+without adding a background. The Intro uses this scope. The shared
+`learner-flow-page` scope applies the same typography plus the themed responsive
+background. Home, learner sign-in, learner dashboards, assessments, lessons,
+the Game Lobby, and learner game routes use `learner-flow-page`. Page-local CSS
+must not redefine the default learner font stack.
 
 Store browser-ready files in:
 
 ```text
 apps/web/public/assets/fonts/
-|-- fredoka-variable.woff2
-\-- lexend-variable.woff2
+|-- jersey-20-regular.woff2
+|-- jersey-20-OFL.txt
+|-- pixelify-sans-variable.woff2
+|-- pixelify-sans-OFL.txt
+|-- lexend-variable.woff2
+\-- fredoka-variable.woff2
 ```
 
-Keep original font packages and license records in the top-level asset library:
-
-```text
-assets/fonts/
-|-- fredoka/
-\-- lexend/
-
-assets/licenses/fonts/
-|-- fredoka-ofl.txt
-\-- lexend-ofl.txt
-```
+The current Jersey 20 and Pixelify Sans OFL records live beside their
+browser-ready files. If original font packages are archived later, keep them
+under `assets/fonts/` and do not load those source packages at runtime.
 
 ### Font loading reference
 
 ```css
 @font-face {
-  font-family: "Fredoka";
-  src: url("/assets/fonts/fredoka-variable.woff2") format("woff2");
+  font-family: "Jersey 20";
+  src: url("/assets/fonts/jersey-20-regular.woff2") format("woff2");
   font-style: normal;
-  font-weight: 400 700;
+  font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Lexend";
-  src: url("/assets/fonts/lexend-variable.woff2") format("woff2");
+  font-family: "Pixelify Sans";
+  src: url("/assets/fonts/pixelify-sans-variable.woff2") format("woff2");
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
 }
+
+/* Lexend and Fredoka remain self-hosted for their approved exception roles. */
 ```
 
-Preload only the font files needed above the fold. Avoid loading separate files
-for many weights when a validated variable font is available.
+Preload Jersey 20 on learner entry routes when font preloading is used. Preload
+only the font files needed above the fold. Avoid loading separate files for many
+weights when a validated variable font is available.
 
 ### Type scale
 
-Learner typography uses fluid sizes with conservative limits:
+Learner typography uses deliberately oversized fluid sizes:
 
-| Token            | Mobile size | Large-screen size | Font            | Intended use                      |
-| ---------------- | ----------: | ----------------: | --------------- | --------------------------------- |
-| `display`        |        36px |              52px | Fredoka 700     | Celebration or major lesson title |
-| `page-title`     |        30px |              40px | Fredoka 700     | Screen title                      |
-| `panel-title`    |        24px |              30px | Fredoka 650-700 | Main panel heading                |
-| `learner-prompt` |        21px |              26px | Fredoka 600-700 | Short task prompt                 |
-| `button-large`   |        19px |              22px | Fredoka 650-700 | Primary learner action            |
-| `body-large`     |        18px |              20px | Lexend 500-600  | Learner instruction               |
-| `body`           |        16px |              18px | Lexend 400-500  | General content                   |
-| `support`        |        14px |              16px | Lexend 500-600  | Noncritical supporting text       |
+| Token            | Mobile size | Large-screen size | Default learner font | Intended use                          |
+| ---------------- | ----------: | ----------------: | -------------------- | ------------------------------------- |
+| `display`        |        48px |              68px | Jersey 20 400        | Celebration or major lesson title     |
+| `page-title`     |        40px |              52px | Jersey 20 400        | Screen title                          |
+| `panel-title`    |        32px |              40px | Jersey 20 400        | Main panel heading                    |
+| `learner-prompt` |        28px |              34px | Jersey 20 400        | Short task prompt                     |
+| `button-large`   |        30px |              36px | Jersey 20 400        | Primary learner action                |
+| `body-large`     |        24px |              27px | Jersey 20 400        | Short learner instruction or control  |
+| `body`           |        21px |              24px | Jersey 20 400        | General learner interface content     |
+| `support`        |        18px |              20px | Jersey 20 400        | Noncritical learner interface support |
+
+Authored reading material uses the corresponding approved size token but
+switches to `--font-reading-family`. The font-family exception must not reduce
+the font size.
 
 Critical instructions must never use the `support` size.
 
 Recommended fluid values:
 
 ```css
-:root {
-  --font-display: clamp(2.25rem, 1.8rem + 2vw, 3.25rem);
-  --font-page-title: clamp(1.875rem, 1.6rem + 1.2vw, 2.5rem);
-  --font-panel-title: clamp(1.5rem, 1.35rem + 0.7vw, 1.875rem);
-  --font-learner-prompt: clamp(1.3125rem, 1.18rem + 0.5vw, 1.625rem);
-  --font-button-large: clamp(1.1875rem, 1.08rem + 0.4vw, 1.375rem);
-  --font-body-large: clamp(1.125rem, 1.06rem + 0.25vw, 1.25rem);
-  --font-body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+.learner-typography-page,
+.learner-flow-page {
+  --font-display-family: var(--font-pixel-family);
+  --font-interface-family: var(--font-pixel-family);
+  --font-display: clamp(3rem, 2.35rem + 2.7vw, 4.25rem);
+  --font-page-title: clamp(2.5rem, 2.05rem + 1.7vw, 3.25rem);
+  --font-panel-title: clamp(2rem, 1.78rem + 0.95vw, 2.5rem);
+  --font-learner-prompt: clamp(1.75rem, 1.55rem + 0.75vw, 2.125rem);
+  --font-button-large: clamp(1.875rem, 1.65rem + 0.85vw, 2.25rem);
+  --font-body-large: clamp(1.5rem, 1.36rem + 0.5vw, 1.6875rem);
+  --font-body: clamp(1.3125rem, 1.2rem + 0.4vw, 1.5rem);
+  --font-support: clamp(1.125rem, 1.04rem + 0.3vw, 1.25rem);
+  font-family: var(--font-interface-family);
 }
 ```
 
 ### Typography rules
 
 - Use sentence case for buttons and headings.
+- Jersey 20 is the default on every learner-facing interface, including Intro.
+- Do not replace Jersey 20 page by page or hard-code a learner font family.
+- Use Lexend for authored reading targets, passages, comprehension content,
+  sustained instructions, and authenticated staff workspace content.
+- Do not use the pixel face as a reason to reduce the approved learner sizes.
+- Do not simulate unavailable Jersey 20 weights.
 - Do not write long instructions in all caps.
 - Use all caps only for very short status badges when useful.
 - Use a minimum body line height of `1.5`.
@@ -377,8 +463,16 @@ rewriting components.
   Responsive background pairs use separate mobile and desktop asset tokens so
   that a theme can replace both compositions without editing page components.
 - Page and component styles must reference asset roles such as
-  `var(--asset-home-background-mobile)`, never a theme filename such as
+  `var(--asset-learner-flow-background-mobile)`, never a theme filename such as
   `T1mobile.png` directly.
+- Every learner-facing route after the intentionally plain Intro screen must
+  use the shared `learner-flow-page` background foundation. This includes Home,
+  learner sign-in, the learner dashboard, assessments, lessons, the Game Lobby,
+  and learner game routes. Page-local CSS must not replace it with a flat page
+  color or duplicate its image-selection rules.
+- The shared foundation uses the mobile background by default and switches to
+  the desktop background at the standard `48rem` breakpoint. Future themes
+  replace both learner-flow asset tokens together.
 
 The canonical default theme is
 `packages/design-tokens/src/colors.css`. Additional themes must provide the
@@ -390,12 +484,16 @@ and contrast testing, but their semantic roles must remain stable.
 ```css
 :root {
   /* Theme artwork */
-  --asset-home-background-mobile: url("/assets/backgrounds/T1mobile.png");
-  --asset-home-background-desktop: url("/assets/backgrounds/T1desktop.png");
+  --asset-learner-flow-background-mobile: url("/assets/backgrounds/T1mobile.png");
+  --asset-learner-flow-background-desktop: url("/assets/backgrounds/T1desktop.png");
 
   /* Font families */
-  --font-display-family: "Fredoka", ui-rounded, system-ui, sans-serif;
+  --font-pixel-family:
+    "Jersey 20", "Pixelify Sans", "Courier New", ui-monospace, monospace;
+  --font-display-family:
+    "Fredoka", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
   --font-reading-family: "Lexend", system-ui, sans-serif;
+  --font-interface-family: var(--font-reading-family);
 
   /* Surfaces */
   --color-transparent: transparent;
@@ -633,7 +731,7 @@ must look obviously pressable before hover or focus occurs.
 Use for the one main action in the current panel.
 
 - Minimum height: `60px`; prefer `64px` for major actions.
-- Minimum text size: `19px`.
+- Minimum text size: `30px` using `--font-button-large`.
 - Horizontal padding: at least `24px`.
 - Icon size: normally `24px` to `28px`.
 - Strong orange fill with a darker lower edge.

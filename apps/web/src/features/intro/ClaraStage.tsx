@@ -1,5 +1,7 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
+
+import { useTheme } from "../theme/ThemeProvider";
 
 import type {
   ClaraEmotion,
@@ -13,7 +15,10 @@ const ClaraLive2DCanvas = lazy(() =>
 );
 
 const CLARA_RUNTIME_MODEL_PATH = "/assets/live2d/clara/CherryGoth.model3.json";
-const CLARA_PORTRAIT_PATH = "/assets/live2d/clara/stills/clara-default.png";
+const CLARA_PORTRAIT_PATHS = {
+  t1: "/assets/live2d/clara/stills/clara-default.png",
+  t2: "/assets/live2d/clara/stills/clara-t2.png",
+} as const;
 
 interface ClaraStageProps {
   emotion?: ClaraEmotion;
@@ -27,6 +32,7 @@ export function ClaraStage({
   speechLevel,
 }: ClaraStageProps) {
   const reduceMotion = useReducedMotion();
+  const { theme } = useTheme();
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading",
   );
@@ -36,6 +42,11 @@ export function ClaraStage({
     speaking,
     speechLevel,
   };
+  const portraitPath = CLARA_PORTRAIT_PATHS[theme];
+
+  useEffect(() => {
+    setPortraitLoaded(false);
+  }, [portraitPath]);
 
   return (
     <motion.figure
@@ -56,7 +67,7 @@ export function ClaraStage({
       <div className="clara-stage__portrait-wrap">
         <motion.img
           className="clara-stage__portrait"
-          src={CLARA_PORTRAIT_PATH}
+          src={portraitPath}
           alt="Ma'am Clara"
           draggable="false"
           initial={reduceMotion ? false : { opacity: 0 }}

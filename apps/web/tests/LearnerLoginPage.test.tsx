@@ -39,6 +39,7 @@ describe("LearnerLoginPage", () => {
   it("keeps learner inputs large and simple", () => {
     renderLogin();
 
+    expect(screen.getByRole("main")).toHaveClass("learner-flow-page");
     expect(
       screen.getByRole("heading", { name: "Ready to read?" }),
     ).toBeVisible();

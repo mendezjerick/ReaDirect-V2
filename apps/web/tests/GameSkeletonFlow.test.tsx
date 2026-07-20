@@ -54,7 +54,7 @@ describe("game skeleton route flow", () => {
     renderGameRoutes("/learner/games/game-one");
 
     expect(
-      await screen.findByRole("heading", { name: "Create your game username" }),
+      await screen.findByRole("heading", { name: "Pick a game name" }),
     ).toBeInTheDocument();
 
     createUsername();
@@ -67,6 +67,7 @@ describe("game skeleton route flow", () => {
   it("validates the shared username and completes the dashboard-lobby-game loop", async () => {
     renderGameRoutes();
 
+    expect(screen.getByRole("main")).toHaveClass("learner-flow-page");
     createUsername("No spaces");
     expect(
       screen.getByText("Use 3 to 10 letters and numbers only."),
@@ -85,6 +86,7 @@ describe("game skeleton route flow", () => {
     expect(
       await screen.findByRole("heading", { name: "Game One" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveClass("learner-flow-page");
 
     fireEvent.click(screen.getByRole("button", { name: "Play Demo" }));
     expect(screen.getByLabelText("Game canvas area")).toBeInTheDocument();
