@@ -90,13 +90,6 @@
   --color-fallback-portrait-surface: #7fb3b6;
   --color-fallback-portrait-depth: #b65b6b;
 
-  --color-transition-link-core: #fffdf7;
-  --color-transition-link-cover: #fffdf7;
-  --color-transition-link-primary: #5faf67;
-  --color-transition-link-secondary: #f3c85b;
-  --color-transition-link-accent: #f29a6a;
-  --color-transition-link-shadow: #356b3f;
-
   --color-live2d-recolor-base: #000000;
   --color-live2d-canvas-clear: transparent;
 

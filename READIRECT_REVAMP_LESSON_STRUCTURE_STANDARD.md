@@ -723,15 +723,18 @@ because it is dry
 1. Letters must display uppercase and lowercase together, such as `Aa`.
 2. The paired letter display must still be evaluated as one isolated letter.
 3. Nu must only process isolated letters.
-4. Isolated words must be lowercase unless they are proper nouns.
-5. Phrases must not begin with uppercase unless required by a proper noun.
-6. Phrases must not end with a period.
-7. Sentences must follow normal capitalization and punctuation.
-8. Paragraphs must follow normal capitalization and punctuation.
-9. Paragraph reading must remain separate from comprehension readings.
-10. Paragraph reading must not include fluency or timing evaluation.
-11. Each comprehension sentence must lead to only one 5W question.
-12. Comprehension answers must be spoken.
-13. Mu must transcribe the spoken answer before expected-answer comparison.
-14. Hidden expected answers must never alter Mu's raw transcription.
-15. Display formatting must never automatically control ASR behavior.
+4. Approved isolated-letter TTS must resolve through
+   `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md` and must not be
+   inferred from display text.
+5. Isolated words must be lowercase unless they are proper nouns.
+6. Phrases must not begin with uppercase unless required by a proper noun.
+7. Phrases must not end with a period.
+8. Sentences must follow normal capitalization and punctuation.
+9. Paragraphs must follow normal capitalization and punctuation.
+10. Paragraph reading must remain separate from comprehension readings.
+11. Paragraph reading must not include fluency or timing evaluation.
+12. Each comprehension sentence must lead to only one 5W question.
+13. Comprehension answers must be spoken.
+14. Mu must transcribe the spoken answer before expected-answer comparison.
+15. Hidden expected answers must never alter Mu's raw transcription.
+16. Display formatting must never automatically control ASR behavior.

@@ -1,0 +1,14 @@
+/*
+ * Fixed cross-theme effect palettes. Import this file after every theme
+ * stylesheet so theme selectors cannot replace these visual identities.
+ */
+:root {
+  --color-link-start-fixed-core: #fff7fd;
+  --color-link-start-fixed-cover: #ffffff;
+  --color-link-start-fixed-prism-pink: #ff2a8a;
+  --color-link-start-fixed-prism-yellow: #f4ee45;
+  --color-link-start-fixed-prism-crimson: #d80d46;
+  --color-link-start-fixed-prism-violet: #6e35d5;
+  --color-link-start-fixed-prism-coral: #ff625c;
+  --color-link-start-fixed-prism-glass: #dff4ff;
+}

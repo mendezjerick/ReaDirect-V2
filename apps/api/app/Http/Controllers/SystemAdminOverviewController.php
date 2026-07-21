@@ -4,14 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Learner;
 use App\Models\School;
+use App\Models\SpeechSandboxAttempt;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
+use App\Services\SpeechProcessingSettings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 final class SystemAdminOverviewController extends Controller
 {
-    public function show(): JsonResponse
+    public function show(SpeechProcessingSettings $speechSettings): JsonResponse
     {
         DB::select('select 1');
 
@@ -35,7 +37,7 @@ final class SystemAdminOverviewController extends Controller
                 'total_learners' => Learner::query()
                     ->where('account_purpose', Learner::PURPOSE_STANDARD)
                     ->count(),
-                'sandbox_attempts' => 0,
+                'sandbox_attempts' => SpeechSandboxAttempt::query()->count(),
             ],
             'part_one_distribution' => [
                 ['label' => 'Full Refresher', 'value' => 0],
@@ -53,8 +55,12 @@ final class SystemAdminOverviewController extends Controller
             'system_health' => [
                 ['service' => 'API', 'status' => 'online', 'detail' => 'Laravel development API is responding.'],
                 ['service' => 'Database', 'status' => 'online', 'detail' => 'PostgreSQL connection is healthy.'],
-                ['service' => 'ASR', 'status' => 'not_configured', 'detail' => 'Speech recognition will be connected later.'],
+                ['service' => 'ASR', 'status' => 'online', 'detail' => 'Mu powers general transcription and Nu isolated-letter resolution.'],
                 ['service' => 'TTS', 'status' => 'not_configured', 'detail' => 'Voice generation will be connected later.'],
+            ],
+            'speech_processing' => [
+                'conditional_mu_noise_reduction_enabled' => $speechSettings->conditionalMuNoiseReductionEnabled(),
+                'default_mode' => 'raw_first',
             ],
             'recent_assessment_activity' => [],
             'recent_actions' => $recentActions,

@@ -53,6 +53,30 @@ const SystemAdminPagePortalsPage = lazy(() =>
   ),
 );
 
+const IsoLetterSandboxPage = lazy(() =>
+  import("./features/staff-dashboard/IsoLetterSandboxPage").then((module) => ({
+    default: module.IsoLetterSandboxPage,
+  })),
+);
+
+const TrueSandboxPage = lazy(() =>
+  import("./features/staff-dashboard/TrueSandboxPage").then((module) => ({
+    default: module.TrueSandboxPage,
+  })),
+);
+
+const EquivalenceBookPage = lazy(() =>
+  import("./features/staff-dashboard/EquivalenceBookPage").then((module) => ({
+    default: module.EquivalenceBookPage,
+  })),
+);
+
+const RawConfusionMatrixPage = lazy(() =>
+  import("./features/staff-dashboard/RawConfusionMatrixPage").then(
+    (module) => ({ default: module.RawConfusionMatrixPage }),
+  ),
+);
+
 const SchoolAdministratorsPage = lazy(() =>
   import("./features/staff-dashboard/SchoolAdministratorsPage").then(
     (module) => ({ default: module.SchoolAdministratorsPage }),
@@ -139,6 +163,22 @@ export function App() {
             <Route
               path="/staff/system-admin/page-portals"
               element={<SystemAdminPagePortalsPage />}
+            />
+            <Route
+              path="/staff/system-admin/isoletter-sandbox"
+              element={<IsoLetterSandboxPage />}
+            />
+            <Route
+              path="/staff/system-admin/true-sandbox"
+              element={<TrueSandboxPage />}
+            />
+            <Route
+              path="/staff/system-admin/equivalence-book"
+              element={<EquivalenceBookPage />}
+            />
+            <Route
+              path="/staff/system-admin/confusion-matrix"
+              element={<RawConfusionMatrixPage />}
             />
             <Route
               path="/staff/school-admin/setup-school"

@@ -47,6 +47,11 @@ content. It complements:
     into PostgreSQL; the browser does not parse raw CSV files during activities.
 12. Published versions and identifiers are immutable. Corrections create a new
     version instead of silently changing an active or completed attempt.
+13. The System Administrator True Sandbox may receive an admin-only catalog of
+    active spoken targets through Laravel. This catalog excludes choice-only
+    rhyme and assessment-comprehension items, excludes isolated letters, and
+    exposes only the expected spoken answers for Lesson 6 comprehension. It
+    never gives the browser direct CSV access.
 
 ## Authority Boundaries
 
@@ -296,7 +301,7 @@ counts above are selected.
 | Lesson | Version 1 authored pool | Authoring rule |
 | --- | ---: | --- |
 | Lesson 1 | 26 rows | Exactly one row for every letter A-Z. A row owns the display-pair, highlighted-first-letter, and missing-first-letter variants for that target. |
-| Lesson 2 | 50 rows | Fifty unique simple words, ordered alphabetically and grouped by close onset-phoneme families. |
+| Lesson 2 | 49 rows | Forty-nine unique simple words, ordered alphabetically and grouped by close onset-phoneme families. |
 | Lesson 3 | 20 rows | Twenty unique simple phrases. |
 | Lesson 4 | 20 rows | Twenty unique simple sentences. |
 | Lesson 5 | 5 rows | Five unique 50-word passages. |
@@ -356,6 +361,9 @@ names. Content generation must:
   in the ASR Guide.
 - Keep uppercase and lowercase display forms paired as one item.
 - Store only the single uppercase letter class as the Nu spoken target.
+- Do not duplicate TTS spellings in assessment CSV rows. Runtime isolated-letter
+  speech resolves the uppercase class through
+  `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`.
 - Use no duplicate letter within one form.
 - Difficulty-match the Diagnostic and Final ten-letter sets.
 
@@ -840,6 +848,11 @@ status
 `nu_class` is one uppercase A-Z class. Display pairs such as `C c` never become
 Nu class labels.
 
+The same uppercase class is the lookup key for the central isolated-letter TTS
+registry. `letter_name` is authoring metadata and must not become a competing
+runtime TTS prompt. Per-row TTS fallback spellings are prohibited because they
+can drift from the root pronunciation standard.
+
 ### Word Lexicon
 
 Required fields:
@@ -1137,6 +1150,8 @@ Persisted fixed form           Persisted immutable snapshot
 ### Pronunciation And Language
 
 - [ ] Every active learner target has approved Filipino pronunciation review.
+- [ ] Every isolated-letter class resolves to the central A-Z pronunciation
+  standard without a CSV-local TTS override.
 - [ ] Syllable guides are manually authored.
 - [ ] Non-passage learner targets contain no consonant clusters, digraphs, or
   multigraphs.

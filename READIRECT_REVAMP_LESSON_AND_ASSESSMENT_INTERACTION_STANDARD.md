@@ -553,6 +553,9 @@ C c
 - The pair is one displayed letter item and one spoken target.
 - The learner says the letter name. Nu remains restricted to isolated English
   letter names.
+- Any approved instructional playback of that isolated letter must use
+  `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`. Displaying the
+  pair alone must not trigger playback.
 - The content becomes still before recording.
 
 #### Mission 2 — Highlighted First Letter
@@ -1016,6 +1019,8 @@ During an active assessment:
 - Do not provide hints after a response.
 - Do not pronounce a target letter or word unless the fixed assessment
   protocol explicitly requires it.
+- The isolated-letter pronunciation table defines sound only; its existence
+  never authorizes assessment playback.
 - Do not add bonus items, lives, streaks, penalties, or adaptive content outside
   the documented branch.
 - Do not celebrate an individual answer in a way that reveals its score.

@@ -38,6 +38,19 @@ export const systemAdminNavigationGroups: StaffNavigationGroup[] = [
     label: "Agents and AI",
     items: [
       { label: "AI services" },
+      {
+        label: "IsoLetter Sandbox",
+        to: "/staff/system-admin/isoletter-sandbox",
+      },
+      { label: "True Sandbox", to: "/staff/system-admin/true-sandbox" },
+      {
+        label: "Equivalence Book",
+        to: "/staff/system-admin/equivalence-book",
+      },
+      {
+        label: "Confusion Matrix",
+        to: "/staff/system-admin/confusion-matrix",
+      },
       { label: "Agent settings" },
       { label: "Prompt templates" },
     ],

@@ -23,6 +23,22 @@ both Diagnostic and Final Assessment runs.
 The CSV files are authoring inputs. Laravel will validate and import a published
 version into PostgreSQL; the browser must not read these files directly.
 
+Every authored row declares its routing explicitly through `asr_model`:
+
+- Task 1A and Lesson 1 isolated letters use `nu`, the strict letter-resolution
+  mode powered by Mu rather than a separate trained model.
+- Task 2B, Task 3A, Lesson 2 through Lesson 6 spoken responses use `mu`.
+- Task 2A and Task 3B choice-only responses use `none`.
+
+Display text is never inferred as the speech target. Nu receives one uppercase
+A-Z `spoken_target`; Mu receives the complete normalized word, phrase, sentence,
+passage, or comprehension answer.
+
+When an approved runtime flow needs TTS to say an isolated letter, that
+uppercase A-Z class resolves through
+`../READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`. CSV rows must
+not embed voice-specific or engine-specific letter spellings.
+
 ## Required Lesson Version 1
 
 `lessons/v1/` contains the initial required-lesson pools:

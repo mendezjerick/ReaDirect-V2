@@ -51,6 +51,8 @@ tunnel.
 - The destination route appears underneath the fully opaque cover.
 - The cover then clears to reveal the destination.
 - Use flat semantic colors only.
+- Use the fixed ReaDirect kaleidoscope palette: hot pink, citrus yellow,
+  crimson, violet, coral, and pale reflective glass.
 - Do not use gradients, raster video, photographic bloom, motion-blur filters,
   or copied Sword Art Online branding and assets.
 - The animation may be inspired by a light-tunnel effect, but its artwork and
@@ -119,22 +121,27 @@ Each deterministic cylinder definition uses these ranges:
 Length and width increase as a cylinder approaches the viewer. This perspective
 change is required for the forward tunnel sensation.
 
-## Theme Contract
+## Fixed Palette Contract
 
-Canvas code must resolve every color from these semantic CSS custom properties:
+The Link Start visual identity is intentionally independent from the selected
+learner theme. Canvas code must resolve every color from these fixed semantic
+CSS custom properties:
 
 ```css
---color-transition-link-core
---color-transition-link-cover
---color-transition-link-primary
---color-transition-link-secondary
---color-transition-link-accent
---color-transition-link-shadow
+--color-link-start-fixed-core
+--color-link-start-fixed-cover
+--color-link-start-fixed-prism-pink
+--color-link-start-fixed-prism-yellow
+--color-link-start-fixed-prism-crimson
+--color-link-start-fixed-prism-violet
+--color-link-start-fixed-prism-coral
+--color-link-start-fixed-prism-glass
 ```
 
-Literal colors are allowed only inside theme token files. Future themes must
-provide all six roles. The cover role must be fully opaque so route replacement
-cannot flash through it.
+The values live in `packages/design-tokens/src/effects.css`, which is imported
+after theme stylesheets. Theme files must never declare or override these
+roles. The cover role must remain fully opaque so route replacement cannot
+flash through it.
 
 ## Route and Asset Contract
 
@@ -199,6 +206,7 @@ Do not:
 - Navigate before the screen cover is fully opaque.
 - Stop cylinder generation during a partially covered frame.
 - Hard-code Canvas colors.
+- Override the fixed Link Start palette from a learner theme.
 - Replace the vector Canvas effect with a video or GIF.
 - Increase mobile density without performance validation.
 - Remove reduced-motion behavior.
@@ -207,6 +215,7 @@ Do not:
 
 ```text
 Intro page -> Home page
+Learner login -> Learner dashboard (after successful authentication)
 ```
 
 This list changes only when the project owner explicitly approves another

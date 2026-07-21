@@ -9,6 +9,7 @@ final class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(SystemAdministratorSeeder::class);
+        $this->call(LetterEquivalenceSeeder::class);
         $this->call(PortalSystemLearnerSeeder::class);
     }
 }

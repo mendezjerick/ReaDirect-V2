@@ -624,7 +624,11 @@ to speak while remaining happy, thinking, confused, or default.
   mouth. Supplied audio-level changes may still update the mouth without
   enabling breathing or physics.
 
-The future Nox TTS adapter owns playback state and audio-envelope extraction.
+The active TTS adapter, currently backed by VoxCPM2, owns playback state and
+audio-envelope extraction.
+When Ma'am Clara says an isolated A-Z letter, the active TTS adapter must use
+`READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`; Clara's expression
+or speaking animation must never determine the letter pronunciation.
 It must send `speaking=true` only during audible playback and should update
 `speechLevel` from the actual output signal. It must not directly write eye,
 mouth-form, confused, glasses, color, or drawable parameters.

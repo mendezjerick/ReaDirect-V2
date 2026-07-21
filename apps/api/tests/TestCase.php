@@ -13,7 +13,10 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        Schema::dropIfExists('speech_sandbox_attempts');
         Schema::dropIfExists('staff_audit_logs');
+        Schema::dropIfExists('equivalence_rules');
+        Schema::dropIfExists('system_settings');
         Schema::dropIfExists('learner_portal_runs');
         Schema::dropIfExists('learner_sessions');
         Schema::dropIfExists('learner_progress_states');
@@ -52,6 +55,45 @@ abstract class TestCase extends BaseTestCase
             $table->string('action_key', 80)->index();
             $table->string('description');
             $table->json('metadata')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('equivalence_rules', function (Blueprint $table): void {
+            $table->id();
+            $table->string('rule_type', 32)->index();
+            $table->text('expected_text');
+            $table->text('recognized_text');
+            $table->string('scope', 16)->default('global')->index();
+            $table->string('item_key', 160)->nullable()->index();
+            $table->text('notes')->nullable();
+            $table->boolean('is_active')->default(true)->index();
+            $table->foreignId('created_by_staff_user_id')->constrained('staff_users')->cascadeOnDelete();
+            $table->timestamps();
+        });
+
+        Schema::create('speech_sandbox_attempts', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('staff_user_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('mode', 24)->index();
+            $table->text('expected_value');
+            $table->string('audio_path', 500);
+            $table->string('audio_original_name', 255);
+            $table->string('audio_mime_type', 120)->nullable();
+            $table->unsignedBigInteger('audio_size_bytes');
+            $table->char('audio_sha256', 64)->index();
+            $table->unsignedSmallInteger('service_status')->nullable();
+            $table->json('request_metadata')->nullable();
+            $table->json('service_response')->nullable();
+            $table->text('error_message')->nullable();
+            $table->string('review_outcome', 32)->nullable()->index();
+            $table->foreignId('equivalence_rule_id')->nullable()->constrained('equivalence_rules')->nullOnDelete();
+            $table->timestamps();
+        });
+
+        Schema::create('system_settings', function (Blueprint $table): void {
+            $table->id();
+            $table->string('key', 120)->unique();
+            $table->json('value');
             $table->timestamps();
         });
 

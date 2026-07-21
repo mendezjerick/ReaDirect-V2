@@ -22,6 +22,19 @@ test("intro fits the viewport and continues to home", async ({ page }) => {
   );
   expect(Number.parseFloat(continueFontSize)).toBeGreaterThanOrEqual(30);
 
+  const fixedTransitionPaletteBeforeThemeChange = await page.evaluate(() =>
+    [
+      "--color-link-start-fixed-prism-pink",
+      "--color-link-start-fixed-prism-yellow",
+      "--color-link-start-fixed-prism-crimson",
+      "--color-link-start-fixed-prism-violet",
+      "--color-link-start-fixed-prism-coral",
+      "--color-link-start-fixed-prism-glass",
+    ].map((token) =>
+      getComputedStyle(document.documentElement).getPropertyValue(token).trim(),
+    ),
+  );
+
   const themeChoiceSize = await winterTheme.boundingBox();
   expect(themeChoiceSize).not.toBeNull();
   expect(
@@ -41,6 +54,21 @@ test("intro fits the viewport and continues to home", async ({ page }) => {
       .trim(),
   );
   expect(winterPrimaryColor).toBe("#355fa8");
+  const fixedTransitionPaletteAfterThemeChange = await page.evaluate(() =>
+    [
+      "--color-link-start-fixed-prism-pink",
+      "--color-link-start-fixed-prism-yellow",
+      "--color-link-start-fixed-prism-crimson",
+      "--color-link-start-fixed-prism-violet",
+      "--color-link-start-fixed-prism-coral",
+      "--color-link-start-fixed-prism-glass",
+    ].map((token) =>
+      getComputedStyle(document.documentElement).getPropertyValue(token).trim(),
+    ),
+  );
+  expect(fixedTransitionPaletteAfterThemeChange).toEqual(
+    fixedTransitionPaletteBeforeThemeChange,
+  );
 
   const pageSize = await page.evaluate(() => ({
     clientHeight: document.documentElement.clientHeight,

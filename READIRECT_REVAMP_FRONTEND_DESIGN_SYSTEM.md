@@ -200,12 +200,12 @@ The slot keeps the same large button size, visual weight, and responsive
 position while the authenticated account's persisted progression changes its
 action:
 
-~~~text
+```text
 Diagnostic Assessment
     -> Start Lesson <number or title>
     -> Continue Lesson <number or title> while a saved attempt is incomplete
     -> Final Assessment
-~~~
+```
 
 The completed stage disappears instead of remaining as a competing button.
 Layout must not jump when the primary action changes. Start Lesson and Continue
@@ -438,8 +438,8 @@ Every frontend color must come from a semantic CSS custom property. This is a
 hard architectural rule so that future themes can replace the palette without
 rewriting components.
 
-- Literal color values may appear only inside theme-definition files in
-  `packages/design-tokens/`.
+- Literal color values may appear only inside theme-definition files or an
+  explicitly fixed cross-theme effect token file in `packages/design-tokens/`.
 - Component CSS, Tailwind class strings, TypeScript, TSX, canvas code, WebGL
   code, and authored SVG must not contain hex, RGB, HSL, named-color, or raw
   transparent color values.
@@ -457,8 +457,10 @@ rewriting components.
   comes from a semantic variable.
 - Transparency must use `--color-transparent` or a purpose-specific semantic
   variable rather than the literal `transparent` keyword in components.
-- A theme change must update every visible color, including custom cursors,
-  particle effects, loading fallbacks, and theme-aware character overrides.
+- A theme change must update every theme-controlled visible color, including
+  custom cursors, particle effects, loading fallbacks, and theme-aware
+  character overrides. A documented fixed visual identity such as the Link
+  Start palette is the only exception and must live in `effects.css`.
 - Theme-specific artwork must also come from semantic CSS custom properties.
   Responsive background pairs use separate mobile and desktop asset tokens so
   that a theme can replace both compositions without editing page components.
@@ -1189,7 +1191,7 @@ this guide.
 
 `READIRECT_REVAMP_MAIN_TRANSITION_STANDARD.md` is the canonical specification
 for its exact timing, cylinder generation, responsive density, route lifecycle,
-theme contract, accessibility behavior, approved placements, and tests. This
+fixed-palette contract, accessibility behavior, approved placements, and tests. This
 section is only a design-system summary and must not override that standard.
 
 - The pressed button must finish its `180ms` commit state before the route
@@ -1208,7 +1210,10 @@ section is only a design-system summary and must not override that standard.
 - Render flat, solid radial streaks with rounded ends from one stable vanishing
   point. Do not use gradients, photographic bloom, raster video, or blur
   filters.
-- Expand a solid theme-colored cover from the vanishing point. Change routes
+- Use the fixed kaleidoscope cylinder palette: hot pink, citrus yellow,
+  crimson, violet, coral, and pale reflective glass. Learner themes must not
+  alter these colors.
+- Expand a solid fixed-color cover from the vanishing point. Change routes
   only after that cover fills the viewport, then clear the cover to reveal the
   destination already mounted underneath.
 - Preload the destination's responsive, theme-selected background while the
@@ -1229,13 +1234,18 @@ section is only a design-system summary and must not override that standard.
 Required semantic roles:
 
 ```css
---color-transition-link-core
---color-transition-link-cover
---color-transition-link-primary
---color-transition-link-secondary
---color-transition-link-accent
---color-transition-link-shadow
+--color-link-start-fixed-core
+--color-link-start-fixed-cover
+--color-link-start-fixed-prism-pink
+--color-link-start-fixed-prism-yellow
+--color-link-start-fixed-prism-crimson
+--color-link-start-fixed-prism-violet
+--color-link-start-fixed-prism-coral
+--color-link-start-fixed-prism-glass
 ```
+
+These values live in `packages/design-tokens/src/effects.css`, which must be
+imported after every theme stylesheet. Theme files must not redeclare them.
 
 Motion for React reference:
 

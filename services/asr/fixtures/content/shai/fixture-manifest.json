@@ -1,0 +1,4463 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-21T09:39:12.644862+00:00",
+  "updated_at": "2026-07-21T09:50:31.503687+00:00",
+  "generation_completed": true,
+  "validation_completed": true,
+  "reference_audio": "assets/audio/voice-references/shai.wav",
+  "reference_sha256": "f7495ad4d2583b13c3109eb868b216f8c13634a33e0bd10917ed0b965055b777",
+  "model": "openbmb/VoxCPM2",
+  "generation_settings": {
+    "cfg_value": 2.0,
+    "inference_timesteps": 10,
+    "normalize": true,
+    "denoise": false,
+    "retry_badcase": true,
+    "retry_badcase_max_times": 3,
+    "retry_badcase_ratio_threshold": 6.0,
+    "short_duration_limit_seconds": 2.0,
+    "short_duration_attempt_limit": 20
+  },
+  "validation_settings": {
+    "asr_url": "http://127.0.0.1:8001",
+    "normalized_levenshtein_threshold": 0.25,
+    "mismatch_regeneration_cycles": 3
+  },
+  "fixtures": {
+    "assessment-v1-task-2b-01": {
+      "content_id": "assessment-v1-task-2b-01",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "bag",
+      "expected_text": "bag",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-01.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "0e9ce51134b01ffadec751d366850d610f5c17b1315a62dab2ac68c209be820f",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:47:58.529337+00:00",
+        "expected_normalized": "bag",
+        "mu_raw_transcript": "Bag.",
+        "mu_normalized_transcript": "bag",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.717578,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Bag.",
+      "generated_at": "2026-07-21T09:39:41.994590+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-2b-02": {
+      "content_id": "assessment-v1-task-2b-02",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "cap",
+      "expected_text": "cap",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-02.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "f6a401bb578fb85c2e068d49ce09a4e16e0dd4e77130f6b39355dce60e08b947",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:47:58.990905+00:00",
+        "expected_normalized": "cap",
+        "mu_raw_transcript": "Cap.",
+        "mu_normalized_transcript": "cap",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.792969,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Cap.",
+      "generated_at": "2026-07-21T09:39:43.881577+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-2b-03": {
+      "content_id": "assessment-v1-task-2b-03",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "gum",
+      "expected_text": "gum",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-03.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.64,
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "c0492ae1d103bd9481a42146089f1b0ca763da079f72d5702c20e6ce472802c4",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:44.042782+00:00",
+        "expected_normalized": "gum",
+        "mu_raw_transcript": "gum",
+        "mu_normalized_transcript": "gum",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.824707,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Gum.",
+      "generated_at": "2026-07-21T09:49:10.891924+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-2b-04": {
+      "content_id": "assessment-v1-task-2b-04",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "hip",
+      "expected_text": "hip",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-04.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "5be342678d580e71ca077534a750d0bdea11917f2e497fcbf0576c190dad8d77",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:47:59.905527+00:00",
+        "expected_normalized": "hip",
+        "mu_raw_transcript": "Hip!",
+        "mu_normalized_transcript": "hip",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -1.051562,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Hip.",
+      "generated_at": "2026-07-21T09:39:47.337675+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-2b-05": {
+      "content_id": "assessment-v1-task-2b-05",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "lap",
+      "expected_text": "lap",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-05.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "05902854e271fdfae087b5740f8320f56aeecdffb0733637139cbba7263eb049",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:00.359084+00:00",
+        "expected_normalized": "lap",
+        "mu_raw_transcript": "Lap.",
+        "mu_normalized_transcript": "lap",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.663672,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Lap.",
+      "generated_at": "2026-07-21T09:39:48.928929+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-2b-06": {
+      "content_id": "assessment-v1-task-2b-06",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "mug",
+      "expected_text": "mug",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-06.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "71a2117f55b7d664777a33784858a8b341db6c46f46b684047365bf8ae9e8fdf",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:00.811141+00:00",
+        "expected_normalized": "mug",
+        "mu_raw_transcript": "Mug",
+        "mu_normalized_transcript": "mug",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.349805,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Mug.",
+      "generated_at": "2026-07-21T09:39:51.097399+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-2b-07": {
+      "content_id": "assessment-v1-task-2b-07",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "nap",
+      "expected_text": "nap",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-07.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "e5c3991eb0f25d9c64f98e60e7f42d4852bf51edea9171b40930905aa5840486",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:01.239195+00:00",
+        "expected_normalized": "nap",
+        "mu_raw_transcript": "Nap.",
+        "mu_normalized_transcript": "nap",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.526953,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Nap.",
+      "generated_at": "2026-07-21T09:39:52.953709+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-2b-08": {
+      "content_id": "assessment-v1-task-2b-08",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "pet",
+      "expected_text": "pet",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-08.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "2e9fff5cd438cb8f5b2ee6d8f5d5eb12893d0341a9521944cc333708dd022263",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:01.692424+00:00",
+        "expected_normalized": "pet",
+        "mu_raw_transcript": "pet",
+        "mu_normalized_transcript": "pet",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.76709,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Pet.",
+      "generated_at": "2026-07-21T09:39:55.162073+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-2b-09": {
+      "content_id": "assessment-v1-task-2b-09",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "sit",
+      "expected_text": "sit",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-09.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "7fdb1f1b91c849decd819fccf3c21e951c2c8d2fdcfaf20173fd2214b459c5a6",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:02.129492+00:00",
+        "expected_normalized": "sit",
+        "mu_raw_transcript": "Sit.",
+        "mu_normalized_transcript": "sit",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.668359,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Sit.",
+      "generated_at": "2026-07-21T09:39:56.979349+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-2b-10": {
+      "content_id": "assessment-v1-task-2b-10",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "tub",
+      "expected_text": "tub",
+      "source_csv": "content/assessments/v1/shared/task-2b-words.csv",
+      "output_relative_path": "word/assessment-v1-task-2b-10.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "166075de10c31e03b57596d3bc828264417fc1fd56a8eb5ed6a4ad6e754208a7",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:02.571574+00:00",
+        "expected_normalized": "tub",
+        "mu_raw_transcript": "Tub.",
+        "mu_normalized_transcript": "tub",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.927344,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Tub.",
+      "generated_at": "2026-07-21T09:39:59.483942+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-3a-story-1": {
+      "content_id": "assessment-v1-task-3a-story-1",
+      "fixture_type": "passage",
+      "task_type": "passage",
+      "tts_text": "Lena goes to the park on Sunday, and she takes a ball to play. She holds the ball, rolls it, kicks it, and runs after it. Lena plays with the ball, then she sits, rests, and plays again. She likes to play, and she stays at the park on Sunday.",
+      "expected_text": "lena goes to the park on sunday and she takes a ball to play she holds the ball rolls it kicks it and runs after it lena plays with the ball then she sits rests and plays again she likes to play and she stays at the park on sunday",
+      "source_csv": "content/assessments/v1/shared/task-3a-passages.csv",
+      "output_relative_path": "passage/assessment-v1-task-3a-story-1.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        16.48
+      ],
+      "duration_seconds": 16.48,
+      "sample_rate": 48000,
+      "sha256": "eb4ea62ceb295c38a49c81248fd43acbcb59fb364dbd21787cc917c4d1bc9b0b",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:03.285181+00:00",
+        "expected_normalized": "lena goes to the park on sunday and she takes a ball to play she holds the ball rolls it kicks it and runs after it lena plays with the ball then she sits rests and plays again she likes to play and she stays at the park on sunday",
+        "mu_raw_transcript": "Lena goes to the park on Sunday, and she takes a ball to play. She holds the ball, rolls it, kicks it, and runs after it. Lena plays with the ball, then she sits, rests, and plays again. She likes to play, and she stays at the park on Sunday.",
+        "mu_normalized_transcript": "lena goes to the park on sunday and she takes a ball to play she holds the ball rolls it kicks it and runs after it lena plays with the ball then she sits rests and plays again she likes to play and she stays at the park on sunday",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.092067,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Lena goes to the park on Sunday, and she takes a ball to play. She holds the ball, rolls it, kicks it, and runs after it. Lena plays with the ball, then she sits, rests, and plays again. She likes to play, and she stays at the park on Sunday.",
+      "generated_at": "2026-07-21T09:40:30.579573+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "assessment-v1-task-3a-story-2": {
+      "content_id": "assessment-v1-task-3a-story-2",
+      "fixture_type": "passage",
+      "task_type": "passage",
+      "tts_text": "Rosa goes to the garden on Monday, and she picks a tomato to eat. She holds the tomato, looks at it, cleans it, and keeps it with her. Rosa walks in the garden, then she rests and looks at it. She eats it, then stays in the garden on Monday.",
+      "expected_text": "rosa goes to the garden on monday and she picks a tomato to eat she holds the tomato looks at it cleans it and keeps it with her rosa walks in the garden then she rests and looks at it she eats it then stays in the garden on monday",
+      "source_csv": "content/assessments/v1/shared/task-3a-passages.csv",
+      "output_relative_path": "passage/assessment-v1-task-3a-story-2.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        19.2
+      ],
+      "duration_seconds": 19.2,
+      "sample_rate": 48000,
+      "sha256": "1a35e8ec316a4cdedc9cc00ea1e3f518ac2727203b4927d81841064bb40bcea8",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:04.020437+00:00",
+        "expected_normalized": "rosa goes to the garden on monday and she picks a tomato to eat she holds the tomato looks at it cleans it and keeps it with her rosa walks in the garden then she rests and looks at it she eats it then stays in the garden on monday",
+        "mu_raw_transcript": "Rosa goes to the garden on Monday and she picks a tomato to eat. She holds the tomato, looks at it, cleans it and keeps it with her. Rosa walks in the garden, then she rests and looks at it. She eats it, then stays in the garden on Monday.",
+        "mu_normalized_transcript": "rosa goes to the garden on monday and she picks a tomato to eat she holds the tomato looks at it cleans it and keeps it with her rosa walks in the garden then she rests and looks at it she eats it then stays in the garden on monday",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.129198,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Rosa goes to the garden on Monday, and she picks a tomato to eat. She holds the tomato, looks at it, cleans it, and keeps it with her. Rosa walks in the garden, then she rests and looks at it. She eats it, then stays in the garden on Monday.",
+      "generated_at": "2026-07-21T09:41:06.275386+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-bag": {
+      "content_id": "lesson-v1-word-bag",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "bag",
+      "expected_text": "bag",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-bag.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "47735e0c33eb2a22382b6bf17765b44841d2351bcdb4d72b135192eec7e59bb0",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:04.490098+00:00",
+        "expected_normalized": "bag",
+        "mu_raw_transcript": "Bag.",
+        "mu_normalized_transcript": "bag",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.661719,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Bag.",
+      "generated_at": "2026-07-21T09:41:08.829818+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-bat": {
+      "content_id": "lesson-v1-word-bat",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "bat",
+      "expected_text": "bat",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-bat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "68c60e513fb9adde9b5fa72b7f7a1f61b843bd25911c7f7999a4e6f2dc4c7545",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:04.937162+00:00",
+        "expected_normalized": "bat",
+        "mu_raw_transcript": "bat.",
+        "mu_normalized_transcript": "bat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.717187,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Bat.",
+      "generated_at": "2026-07-21T09:41:10.692117+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-bed": {
+      "content_id": "lesson-v1-word-bed",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "bed",
+      "expected_text": "bed",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-bed.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "2f61a64da66f4ccf3abeb0a0c58c250a74d0dcd320359aaa47370c023a4fc5e0",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:05.378119+00:00",
+        "expected_normalized": "bed",
+        "mu_raw_transcript": "Bed.",
+        "mu_normalized_transcript": "bed",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.805469,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Bed.",
+      "generated_at": "2026-07-21T09:41:12.553416+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-big": {
+      "content_id": "lesson-v1-word-big",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "big",
+      "expected_text": "big",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-big.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "8fe4ab9b84d9e890643196473d750c2ef438952be58e3d4c1cc9499e950dfdf2",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:05.831205+00:00",
+        "expected_normalized": "big",
+        "mu_raw_transcript": "big",
+        "mu_normalized_transcript": "big",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.385986,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Big.",
+      "generated_at": "2026-07-21T09:41:14.418805+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-bun": {
+      "content_id": "lesson-v1-word-bun",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "bun",
+      "expected_text": "bun",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-bun.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.8,
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "695d89461adf875440db6e1db8fdc9bb198208b7de52dce2ae20eea71b246780",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:44.491344+00:00",
+        "expected_normalized": "bun",
+        "mu_raw_transcript": "bun.",
+        "mu_normalized_transcript": "bun",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.867188,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Bun.",
+      "generated_at": "2026-07-21T09:49:12.835325+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-can": {
+      "content_id": "lesson-v1-word-can",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "can",
+      "expected_text": "can",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-can.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.64
+      ],
+      "duration_seconds": 0.64,
+      "sample_rate": 48000,
+      "sha256": "69342a666fe9a3fbce2a19484d6b03a52a1f0417a97baeea006dbf66c504a023",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:06.710148+00:00",
+        "expected_normalized": "can",
+        "mu_raw_transcript": "can",
+        "mu_normalized_transcript": "can",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.827637,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Can.",
+      "generated_at": "2026-07-21T09:41:17.266340+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-cap": {
+      "content_id": "lesson-v1-word-cap",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "cap",
+      "expected_text": "cap",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-cap.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "b945e67af32b2447fca8ca81990ec46523a252310c658614e36719bd1105ddef",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:07.170719+00:00",
+        "expected_normalized": "cap",
+        "mu_raw_transcript": "cap.",
+        "mu_normalized_transcript": "cap",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.810937,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Cap.",
+      "generated_at": "2026-07-21T09:41:18.845954+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-cat": {
+      "content_id": "lesson-v1-word-cat",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "cat",
+      "expected_text": "cat",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-cat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "e4066df3e4be87e1ace710f33ac6a85d4d4c8ab4be96e0e6ea131f581b012e32",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:07.615773+00:00",
+        "expected_normalized": "cat",
+        "mu_raw_transcript": "Cat.",
+        "mu_normalized_transcript": "cat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.781641,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Cat.",
+      "generated_at": "2026-07-21T09:41:20.699222+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-cut": {
+      "content_id": "lesson-v1-word-cut",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "cut",
+      "expected_text": "cut",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-cut.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "e56216a74ffc53bd5d164b198a537c4e41551acf4935299466e7d642d166c0e7",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:08.066886+00:00",
+        "expected_normalized": "cut",
+        "mu_raw_transcript": "Cut.",
+        "mu_normalized_transcript": "cut",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.653125,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Cut.",
+      "generated_at": "2026-07-21T09:41:22.513381+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-dad": {
+      "content_id": "lesson-v1-word-dad",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "dad",
+      "expected_text": "dad",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-dad.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.8,
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "314547204066ec2c3bd05b311334b0ebdbe7538ad7518c6dda878b871874d73f",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:44.957413+00:00",
+        "expected_normalized": "dad",
+        "mu_raw_transcript": "Dad",
+        "mu_normalized_transcript": "dad",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.33374,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Dad.",
+      "generated_at": "2026-07-21T09:49:15.299529+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-den": {
+      "content_id": "lesson-v1-word-den",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "den",
+      "expected_text": "den",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-den.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "c4130fae54d188532c48194550bfadce86859e9529103eae083829bf642377e1",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:08.978524+00:00",
+        "expected_normalized": "den",
+        "mu_raw_transcript": "Den.",
+        "mu_normalized_transcript": "den",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.553125,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Den.",
+      "generated_at": "2026-07-21T09:41:26.005561+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-dig": {
+      "content_id": "lesson-v1-word-dig",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "dig",
+      "expected_text": "dig",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-dig.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "55d593d3cf03e3516a829b27de0e9d1177c33e642ad9779e4f8947e8ec68e968",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:09.418759+00:00",
+        "expected_normalized": "dig",
+        "mu_raw_transcript": "Dig.",
+        "mu_normalized_transcript": "dig",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.855469,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Dig.",
+      "generated_at": "2026-07-21T09:41:27.852656+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-dog": {
+      "content_id": "lesson-v1-word-dog",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "dog",
+      "expected_text": "dog",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-dog.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "1439ad37eaeb48d59bdb66e2f462179b911c16a4431df4cf89f7d5189b61bfae",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:09.866150+00:00",
+        "expected_normalized": "dog",
+        "mu_raw_transcript": "Dog",
+        "mu_normalized_transcript": "dog",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.442139,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Dog.",
+      "generated_at": "2026-07-21T09:41:30.045636+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-dot": {
+      "content_id": "lesson-v1-word-dot",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "dot",
+      "expected_text": "dot",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-dot.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "d9260e2d2f9387fa1a08859ce5e34efe1de8d16bb883afdb2f85525c72accf77",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:10.307202+00:00",
+        "expected_normalized": "dot",
+        "mu_raw_transcript": "Dot.",
+        "mu_normalized_transcript": "dot",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.648438,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Dot.",
+      "generated_at": "2026-07-21T09:41:31.585652+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-fan": {
+      "content_id": "lesson-v1-word-fan",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "fan",
+      "expected_text": "fan",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-fan.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.96,
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "6720af9d6df6d1255339df392d628799cb52fb51a92f7d89a60467ec0327abf8",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:45.409560+00:00",
+        "expected_normalized": "fan",
+        "mu_raw_transcript": "Fan.",
+        "mu_normalized_transcript": "fan",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.605859,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Fan.",
+      "generated_at": "2026-07-21T09:49:17.449880+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-fat": {
+      "content_id": "lesson-v1-word-fat",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "fat",
+      "expected_text": "fat",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-fat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "d1faa662d114955afc32953070fcf0ee8f1c6b331c42433a1949f7eca75e1874",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:11.208493+00:00",
+        "expected_normalized": "fat",
+        "mu_raw_transcript": "Fat.",
+        "mu_normalized_transcript": "fat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.798828,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Fat.",
+      "generated_at": "2026-07-21T09:41:35.622170+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-fin": {
+      "content_id": "lesson-v1-word-fin",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "fin",
+      "expected_text": "fin",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-fin.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "b2706a4502e214165065ecc7bbe85bc24ba1de94cf63e17d09f1800466c2d194",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:11.646556+00:00",
+        "expected_normalized": "fin",
+        "mu_raw_transcript": "Fine.",
+        "mu_normalized_transcript": "fine",
+        "character_levenshtein_distance": 1,
+        "normalized_character_levenshtein_distance": 0.25,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 1.0,
+        "average_log_probability": -0.555469,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Fin.",
+      "generated_at": "2026-07-21T09:41:37.492997+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-fit": {
+      "content_id": "lesson-v1-word-fit",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "fit",
+      "expected_text": "fit",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-fit.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "4163525dbf0bcfcb2435031c9e86a9b8a774b9299d666ad46ee20460d20b2546",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:12.096141+00:00",
+        "expected_normalized": "fit",
+        "mu_raw_transcript": "Fit.",
+        "mu_normalized_transcript": "fit",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.727344,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Fit.",
+      "generated_at": "2026-07-21T09:41:39.113347+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-fun": {
+      "content_id": "lesson-v1-word-fun",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "fun",
+      "expected_text": "fun",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-fun.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "1f2e510abcd56bc6a96908ae8d3cc2572bb9514c393e5a12a3216be6fd9b787d",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:12.541191+00:00",
+        "expected_normalized": "fun",
+        "mu_raw_transcript": "Fun.",
+        "mu_normalized_transcript": "fun",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.779297,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Fun.",
+      "generated_at": "2026-07-21T09:41:41.251216+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-gap": {
+      "content_id": "lesson-v1-word-gap",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "gap",
+      "expected_text": "gap",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-gap.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "7ac3fb4ac5a8c9a71fe76c35b92a58cab1800e93b7b737f47789c0081b5b63a9",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:12.985636+00:00",
+        "expected_normalized": "gap",
+        "mu_raw_transcript": "Gap.",
+        "mu_normalized_transcript": "gap",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.32373,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Gap.",
+      "generated_at": "2026-07-21T09:41:43.158033+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-gas": {
+      "content_id": "lesson-v1-word-gas",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "gas",
+      "expected_text": "gas",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-gas.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.8,
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "6dfaf27ba26e4600a9e1ce4059812021d6d91ec53233ef49f3405419f5761829",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:45.873617+00:00",
+        "expected_normalized": "gas",
+        "mu_raw_transcript": "gas",
+        "mu_normalized_transcript": "gas",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.749512,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Gas.",
+      "generated_at": "2026-07-21T09:49:19.642981+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-get": {
+      "content_id": "lesson-v1-word-get",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "get",
+      "expected_text": "get",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-get.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "ece4902712fdccf2befb6034edbdc020728cdc25ecd0e2b5082b0c80f2871205",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:13.883415+00:00",
+        "expected_normalized": "get",
+        "mu_raw_transcript": "Get.",
+        "mu_normalized_transcript": "get",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.553516,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Get.",
+      "generated_at": "2026-07-21T09:41:46.659298+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-got": {
+      "content_id": "lesson-v1-word-got",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "got",
+      "expected_text": "got",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-got.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.64,
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "2bfbe8171e210e008574d41b82002c54ac5df9ee45005b6f5930842998d2efb3",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:46.316190+00:00",
+        "expected_normalized": "got",
+        "mu_raw_transcript": "Got.",
+        "mu_normalized_transcript": "got",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.583984,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Got.",
+      "generated_at": "2026-07-21T09:49:21.521598+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-gum": {
+      "content_id": "lesson-v1-word-gum",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "gum",
+      "expected_text": "gum",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-gum.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "417e1a97c62a2758fb551446d7674d707ea0a1b611fd80af00ae854b4d193215",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:14.774601+00:00",
+        "expected_normalized": "gum",
+        "mu_raw_transcript": "gum",
+        "mu_normalized_transcript": "gum",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.933105,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Gum.",
+      "generated_at": "2026-07-21T09:41:49.824854+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-ham": {
+      "content_id": "lesson-v1-word-ham",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "ham",
+      "expected_text": "ham",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-ham.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.96,
+        0.64
+      ],
+      "duration_seconds": 0.64,
+      "sample_rate": 48000,
+      "sha256": "b5d00f134426fc7412314e3706f01f8aeb47ab17e41b59411894c5544390d02d",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:46.753269+00:00",
+        "expected_normalized": "ham",
+        "mu_raw_transcript": "ham.",
+        "mu_normalized_transcript": "ham",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.776953,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Ham.",
+      "generated_at": "2026-07-21T09:49:22.820287+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-hat": {
+      "content_id": "lesson-v1-word-hat",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "hat",
+      "expected_text": "hat",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-hat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "158ae0a7cc9baabe166cb9a08dc9604d67cbb8dd98e2c79a715d6d6bdecb3d80",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:15.675485+00:00",
+        "expected_normalized": "hat",
+        "mu_raw_transcript": "Hat.",
+        "mu_normalized_transcript": "hat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.448437,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Hat.",
+      "generated_at": "2026-07-21T09:41:53.598222+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-hen": {
+      "content_id": "lesson-v1-word-hen",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "hen",
+      "expected_text": "hen",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-hen.wav",
+      "generation_status": "generated",
+      "generation_attempts": 3,
+      "duration_attempts_seconds": [
+        0.8,
+        0.8,
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "891f18b9b347206574da3a8c524406982f990824070e79fb0273b6c52cbd262b",
+      "validation_status": "passed",
+      "validation_attempts": 3,
+      "validation": {
+        "validated_at": "2026-07-21T09:50:12.824972+00:00",
+        "expected_normalized": "hen",
+        "mu_raw_transcript": "hen",
+        "mu_normalized_transcript": "hen",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.78125,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Hen.",
+      "generated_at": "2026-07-21T09:50:07.453710+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-hip": {
+      "content_id": "lesson-v1-word-hip",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "hip",
+      "expected_text": "hip",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-hip.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "cc19c151cb003a37a5c13320dca067b022563c1f545a4ca09969080499b21dbf",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:16.565099+00:00",
+        "expected_normalized": "hip",
+        "mu_raw_transcript": "Hip!",
+        "mu_normalized_transcript": "hip",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.842187,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Hip.",
+      "generated_at": "2026-07-21T09:41:56.784097+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-hot": {
+      "content_id": "lesson-v1-word-hot",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "hot",
+      "expected_text": "hot",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-hot.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "3cd5559dee6dcb1d5ab9ae8d1d46895094312d920bde1264e3d1bbf9c7fb1a4b",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:17.008799+00:00",
+        "expected_normalized": "hot",
+        "mu_raw_transcript": "Hot.",
+        "mu_normalized_transcript": "hot",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.751172,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Hot.",
+      "generated_at": "2026-07-21T09:41:59.191980+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-jam": {
+      "content_id": "lesson-v1-word-jam",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "jam",
+      "expected_text": "jam",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-jam.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "cf271e63eb29890dba368333cc52b2f58f84fb6fd12e1dcc9fc012f33be21dd8",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:17.463369+00:00",
+        "expected_normalized": "jam",
+        "mu_raw_transcript": "Jam",
+        "mu_normalized_transcript": "jam",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.164307,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Jam.",
+      "generated_at": "2026-07-21T09:42:01.666995+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-jet": {
+      "content_id": "lesson-v1-word-jet",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "jet",
+      "expected_text": "jet",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-jet.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "311d25bea273bc8d8a06e7b87ad62221febf96c9042f6bcc54c918807a6b9df1",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:17.915807+00:00",
+        "expected_normalized": "jet",
+        "mu_raw_transcript": "Jet.",
+        "mu_normalized_transcript": "jet",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.500391,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Jet.",
+      "generated_at": "2026-07-21T09:42:03.578915+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-job": {
+      "content_id": "lesson-v1-word-job",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "job",
+      "expected_text": "job",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-job.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.96,
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "e28b3729406551598fca01196fde024d7631f73ac055df7a11b6261ffe9e2b56",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:47.660771+00:00",
+        "expected_normalized": "job",
+        "mu_raw_transcript": "job",
+        "mu_normalized_transcript": "job",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.300293,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Job.",
+      "generated_at": "2026-07-21T09:49:26.247813+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-jog": {
+      "content_id": "lesson-v1-word-jog",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "jog",
+      "expected_text": "jog",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-jog.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "fcc5de3115e788139be17c00bce66de1b89a7207d9c0449a2c48449eba3b4f43",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:18.791461+00:00",
+        "expected_normalized": "jog",
+        "mu_raw_transcript": "jog",
+        "mu_normalized_transcript": "jog",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.505371,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Jog.",
+      "generated_at": "2026-07-21T09:42:07.359781+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-jug": {
+      "content_id": "lesson-v1-word-jug",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "jug",
+      "expected_text": "jug",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-jug.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        1.12,
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "9acd9a3a8fbb9e8c58ee961d2021308451066e6f35db7a30f8e890220fd3fdf6",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:48.103186+00:00",
+        "expected_normalized": "jug",
+        "mu_raw_transcript": "Jug.",
+        "mu_normalized_transcript": "jug",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.570312,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Jug.",
+      "generated_at": "2026-07-21T09:49:27.836598+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-lap": {
+      "content_id": "lesson-v1-word-lap",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "lap",
+      "expected_text": "lap",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-lap.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "e2091f34444631276ee3481b39c5af86ffbc5a4dcb609db30ee171696b856fa2",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:19.704754+00:00",
+        "expected_normalized": "lap",
+        "mu_raw_transcript": "LAP",
+        "mu_normalized_transcript": "lap",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.867188,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Lap.",
+      "generated_at": "2026-07-21T09:42:11.412014+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-leg": {
+      "content_id": "lesson-v1-word-leg",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "leg",
+      "expected_text": "leg",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-leg.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "057db500ec63e4fa8a86701bf7d7941522fbaf3276b918f9cfa4695b05fed987",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:20.143824+00:00",
+        "expected_normalized": "leg",
+        "mu_raw_transcript": "Leg.",
+        "mu_normalized_transcript": "leg",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.790625,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Leg.",
+      "generated_at": "2026-07-21T09:42:12.979940+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-lid": {
+      "content_id": "lesson-v1-word-lid",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "lid",
+      "expected_text": "lid",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-lid.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "86bee3c87266e2c0ace58cd052d3f093c7cc43237d50e3a476d941c80421c0a4",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:20.594851+00:00",
+        "expected_normalized": "lid",
+        "mu_raw_transcript": "Lid",
+        "mu_normalized_transcript": "lid",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.616406,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Lid.",
+      "generated_at": "2026-07-21T09:42:14.856283+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-lip": {
+      "content_id": "lesson-v1-word-lip",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "lip",
+      "expected_text": "lip",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-lip.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "ffee3618f656f147d280438896605f8d9987dc559df795d0fe264d778b16e19d",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:21.030899+00:00",
+        "expected_normalized": "lip",
+        "mu_raw_transcript": "Lip.",
+        "mu_normalized_transcript": "lip",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.68125,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Lip.",
+      "generated_at": "2026-07-21T09:42:16.447034+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-log": {
+      "content_id": "lesson-v1-word-log",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "log",
+      "expected_text": "log",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-log.wav",
+      "generation_status": "generated",
+      "generation_attempts": 4,
+      "duration_attempts_seconds": [
+        0.96,
+        0.8,
+        1.12,
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "a254c8cd2950c9f77b91aa8987811df1f347aec756cdae8161a5537d955187bc",
+      "validation_status": "passed",
+      "validation_attempts": 4,
+      "validation": {
+        "validated_at": "2026-07-21T09:50:31.496683+00:00",
+        "expected_normalized": "log",
+        "mu_raw_transcript": "LOG!",
+        "mu_normalized_transcript": "log",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.850911,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Log.",
+      "generated_at": "2026-07-21T09:50:30.646047+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-man": {
+      "content_id": "lesson-v1-word-man",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "man",
+      "expected_text": "man",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-man.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.96,
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "e9f78348354b550ae8213c325948760ff95601c5c0ce83cfea1f0930f9d770b8",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:49.001798+00:00",
+        "expected_normalized": "man",
+        "mu_raw_transcript": "Man.",
+        "mu_normalized_transcript": "man",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.505859,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Man.",
+      "generated_at": "2026-07-21T09:49:31.282177+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-map": {
+      "content_id": "lesson-v1-word-map",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "map",
+      "expected_text": "map",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-map.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "1a7dce836c9b6bc14b168712d62b6db81b8a7c2c908f2a547f5f87a9a0a36337",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:22.390114+00:00",
+        "expected_normalized": "map",
+        "mu_raw_transcript": "Map.",
+        "mu_normalized_transcript": "map",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.686328,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Map.",
+      "generated_at": "2026-07-21T09:42:22.058519+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-mat": {
+      "content_id": "lesson-v1-word-mat",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "mat",
+      "expected_text": "mat",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-mat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 3,
+      "duration_attempts_seconds": [
+        0.96,
+        0.8,
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "9dfc691e0209e0e8d6bf3cc09e967f878bda5ba0c37852d9645421d0ed8d65cb",
+      "validation_status": "passed",
+      "validation_attempts": 3,
+      "validation": {
+        "validated_at": "2026-07-21T09:50:13.732373+00:00",
+        "expected_normalized": "mat",
+        "mu_raw_transcript": "Matt.",
+        "mu_normalized_transcript": "matt",
+        "character_levenshtein_distance": 1,
+        "normalized_character_levenshtein_distance": 0.25,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 1.0,
+        "average_log_probability": -0.898438,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Mat.",
+      "generated_at": "2026-07-21T09:50:11.975738+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-men": {
+      "content_id": "lesson-v1-word-men",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "men",
+      "expected_text": "men",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-men.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "51d2298fdaa36d955a65009cfa97a95bb7217ce95e181619549643f153896a98",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:23.303356+00:00",
+        "expected_normalized": "men",
+        "mu_raw_transcript": "Men.",
+        "mu_normalized_transcript": "men",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.683203,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Men.",
+      "generated_at": "2026-07-21T09:42:25.860583+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-mug": {
+      "content_id": "lesson-v1-word-mug",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "mug",
+      "expected_text": "mug",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-mug.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.96,
+        0.64
+      ],
+      "duration_seconds": 0.64,
+      "sample_rate": 48000,
+      "sha256": "4e180644712c55d903593d0ce64fd2f5f4a50bb4e0b246396ac632db5896dafd",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:49.901320+00:00",
+        "expected_normalized": "mug",
+        "mu_raw_transcript": "Mug.",
+        "mu_normalized_transcript": "mug",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.609701,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Mug.",
+      "generated_at": "2026-07-21T09:49:34.190314+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-pan": {
+      "content_id": "lesson-v1-word-pan",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "pan",
+      "expected_text": "pan",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-pan.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "1d1135b39f85afa891bcde75084f82ad85bdb46eaee1d50cfad508f3b84ae88f",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:24.203014+00:00",
+        "expected_normalized": "pan",
+        "mu_raw_transcript": "Pan.",
+        "mu_normalized_transcript": "pan",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.528516,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Pan.",
+      "generated_at": "2026-07-21T09:42:29.758452+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-pen": {
+      "content_id": "lesson-v1-word-pen",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "pen",
+      "expected_text": "pen",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-pen.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "018cbebe4e103acf0b37007b4f34388a6ced9bee470831d93b36cc06aa5965d7",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:24.657588+00:00",
+        "expected_normalized": "pen",
+        "mu_raw_transcript": "Pen.",
+        "mu_normalized_transcript": "pen",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.949219,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Pen.",
+      "generated_at": "2026-07-21T09:42:31.671337+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-pet": {
+      "content_id": "lesson-v1-word-pet",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "pet",
+      "expected_text": "pet",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-pet.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "e3eae17ce4e292350fb77ef65a76a4dd5f93888edc8f558bfb32954f02a2b8c7",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:25.098643+00:00",
+        "expected_normalized": "pet",
+        "mu_raw_transcript": "pet",
+        "mu_normalized_transcript": "pet",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.803711,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Pet.",
+      "generated_at": "2026-07-21T09:42:33.902660+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-pig": {
+      "content_id": "lesson-v1-word-pig",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "pig",
+      "expected_text": "pig",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-pig.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "17f0db8fa779c1592435624e9b6a933051535272c001580d51cafe813201fe4d",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:25.544714+00:00",
+        "expected_normalized": "pig",
+        "mu_raw_transcript": "Pig.",
+        "mu_normalized_transcript": "pig",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.664062,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Pig.",
+      "generated_at": "2026-07-21T09:42:35.811344+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-word-pot": {
+      "content_id": "lesson-v1-word-pot",
+      "fixture_type": "word",
+      "task_type": "word",
+      "tts_text": "pot",
+      "expected_text": "pot",
+      "source_csv": "content/lessons/v1/lesson-2-word-items.csv",
+      "output_relative_path": "word/lesson-v1-word-pot.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        0.8,
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "af556604d203cd00a93d60528f62c5f9ee6d876ab771f5d08768fe5e96448ed6",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:50.351375+00:00",
+        "expected_normalized": "pot",
+        "mu_raw_transcript": "Pot.",
+        "mu_normalized_transcript": "pot",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.835938,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Pot.",
+      "generated_at": "2026-07-21T09:49:36.087629+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-big-bag": {
+      "content_id": "lesson-v1-phrase-a-big-bag",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a big bag",
+      "expected_text": "a big bag",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-big-bag.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "3b9a604ff2e3ce944b6a3646a9adb1ae4c678aad300454998c8c7d326faa26b5",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:26.450250+00:00",
+        "expected_normalized": "a big bag",
+        "mu_raw_transcript": "Big bag.",
+        "mu_normalized_transcript": "big bag",
+        "character_levenshtein_distance": 2,
+        "normalized_character_levenshtein_distance": 0.222222,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 0.333333,
+        "average_log_probability": -0.754557,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a big bag.",
+      "generated_at": "2026-07-21T09:42:39.543206+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-big-dog": {
+      "content_id": "lesson-v1-phrase-a-big-dog",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a big dog",
+      "expected_text": "a big dog",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-big-dog.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.44
+      ],
+      "duration_seconds": 1.44,
+      "sample_rate": 48000,
+      "sha256": "22b03d3bededdac2654cc8a858c5c546cbc6edc35fd91ca86a2ec61bf548f503",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:26.904588+00:00",
+        "expected_normalized": "a big dog",
+        "mu_raw_transcript": "Big Dog.",
+        "mu_normalized_transcript": "big dog",
+        "character_levenshtein_distance": 2,
+        "normalized_character_levenshtein_distance": 0.222222,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 0.333333,
+        "average_log_probability": -0.588216,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a big dog.",
+      "generated_at": "2026-07-21T09:42:42.331453+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-fat-cat": {
+      "content_id": "lesson-v1-phrase-a-fat-cat",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a fat cat",
+      "expected_text": "a fat cat",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-fat-cat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.76
+      ],
+      "duration_seconds": 1.76,
+      "sample_rate": 48000,
+      "sha256": "6942c6a9f4c280af31c59f3879a413b27c8971ebe72882272d06090bd87a62ee",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:27.380998+00:00",
+        "expected_normalized": "a fat cat",
+        "mu_raw_transcript": "a fat cat.",
+        "mu_normalized_transcript": "a fat cat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.656808,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a fat cat.",
+      "generated_at": "2026-07-21T09:42:45.608544+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-fat-pig": {
+      "content_id": "lesson-v1-phrase-a-fat-pig",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a fat pig",
+      "expected_text": "a fat pig",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-fat-pig.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.6
+      ],
+      "duration_seconds": 1.6,
+      "sample_rate": 48000,
+      "sha256": "8db7d56610c6203d26a7c970f57add70531c7fe4f8f379897c57469271767644",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:27.841060+00:00",
+        "expected_normalized": "a fat pig",
+        "mu_raw_transcript": "A fat pig.",
+        "mu_normalized_transcript": "a fat pig",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.62779,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a fat pig.",
+      "generated_at": "2026-07-21T09:42:48.720684+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-hot-pan": {
+      "content_id": "lesson-v1-phrase-a-hot-pan",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a hot pan",
+      "expected_text": "a hot pan",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-hot-pan.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "3ed38abeca3cd2a657276f193a9b8b2f2c8b19bb1335b6a76a951acdf01a3786",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:28.290212+00:00",
+        "expected_normalized": "a hot pan",
+        "mu_raw_transcript": "a hot pan.",
+        "mu_normalized_transcript": "a hot pan",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.78404,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a hot pan.",
+      "generated_at": "2026-07-21T09:42:51.142105+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-red-cap": {
+      "content_id": "lesson-v1-phrase-a-red-cap",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a red cap",
+      "expected_text": "a red cap",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-red-cap.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "f79841ffa496f8b7cba33fc73091b5dfacf6f581abe79a66d7c38a4b67ef5f18",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:28.754279+00:00",
+        "expected_normalized": "a red cap",
+        "mu_raw_transcript": "A red cap.",
+        "mu_normalized_transcript": "a red cap",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.37779,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a red cap.",
+      "generated_at": "2026-07-21T09:42:53.314150+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-red-cup": {
+      "content_id": "lesson-v1-phrase-a-red-cup",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a red cup",
+      "expected_text": "a red cup",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-red-cup.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.92
+      ],
+      "duration_seconds": 1.92,
+      "sample_rate": 48000,
+      "sha256": "d4893d9952e9bad49ad5be4ae87d85f74f006357f12f5346a4d2b9e1c9e25aa4",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:29.217335+00:00",
+        "expected_normalized": "a red cup",
+        "mu_raw_transcript": "A red cup.",
+        "mu_normalized_transcript": "a red cup",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.563058,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a red cup.",
+      "generated_at": "2026-07-21T09:42:57.086392+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-wet-dog": {
+      "content_id": "lesson-v1-phrase-a-wet-dog",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a wet dog",
+      "expected_text": "a wet dog",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-wet-dog.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.44
+      ],
+      "duration_seconds": 1.44,
+      "sample_rate": 48000,
+      "sha256": "a119e4e9c7064271859069c58b900ccd86fce9c8b8cdc640d3fcda533a86c4ad",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:29.669095+00:00",
+        "expected_normalized": "a wet dog",
+        "mu_raw_transcript": "a wet dog.",
+        "mu_normalized_transcript": "a wet dog",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.208705,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a wet dog.",
+      "generated_at": "2026-07-21T09:42:59.861822+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-tan-bag": {
+      "content_id": "lesson-v1-phrase-a-tan-bag",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a tan bag",
+      "expected_text": "a tan bag",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-tan-bag.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "b9db9633e8652c21ca781bba9d8b1ea6ded380a6e70ec8a2c365c163673f15ee",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:30.141158+00:00",
+        "expected_normalized": "a tan bag",
+        "mu_raw_transcript": "A tan bag.",
+        "mu_normalized_transcript": "a tan bag",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.505301,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a tan bag.",
+      "generated_at": "2026-07-21T09:43:02.370944+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-sad-man": {
+      "content_id": "lesson-v1-phrase-a-sad-man",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a sad man",
+      "expected_text": "a sad man",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-sad-man.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.6
+      ],
+      "duration_seconds": 1.6,
+      "sample_rate": 48000,
+      "sha256": "f1a37fa9ebfd95ca97260818fba019ad0e77eeac8ca6d4305b5efa918a33d6d8",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:30.596455+00:00",
+        "expected_normalized": "a sad man",
+        "mu_raw_transcript": "A sad man.",
+        "mu_normalized_transcript": "a sad man",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.224191,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a sad man.",
+      "generated_at": "2026-07-21T09:43:05.470122+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-fun-run": {
+      "content_id": "lesson-v1-phrase-a-fun-run",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a fun run",
+      "expected_text": "a fun run",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-fun-run.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "bbf664746d67ce40d0d07a9edfb3dd49cfeb66e3621d99f3418f7e242a030007",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:31.052515+00:00",
+        "expected_normalized": "a fun run",
+        "mu_raw_transcript": "A fun run.",
+        "mu_normalized_transcript": "a fun run",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.186105,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a fun run.",
+      "generated_at": "2026-07-21T09:43:07.719906+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-cat-on-a-mat": {
+      "content_id": "lesson-v1-phrase-a-cat-on-a-mat",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a cat on a mat",
+      "expected_text": "a cat on a mat",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-cat-on-a-mat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.44
+      ],
+      "duration_seconds": 1.44,
+      "sample_rate": 48000,
+      "sha256": "b2961ab0d8e30756880a5710d488740625c8a4ce8567c599514a5e85807e1b83",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:31.553092+00:00",
+        "expected_normalized": "a cat on a mat",
+        "mu_raw_transcript": "cat on a mat.",
+        "mu_normalized_transcript": "cat on a mat",
+        "character_levenshtein_distance": 2,
+        "normalized_character_levenshtein_distance": 0.142857,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 0.2,
+        "average_log_probability": -0.54834,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a cat on a mat.",
+      "generated_at": "2026-07-21T09:43:10.519407+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-dog-on-a-log": {
+      "content_id": "lesson-v1-phrase-a-dog-on-a-log",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a dog on a log",
+      "expected_text": "a dog on a log",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-dog-on-a-log.wav",
+      "generation_status": "generated",
+      "generation_attempts": 4,
+      "duration_attempts_seconds": [
+        2.08,
+        1.6,
+        2.08,
+        1.6
+      ],
+      "duration_seconds": 1.6,
+      "sample_rate": 48000,
+      "sha256": "cd16fe6f18c784123105916d713b110615afcd68b08a775694a61a02e86a77af",
+      "validation_status": "passed",
+      "validation_attempts": 2,
+      "validation": {
+        "validated_at": "2026-07-21T09:49:50.820799+00:00",
+        "expected_normalized": "a dog on a log",
+        "mu_raw_transcript": "A dog on a log.",
+        "mu_normalized_transcript": "a dog on a log",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.469184,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a dog on a log.",
+      "generated_at": "2026-07-21T09:49:43.179654+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-fan-on-a-mat": {
+      "content_id": "lesson-v1-phrase-a-fan-on-a-mat",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a fan on a mat",
+      "expected_text": "a fan on a mat",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-fan-on-a-mat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        2.08,
+        1.44
+      ],
+      "duration_seconds": 1.44,
+      "sample_rate": 48000,
+      "sha256": "60671dcdc9b1ed98ef7937870d56dfb3f5589ee0367d78f181a0a941886cbe3c",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:32.509244+00:00",
+        "expected_normalized": "a fan on a mat",
+        "mu_raw_transcript": "a fan on a mat.",
+        "mu_normalized_transcript": "a fan on a mat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.30599,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a fan on a mat.",
+      "generated_at": "2026-07-21T09:43:24.313643+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-ham-in-a-pan": {
+      "content_id": "lesson-v1-phrase-ham-in-a-pan",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "ham in a pan",
+      "expected_text": "ham in a pan",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-ham-in-a-pan.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.44
+      ],
+      "duration_seconds": 1.44,
+      "sample_rate": 48000,
+      "sha256": "50befe174b5aa8300051f6e23c91c7ce909608d3204d97cc35bb42d64e29ae4f",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:32.975904+00:00",
+        "expected_normalized": "ham in a pan",
+        "mu_raw_transcript": "Ham in a pan.",
+        "mu_normalized_transcript": "ham in a pan",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.580566,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "ham in a pan.",
+      "generated_at": "2026-07-21T09:43:27.175674+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-hat-on-a-peg": {
+      "content_id": "lesson-v1-phrase-a-hat-on-a-peg",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a hat on a peg",
+      "expected_text": "a hat on a peg",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-hat-on-a-peg.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "4d86b15ccf55ad1af6747db1608043d2ea8ce04dd82c388e91d8ab86f5a9ff50",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:33.432955+00:00",
+        "expected_normalized": "a hat on a peg",
+        "mu_raw_transcript": "a hat on a peg.",
+        "mu_normalized_transcript": "a hat on a peg",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.503906,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a hat on a peg.",
+      "generated_at": "2026-07-21T09:43:29.672202+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-hen-in-a-pen": {
+      "content_id": "lesson-v1-phrase-a-hen-in-a-pen",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a hen in a pen",
+      "expected_text": "a hen in a pen",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-hen-in-a-pen.wav",
+      "generation_status": "generated",
+      "generation_attempts": 2,
+      "duration_attempts_seconds": [
+        2.08,
+        1.92
+      ],
+      "duration_seconds": 1.92,
+      "sample_rate": 48000,
+      "sha256": "4e9b8168075dc1c65b98063df2dcb08b7a92eaf575b3a7fc01e7c28b66fe4993",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:33.905208+00:00",
+        "expected_normalized": "a hen in a pen",
+        "mu_raw_transcript": "a hen and a pen.",
+        "mu_normalized_transcript": "a hen and a pen",
+        "character_levenshtein_distance": 2,
+        "normalized_character_levenshtein_distance": 0.133333,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 0.2,
+        "average_log_probability": -0.566406,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a hen in a pen.",
+      "generated_at": "2026-07-21T09:43:37.294142+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-kid-in-bed": {
+      "content_id": "lesson-v1-phrase-a-kid-in-bed",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a kid in bed",
+      "expected_text": "a kid in bed",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-kid-in-bed.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.44
+      ],
+      "duration_seconds": 1.44,
+      "sample_rate": 48000,
+      "sha256": "55d652b5a3a931325a5c55f7e42dafb6daf629dfd36e17e9b81df415e085162f",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:34.391364+00:00",
+        "expected_normalized": "a kid in bed",
+        "mu_raw_transcript": "A kid in bed.",
+        "mu_normalized_transcript": "a kid in bed",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.570801,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a kid in bed.",
+      "generated_at": "2026-07-21T09:43:40.054696+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-pig-in-mud": {
+      "content_id": "lesson-v1-phrase-a-pig-in-mud",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a pig in mud",
+      "expected_text": "a pig in mud",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-pig-in-mud.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.44
+      ],
+      "duration_seconds": 1.44,
+      "sample_rate": 48000,
+      "sha256": "9de1b066ea63f73da1f60fdb8e18634781cfa621ff34650bbeff0bd94dc7411d",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:34.850171+00:00",
+        "expected_normalized": "a pig in mud",
+        "mu_raw_transcript": "A pig in mud.",
+        "mu_normalized_transcript": "a pig in mud",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.409668,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a pig in mud.",
+      "generated_at": "2026-07-21T09:43:42.907220+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-phrase-a-wet-rag": {
+      "content_id": "lesson-v1-phrase-a-wet-rag",
+      "fixture_type": "phrase",
+      "task_type": "phrase",
+      "tts_text": "a wet rag",
+      "expected_text": "a wet rag",
+      "source_csv": "content/lessons/v1/lesson-3-phrases.csv",
+      "output_relative_path": "phrase/lesson-v1-phrase-a-wet-rag.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "8850a77745dd81d236f1be4686c27c88fa7f7144473d5ccdc5a3638fe53ef76e",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:35.301003+00:00",
+        "expected_normalized": "a wet rag",
+        "mu_raw_transcript": "wet rag.",
+        "mu_normalized_transcript": "wet rag",
+        "character_levenshtein_distance": 2,
+        "normalized_character_levenshtein_distance": 0.222222,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 0.333333,
+        "average_log_probability": -0.33431,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a wet rag.",
+      "generated_at": "2026-07-21T09:43:45.431079+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-big-bag-bed": {
+      "content_id": "lesson-v1-sentence-big-bag-bed",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A big bag is on a bed.",
+      "expected_text": "a big bag is on a bed",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-big-bag-bed.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        2.4
+      ],
+      "duration_seconds": 2.4,
+      "sample_rate": 48000,
+      "sha256": "489431081e659bcb8666673dc82c1ac8145a63b3d5a223cf22fa095b771b2ac0",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:35.785187+00:00",
+        "expected_normalized": "a big bag is on a bed",
+        "mu_raw_transcript": "A big bag is on a bed.",
+        "mu_normalized_transcript": "a big bag is on a bed",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.272195,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A big bag is on a bed.",
+      "generated_at": "2026-07-21T09:43:49.968484+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-cat-mat": {
+      "content_id": "lesson-v1-sentence-cat-mat",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A cat is on a mat.",
+      "expected_text": "a cat is on a mat",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-cat-mat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        2.24
+      ],
+      "duration_seconds": 2.24,
+      "sample_rate": 48000,
+      "sha256": "8265813ca167eabc94df43c0071f69398f43a7842e5fa9e8a6585d0103deea25",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:36.251249+00:00",
+        "expected_normalized": "a cat is on a mat",
+        "mu_raw_transcript": "A cat is on a mat.",
+        "mu_normalized_transcript": "a cat is on a mat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.232812,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A cat is on a mat.",
+      "generated_at": "2026-07-21T09:43:54.227191+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-dog-log": {
+      "content_id": "lesson-v1-sentence-dog-log",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A dog is on a log.",
+      "expected_text": "a dog is on a log",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-dog-log.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        2.08
+      ],
+      "duration_seconds": 2.08,
+      "sample_rate": 48000,
+      "sha256": "624db26deb64a72e18dc4420dc038550ed425207cd980fea13e52a85b4ffd64c",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:36.713581+00:00",
+        "expected_normalized": "a dog is on a log",
+        "mu_raw_transcript": "A dog is on a log.",
+        "mu_normalized_transcript": "a dog is on a log",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.202344,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A dog is on a log.",
+      "generated_at": "2026-07-21T09:43:58.138898+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-hen-pen": {
+      "content_id": "lesson-v1-sentence-hen-pen",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A hen is in a pen.",
+      "expected_text": "a hen is in a pen",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-hen-pen.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.92
+      ],
+      "duration_seconds": 1.92,
+      "sample_rate": 48000,
+      "sha256": "c8807553ee7b8129a2cd52c999b5d78469d5db81fdd664ac5fb32892deadaed2",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:37.207667+00:00",
+        "expected_normalized": "a hen is in a pen",
+        "mu_raw_transcript": "A hen is in a pen.",
+        "mu_normalized_transcript": "a hen is in a pen",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.261328,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A hen is in a pen.",
+      "generated_at": "2026-07-21T09:44:01.774174+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-hot-pan-mat": {
+      "content_id": "lesson-v1-sentence-hot-pan-mat",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A hot pan is on a mat.",
+      "expected_text": "a hot pan is on a mat",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-hot-pan-mat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        2.88
+      ],
+      "duration_seconds": 2.88,
+      "sample_rate": 48000,
+      "sha256": "2f67c53d4b2b469db3599e936a06f3e1cd181a7dc034fb0ec825e6410ad7566c",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:37.711257+00:00",
+        "expected_normalized": "a hot pan is on a mat",
+        "mu_raw_transcript": "A hot pan is on a mat.",
+        "mu_normalized_transcript": "a hot pan is on a mat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.351385,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A hot pan is on a mat.",
+      "generated_at": "2026-07-21T09:44:07.205030+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-kid-hop": {
+      "content_id": "lesson-v1-sentence-kid-hop",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A kid can hop.",
+      "expected_text": "a kid can hop",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-kid-hop.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "ef79c86746672f1e953107ef53b468762b6ccef8693161dab46b1344c7a7973b",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:38.163846+00:00",
+        "expected_normalized": "a kid can hop",
+        "mu_raw_transcript": "A kid can hop.",
+        "mu_normalized_transcript": "a kid can hop",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.215698,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A kid can hop.",
+      "generated_at": "2026-07-21T09:44:09.849617+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-man-dig": {
+      "content_id": "lesson-v1-sentence-man-dig",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A man can dig.",
+      "expected_text": "a man can dig",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-man-dig.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.6
+      ],
+      "duration_seconds": 1.6,
+      "sample_rate": 48000,
+      "sha256": "e63608d7467d78c85ed97918f6c38dfe50376bcb31c22c16af0d44e1f49c6c70",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:38.643901+00:00",
+        "expected_normalized": "a man can dig",
+        "mu_raw_transcript": "A man can dig.",
+        "mu_normalized_transcript": "a man can dig",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.258057,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A man can dig.",
+      "generated_at": "2026-07-21T09:44:12.990808+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-pig-mud": {
+      "content_id": "lesson-v1-sentence-pig-mud",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A pig is in mud.",
+      "expected_text": "a pig is in mud",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-pig-mud.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.92
+      ],
+      "duration_seconds": 1.92,
+      "sample_rate": 48000,
+      "sha256": "7639b7efc118c2a7b21b5b2dbc74fb29322fac986e2e479c6a098e725b4c4cce",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:39.110002+00:00",
+        "expected_normalized": "a pig is in mud",
+        "mu_raw_transcript": "A pig is in mud.",
+        "mu_normalized_transcript": "a pig is in mud",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.393663,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A pig is in mud.",
+      "generated_at": "2026-07-21T09:44:16.708739+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-red-cup-mat": {
+      "content_id": "lesson-v1-sentence-red-cup-mat",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A red cup is on a mat.",
+      "expected_text": "a red cup is on a mat",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-red-cup-mat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        2.08
+      ],
+      "duration_seconds": 2.08,
+      "sample_rate": 48000,
+      "sha256": "bf804889d3c73d0629d58b667f943514d8cbfcc0d617516d0d059020a287cf6a",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:39.581108+00:00",
+        "expected_normalized": "a red cup is on a mat",
+        "mu_raw_transcript": "A red cup is on a mat.",
+        "mu_normalized_transcript": "a red cup is on a mat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.259588,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A red cup is on a mat.",
+      "generated_at": "2026-07-21T09:44:20.671094+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-wet-dog-mat": {
+      "content_id": "lesson-v1-sentence-wet-dog-mat",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "A wet dog is on a mat.",
+      "expected_text": "a wet dog is on a mat",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-wet-dog-mat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        2.08
+      ],
+      "duration_seconds": 2.08,
+      "sample_rate": 48000,
+      "sha256": "1a0e8ebe80da09916fa0ff64c9b82d32d7f728c16ac6602eb349faae01d02c41",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:40.062261+00:00",
+        "expected_normalized": "a wet dog is on a mat",
+        "mu_raw_transcript": "A wet dog is on a mat.",
+        "mu_normalized_transcript": "a wet dog is on a mat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.135121,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "A wet dog is on a mat.",
+      "generated_at": "2026-07-21T09:44:24.651363+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-ana-bag": {
+      "content_id": "lesson-v1-sentence-ana-bag",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Ana has a bag.",
+      "expected_text": "ana has a bag",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-ana-bag.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "4d0f8099d9375644f253eb17903584271a37bf54378987ff7ba6e1a69b4f01d2",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:40.515312+00:00",
+        "expected_normalized": "ana has a bag",
+        "mu_raw_transcript": "Anna has a bag.",
+        "mu_normalized_transcript": "anna has a bag",
+        "character_levenshtein_distance": 1,
+        "normalized_character_levenshtein_distance": 0.071429,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 0.25,
+        "average_log_probability": -0.21228,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Ana has a bag.",
+      "generated_at": "2026-07-21T09:44:27.072908+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-ben-cap": {
+      "content_id": "lesson-v1-sentence-ben-cap",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Ben has a cap.",
+      "expected_text": "ben has a cap",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-ben-cap.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "4ee3751fd46c338fed4f722c5de56f7ba465babb96b211a13eade235251dc96d",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:40.961690+00:00",
+        "expected_normalized": "ben has a cap",
+        "mu_raw_transcript": "Ben has a cap.",
+        "mu_normalized_transcript": "ben has a cap",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.410156,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Ben has a cap.",
+      "generated_at": "2026-07-21T09:44:29.309077+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-lena-hop": {
+      "content_id": "lesson-v1-sentence-lena-hop",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Lena can hop.",
+      "expected_text": "lena can hop",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-lena-hop.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "333d178388910ce3a1c48457e67eedd8eb15af570186b2a98061b90437bcd442",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:41.423749+00:00",
+        "expected_normalized": "lena can hop",
+        "mu_raw_transcript": "Lena can hop.",
+        "mu_normalized_transcript": "lena can hop",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.639509,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Lena can hop.",
+      "generated_at": "2026-07-21T09:44:31.822898+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-lito-run": {
+      "content_id": "lesson-v1-sentence-lito-run",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Lito can run.",
+      "expected_text": "lito can run",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-lito-run.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.6
+      ],
+      "duration_seconds": 1.6,
+      "sample_rate": 48000,
+      "sha256": "6d78046ea0c81ab4076593168db4c98e15f1de2627c5a11a8cb11ee0651fbe8e",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:41.894744+00:00",
+        "expected_normalized": "lito can run",
+        "mu_raw_transcript": "Leto can run.",
+        "mu_normalized_transcript": "leto can run",
+        "character_levenshtein_distance": 1,
+        "normalized_character_levenshtein_distance": 0.083333,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 0.333333,
+        "average_log_probability": -0.496826,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Lito can run.",
+      "generated_at": "2026-07-21T09:44:34.906216+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-mia-cat": {
+      "content_id": "lesson-v1-sentence-mia-cat",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Mia has a cat.",
+      "expected_text": "mia has a cat",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-mia-cat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "51431f719cbe0c3e59bde59aedfcb3c90655f6da23f177bb7703491d489b495e",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:42.345801+00:00",
+        "expected_normalized": "mia has a cat",
+        "mu_raw_transcript": "Mia has a cat.",
+        "mu_normalized_transcript": "mia has a cat",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.349121,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Mia has a cat.",
+      "generated_at": "2026-07-21T09:44:37.380741+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-mina-fan": {
+      "content_id": "lesson-v1-sentence-mina-fan",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Mina has a fan.",
+      "expected_text": "mina has a fan",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-mina-fan.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "9b464e8832b674da0d0f4372980aa4589d0dcb7867ea8bc29fa326342fa9c8a3",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:42.807374+00:00",
+        "expected_normalized": "mina has a fan",
+        "mu_raw_transcript": "Nina has a fan.",
+        "mu_normalized_transcript": "nina has a fan",
+        "character_levenshtein_distance": 1,
+        "normalized_character_levenshtein_distance": 0.071429,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 0.25,
+        "average_log_probability": -0.397705,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Mina has a fan.",
+      "generated_at": "2026-07-21T09:44:39.923678+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-nena-sit": {
+      "content_id": "lesson-v1-sentence-nena-sit",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Nena can sit.",
+      "expected_text": "nena can sit",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-nena-sit.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.6
+      ],
+      "duration_seconds": 1.6,
+      "sample_rate": 48000,
+      "sha256": "d32493871cfe2c6a6d6826b84a332ad53b735f071a303b4dca46fa151571e993",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:43.292957+00:00",
+        "expected_normalized": "nena can sit",
+        "mu_raw_transcript": "Nina can sit.",
+        "mu_normalized_transcript": "nina can sit",
+        "character_levenshtein_distance": 1,
+        "normalized_character_levenshtein_distance": 0.083333,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 0.333333,
+        "average_log_probability": -0.405971,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Nena can sit.",
+      "generated_at": "2026-07-21T09:44:43.015642+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-nico-dog": {
+      "content_id": "lesson-v1-sentence-nico-dog",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Nico has a dog.",
+      "expected_text": "nico has a dog",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-nico-dog.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        2.08
+      ],
+      "duration_seconds": 2.08,
+      "sample_rate": 48000,
+      "sha256": "ddb30f28531b5df2f366768d7975675cd887108e451fcbfc79872d3bc23aec55",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:43.752020+00:00",
+        "expected_normalized": "nico has a dog",
+        "mu_raw_transcript": "Nico has a dog.",
+        "mu_normalized_transcript": "nico has a dog",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.242065,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Nico has a dog.",
+      "generated_at": "2026-07-21T09:44:47.060245+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-rosa-red-bag": {
+      "content_id": "lesson-v1-sentence-rosa-red-bag",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Rosa has a red bag.",
+      "expected_text": "rosa has a red bag",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-rosa-red-bag.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        2.24
+      ],
+      "duration_seconds": 2.24,
+      "sample_rate": 48000,
+      "sha256": "6bc8cde1e45d34da164a5ba371e1e09b8497c3f7ce912d17889f554cacfc87a5",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:44.230592+00:00",
+        "expected_normalized": "rosa has a red bag",
+        "mu_raw_transcript": "Rosa has a red bag.",
+        "mu_normalized_transcript": "rosa has a red bag",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.37066,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Rosa has a red bag.",
+      "generated_at": "2026-07-21T09:44:51.367446+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-sentence-tino-pet-pig": {
+      "content_id": "lesson-v1-sentence-tino-pet-pig",
+      "fixture_type": "sentence",
+      "task_type": "sentence",
+      "tts_text": "Tino has a pet pig.",
+      "expected_text": "tino has a pet pig",
+      "source_csv": "content/lessons/v1/lesson-4-sentences.csv",
+      "output_relative_path": "sentence/lesson-v1-sentence-tino-pet-pig.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        2.24
+      ],
+      "duration_seconds": 2.24,
+      "sample_rate": 48000,
+      "sha256": "d53f1519abbd5839cfee4108e685cb5f92a45475dc3e876dcc53fa4080f197cb",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:44.698578+00:00",
+        "expected_normalized": "tino has a pet pig",
+        "mu_raw_transcript": "Tino has a pet pig.",
+        "mu_normalized_transcript": "tino has a pet pig",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.186719,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Tino has a pet pig.",
+      "generated_at": "2026-07-21T09:44:55.701202+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-passage-mila-school": {
+      "content_id": "lesson-v1-passage-mila-school",
+      "fixture_type": "passage",
+      "task_type": "passage",
+      "tts_text": "Mila goes to the school on Tuesday, and she takes a book to read. She holds the book, opens it, reads it, and looks at it. Mila reads from the book, then she sits, rests, and reads again. She likes to read, and she stays at the school on Tuesday.",
+      "expected_text": "mila goes to the school on tuesday and she takes a book to read she holds the book opens it reads it and looks at it mila reads from the book then she sits rests and reads again she likes to read and she stays at the school on tuesday",
+      "source_csv": "content/lessons/v1/lesson-5-passages.csv",
+      "output_relative_path": "passage/lesson-v1-passage-mila-school.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        21.76
+      ],
+      "duration_seconds": 21.76,
+      "sample_rate": 48000,
+      "sha256": "0d66ab1946e7dbf440e2eeb59435904fd384996b5285e96c40849b635849d6dc",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:45.442807+00:00",
+        "expected_normalized": "mila goes to the school on tuesday and she takes a book to read she holds the book opens it reads it and looks at it mila reads from the book then she sits rests and reads again she likes to read and she stays at the school on tuesday",
+        "mu_raw_transcript": "Mila goes to the school on Tuesday and she takes a book to read. She holds the book, opens it, reads it and looks at it. Mila reads from the book, then she sits, rests and reads again. She likes to read and she stays at the school on Tuesday.",
+        "mu_normalized_transcript": "mila goes to the school on tuesday and she takes a book to read she holds the book opens it reads it and looks at it mila reads from the book then she sits rests and reads again she likes to read and she stays at the school on tuesday",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.074095,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Mila goes to the school on Tuesday, and she takes a book to read. She holds the book, opens it, reads it, and looks at it. Mila reads from the book, then she sits, rests, and reads again. She likes to read, and she stays at the school on Tuesday.",
+      "generated_at": "2026-07-21T09:45:36.402811+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-passage-ben-market": {
+      "content_id": "lesson-v1-passage-ben-market",
+      "fixture_type": "passage",
+      "task_type": "passage",
+      "tts_text": "Ben goes to the market on Saturday, and he gets a mango to eat. He holds the mango, peels it, cuts it, and looks at it. Ben eats the mango there, then he sits, rests, and eats again. He likes to eat, and he stays at the market on Saturday.",
+      "expected_text": "ben goes to the market on saturday and he gets a mango to eat he holds the mango peels it cuts it and looks at it ben eats the mango there then he sits rests and eats again he likes to eat and he stays at the market on saturday",
+      "source_csv": "content/lessons/v1/lesson-5-passages.csv",
+      "output_relative_path": "passage/lesson-v1-passage-ben-market.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        14.88
+      ],
+      "duration_seconds": 14.88,
+      "sample_rate": 48000,
+      "sha256": "7f5c2c9d9e6df9b3ea47df35b622ae16ef0e662338e4aead03a8e93e6c3584c0",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:46.159457+00:00",
+        "expected_normalized": "ben goes to the market on saturday and he gets a mango to eat he holds the mango peels it cuts it and looks at it ben eats the mango there then he sits rests and eats again he likes to eat and he stays at the market on saturday",
+        "mu_raw_transcript": "Ben goes to the market on Saturday and he gets a mango to eat. He holds the mango, peels it, cuts it, and looks at it. Ben eats the mango there, then he sits, rests, and eats again. He likes to eat and he stays at the market on Saturday.",
+        "mu_normalized_transcript": "ben goes to the market on saturday and he gets a mango to eat he holds the mango peels it cuts it and looks at it ben eats the mango there then he sits rests and eats again he likes to eat and he stays at the market on saturday",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.090698,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Ben goes to the market on Saturday, and he gets a mango to eat. He holds the mango, peels it, cuts it, and looks at it. Ben eats the mango there, then he sits, rests, and eats again. He likes to eat, and he stays at the market on Saturday.",
+      "generated_at": "2026-07-21T09:46:04.273100+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-passage-lito-beach": {
+      "content_id": "lesson-v1-passage-lito-beach",
+      "fixture_type": "passage",
+      "task_type": "passage",
+      "tts_text": "Lito goes to the beach on Sunday, and he takes a kite to fly. He holds the kite, lifts it, pulls it, and runs with it. Lito flies the kite, then he sits, rests, and flies it again. He likes to fly, and he stays at the beach on Sunday.",
+      "expected_text": "lito goes to the beach on sunday and he takes a kite to fly he holds the kite lifts it pulls it and runs with it lito flies the kite then he sits rests and flies it again he likes to fly and he stays at the beach on sunday",
+      "source_csv": "content/lessons/v1/lesson-5-passages.csv",
+      "output_relative_path": "passage/lesson-v1-passage-lito-beach.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        15.04
+      ],
+      "duration_seconds": 15.04,
+      "sample_rate": 48000,
+      "sha256": "f629df519aab7291393fe74c3068e6aa83cd7d6ada9363c297cfb3d872aed720",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:46.887606+00:00",
+        "expected_normalized": "lito goes to the beach on sunday and he takes a kite to fly he holds the kite lifts it pulls it and runs with it lito flies the kite then he sits rests and flies it again he likes to fly and he stays at the beach on sunday",
+        "mu_raw_transcript": "Leto goes to the beach on Sunday and he takes a kite to fly. He holds the kite, lifts it, pulls it and runs with it. Leto flies the kite, then he sits, rests and flies it again. He likes to fly and he stays at the beach on Sunday.",
+        "mu_normalized_transcript": "leto goes to the beach on sunday and he takes a kite to fly he holds the kite lifts it pulls it and runs with it leto flies the kite then he sits rests and flies it again he likes to fly and he stays at the beach on sunday",
+        "character_levenshtein_distance": 2,
+        "normalized_character_levenshtein_distance": 0.009009,
+        "word_levenshtein_distance": 2,
+        "normalized_word_levenshtein_distance": 0.04,
+        "average_log_probability": -0.116735,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Lito goes to the beach on Sunday, and he takes a kite to fly. He holds the kite, lifts it, pulls it, and runs with it. Lito flies the kite, then he sits, rests, and flies it again. He likes to fly, and he stays at the beach on Sunday.",
+      "generated_at": "2026-07-21T09:46:32.652970+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-passage-ana-kitchen": {
+      "content_id": "lesson-v1-passage-ana-kitchen",
+      "fixture_type": "passage",
+      "task_type": "passage",
+      "tts_text": "Ana goes to the kitchen on Friday, and she takes some rice to cook. She holds the rice, rinses it, cooks it, and looks at it. Ana cooks the rice, then she waits, stirs, and checks it again. She likes to cook, and she stays in the kitchen on Friday.",
+      "expected_text": "ana goes to the kitchen on friday and she takes some rice to cook she holds the rice rinses it cooks it and looks at it ana cooks the rice then she waits stirs and checks it again she likes to cook and she stays in the kitchen on friday",
+      "source_csv": "content/lessons/v1/lesson-5-passages.csv",
+      "output_relative_path": "passage/lesson-v1-passage-ana-kitchen.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        20.8
+      ],
+      "duration_seconds": 20.8,
+      "sample_rate": 48000,
+      "sha256": "41fc509bddd3c691b66a3163fbacb301d03a6757274d23d9a1ec5611e8065f3b",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:47.693200+00:00",
+        "expected_normalized": "ana goes to the kitchen on friday and she takes some rice to cook she holds the rice rinses it cooks it and looks at it ana cooks the rice then she waits stirs and checks it again she likes to cook and she stays in the kitchen on friday",
+        "mu_raw_transcript": "Anna goes to the kitchen on Friday and she takes some rice to cook. She holds the rice, rinses it, cooks it and looks at it. Anna cooks the rice, then she waits, stirs and checks it again. She likes to cook and she stays in the kitchen on Friday.",
+        "mu_normalized_transcript": "anna goes to the kitchen on friday and she takes some rice to cook she holds the rice rinses it cooks it and looks at it anna cooks the rice then she waits stirs and checks it again she likes to cook and she stays in the kitchen on friday",
+        "character_levenshtein_distance": 2,
+        "normalized_character_levenshtein_distance": 0.008403,
+        "word_levenshtein_distance": 2,
+        "normalized_word_levenshtein_distance": 0.04,
+        "average_log_probability": -0.145647,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Ana goes to the kitchen on Friday, and she takes some rice to cook. She holds the rice, rinses it, cooks it, and looks at it. Ana cooks the rice, then she waits, stirs, and checks it again. She likes to cook, and she stays in the kitchen on Friday.",
+      "generated_at": "2026-07-21T09:47:11.235001+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-passage-nico-farm": {
+      "content_id": "lesson-v1-passage-nico-farm",
+      "fixture_type": "passage",
+      "task_type": "passage",
+      "tts_text": "Nico goes to the farm on Monday, and he gets some corn to grow. He holds the corn, plants it, covers it, and looks at it. Nico checks the corn, then he sits, rests, and looks again. He likes to grow corn, and he stays at the farm on Monday.",
+      "expected_text": "nico goes to the farm on monday and he gets some corn to grow he holds the corn plants it covers it and looks at it nico checks the corn then he sits rests and looks again he likes to grow corn and he stays at the farm on monday",
+      "source_csv": "content/lessons/v1/lesson-5-passages.csv",
+      "output_relative_path": "passage/lesson-v1-passage-nico-farm.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        13.12
+      ],
+      "duration_seconds": 13.12,
+      "sample_rate": 48000,
+      "sha256": "ccc337815f9ca94b23426ed9106faf39ca33531cd17efb7f2d9388472590e914",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:48.470235+00:00",
+        "expected_normalized": "nico goes to the farm on monday and he gets some corn to grow he holds the corn plants it covers it and looks at it nico checks the corn then he sits rests and looks again he likes to grow corn and he stays at the farm on monday",
+        "mu_raw_transcript": "Nico goes to the farm on Monday, and he gets some corn to grow. He holds the corn, plants it, covers it, and looks at it. Nico checks the corn, then he sits, rests, and looks again. He likes to grow corn, and he stays at the farm on Monday.",
+        "mu_normalized_transcript": "nico goes to the farm on monday and he gets some corn to grow he holds the corn plants it covers it and looks at it nico checks the corn then he sits rests and looks again he likes to grow corn and he stays at the farm on monday",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.142607,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "Nico goes to the farm on Monday, and he gets some corn to grow. He holds the corn, plants it, covers it, and looks at it. Nico checks the corn, then he sits, rests, and looks again. He likes to grow corn, and he stays at the farm on Monday.",
+      "generated_at": "2026-07-21T09:47:35.921824+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-who-lena": {
+      "content_id": "lesson-v1-comprehension-who-lena",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "lena",
+      "expected_text": "lena",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-who-lena.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "ed36c59b7d7347f201bc4addbe2c0ee88268644495227711f7c1a705f337e3ee",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:48.919303+00:00",
+        "expected_normalized": "lena",
+        "mu_raw_transcript": "Leina",
+        "mu_normalized_transcript": "leina",
+        "character_levenshtein_distance": 1,
+        "normalized_character_levenshtein_distance": 0.2,
+        "word_levenshtein_distance": 1,
+        "normalized_word_levenshtein_distance": 1.0,
+        "average_log_probability": -0.592969,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "lena.",
+      "generated_at": "2026-07-21T09:47:37.536980+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-who-rosa": {
+      "content_id": "lesson-v1-comprehension-who-rosa",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "rosa",
+      "expected_text": "rosa",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-who-rosa.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "85ca311611cb29be303203d1d0435d3d057a7550eb824c97388aac6200275e12",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:49.363483+00:00",
+        "expected_normalized": "rosa",
+        "mu_raw_transcript": "Rosa.",
+        "mu_normalized_transcript": "rosa",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.626172,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "rosa.",
+      "generated_at": "2026-07-21T09:47:39.755784+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-what-mia": {
+      "content_id": "lesson-v1-comprehension-what-mia",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "a red pen",
+      "expected_text": "a red pen",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-what-mia.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "4c2f0088dcc22eaf30b56307076bf46a6a732e0b1088e96b008912cb446acdc4",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:49.823388+00:00",
+        "expected_normalized": "a red pen",
+        "mu_raw_transcript": "A red pen.",
+        "mu_normalized_transcript": "a red pen",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.510603,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a red pen.",
+      "generated_at": "2026-07-21T09:47:42.221525+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-what-ben": {
+      "content_id": "lesson-v1-comprehension-what-ben",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "a pet dog",
+      "expected_text": "a pet dog",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-what-ben.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.44
+      ],
+      "duration_seconds": 1.44,
+      "sample_rate": 48000,
+      "sha256": "98d915093815a5cc6e6edfdad4ab1dbfc9a2f955db5d254b69d7531c15468846",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:50.280738+00:00",
+        "expected_normalized": "a pet dog",
+        "mu_raw_transcript": "A pet dog.",
+        "mu_normalized_transcript": "a pet dog",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.461775,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a pet dog.",
+      "generated_at": "2026-07-21T09:47:45.018130+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-where-cat": {
+      "content_id": "lesson-v1-comprehension-where-cat",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "on a bed",
+      "expected_text": "on a bed",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-where-cat.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "65c139b428d329628fa864ac6eb8675f8c68080c5cce5ec06835c865bd9b85ba",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:50.742398+00:00",
+        "expected_normalized": "on a bed",
+        "mu_raw_transcript": "On a bed.",
+        "mu_normalized_transcript": "on a bed",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.363002,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "on a bed.",
+      "generated_at": "2026-07-21T09:47:47.199648+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-where-hen": {
+      "content_id": "lesson-v1-comprehension-where-hen",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "in a hut",
+      "expected_text": "in a hut",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-where-hen.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "4e352267599e70402e1b333fcf2dcdf9be9ed42e7aa624ef5a4e92201d7f8c10",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:51.206231+00:00",
+        "expected_normalized": "in a hut",
+        "mu_raw_transcript": "in a hut",
+        "mu_normalized_transcript": "in a hut",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.597331,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "in a hut.",
+      "generated_at": "2026-07-21T09:47:49.404026+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-when-lito": {
+      "content_id": "lesson-v1-comprehension-when-lito",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "at noon",
+      "expected_text": "at noon",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-when-lito.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.12
+      ],
+      "duration_seconds": 1.12,
+      "sample_rate": 48000,
+      "sha256": "5b9de1bf90cd0d90264fa012235fa99acd7cf6d371a7a51cf5dfefa2950497e3",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:51.659300+00:00",
+        "expected_normalized": "at noon",
+        "mu_raw_transcript": "At noon.",
+        "mu_normalized_transcript": "at noon",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.559245,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "at noon.",
+      "generated_at": "2026-07-21T09:47:51.649533+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-when-nena": {
+      "content_id": "lesson-v1-comprehension-when-nena",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "at ten",
+      "expected_text": "at ten",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-when-nena.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        1.28
+      ],
+      "duration_seconds": 1.28,
+      "sample_rate": 48000,
+      "sha256": "a912eefe6921eb58dc4f882bff5b0de2745c2b1d086dd472e2d1fbcb6935ee36",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:52.115388+00:00",
+        "expected_normalized": "at ten",
+        "mu_raw_transcript": "At 10.",
+        "mu_normalized_transcript": "at ten",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.564128,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "at ten.",
+      "generated_at": "2026-07-21T09:47:54.190998+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-why-mila": {
+      "content_id": "lesson-v1-comprehension-why-mila",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "rain",
+      "expected_text": "rain",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-why-mila.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.8
+      ],
+      "duration_seconds": 0.8,
+      "sample_rate": 48000,
+      "sha256": "e34db6d52d4eb5f968a70b90ee47bde74d95c317c3da28247d2e8a8a70f403fa",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:52.562467+00:00",
+        "expected_normalized": "rain",
+        "mu_raw_transcript": "rain.",
+        "mu_normalized_transcript": "rain",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.863281,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "rain.",
+      "generated_at": "2026-07-21T09:47:55.742294+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    },
+    "lesson-v1-comprehension-why-tino": {
+      "content_id": "lesson-v1-comprehension-why-tino",
+      "fixture_type": "comprehension-answer",
+      "task_type": "comprehension",
+      "tts_text": "a cut",
+      "expected_text": "a cut",
+      "source_csv": "content/lessons/v1/lesson-6-comprehension.csv",
+      "output_relative_path": "comprehension-answer/lesson-v1-comprehension-why-tino.wav",
+      "generation_status": "generated",
+      "generation_attempts": 1,
+      "duration_attempts_seconds": [
+        0.96
+      ],
+      "duration_seconds": 0.96,
+      "sample_rate": 48000,
+      "sha256": "082c0d2ff7a15a180ae80f3e3428f5d0fa597b334045a8d729932e8d2e94e8dc",
+      "validation_status": "passed",
+      "validation_attempts": 1,
+      "validation": {
+        "validated_at": "2026-07-21T09:48:53.011046+00:00",
+        "expected_normalized": "a cut",
+        "mu_raw_transcript": "A cut.",
+        "mu_normalized_transcript": "a cut",
+        "character_levenshtein_distance": 0,
+        "normalized_character_levenshtein_distance": 0.0,
+        "word_levenshtein_distance": 0,
+        "normalized_word_levenshtein_distance": 0.0,
+        "average_log_probability": -0.222656,
+        "high_mismatch": false
+      },
+      "last_synthesis_text": "a cut.",
+      "generated_at": "2026-07-21T09:47:57.611661+00:00",
+      "last_generation_settings": {
+        "cfg_value": 2.0,
+        "inference_timesteps": 10,
+        "persistent_retry_escalation": false
+      }
+    }
+  },
+  "generation_completed_at": "2026-07-21T09:47:57.809698+00:00",
+  "validation_completed_at": "2026-07-21T09:50:31.503687+00:00",
+  "remaining_high_mismatch_ids": []
+}

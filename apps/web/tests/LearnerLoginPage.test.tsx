@@ -9,6 +9,11 @@ vi.mock("motion/react", async (importOriginal) => {
 });
 
 import { createAppQueryClient } from "../src/app/AppProviders";
+import { LINK_START_ROUTE_SWAP_MS } from "../src/components/transitions/LinkStartTransition";
+import {
+  ROUTE_TRANSITION_PRESS_COMMIT_MS,
+  RouteTransitionProvider,
+} from "../src/components/transitions/RouteTransitionProvider";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { LearnerLoginPage } from "../src/features/learner-auth/LearnerLoginPage";
 
@@ -16,14 +21,16 @@ function renderLogin() {
   return render(
     <QueryClientProvider client={createAppQueryClient()}>
       <MemoryRouter initialEntries={["/learner/login"]}>
-        <Routes>
-          <Route path="/learner/login" element={<LearnerLoginPage />} />
-          <Route
-            path="/learner/dashboard"
-            element={<div>Learner dashboard route</div>}
-          />
-          <Route path="/home" element={<div>Home route</div>} />
-        </Routes>
+        <RouteTransitionProvider>
+          <Routes>
+            <Route path="/learner/login" element={<LearnerLoginPage />} />
+            <Route
+              path="/learner/dashboard"
+              element={<div>Learner dashboard route</div>}
+            />
+            <Route path="/home" element={<div>Home route</div>} />
+          </Routes>
+        </RouteTransitionProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -91,7 +98,6 @@ describe("LearnerLoginPage", () => {
       await vi.advanceTimersByTimeAsync(BUTTON_PRESS_COMMIT_MS);
     });
 
-    expect(screen.getByText("Learner dashboard route")).toBeVisible();
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/learners/login",
       expect.objectContaining({
@@ -101,5 +107,23 @@ describe("LearnerLoginPage", () => {
     expect(
       window.sessionStorage.getItem("readirect.learner-session"),
     ).toContain("KW000");
+    expect(
+      screen.queryByText("Learner dashboard route"),
+    ).not.toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(ROUTE_TRANSITION_PRESS_COMMIT_MS);
+    });
+    expect(
+      document.querySelector('[data-route-transition="link-start"]'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Learner dashboard route"),
+    ).not.toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LINK_START_ROUTE_SWAP_MS);
+    });
+    expect(screen.getByText("Learner dashboard route")).toBeVisible();
   });
 });

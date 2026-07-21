@@ -272,6 +272,9 @@ RESULT
 
 ## VoxCPM2 Audio Rules
 
+VoxCPM2 is one TTS implementation. It must use the engine-neutral isolated
+letter standard rather than maintaining its own competing A-Z table.
+
 VoxCPM2 must never speak while:
 
 - The learner recorder is listening
@@ -373,6 +376,11 @@ VoxCPM2 and learner recording must not operate as competing audio sources.
 ## Timing Defaults
 
 ### Isolated Letters
+
+When an approved flow plays an isolated letter through TTS, its intended sound
+must come from `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`.
+The mapping does not override the rule that TTS must stop before learner
+recording begins.
 
 ```text
 Pre-roll: 300-500 ms

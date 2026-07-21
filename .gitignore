@@ -16,7 +16,9 @@ test-results/
 vendor/
 apps/api/rr.exe
 apps/api/storage/*.key
+apps/api/storage/app/private/
 apps/api/storage/logs/
+apps/api/storage/framework/testing/
 apps/api/bootstrap/cache/*.php
 apps/api/.phpunit.result.cache
 
@@ -31,6 +33,9 @@ __pycache__/
 # Speech and model caches
 .cache/
 models/
+!apps/api/app/Models/
+!apps/api/app/Models/*.php
+services/asr/model_artifacts/
 *.ckpt
 *.pt
 *.pth
