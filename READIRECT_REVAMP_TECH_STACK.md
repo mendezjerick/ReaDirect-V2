@@ -100,7 +100,7 @@ defined in READIRECT_REVAMP_GAME_TECH_STACK.md.
 - faster-whisper
 - CTranslate2
 - Whisper-compatible feature extraction
-- ReaDirect Nu isolated-letter classifier
+- ReaDirect Nu deterministic isolated-letter resolver powered by Mu
 - ReaDirect Mu transcription model
 - NumPy
 - SoundFile
@@ -108,6 +108,8 @@ defined in READIRECT_REVAMP_GAME_TECH_STACK.md.
 - jiwer
 - CMU Pronouncing Dictionary
 - VoxCPM2
+- Engine-neutral isolated-letter pronunciation registry defined by
+  `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`
 - WebSocket
 - Streaming HTTP
 - uv

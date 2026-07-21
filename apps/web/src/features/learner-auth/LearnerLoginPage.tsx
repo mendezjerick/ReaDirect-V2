@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
+import { useRouteTransition } from "../../components/transitions/RouteTransitionProvider";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { TextField } from "../../components/ui/TextField";
@@ -27,6 +28,7 @@ function ReaderIcon() {
 
 export function LearnerLoginPage() {
   const navigate = useNavigate();
+  const { beginRouteTransition, isTransitioning } = useRouteTransition();
   const [showPassword, setShowPassword] = useState(false);
   const backCommit = useButtonCommit();
   const loginCommit = useButtonCommit();
@@ -34,7 +36,7 @@ export function LearnerLoginPage() {
     mutationFn: loginLearner,
     onSuccess: (session) => {
       saveLearnerSession(session);
-      navigate("/learner/dashboard");
+      beginRouteTransition("/learner/dashboard");
     },
   });
   const {
@@ -125,7 +127,7 @@ export function LearnerLoginPage() {
               <BigButton
                 className="learner-login-form__submit"
                 type="submit"
-                committing={loginCommit.committing}
+                committing={loginCommit.committing || isTransitioning}
                 busy={loginMutation.isPending}
                 busyLabel="Opening your reading path"
               >

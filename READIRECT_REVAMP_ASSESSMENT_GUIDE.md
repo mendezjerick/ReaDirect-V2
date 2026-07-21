@@ -83,7 +83,7 @@ For speech tasks, the final scoring response comes from the ASR guide flow.
 Letter-pronunciation path:
 
 ```text
-raw isolated-letter audio -> Nu class probabilities -> target-aware letter decision -> scoring response -> score
+raw isolated-letter audio -> Mu raw transcript -> Nu strict letter resolver -> Equivalence Book letter aliases -> target-aware decision -> score
 ```
 
 Word, phrase, sentence, and passage path:
@@ -92,8 +92,8 @@ Word, phrase, sentence, and passage path:
 raw audio -> Mu raw transcript -> light normalization -> expected-aware comparison -> Equivalence Book -> scoring transcript -> score
 ```
 
-Scores do not use raw model evidence directly. Nu probabilities, Mu raw
-transcript, alignment, phoneme evidence, GOP, and Equivalence Book rules are
+Scores do not use raw model evidence directly. Nu raw transcript and resolver
+evidence, Mu raw transcript, alignment, phoneme evidence, GOP, and Equivalence Book rules are
 evidence used to produce the final scoring response.
 
 For choice-only tasks, including Task 2A and Task 3B, the selected choice is the
@@ -107,13 +107,22 @@ Rules:
 
 - The learner receives 10 letter items.
 - Each item is worth 1 point.
-- Nu is used for isolated-letter recognition.
-- Nu returns raw classifier evidence and a target-aware decision.
-- Raw classifier evidence includes predicted class, confidence, top predictions,
-  expected-letter probability, and full class probabilities.
+- Displaying the letter does not automatically pronounce it. If an assessment
+  protocol explicitly authorizes isolated-letter playback, the TTS adapter must
+  resolve it through
+  `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`.
+- Nu is Mu's isolated-letter mode, not a separate trained model.
+- Nu returns Mu's raw transcript, strict letter-resolution evidence, and a
+  target-aware decision.
+- Resolver evidence includes the normalized complete transcript, predicted
+  A-Z/`SILENCE`/`UNKNOWN` class, matched alias, candidate letters for an
+  approved ambiguity, mapping source, applied Equivalence Book rule IDs,
+  segments, and audio-quality data.
+- An explicitly reviewed ambiguous alias may pass only when the expected letter
+  is one of its fixed candidates. The initial approved case is `aye` for A/I.
 - The target-aware decision is the final scoring response.
 - A `CORRECT` decision scores 1.
-- `UNCERTAIN`, `INCORRECT`, `SILENCE`, `UNKNOWN`, or `UNUSABLE_AUDIO` scores 0
+- `INCORRECT`, `SILENCE`, `UNKNOWN`, or `UNUSABLE_AUDIO` scores 0
   unless a later teacher-review rule explicitly changes the score.
 - The score range is 0 to 10.
 - ASR evidence uses the ASR guide rules to produce the scoring response.
@@ -390,7 +399,7 @@ Task 1A Letter Pronunciation
 - Store the final reading score separately.
 - Store the final reading profile separately.
 - Store the scoring transcript or scoring response used for scoring.
-- Keep Nu classifier evidence available for Task 1A review.
+- Keep Nu raw Mu transcript and strict resolver evidence available for Task 1A review.
 - Keep Mu raw transcript and repair metadata available for Task 2B and Task 3A
   review, but do not score from raw model evidence directly.
 - Keep selected-choice evidence available for Task 2A and Task 3B review.

@@ -14,14 +14,17 @@ const LINK_START_COVER_START_MS = 2200;
 export const LINK_START_COVER_COMPLETE_MS = 2525;
 const LINK_START_REVEAL_START_MS = 2700;
 const MAX_CANVAS_PIXEL_RATIO = 2;
+export const LINK_START_STREAK_COLOR_COUNT = 6;
 
 const TRANSITION_COLOR_TOKENS = [
-  "--color-transition-link-core",
-  "--color-transition-link-cover",
-  "--color-transition-link-primary",
-  "--color-transition-link-secondary",
-  "--color-transition-link-accent",
-  "--color-transition-link-shadow",
+  "--color-link-start-fixed-core",
+  "--color-link-start-fixed-cover",
+  "--color-link-start-fixed-prism-pink",
+  "--color-link-start-fixed-prism-yellow",
+  "--color-link-start-fixed-prism-crimson",
+  "--color-link-start-fixed-prism-violet",
+  "--color-link-start-fixed-prism-coral",
+  "--color-link-start-fixed-prism-glass",
 ] as const;
 
 interface LinkStartColors {
@@ -87,7 +90,7 @@ export function createLinkStartStreaks(width: number): LinkStartStreak[] {
 
   return Array.from({ length: getStreakCount(width) }, (_, index) => ({
     angle: random() * Math.PI * 2,
-    colorIndex: index % 4,
+    colorIndex: index % LINK_START_STREAK_COLOR_COUNT,
     delay: random(),
     length: 78 + random() * 260,
     offset: random() * 0.16,

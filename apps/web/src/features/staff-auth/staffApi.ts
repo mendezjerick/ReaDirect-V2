@@ -112,6 +112,10 @@ const systemAdminOverviewSchema = z.object({
   part_one_distribution: z.array(distributionItemSchema),
   reading_profile_distribution: z.array(distributionItemSchema),
   system_health: z.array(systemHealthItemSchema),
+  speech_processing: z.object({
+    conditional_mu_noise_reduction_enabled: z.boolean(),
+    default_mode: z.literal("raw_first"),
+  }),
   recent_assessment_activity: z.array(z.unknown()),
   recent_actions: z.array(recentActionSchema),
   generated_at: z.string(),
@@ -472,6 +476,34 @@ export async function getSystemAdminOverview(): Promise<SystemAdminOverview> {
   }
 
   return systemAdminOverviewSchema.parse(await response.json());
+}
+
+const speechProcessingResponseSchema = z.object({
+  speech_processing: systemAdminOverviewSchema.shape.speech_processing,
+});
+
+export async function updateConditionalMuNoiseReduction(
+  staffUserId: number,
+  enabled: boolean,
+): Promise<SystemAdminOverview["speech_processing"]> {
+  const response = await fetch(
+    `/api/staff/system-admin/${staffUserId}/speech-settings/mu-noise-reduction`,
+    {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ enabled }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return speechProcessingResponseSchema.parse(await response.json())
+    .speech_processing;
 }
 
 export async function getPortalSystemLearner(

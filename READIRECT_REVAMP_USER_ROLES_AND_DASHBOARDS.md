@@ -103,6 +103,9 @@ It contains:
 System Administrator controls include:
 
 - AI service status.
+- Conditional Mu noise reduction. It is off by default, requires confirmation
+  to change, affects new Mu submissions only, and preserves original-audio
+  evidence even when its optional second pass runs. Nu never uses this setting.
 - Agent display mode.
 - Learner font mode. The canonical default is Jersey 20 for learner interface
   chrome, with Lexend reserved for authored reading content.
@@ -149,24 +152,49 @@ System Administrator page portal and ASR review tools:
   and lesson save records exist. A page must not mark prerequisites complete
   using placeholder data.
 - IsoLetter Sandbox is the direct Nu testing page for isolated-letter audio.
-  It shows expected letter, predicted class, confidence, top predictions,
-  class probabilities, special-class results, audio-quality result, and the
-  target-aware letter decision.
+  Nu is Mu's letter mode. The page shows the expected letter, raw and normalized
+  Mu transcript, resolved A-Z/`SILENCE`/`UNKNOWN` class, matched alias, mapping
+  source, applied letter-equivalence rules, segments, audio quality, and the
+  target-aware decision.
 - IsoLetter Sandbox must not contain, test, or evaluate words, phrases,
   sentences, or paragraphs.
 - True Sandbox is the direct Mu testing page for raw transcript review,
   expected-aware comparison, highlighted transcript differences, and reviewed
   scoring decisions.
 - True Sandbox must not contain, test, or evaluate isolated-letter items.
+- True Sandbox provides a Laravel-owned selector for active Mu speech targets
+  from Assessment Tasks 2B and 3A and Lessons 2 through 6. Lesson 6 exposes only
+  spoken answers. Rhyme yes/no items, assessment comprehension questions and
+  choices, Lesson 6 question text, and isolated letters are excluded.
+- Selecting authored content locks the exact spoken target, Mu task type, and
+  stable item key. Administrators may return to custom text for isolated tests.
 - True Sandbox can create Equivalence Book entries only when the admin marks a
   sample as expected-correct. If the admin marks the sample as expected-wrong,
   equivalence authoring is hidden or disabled.
-- Equivalence Book is the editable rule surface for accepted transcript
-  differences used by post-ASR scoring. It supports rule review, text-input
-  rule creation, rule editing, rule deletion, rule type assignment, and
-  scope assignment.
+- IsoLetter Sandbox uses the same expected-correct review gate. A reviewed
+  wrong or unmapped result may create a global `letter_alias`, but literal
+  letters cannot be reassigned. Unapproved conflicts resolve to `UNKNOWN`.
+  Explicitly approved ambiguity may expose a fixed candidate set; `aye` is
+  approved for A/I and passes only when the active item expects A or I.
+- Every IsoLetter and True Sandbox run stores its original audio privately and
+  records the complete request/result evidence outside learner analytics.
+- The Confusion Matrix workspace keeps the raw token matrix separate from its
+  fixed binary acceptance baseline. The binary view displays TP, TN, FP, FN,
+  accuracy, precision, recall, specificity, F1, and the `fptn`/silence negative
+  source counts defined by the ASR Guide. Its voice filter exposes the approved
+  `millie2`, `millie2-plus`, `jz`, and `shai` fixture sets, while activity and
+  voice filters never alter the fixed binary baseline.
+- Equivalence Book is the active System Administrator rule-management surface
+  for accepted transcript differences used by post-ASR scoring. It supports
+  review, search, filtering, and enable/disable controls. Rule creation remains
+  gated through expected-correct IsoLetter or True Sandbox review; unrestricted
+  manual creation is prohibited.
+- Equivalence Book rules use a compact data table with exactly one rule per row.
+  Each row keeps its expected text, recognized text, rule type, scope, status,
+  author metadata, and enable/disable action visible. Narrow viewports scroll
+  the table horizontally instead of expanding every rule into a large card.
 - Equivalence Book rule types include homophone, punctuation, contraction,
-  spelling variant, accepted variant, and accent-safe variant.
+  spelling variant, accepted variant, accent-safe variant, and letter alias.
 
 Access rule: system-only tools are visible only to System Administrators.
 

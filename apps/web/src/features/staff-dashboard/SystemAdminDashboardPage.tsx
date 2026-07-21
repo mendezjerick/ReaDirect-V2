@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StaffDistributionList } from "../../components/staff/StaffDistributionList";
@@ -12,6 +13,8 @@ import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import {
   clearStaffSession,
   getSystemAdminOverview,
+  loadStaffSession,
+  updateConditionalMuNoiseReduction,
 } from "../staff-auth/staffApi";
 
 function SchoolsIcon() {
@@ -61,12 +64,37 @@ function formatActionTime(value: string | null): string {
 
 export function SystemAdminDashboardPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const staffSession = loadStaffSession();
   const exitCommit = useButtonCommit();
+  const settingCommit = useButtonCommit();
+  const [requestedNoiseReduction, setRequestedNoiseReduction] = useState<
+    boolean | null
+  >(null);
   const overviewQuery = useQuery({
     queryKey: ["system-admin-overview"],
     queryFn: getSystemAdminOverview,
   });
   const overview = overviewQuery.data;
+  const noiseReductionMutation = useMutation({
+    mutationFn: (enabled: boolean) => {
+      if (!staffSession) {
+        throw new Error("Your system administrator session is unavailable.");
+      }
+
+      return updateConditionalMuNoiseReduction(staffSession.staff.id, enabled);
+    },
+    onSuccess: (speechProcessing) => {
+      queryClient.setQueryData(
+        ["system-admin-overview"],
+        (current: typeof overview) =>
+          current
+            ? { ...current, speech_processing: speechProcessing }
+            : current,
+      );
+      setRequestedNoiseReduction(null);
+    },
+  });
 
   const exitStaffView = () => {
     exitCommit.commit(() => {
@@ -139,6 +167,113 @@ export function SystemAdminDashboardPage() {
             icon={<SandboxIcon />}
           />
         </section>
+
+        <Surface
+          kind="panel"
+          padding="normal"
+          className="staff-data-card staff-speech-setting"
+        >
+          <div className="staff-speech-setting__copy">
+            <p className="staff-speech-setting__eyebrow">Speech processing</p>
+            <div className="staff-speech-setting__title-row">
+              <h2>Conditional Mu noise reduction</h2>
+              <span
+                className={`staff-setting-status staff-setting-status--${
+                  overview?.speech_processing
+                    .conditional_mu_noise_reduction_enabled
+                    ? "enabled"
+                    : "disabled"
+                }`}
+              >
+                {overview?.speech_processing
+                  .conditional_mu_noise_reduction_enabled
+                  ? "On"
+                  : "Off"}
+              </span>
+            </div>
+            <p>
+              Mu always checks the original recording first. When this option is
+              on, noisy or uncertain word, phrase, sentence, and passage
+              submissions may receive a conservative second pass. Nu never uses
+              noise reduction.
+            </p>
+          </div>
+          <button
+            className="staff-setting-switch"
+            type="button"
+            role="switch"
+            aria-checked={
+              overview?.speech_processing
+                .conditional_mu_noise_reduction_enabled ?? false
+            }
+            aria-label="Conditional Mu noise reduction"
+            disabled={
+              !overview || !staffSession || noiseReductionMutation.isPending
+            }
+            onClick={() => {
+              noiseReductionMutation.reset();
+              setRequestedNoiseReduction(
+                !overview?.speech_processing
+                  .conditional_mu_noise_reduction_enabled,
+              );
+            }}
+          >
+            <span aria-hidden="true" />
+          </button>
+
+          {requestedNoiseReduction !== null ? (
+            <div className="staff-setting-confirmation" role="alertdialog">
+              <div>
+                <strong>
+                  {requestedNoiseReduction
+                    ? "Enable conditional Mu noise reduction?"
+                    : "Return to original-audio processing only?"}
+                </strong>
+                <p>
+                  This affects new Mu submissions only. Nu recordings and
+                  existing evidence are not changed.
+                </p>
+              </div>
+              <div className="staff-setting-confirmation__actions">
+                <BigButton
+                  variant="quiet"
+                  size="regular"
+                  onClick={() => setRequestedNoiseReduction(null)}
+                >
+                  Cancel
+                </BigButton>
+                <BigButton
+                  size="regular"
+                  busy={noiseReductionMutation.isPending}
+                  busyLabel="Saving setting"
+                  committing={settingCommit.committing}
+                  onClick={() =>
+                    settingCommit.commit(() =>
+                      noiseReductionMutation.mutate(requestedNoiseReduction),
+                    )
+                  }
+                >
+                  Confirm change
+                </BigButton>
+              </div>
+            </div>
+          ) : null}
+
+          {noiseReductionMutation.isError ? (
+            <p
+              className="staff-setting-message staff-setting-message--error"
+              role="alert"
+            >
+              {noiseReductionMutation.error.message}
+            </p>
+          ) : null}
+          {noiseReductionMutation.isSuccess &&
+          requestedNoiseReduction === null ? (
+            <p className="staff-setting-message" role="status">
+              Speech processing setting updated.
+            </p>
+          ) : null}
+        </Surface>
 
         <section className="staff-dashboard-grid staff-dashboard-grid--primary">
           <Surface kind="panel" padding="normal" className="staff-data-card">

@@ -67,6 +67,12 @@ ReaDirect-V2/
 |   |-- asr/
 |   |   |-- app/
 |   |   |-- configs/
+|   |   |-- fixtures/
+|   |   |   |-- content/
+|   |   |   |-- distractors/
+|   |   |   |   |-- fptn/
+|   |   |   |   \-- silence/
+|   |   |   \-- letters/
 |   |   |-- scripts/
 |   |   |-- tests/
 |   |   |-- main.py
@@ -112,6 +118,7 @@ ReaDirect-V2/
 |   |   |-- sound-effects/
 |   |   |-- prerecorded-voice/
 |   |   |-- phonemes/
+|   |   |-- tts-samples/
 |   |   \-- voice-references/
 |   |
 |   |-- videos/
@@ -162,6 +169,7 @@ ReaDirect-V2/
 |-- READIRECT_REVAMP_GAME_DATABASE_AND_API_STANDARD.md
 |-- READIRECT_REVAMP_GAME_MODULE_STANDARD.md
 |-- READIRECT_REVAMP_GAME_TECH_STACK.md
+|-- READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md
 |-- READIRECT_REVAMP_PROJECT_STRUCTURE.md
 |-- READIRECT_REVAMP_TECH_STACK.md
 |-- READIRECT_REVAMP_USER_ROLES_AND_DASHBOARDS.md
@@ -216,6 +224,11 @@ Every game is governed by:
 
 Contains the React learner application, teacher interface, Live2D character integration, PixiJS effects, lesson screens, assessment screens, microphone controls, and frontend API communication.
 
+The System Administrator frontend also owns the IsoLetter Sandbox, True
+Sandbox, and Equivalence Book workspaces. True Sandbox consumes its selectable
+assessment and lesson speech-target catalog through Laravel; React must never
+open or parse root content CSV files.
+
 Cross-feature achievement gallery, queue, and unlock presentation components
 belong under `apps/web/src/features/achievements/`. The Learner Dashboard and
 Game Lobby both compose that shared feature.
@@ -223,6 +236,11 @@ Game Lobby both compose that shared feature.
 ### `apps/api`
 
 Contains the Laravel application responsible for authentication, learner and teacher records, lessons, assessment results, scoring records, progress, PostgreSQL operations, and communication with the ASR and TTS services.
+
+Laravel owns the admin speech-content catalog boundary and Equivalence Book
+management API. It exposes only the active Mu-spoken targets approved for True
+Sandbox and keeps choice-only, question-only, and isolated-letter content out of
+that catalog.
 
 ## Authored Content CSVs
 
@@ -241,9 +259,28 @@ documentation and must not be used as the runtime content source.
 
 Contains the standalone FastAPI speech-recognition and pronunciation-processing service.
 
+Its tracked `app/` package owns shared audio decoding and quality analysis, Mu
+transcription, and the deterministic Nu letter resolver. Its local-only
+`model_artifacts/` directory owns only the selected Mu runtime files and must
+remain Git-ignored. Laravel is the application-facing proxy for authenticated
+or staff-scoped speech requests; browser features must not depend on direct
+FastAPI access.
+
+Its `fixtures/content/` tree holds the voice-keyed `millie2`, `millie2-plus`,
+`jz`, and `shai` controlled positive speech fixtures and their shared resumable
+audit manifest. `fixtures/letters/` holds the separate isolated-letter fixture
+sets. `fixtures/distractors/fptn/` and `fixtures/distractors/silence/` hold the
+fixed negative evaluation pools. Reproducible assignment and result evidence
+belongs in the audit manifests defined by the ASR Guide.
+
 ### `services/tts`
 
 Contains the standalone FastAPI voice-generation service and its generated-audio cache.
+
+Every TTS adapter resolves approved isolated A-Z utterances through
+`READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`. Engine- or
+voice-specific workarounds belong inside the TTS adapter/configuration and must
+not create competing root pronunciation tables.
 
 The ASR and TTS services must remain separate from the Laravel application and communicate through their defined API endpoints.
 
@@ -364,6 +401,7 @@ assets/audio/
 |-- sound-effects/
 |-- prerecorded-voice/
 |-- phonemes/
+|-- tts-samples/
 \-- voice-references/
 ```
 
@@ -376,6 +414,10 @@ Generated TTS audio belongs in:
 ```text
 services/tts/storage/cache/
 ```
+
+Explicitly requested development comparison outputs may be retained under
+`assets/audio/tts-samples/` for human review. They are test artifacts, not the
+runtime cache and not pronunciation authority.
 
 Temporary learner recordings belong in private backend or ASR storage and must not be publicly accessible.
 
@@ -501,6 +543,12 @@ ReaDirect-V2/
 |   |-- asr/
 |   |   |-- app/
 |   |   |-- configs/
+|   |   |-- fixtures/
+|   |   |   |-- content/
+|   |   |   |-- distractors/
+|   |   |   |   |-- fptn/
+|   |   |   |   \-- silence/
+|   |   |   \-- letters/
 |   |   |-- scripts/
 |   |   |-- tests/
 |   |   |-- main.py
@@ -546,6 +594,7 @@ ReaDirect-V2/
 |   |   |-- sound-effects/
 |   |   |-- prerecorded-voice/
 |   |   |-- phonemes/
+|   |   |-- tts-samples/
 |   |   \-- voice-references/
 |   |
 |   |-- videos/
@@ -596,6 +645,7 @@ ReaDirect-V2/
 |-- READIRECT_REVAMP_GAME_DATABASE_AND_API_STANDARD.md
 |-- READIRECT_REVAMP_GAME_MODULE_STANDARD.md
 |-- READIRECT_REVAMP_GAME_TECH_STACK.md
+|-- READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md
 |-- READIRECT_REVAMP_PROJECT_STRUCTURE.md
 |-- READIRECT_REVAMP_TECH_STACK.md
 |-- READIRECT_REVAMP_USER_ROLES_AND_DASHBOARDS.md

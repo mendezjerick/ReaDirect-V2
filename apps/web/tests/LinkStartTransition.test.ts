@@ -4,6 +4,7 @@ import {
   createLinkStartStreaks,
   getLinkStartWaveProgresses,
   LINK_START_COVER_COMPLETE_MS,
+  LINK_START_STREAK_COLOR_COUNT,
 } from "../src/components/transitions/LinkStartTransition";
 
 describe("Link Start transition", () => {
@@ -18,6 +19,19 @@ describe("Link Start transition", () => {
   it("progressively increases detail for larger viewports", () => {
     expect(createLinkStartStreaks(768)).toHaveLength(140);
     expect(createLinkStartStreaks(1366)).toHaveLength(192);
+  });
+
+  it("cycles deterministically through all six fixed prism colors", () => {
+    const streaks = createLinkStartStreaks(390);
+    const usedColorIndices = new Set(
+      streaks.map((streak) => streak.colorIndex),
+    );
+
+    expect(usedColorIndices).toEqual(
+      new Set(
+        Array.from({ length: LINK_START_STREAK_COLOR_COUNT }, (_, i) => i),
+      ),
+    );
   });
 
   it("continuously generates overlapping cylinder waves until the white cover completes", () => {
