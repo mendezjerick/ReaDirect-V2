@@ -21,4 +21,21 @@ describe("BigButton", () => {
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute("data-press-state", "committing");
   });
+
+  it("makes the fixed unavailable variant non-interactive", () => {
+    render(<BigButton variant="unavailable">Continue</BigButton>);
+
+    const button = screen.getByRole("button", { name: "Continue" });
+    expect(button).toBeDisabled();
+    expect(button).toHaveClass("big-button--unavailable");
+    expect(button).not.toHaveClass("big-button--primary");
+  });
+
+  it("supports the tall shared primary action variant", () => {
+    render(<BigButton variant="primary-vertical">Submit</BigButton>);
+
+    const button = screen.getByRole("button", { name: "Submit" });
+    expect(button).toBeEnabled();
+    expect(button).toHaveClass("big-button--primary-vertical");
+  });
 });

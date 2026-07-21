@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\AssessmentResponse;
+use App\Models\AssessmentRun;
 use App\Models\Learner;
 use App\Models\LearnerPortalRun;
 use App\Models\LearnerProgressState;
@@ -9,6 +11,7 @@ use App\Models\LearnerSession;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 final class LearnerProgressResetService
 {
@@ -29,6 +32,17 @@ final class LearnerProgressResetService
                     'status' => 'reset',
                     'ended_at' => $resetAt,
                 ]);
+
+            $assessmentRunIds = AssessmentRun::query()
+                ->where('learner_id', $learner->id)
+                ->pluck('id');
+            $assessmentAudioPaths = AssessmentResponse::query()
+                ->whereIn('assessment_run_id', $assessmentRunIds)
+                ->whereNotNull('audio_path')
+                ->pluck('audio_path')
+                ->all();
+            Storage::disk('local')->delete($assessmentAudioPaths);
+            AssessmentRun::query()->whereIn('id', $assessmentRunIds)->delete();
 
             LearnerProgressState::query()->updateOrCreate(
                 ['learner_id' => $learner->id],

@@ -6,6 +6,12 @@ Learner-facing assessment layout, recorder review, Retry, Submit, no-Skip
 behavior, neutral item feedback, and responsive interaction are defined by
 `READIRECT_REVAMP_LESSON_AND_ASSESSMENT_INTERACTION_STANDARD.md`.
 
+Part 1 Results, Part 2 Results, assessment completion, and the final Reading
+Journey congratulatory presentation are defined by
+`READIRECT_REVAMP_RESULTS_AND_COMPLETION_PRESENTATION_STANDARD.md`. This guide
+remains authoritative for the values, labels, branches, and timing those pages
+are allowed to present.
+
 Diagnostic and Final Assessment achievement keys, completion criteria,
 granting, and presentation are defined by
 `READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`.
@@ -406,3 +412,29 @@ Task 1A Letter Pronunciation
 - Store completion state for each Diagnostic and Final Assessment run so the
   learner dashboard can apply its fixed progression gates.
 - Do not use an assessment score to choose, reorder, skip, or replace lessons.
+
+### Implemented Part 1 runtime boundary
+
+The Diagnostic Part 1 implementation uses one Laravel-owned, refresh-safe
+assessment run:
+
+- `assessment_runs` stores the fixed `v1` content snapshot, current stage,
+  current item, branch, separate task scores, Part 1 score, and Part 1 level.
+- `assessment_responses` stores the committed choice or speech scoring
+  response, private audio evidence, raw transcript, scoring transcript,
+  decision, score, and resolver evidence.
+- Laravel imports the active shared Part 1 CSV rows into the immutable run
+  snapshot when a run begins. React never reads a root CSV.
+- Orientation, Task 1A, Task 2A, Task 2B, and Part 1 Results are served by the
+  learner Part 1 API under `/api/learners/assessments/part-one`.
+- Submit persists the current response without advancing. The response exposed
+  to React contains only the neutral committed state. `Next` performs the
+  separate server-owned advance, which makes refresh resume on either the saved
+  item or the next item deterministic.
+- Task 1A uses Mu plus the strict letter resolver and active global letter
+  equivalences. Task 2B uses Mu plus the expected-aware Equivalence Book
+  resolver. Task 2A never calls ASR.
+- The current frontend stops at the documented Part 1 Results handoff. The high
+  branch handoff to story selection and the low branch handoff to Assessment
+  Complete must be connected only when those next pages are implemented; Part
+  1 must not invent substitute pages.

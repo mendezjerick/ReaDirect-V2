@@ -3,6 +3,11 @@
  * stylesheet so theme selectors cannot replace these visual identities.
  */
 :root {
+  --color-button-unavailable-surface: #777d86;
+  --color-button-unavailable-border: #555b63;
+  --color-button-unavailable-depth: #484d54;
+  --color-button-unavailable-text: #eceef1;
+
   --color-link-start-fixed-core: #fff7fd;
   --color-link-start-fixed-cover: #ffffff;
   --color-link-start-fixed-prism-pink: #ff2a8a;

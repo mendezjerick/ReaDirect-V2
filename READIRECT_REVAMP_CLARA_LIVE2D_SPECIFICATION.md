@@ -239,7 +239,8 @@ The standard learner-facing Clara stage must:
 
 - Use a strict `1 / 1` aspect ratio.
 - Remain square at every viewport width and orientation.
-- Use `overflow: hidden` to enforce the approved crop.
+- Use a square inner viewport with `overflow: hidden` to enforce the approved
+  crop while allowing the fixed loader overlay to cover the screen.
 - Place the WebGL canvas edge-to-edge with `inset: 0`.
 - Give the canvas `width: 100%` and `height: 100%`.
 - Keep the Live2D matrix values unchanged when the CSS box resizes.
@@ -251,10 +252,14 @@ Reference structure:
 
 ```tsx
 <figure className="clara-stage" aria-label="Ma'am Clara">
-  <div className="clara-stage__portrait-wrap">
-    <img alt="Ma'am Clara" draggable="false" />
+  <div className="clara-stage__loader" aria-hidden="true">
+    <span className="clara-stage__loader-pulse" />
+    <span className="clara-stage__loader-cover" />
   </div>
-  <canvas className="clara-stage__canvas" aria-hidden="true" />
+  <div className="clara-stage__viewport">
+    <canvas className="clara-stage__canvas" aria-hidden="true" />
+  </div>
+  <span className="visually-hidden" role="status" />
 </figure>
 ```
 
@@ -265,8 +270,14 @@ Reference CSS:
   position: relative;
   width: min(100%, 26rem);
   aspect-ratio: 1;
-  overflow: hidden;
+  overflow: visible;
   margin: 0;
+}
+
+.clara-stage__viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
 }
 
 .clara-stage__canvas {
@@ -317,7 +328,6 @@ The frontend currently loads:
 
 ```text
 /assets/live2d/clara/CherryGoth.model3.json
-/assets/live2d/clara/stills/clara-default.png
 ```
 
 ### Model Files
@@ -330,7 +340,7 @@ The frontend currently loads:
 | `CherryGoth.physics3.json`           | Physics configuration             | Required                         |
 | `CherryGoth.cdi3.json`               | Display and parameter metadata    | Available                        |
 | `Icon.png`                           | Legacy supplied icon              | Preserved, not used              |
-| `stills/clara-default.png`           | Generated default-theme fallback  | Required                         |
+| `stills/clara-default.png`           | Retired crop-regression artifact  | Preserved, not used              |
 | `Angry.exp3.json`                    | Angry expression                  | Available, outside approved set  |
 | `Blush.exp3.json`                    | Blush expression                  | Available, outside approved set  |
 | `Dizzy.exp3.json`                    | Dizzy expression                  | Available, outside approved set  |
@@ -345,7 +355,14 @@ compiled runtime model and cannot be used for a true Cubism Editor re-export.
 Texture optimization must create a separate runtime derivative and must leave
 the original `assets/live2d/source/clara/` files untouched.
 
-### Generated Default Fallback
+### Retired Generated PNG Fallback
+
+The generated PNG fallback is retired and is no longer rendered by the shared
+Clara stage. Existing PNG files may remain as crop-comparison and regression
+artifacts, but learner-facing runtime code must use the CSS loading transition
+defined below. The remaining material in this subsection is historical
+reproduction documentation only and does not authorize restoring the PNG as a
+runtime fallback.
 
 The approved fallback alignment is the finalized
 `clara-live2d-mimic-crop-raised-18px-preview.png`. Both active fallback copies
@@ -633,6 +650,54 @@ It must send `speaking=true` only during audible playback and should update
 `speechLevel` from the actual output signal. It must not directly write eye,
 mouth-form, confused, glasses, color, or drawable parameters.
 
+### Lesson Intro Speech Gate
+
+Every dashboard primary reading action enters the shared Lesson Intro before
+an assessment or lesson. Lesson Intro keeps Clara in the `happy` base emotion
+and applies the independent `speaking` overlay only while her generated line is
+audibly playing.
+
+The browser must derive `speechLevel` from the actual playback signal when the
+Web Audio API is available. Fetch completion, TTS generation completion, and
+audio decoding do not count as completed speech. The `Continue` button remains
+disabled until the playback source emits its terminal `ended` event. If
+preparation or playback fails, Continue remains disabled and the learner is
+offered a retry.
+
+The initial Lesson Intro line uses the semantic `introduce` Clara reference.
+Reference paths stay server-owned; React requests a named speech key and never
+selects a filesystem path.
+
+### Global Live2D-Ready Speech Gate
+
+This is a hard rule for every page that contains Ma'am Clara: TTS playback must
+not begin while Clara's Live2D model is loading. The currently mounted shared
+`ClaraStage` must explicitly report `ready` before an audio source may start.
+
+Speech fetching, synthesis, caching, and audio decoding may run in parallel
+with model loading. Only audible playback is gated. The required order is:
+
+```text
+prepare Clara speech + initialize Live2D in parallel
+                         |
+wait until speech is prepared AND ClaraStage is ready
+                         |
+start playback -> set speaking=true -> drive speechLevel
+```
+
+- Showing the CSS loading pulse or reveal cover does not satisfy the gate.
+- A previous page's ready state does not satisfy the gate. Every newly mounted
+  Clara stage begins as not ready.
+- `loading`, `revealing`, and `error` must all block playback.
+- `speaking` remains `false` and `speechLevel` remains `0` while waiting.
+- A prepared line must remain queued rather than being regenerated solely
+  because Clara is still loading.
+- Pages must consume the readiness signal exposed by the shared `ClaraStage`;
+  they must not infer readiness from a timer, animation duration, canvas
+  presence, loader animation phase, or network completion.
+- The shared Clara playback helper requires the current model state and must
+  reject playback unless that state is exactly `ready`.
+
 Do not load `EditColourAndAccessories.exp3.json` as an emotion. It conflicts
 with the approved theme variables, glasses selector, skin palette, and hidden
 accessory rules.
@@ -652,49 +717,69 @@ are prohibited. The interval must be cleared when the intro unmounts. When
 reduced motion is requested, the interval must not run and Clara must remain on
 `default`.
 
-## Loading, Fallback, and Accessibility
+## Loading, Reveal Transition, and Accessibility
 
-The stage has three runtime states:
+The stage has four visual runtime states:
 
-| State     | Presentation                                               |
-| --------- | ---------------------------------------------------------- |
-| `loading` | Show `stills/clara-default.png` edge-to-edge               |
-| `ready`   | Fade from the generated portrait to the Live2D canvas      |
-| `error`   | Keep the generated portrait visible in the identical frame |
+| State       | Presentation                                                    |
+| ----------- | --------------------------------------------------------------- |
+| `loading`   | Show the centered CSS pulse while Live2D initializes invisibly  |
+| `revealing` | Expand the pulse into the full-screen hair-color transition      |
+| `ready`     | Hide the transition and show the first-rendered Live2D canvas    |
+| `error`     | Keep a static muted CSS pulse and continue blocking Clara speech |
 
-The current transition duration is `220ms ease-out`. Reduced-motion mode
-removes this transition.
+The loading indicator is CSS-only. It is a `20px` circle, uses
+`--color-clara-loader-pulse`, and pulses on a `1200ms` loop. It must not use a
+PNG, GIF, video, encoded SVG, canvas animation, or third-party loader package.
+Both `--color-clara-loader-pulse` and `--color-clara-loader-cover` must resolve
+to `--color-clara-hair`, so the pulse and complete viewport cover always match
+Clara's theme-aware primary hair color.
 
-Live2D movement must begin as soon as the renderer becomes ready. Do not freeze
-Clara during the portrait-to-canvas crossfade; breathing, physics, expressions,
-and active look tracking continue naturally underneath the transition.
+The pulse origin is the measured center of Clara's canonical square stage, not
+the center of the screen. The shared stage must update this origin when its
+square or the viewport resizes. The loader is portaled to the document body so
+its full-screen cover cannot be trapped beneath the Clara dock, activity
+controls, or another local stacking context.
 
-The fallback portrait itself must not pop into view when its PNG finishes
-loading. Its image element starts visually hidden and fades to full visibility
-over approximately `550ms ease-out` after the load event. This entrance works
-in addition to the stage entrance and must not interfere with the later
-portrait-to-Live2D crossfade. Reduced-motion mode reveals the loaded portrait
-immediately.
+The renderer must draw one complete Live2D frame while its canvas is still
+hidden. Only after that successful first render may it report renderer-ready
+and start this exact `3000ms` visual sequence:
 
-The Clara stage entrance must be opacity-only. Do not animate the stage's
-`x`, `y`, scale, or rotation while the fallback is visible; positional entrance
-motion makes the fixed crop appear to jump immediately before Live2D takes
-over.
+```text
+0ms    pulse begins expanding from the center of Clara's square
+2000ms hair-color cover fills the viewport; reveal Live2D underneath
+2200ms full-cover hold ends
+3000ms cover reaches zero opacity; stage reports ready
+```
 
-The fallback wrapper and Live2D canvas must both fill the complete square with
-the same crop. The fallback must not add its own card, border, background,
-rounded frame, or fake depth because those elements would disappear when the
-canvas becomes ready.
+The cover must use the same `220vmax` circle, expansion ratios, and
+`cubic-bezier(0.2, 0.8, 0.2, 1)` flow as the canonical white transition. The
+expansion itself lasts two seconds. At `66.6667%` of the complete three-second
+sequence, the viewport is fully covered and the already rendered Live2D canvas
+becomes visible beneath it. The cover remains opaque through `73.3333%`, then
+uses the final `800ms` for a slower seamless fade.
+
+The external Clara readiness gate must remain closed for both `loading` and
+`revealing`. It changes to `ready` only after the complete three-second reveal,
+so TTS cannot begin behind the active cover. Under `prefers-reduced-motion`, skip
+the pulse and cover animation, reveal the first-rendered canvas immediately,
+and then report ready.
+
+The loader is a fixed viewport overlay and temporarily blocks pointer and touch
+interaction while Clara initializes or reveals. It must appear above ordinary
+page content but below an active route-level Link Start transition. It must not
+change the Clara canvas dimensions, model matrix, crop, placement, scale, or
+motion behavior.
 
 Accessibility requirements:
 
 - The figure must use `aria-label="Ma'am Clara"`.
-- The fallback image must use `alt="Ma'am Clara"`.
 - The canvas must use `aria-hidden="true"` because the figure supplies the
   accessible name.
-- Loading and fallback status must be announced through visually hidden status
-  text.
-- The portrait and canvas must not accept pointer events or become draggable.
+- The visual pulse and cover must use `aria-hidden="true"`.
+- Loading, error, and ready states must be announced through one visually
+  hidden status region owned by the shared Clara stage.
+- The canvas must not accept pointer events.
 
 ## Visual Prohibitions
 
@@ -755,7 +840,9 @@ A Ma'am Clara implementation is compliant only when:
 - [ ] Clara's colors are read from semantic theme variables.
 - [ ] No platform or ground decoration is present.
 - [ ] The background remains transparent and visually minimal.
-- [ ] The fallback portrait is available for loading and failure states.
+- [ ] The CSS pulse and three-second hair-color reveal replace the raster
+      fallback.
+- [ ] Ready is reported only after the first frame and reveal both complete.
 - [ ] Reduced-motion behavior is respected.
 - [ ] Mouse and pen hover drive Clara's eyes, gentle head follow, and slight
       body sway without moving the fixed crop.

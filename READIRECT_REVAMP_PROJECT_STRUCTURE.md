@@ -233,9 +233,24 @@ Cross-feature achievement gallery, queue, and unlock presentation components
 belong under `apps/web/src/features/achievements/`. The Learner Dashboard and
 Game Lobby both compose that shared feature.
 
+The learner Part 1 assessment frontend belongs under
+`apps/web/src/features/assessment/`. `AssessmentPartOnePage.tsx` composes the
+shared non-scrollable shell, Clara, orientation, Task 1A, Task 2A, Task 2B, and
+Part 1 Results. `assessmentApi.ts` owns only the authenticated Laravel contract,
+`useAudioRecorder.ts` owns browser recording and review lifecycle, and
+`assessment.css` owns the responsive activity/result layout. Future Part 2
+pages must reuse this boundary rather than copy its recorder or shell.
+
 ### `apps/api`
 
 Contains the Laravel application responsible for authentication, learner and teacher records, lessons, assessment results, scoring records, progress, PostgreSQL operations, and communication with the ASR and TTS services.
+
+Learner Part 1 orchestration is owned by
+`LearnerAssessmentPartOneController`, `AssessmentContentCatalog`, and
+`LearnerAssessmentAsr`. The `assessment_runs` and `assessment_responses` tables
+are the PostgreSQL source of truth for resume state and committed Part 1
+evidence. Browser code never supplies expected answers, branch decisions,
+scores, or result labels.
 
 Laravel owns the admin speech-content catalog boundary and Equivalence Book
 management API. It exposes only the active Mu-spoken targets approved for True
@@ -276,6 +291,26 @@ belongs in the audit manifests defined by the ASR Guide.
 ### `services/tts`
 
 Contains the standalone FastAPI voice-generation service and its generated-audio cache.
+
+The service owns one process-wide, lazily loaded VoxCPM2 runtime. Concurrent
+warm-up requests must share that runtime, generation must be serialized around
+the non-reentrant model, and a cache hit must still confirm that the live model
+is resident. Laravel is the authenticated browser-facing proxy and maps stable
+speech keys to fixed text plus semantic reference roles such as `introduce`,
+`instruction`, `question`, `praise`, and `result`. Browser code must never send
+or receive private reference-file paths.
+
+Dashboard entry may begin a deduplicated Lesson Intro synthesis request during
+the shared route transition. The destination reuses that same in-memory browser
+promise rather than issuing a duplicate generation request.
+
+Before VoxCPM2 receives a Clara reference, the TTS adapter creates a private
+conditioned working copy under `services/tts/storage/reference-cache/`. The
+working copy preserves the source sample rate, downmixes all channels to mono,
+and attenuates peaks above `-6 dBFS` without boosting quiet references. Original
+files in `assets/audio/voice-references/` remain unchanged. The conditioning
+version must participate in both reference-cache and generated-speech cache
+keys so old stereo or full-scale generations cannot survive a rule change.
 
 Every TTS adapter resolves approved isolated A-Z utterances through
 `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`. Engine- or

@@ -19,6 +19,9 @@ assessments, required lessons, and games. It complements:
   account awards, evidence, and acknowledgement persistence.
 - `READIRECT_REVAMP_FRONTEND_DESIGN_SYSTEM.md` for shared components, themes,
   accessibility, responsive layout, and motion rules.
+- `READIRECT_REVAMP_RESULTS_AND_COMPLETION_PRESENTATION_STANDARD.md` for the
+  approved completion-page achievement hosts and final Reading Journey
+  collection reveal.
 
 ## Top Rules
 
@@ -309,12 +312,16 @@ Queue rules:
 - A failed acknowledgement keeps the same award visible and offers a safe retry.
 - Already acknowledged awards remain earned in the gallery and never pop again.
 
-Reading Journey awards are guaranteed presentation on the first subsequent
-Learner Dashboard visit. Game awards are guaranteed presentation on the first
-subsequent Game Lobby visit. Both surfaces consume the same complete account
-queue and the same component. If either supported surface finds older pending
-awards from another source, it presents them too, in canonical order. It must
-not filter, reorder, duplicate, or permanently hide them.
+New Reading Journey awards are presented first on the committed lesson or
+assessment completion surface defined by the Results And Completion
+Presentation Standard. If that presentation cannot finish because the learner
+refreshes, closes, loses connection, or navigates away, the first subsequent
+Learner Dashboard visit is the guaranteed fallback. Game awards are guaranteed
+presentation on the first subsequent Game Lobby visit. Completion pages,
+Dashboard, and Game Lobby consume the same complete account queue and shared
+component. A supported surface that finds older pending awards presents them in
+canonical order; it must not filter, reorder, duplicate, or permanently hide
+them.
 
 Do not interrupt an active assessment item, lesson item, recording, ASR request,
 or active game run with an achievement overlay.

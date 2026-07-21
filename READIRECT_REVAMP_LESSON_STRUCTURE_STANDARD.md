@@ -6,6 +6,10 @@ Learner-facing mission layout, recorder review, Submit, Skip, Next, kinetic
 typography, no-image rules, and responsive activity behavior are defined by
 `READIRECT_REVAMP_LESSON_AND_ASSESSMENT_INTERACTION_STANDARD.md`.
 
+Per-lesson result pages, completion animation, Clara praise, and achievement
+handoff are defined by
+`READIRECT_REVAMP_RESULTS_AND_COMPLETION_PRESENTATION_STANDARD.md`.
+
 Required-lesson achievement keys, criteria, granting, and presentation are
 defined by `READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`.
 

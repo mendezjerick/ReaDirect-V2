@@ -21,7 +21,10 @@ It complements:
 - `READIRECT_REVAMP_AUDIO_PREPROCESSING_AND_RECORDING_STANDARD.md` and
   `READIRECT_REVAMP_ASR_GUIDE.md` for audio and ASR processing.
 - `READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md` for completion-based lesson
-  and assessment awards and their shared deferred presentation.
+  and assessment awards and their shared queued presentation.
+- `READIRECT_REVAMP_RESULTS_AND_COMPLETION_PRESENTATION_STANDARD.md` for Part 1,
+  Part 2, lesson completion, assessment completion, and final Reading Journey
+  result-page design and animation.
 - `READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md` for fixed assessment
   forms, lesson item counts, content pools, target selection, and pronunciation
   restrictions.
@@ -33,6 +36,9 @@ Authority boundaries:
   map.
 - The Assessment Guide owns assessment validity, fixed item counts, branches,
   scoring, and result timing. Presentation must never change those rules.
+- The Results And Completion Presentation Standard owns shared result-stage
+  layout, animation, Clara behavior, completion choreography, and the final
+  congratulatory page.
 - The Lesson Structure Standard owns displayed content versus spoken targets,
   ASR model selection, accepted answers, persistence, and unlock behavior.
 - If a presentation idea would change the expected answer, scoring target,
@@ -62,6 +68,48 @@ Authority boundaries:
     may hard-code a color.
 12. The interface uses solid vector-like fills, fake downward depth, and no
     gradients.
+13. Clara's TTS must never play while her Live2D model is loading. Speech may
+    be prepared early, but audible playback waits for the currently mounted
+    shared `ClaraStage` to report `ready`.
+
+## Required Lesson Intro Gate
+
+Every learner-dashboard primary reading action opens Lesson Intro before the
+next diagnostic, lesson, or final assessment, regardless of the learner's
+current progression stage. This screen reuses the canonical Intro composition
+without the `ReaDirect` title or theme selector: plain themed surface, the
+canonical square Clara stage at the bottom, and one primary button labeled
+`Continue`.
+
+The dashboard click must synchronously unlock browser audio, begin the
+deduplicated named Clara speech request, and invoke the approved white Link
+Start variant. Lesson Intro then reuses the pending or completed request. Clara
+uses `happy + speaking` for the line; `speaking` becomes true only during actual
+playback. Speech preparation and Live2D initialization run in parallel, but
+playback begins only after both are ready. The CSS pulse, active hair-color
+reveal, an elapsed timer, or a ready state inherited from a previous route must
+never open this gate.
+
+The state contract is:
+
+```text
+PREPARING -> SPEAKING -> READY
+                    \-> ERROR -> retry -> PREPARING
+```
+
+- `Continue` is always visible and always retains that exact label.
+- `Continue` is disabled in `PREPARING`, `SPEAKING`, and `ERROR`.
+- While unavailable, Continue uses the shared intrinsically disabled
+  `BigButton` `unavailable` variant and its fixed muted-grey cross-theme
+  palette. It changes to the theme-controlled `primary` variant only in
+  `READY`.
+- It becomes enabled only after Clara's audio playback has ended successfully.
+- A fetch response or completed synthesis alone must never unlock it.
+- Failure exposes a secondary `Try again` action and must not bypass the gate.
+- The page is non-scrollable and follows all canonical Intro safe-viewport,
+  copy-prevention, custom-cursor, touch-trail, loading-reveal, and Live2D rules.
+- The next activity remains progression-owned; Lesson Intro must not change or
+  infer learner progress.
 
 ## Mandatory No-Image Rule
 

@@ -1,0 +1,191 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\AssessmentResponse;
+use App\Models\AssessmentRun;
+use App\Models\Learner;
+use App\Models\LearnerSession;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+final class LearnerAssessmentPartOneTest extends TestCase
+{
+    public function test_part_one_starts_with_a_private_fixed_orientation_state(): void
+    {
+        $token = $this->createLearnerSession();
+
+        $response = $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->assertOk()
+            ->assertJsonPath('stage', 'orientation')
+            ->assertJsonPath('orientation_ready', false)
+            ->assertJsonPath('item', null)
+            ->assertJsonMissing(['correct_response' => 'yes']);
+
+        $runId = $response->json('run_id');
+        $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->assertJsonPath('run_id', $runId);
+
+        $this->assertDatabaseCount('assessment_runs', 1);
+    }
+
+    public function test_orientation_and_letter_submission_use_asr_without_revealing_correctness(): void
+    {
+        Http::fake([
+            'http://127.0.0.1:8001/mu/transcribe' => Http::response([
+                'raw_transcript' => 'ready',
+                'audio_quality' => ['usable' => true],
+            ]),
+            'http://127.0.0.1:8001/mu/resolve-letter' => Http::response([
+                'raw_transcript' => 'ay',
+                'predicted_class' => 'A',
+                'decision' => 'CORRECT',
+                'audio_quality' => ['usable' => true],
+            ]),
+        ]);
+        $token = $this->createLearnerSession();
+        $runId = $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->json('run_id');
+
+        $this->withToken($token)
+            ->post("/api/learners/assessments/part-one/{$runId}/orientation", [
+                'audio' => UploadedFile::fake()->create('ready.webm', 12, 'audio/webm'),
+            ])
+            ->assertOk()
+            ->assertJsonPath('orientation_ready', true);
+
+        $letter = $this->withToken($token)
+            ->post("/api/learners/assessments/part-one/{$runId}/advance")
+            ->assertJsonPath('stage', 'task-1a')
+            ->assertJsonPath('item.display_text', 'A a')
+            ->json('item');
+
+        $this->withToken($token)
+            ->post("/api/learners/assessments/part-one/{$runId}/speech", [
+                'item_key' => $letter['item_key'],
+                'audio' => UploadedFile::fake()->create('letter.webm', 12, 'audio/webm'),
+            ])
+            ->assertOk()
+            ->assertJsonPath('response_committed', true)
+            ->assertJsonMissing(['decision' => 'CORRECT'])
+            ->assertJsonMissing(['score' => 1]);
+
+        $this->assertDatabaseHas('assessment_responses', [
+            'assessment_run_id' => $runId,
+            'task_key' => 'task-1a',
+            'decision' => 'CORRECT',
+            'score' => 1,
+        ]);
+    }
+
+    public function test_low_branch_administers_rhymes_and_finishes_with_task_two_b_not_administered(): void
+    {
+        [$token, $run] = $this->createRunAtTask('task-1a');
+        $this->seedTaskResponses($run, 'task-1a', 6);
+        $run->forceFill(['current_item_index' => 9])->save();
+
+        $this->withToken($token)
+            ->post("/api/learners/assessments/part-one/{$run->id}/advance")
+            ->assertOk()
+            ->assertJsonPath('stage', 'task-2a')
+            ->assertJsonPath('item.word_one', 'cat')
+            ->assertJsonMissing(['correct_response' => 'yes']);
+
+        $run->refresh();
+        $this->seedTaskResponses($run, 'task-2a', 8);
+        $run->forceFill(['current_item_index' => 9])->save();
+
+        $this->withToken($token)
+            ->post("/api/learners/assessments/part-one/{$run->id}/advance")
+            ->assertOk()
+            ->assertJsonPath('stage', 'part-1-results')
+            ->assertJsonPath('result.score', 14)
+            ->assertJsonPath('result.level', 'Moderate Refresher')
+            ->assertJsonPath('result.segments.2.status', 'not_administered')
+            ->assertJsonPath('result.continues_to_part_two', false);
+    }
+
+    public function test_high_branch_auto_scores_rhymes_and_administers_words(): void
+    {
+        [$token, $run] = $this->createRunAtTask('task-1a');
+        $this->seedTaskResponses($run, 'task-1a', 7);
+        $run->forceFill(['current_item_index' => 9])->save();
+
+        $this->withToken($token)
+            ->post("/api/learners/assessments/part-one/{$run->id}/advance")
+            ->assertOk()
+            ->assertJsonPath('stage', 'task-2b')
+            ->assertJsonPath('item.display_text', 'bag');
+
+        $run->refresh();
+        $this->seedTaskResponses($run, 'task-2b', 8);
+        $run->forceFill(['current_item_index' => 9])->save();
+
+        $this->withToken($token)
+            ->post("/api/learners/assessments/part-one/{$run->id}/advance")
+            ->assertOk()
+            ->assertJsonPath('result.score', 25)
+            ->assertJsonPath('result.level', 'Light Refresher')
+            ->assertJsonPath('result.segments.1.status', 'automatic')
+            ->assertJsonPath('result.continues_to_part_two', true);
+    }
+
+    /** @return array{string, AssessmentRun} */
+    private function createRunAtTask(string $stage): array
+    {
+        $token = $this->createLearnerSession();
+        $runId = $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->json('run_id');
+        $run = AssessmentRun::query()->findOrFail($runId);
+        $run->forceFill([
+            'stage' => $stage,
+            'orientation_completed_at' => now(),
+            'current_item_index' => 0,
+        ])->save();
+
+        return [$token, $run];
+    }
+
+    private function seedTaskResponses(AssessmentRun $run, string $taskKey, int $score): void
+    {
+        $items = $run->content_snapshot[$taskKey];
+        foreach ($items as $index => $item) {
+            AssessmentResponse::query()->create([
+                'assessment_run_id' => $run->id,
+                'task_key' => $taskKey,
+                'item_key' => $item['item_key'],
+                'item_order' => $index + 1,
+                'response_type' => $taskKey === 'task-2a' ? 'choice' : 'speech',
+                'decision' => $index < $score ? 'CORRECT' : 'INCORRECT',
+                'score' => $index < $score ? 1 : 0,
+            ]);
+        }
+    }
+
+    private function createLearnerSession(): string
+    {
+        $learner = Learner::query()->create([
+            'learner_code' => 'AB123',
+            'password' => 'local-password',
+            'first_name' => 'Lena',
+            'middle_name' => '',
+            'last_name' => 'Reader',
+            'is_active' => true,
+        ]);
+        $token = 'part-one-learner-token';
+        LearnerSession::query()->create([
+            'learner_id' => $learner->id,
+            'token_hash' => hash('sha256', $token),
+            'session_type' => 'standard',
+            'last_seen_at' => now(),
+            'expires_at' => now()->addHour(),
+        ]);
+
+        return $token;
+    }
+}

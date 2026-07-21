@@ -2,6 +2,10 @@ import { useEffect, useRef } from "react";
 
 export const LINK_START_ROUTE_SWAP_MS = 2600;
 export const LINK_START_DURATION_MS = 3000;
+export const WHITE_LINK_START_ROUTE_SWAP_MS = LINK_START_ROUTE_SWAP_MS;
+export const WHITE_LINK_START_DURATION_MS = LINK_START_DURATION_MS;
+
+export type LinkStartVariant = "full" | "white";
 
 const LINK_START_WARP_START_MS = 120;
 const LINK_START_STREAK_DELAY_SPAN_MS = 620;
@@ -257,10 +261,20 @@ function drawLinkStartFrame(
   context.globalAlpha = 1;
 }
 
-export function LinkStartTransition() {
+interface LinkStartTransitionProps {
+  variant?: LinkStartVariant;
+}
+
+export function LinkStartTransition({
+  variant = "full",
+}: LinkStartTransitionProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (variant === "white") {
+      return;
+    }
+
     const canvas = canvasRef.current;
 
     if (!canvas) {
@@ -300,7 +314,19 @@ export function LinkStartTransition() {
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [variant]);
+
+  if (variant === "white") {
+    return (
+      <div
+        className="route-transition route-transition--white"
+        data-route-transition="link-start-white"
+        aria-hidden="true"
+      >
+        <span className="route-transition__white-cover" />
+      </div>
+    );
+  }
 
   return (
     <div

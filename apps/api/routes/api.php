@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\LearnerAssessmentPartOneController;
 use App\Http\Controllers\LearnerAuthController;
+use App\Http\Controllers\LearnerTtsController;
 use App\Http\Controllers\SchoolAdministratorController;
 use App\Http\Controllers\SchoolAdminTeacherController;
 use App\Http\Controllers\SchoolAdminWorkspaceController;
@@ -46,4 +48,11 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/login', [LearnerAuthController::class, 'store']);
     Route::get('/session', [LearnerAuthController::class, 'show']);
     Route::post('/logout', [LearnerAuthController::class, 'destroy']);
+    Route::post('/tts/speech/{speechKey}', [LearnerTtsController::class, 'speech']);
+    Route::post('/assessments/part-one/start', [LearnerAssessmentPartOneController::class, 'start']);
+    Route::get('/assessments/part-one/{assessmentRun}', [LearnerAssessmentPartOneController::class, 'show']);
+    Route::post('/assessments/part-one/{assessmentRun}/orientation', [LearnerAssessmentPartOneController::class, 'submitOrientation']);
+    Route::post('/assessments/part-one/{assessmentRun}/speech', [LearnerAssessmentPartOneController::class, 'submitSpeech']);
+    Route::post('/assessments/part-one/{assessmentRun}/rhyme', [LearnerAssessmentPartOneController::class, 'submitRhyme']);
+    Route::post('/assessments/part-one/{assessmentRun}/advance', [LearnerAssessmentPartOneController::class, 'advance']);
 });

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { ClaraWebGLRenderer } from "./ClaraWebGLRenderer";
 import type { ClaraPresentationState } from "./ClaraExpressionController";
@@ -24,7 +24,6 @@ export function ClaraLive2DCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<ClaraWebGLRenderer | null>(null);
   const presentationRef = useRef(presentation);
-  const [statusMessage, setStatusMessage] = useState("Loading Ma'am Clara");
 
   presentationRef.current = presentation;
 
@@ -99,8 +98,8 @@ export function ClaraLive2DCanvas({
           attributeFilter: ["class", "data-theme", "style"],
         });
 
+        renderer.render(0, false, presentationRef.current, lookTarget);
         onStateChange("ready");
-        setStatusMessage("Ma'am Clara is ready");
         previousFrameTime = performance.now();
         animationFrame = requestAnimationFrame(frame);
       } catch (error) {
@@ -121,7 +120,6 @@ export function ClaraLive2DCanvas({
         releaseFramework?.();
         releaseFramework = null;
         onStateChange("error");
-        setStatusMessage("Ma'am Clara is shown as a still portrait");
       }
     };
 
@@ -159,15 +157,10 @@ export function ClaraLive2DCanvas({
   ]);
 
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        className="clara-stage__canvas"
-        aria-hidden="true"
-      />
-      <span className="visually-hidden" role="status">
-        {statusMessage}
-      </span>
-    </>
+    <canvas
+      ref={canvasRef}
+      className="clara-stage__canvas"
+      aria-hidden="true"
+    />
   );
 }
