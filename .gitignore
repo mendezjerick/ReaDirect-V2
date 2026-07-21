@@ -42,6 +42,7 @@ services/asr/model_artifacts/
 *.safetensors
 services/tts/storage/cache/*
 !services/tts/storage/cache/.gitkeep
+services/tts/storage/reference-cache/*
 
 # Licensed or local-only Live2D SDK files
 CubismSdkForWeb-*.zip

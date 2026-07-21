@@ -33,8 +33,45 @@ const { beginRouteTransition, isTransitioning } = useRouteTransition();
 beginRouteTransition("/destination");
 ```
 
+Approved simplified handoffs request the white-only variant through the same
+controller:
+
+```tsx
+beginRouteTransition({
+  destination: "/destination",
+  variant: "white",
+});
+```
+
 The application-level provider owns the overlay and navigation timing so the
 effect remains mounted while the source route is replaced by the destination.
+
+## Shared White Variant
+
+The `white` variant is the approved low-intensity form of Link Start. It uses
+the same provider, input lock, press commit, cover-before-navigation rule,
+fixed cover token, destination focus handoff, and reduced-motion bypass as the
+full transition. It removes the cylinders and core ignition; it is not a
+separate page-local transition.
+
+Its solid circular cover expands from viewport center, completely covers the
+source route, permits the route swap only at full coverage, holds briefly, and
+then fades to reveal the destination. The shared timing is:
+
+| Event                               |                      Time |
+| ----------------------------------- | ------------------------: |
+| Tactile button commit               | `180ms` before transition |
+| White cover begins                  |                     `0ms` |
+| White cover fills the viewport      |                  `2525ms` |
+| Destination route mounts underneath |                  `2600ms` |
+| Reveal begins                       |                  `2700ms` |
+| Transition completes                |                  `3000ms` |
+
+The cover uses `--color-link-start-fixed-cover`; learner themes must not alter
+it. Gradients, cylinders, and alternative colors are prohibited in this
+variant. The white variant must retain the full canonical three-second duration
+and route-swap timing; shortening it because the cylinders are absent is
+prohibited.
 
 ## Required Visual Language
 
@@ -216,6 +253,7 @@ Do not:
 ```text
 Intro page -> Home page
 Learner login -> Learner dashboard (after successful authentication)
+Learner dashboard -> Lesson Intro (white variant)
 ```
 
 This list changes only when the project owner explicitly approves another

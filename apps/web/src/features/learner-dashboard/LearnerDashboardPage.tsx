@@ -1,10 +1,15 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useRouteTransition } from "../../components/transitions/RouteTransitionProvider";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import {
+  prepareClaraSpeech,
+  unlockClaraAudio,
+} from "../clara-audio/claraSpeech";
 import {
   clearLearnerSession,
   getLearnerSession,
@@ -72,9 +77,9 @@ function TrophyIcon() {
 
 export function LearnerDashboardPage() {
   const navigate = useNavigate();
+  const { beginRouteTransition, isTransitioning } = useRouteTransition();
   const gamesCommit = useButtonCommit();
   const logoutCommit = useButtonCommit();
-  const [assessmentNotice, setAssessmentNotice] = useState("");
   const storedSession = loadLearnerSession();
   const sessionQuery = useQuery({
     queryKey: ["learner-session", storedSession?.token],
@@ -101,6 +106,19 @@ export function LearnerDashboardPage() {
 
   const openGames = () => {
     gamesCommit.commit(() => navigate("/learner/games"));
+  };
+
+  const openNextReadingActivity = () => {
+    unlockClaraAudio();
+
+    if (storedSession?.token) {
+      void prepareClaraSpeech("lesson-intro", storedSession.token);
+    }
+
+    beginRouteTransition({
+      destination: "/learner/lesson-intro",
+      variant: "white",
+    });
   };
 
   if (!storedSession || sessionQuery.isError) {
@@ -196,16 +214,13 @@ export function LearnerDashboardPage() {
           <BigButton
             className="learner-dashboard__primary-action"
             aria-label="Start Diagnostic Assessment"
-            onClick={() =>
-              setAssessmentNotice(
-                "The Diagnostic Assessment will connect here next.",
-              )
-            }
+            committing={isTransitioning}
+            onClick={openNextReadingActivity}
           >
             Start Diagnostic
           </BigButton>
           <p className="learner-dashboard__notice" aria-live="polite">
-            {assessmentNotice}
+            {isTransitioning ? "Getting Ma'am Clara ready..." : ""}
           </p>
         </Surface>
 

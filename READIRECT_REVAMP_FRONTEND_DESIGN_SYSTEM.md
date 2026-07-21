@@ -15,6 +15,7 @@ This guide complements:
 - `READIRECT_REVAMP_VIEWPORT_STANDARD.md`
 - `READIRECT_REVAMP_MAIN_TRANSITION_STANDARD.md`
 - `READIRECT_REVAMP_LESSON_AND_ASSESSMENT_INTERACTION_STANDARD.md`
+- `READIRECT_REVAMP_RESULTS_AND_COMPLETION_PRESENTATION_STANDARD.md`
 - `READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`
 
 It does not define assessment scoring, audio processing, backend behavior, or
@@ -458,9 +459,10 @@ rewriting components.
 - Transparency must use `--color-transparent` or a purpose-specific semantic
   variable rather than the literal `transparent` keyword in components.
 - A theme change must update every theme-controlled visible color, including
-  custom cursors, particle effects, loading fallbacks, and theme-aware
-  character overrides. A documented fixed visual identity such as the Link
-  Start palette is the only exception and must live in `effects.css`.
+  custom cursors, particle effects, loading indicators, and theme-aware
+  character overrides. Documented fixed visual identities such as the Link
+  Start palette and unavailable-button palette are the only exceptions and
+  must live in `effects.css`.
 - Theme-specific artwork must also come from semantic CSS custom properties.
   Responsive background pairs use separate mobile and desktop asset tokens so
   that a theme can replace both compositions without editing page components.
@@ -798,15 +800,17 @@ while reducing its solid lower depth. This creates the game-button press
 illusion. Do not use large bounce effects.
 
 Disabled controls must remain readable. Do not communicate the disabled state
-through opacity alone; also remove the press shadow and use an appropriate
-cursor.
+through opacity alone. An unavailable primary action must use the shared
+`unavailable` variant, which retains fixed muted structural depth but never
+compresses or responds as a pressable control. Other disabled controls remove
+their press shadow and use an appropriate cursor.
 
 ### Typed button reference
 
 ```tsx
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "quiet";
+type ButtonVariant = "primary" | "unavailable" | "secondary" | "quiet";
 type ButtonSize = "regular" | "large";
 
 interface BigButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -835,6 +839,11 @@ const buttonVariantClasses: Record<ButtonVariant, string> = {
     "active:shadow-[0_2px_0_var(--color-action-primary-depth)] " +
     "disabled:translate-y-[5px] disabled:bg-[var(--color-text-muted)] " +
     "disabled:shadow-none",
+  unavailable:
+    "border border-[var(--color-button-unavailable-border)] " +
+    "bg-[var(--color-button-unavailable-surface)] " +
+    "text-[var(--color-button-unavailable-text)] " +
+    "shadow-[0_8px_0_var(--color-button-unavailable-depth)]",
   secondary:
     "border-2 border-[var(--color-border-strong)] " +
     "bg-[var(--color-action-secondary)] text-[var(--color-text-primary)] " +
@@ -904,6 +913,18 @@ export function BigButton({
 
 The button uses native HTML behavior. A custom `div` with a click handler is not
 an acceptable substitute for a button.
+
+`variant="unavailable"` is intrinsically disabled. It represents a primary
+action that is visible but cannot yet be performed; callers must not use the
+variant on an interactive button. Its colors are fixed across themes through
+these roles in `packages/design-tokens/src/effects.css`:
+
+```css
+--color-button-unavailable-surface
+--color-button-unavailable-border
+--color-button-unavailable-depth
+--color-button-unavailable-text
+```
 
 The busy label must be chosen so that the button does not change width
 dramatically. In a fixed action row, reserve enough space for the longest
@@ -1071,8 +1092,9 @@ page-level preference.
   the model while preserving its original proportions.
 - Reserve enough internal safe space for normal hair, head, breathing, and
   expression movement without clipping.
-- The loading fallback and the rendered model must use the same square framing
-  so that the transition does not cause a layout shift.
+- The fixed CSS loading reveal originates from the center of the model's
+  canonical square viewport but must not resize, reposition, or replace that
+  viewport, so the ready state causes no layout shift.
 - Character stages must not include circular platforms, pedestals, ground
   ellipses, or similar decorations below the character.
 - Keep the character background transparent or use the page's plain solid
@@ -1246,6 +1268,15 @@ Required semantic roles:
 
 These values live in `packages/design-tokens/src/effects.css`, which must be
 imported after every theme stylesheet. Theme files must not redeclare them.
+
+The same fixed-token rule applies to the shared unavailable-button roles:
+
+```css
+--color-button-unavailable-surface
+--color-button-unavailable-border
+--color-button-unavailable-depth
+--color-button-unavailable-text
+```
 
 Motion for React reference:
 

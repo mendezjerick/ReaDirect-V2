@@ -9,10 +9,8 @@ import { BigButton } from "../../components/ui/BigButton";
 import { preloadCssImageToken } from "../../utils/preloadCssImageToken";
 import { ThemeSelector } from "../theme/ThemeSelector";
 import { useTheme } from "../theme/ThemeProvider";
-import { ClaraStage } from "./ClaraStage";
+import { ClaraIntroStage } from "./ClaraIntroStage";
 import type { ClaraEmotion } from "./live2d/ClaraExpressionController";
-import { PointerTrail } from "./PointerTrail";
-import { VectorCursor } from "./VectorCursor";
 
 export const INTRO_EXPRESSION_SEQUENCE = [
   "default",
@@ -78,63 +76,50 @@ export function IntroPage() {
   };
 
   return (
-    <main
-      className="intro-page learner-typography-page"
-      aria-labelledby="intro-title"
-      onContextMenu={(event) => event.preventDefault()}
-      onCopy={(event) => event.preventDefault()}
-      onCut={(event) => event.preventDefault()}
-      onDragStart={(event) => event.preventDefault()}
+    <ClaraIntroStage
+      ariaLabelledBy="intro-title"
+      emotion={expression}
+      overlay={<ThemeSelector />}
     >
-      <PointerTrail />
-      <VectorCursor />
-      <ThemeSelector />
+      <motion.h1
+        id="intro-title"
+        className="intro-page__title"
+        initial={reduceMotion ? false : { opacity: 0, y: 0 }}
+        animate={{ opacity: 1, y: introReady ? -INTRO_TITLE_RISE_PX : 0 }}
+        transition={{
+          opacity: {
+            duration: reduceMotion ? 0 : 0.6,
+            ease: "easeOut",
+          },
+          y: {
+            duration: reduceMotion ? 0 : 0.65,
+            ease: [0.16, 1, 0.3, 1],
+          },
+        }}
+      >
+        ReaDirect
+      </motion.h1>
 
-      <section className="intro-page__content">
-        <div className="intro-page__brand">
-          <motion.h1
-            id="intro-title"
-            className="intro-page__title"
-            initial={reduceMotion ? false : { opacity: 0, y: 0 }}
-            animate={{ opacity: 1, y: introReady ? -INTRO_TITLE_RISE_PX : 0 }}
-            transition={{
-              opacity: {
-                duration: reduceMotion ? 0 : 0.6,
-                ease: "easeOut",
-              },
-              y: {
-                duration: reduceMotion ? 0 : 0.65,
-                ease: [0.16, 1, 0.3, 1],
-              },
-            }}
-          >
-            ReaDirect
-          </motion.h1>
-
-          <motion.div
-            className="intro-page__continue-wrap"
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: introReady ? 1 : 0 }}
-            transition={{
-              delay: reduceMotion || !introReady ? 0 : 0.14,
-              duration: reduceMotion ? 0 : 0.5,
-              ease: "easeOut",
-            }}
-            aria-hidden={!introReady}
-          >
-            <BigButton
-              className="intro-page__continue"
-              committing={isTransitioning}
-              disabled={!introReady}
-              onClick={continueToHome}
-            >
-              Tap to continue
-            </BigButton>
-          </motion.div>
-        </div>
-
-        <ClaraStage emotion={expression} />
-      </section>
-    </main>
+      <motion.div
+        className="intro-page__continue-wrap"
+        initial={reduceMotion ? false : { opacity: 0 }}
+        animate={{ opacity: introReady ? 1 : 0 }}
+        transition={{
+          delay: reduceMotion || !introReady ? 0 : 0.14,
+          duration: reduceMotion ? 0 : 0.5,
+          ease: "easeOut",
+        }}
+        aria-hidden={!introReady}
+      >
+        <BigButton
+          className="intro-page__continue"
+          committing={isTransitioning}
+          disabled={!introReady}
+          onClick={continueToHome}
+        >
+          Tap to continue
+        </BigButton>
+      </motion.div>
+    </ClaraIntroStage>
   );
 }

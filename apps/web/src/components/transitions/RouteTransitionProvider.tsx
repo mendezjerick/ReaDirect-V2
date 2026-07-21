@@ -14,7 +14,10 @@ import { useNavigate } from "react-router-dom";
 import {
   LINK_START_DURATION_MS,
   LINK_START_ROUTE_SWAP_MS,
+  WHITE_LINK_START_DURATION_MS,
+  WHITE_LINK_START_ROUTE_SWAP_MS,
   LinkStartTransition,
+  type LinkStartVariant,
 } from "./LinkStartTransition";
 
 export const ROUTE_TRANSITION_PRESS_COMMIT_MS = 180;
@@ -22,9 +25,16 @@ export const ROUTE_TRANSITION_PRESS_COMMIT_MS = 180;
 type RouteTransitionState = "idle" | "committing" | "running";
 
 interface RouteTransitionContextValue {
-  beginRouteTransition: (destination: string) => void;
+  beginRouteTransition: (request: RouteTransitionRequest) => void;
   isTransitioning: boolean;
 }
+
+export interface RouteTransitionOptions {
+  destination: string;
+  variant?: LinkStartVariant;
+}
+
+export type RouteTransitionRequest = string | RouteTransitionOptions;
 
 interface RouteTransitionProviderProps {
   children: ReactNode;
@@ -40,6 +50,8 @@ export function RouteTransitionProvider({
   const reduceMotion = useReducedMotion();
   const [transitionState, setTransitionState] =
     useState<RouteTransitionState>("idle");
+  const [transitionVariant, setTransitionVariant] =
+    useState<LinkStartVariant>("full");
   const transitionStateRef = useRef<RouteTransitionState>("idle");
   const timersRef = useRef<number[]>([]);
 
@@ -72,10 +84,23 @@ export function RouteTransitionProvider({
   }, [clearTimers]);
 
   const beginRouteTransition = useCallback(
-    (destination: string) => {
+    (request: RouteTransitionRequest) => {
       if (transitionStateRef.current !== "idle") {
         return;
       }
+
+      const destination =
+        typeof request === "string" ? request : request.destination;
+      const variant =
+        typeof request === "string" ? "full" : (request.variant ?? "full");
+      const routeSwapMs =
+        variant === "white"
+          ? WHITE_LINK_START_ROUTE_SWAP_MS
+          : LINK_START_ROUTE_SWAP_MS;
+      const durationMs =
+        variant === "white"
+          ? WHITE_LINK_START_DURATION_MS
+          : LINK_START_DURATION_MS;
 
       if (reduceMotion) {
         navigate(destination);
@@ -83,6 +108,7 @@ export function RouteTransitionProvider({
       }
 
       transitionStateRef.current = "committing";
+      setTransitionVariant(variant);
       setTransitionState("committing");
 
       const commitTimer = window.setTimeout(() => {
@@ -91,12 +117,9 @@ export function RouteTransitionProvider({
 
         const navigationTimer = window.setTimeout(
           () => navigate(destination),
-          LINK_START_ROUTE_SWAP_MS,
+          routeSwapMs,
         );
-        const completionTimer = window.setTimeout(
-          finishTransition,
-          LINK_START_DURATION_MS,
-        );
+        const completionTimer = window.setTimeout(finishTransition, durationMs);
 
         timersRef.current.push(navigationTimer, completionTimer);
       }, ROUTE_TRANSITION_PRESS_COMMIT_MS);
@@ -117,7 +140,9 @@ export function RouteTransitionProvider({
   return (
     <RouteTransitionContext.Provider value={contextValue}>
       {children}
-      {transitionState === "running" ? <LinkStartTransition /> : null}
+      {transitionState === "running" ? (
+        <LinkStartTransition variant={transitionVariant} />
+      ) : null}
     </RouteTransitionContext.Provider>
   );
 }

@@ -33,6 +33,13 @@
   --color-surface-panel: #fffdf7;
   --color-surface-notice: #fff0e7;
   --color-surface-muted: #f4f2ec;
+  --color-learner-background-veil: color-mix(
+    in srgb,
+    var(--color-surface-page) 22%,
+    var(--color-transparent)
+  );
+  --color-activity-frame: var(--color-surface-frame);
+  --color-activity-frame-depth: var(--color-frame-depth);
 
   --color-text-primary: #102a43;
   --color-text-secondary: #40566d;
@@ -87,11 +94,11 @@
 
   --color-accent-coral-soft: #f29a6a;
   --color-accent-sun: #f3c85b;
-  --color-fallback-portrait-surface: #7fb3b6;
-  --color-fallback-portrait-depth: #b65b6b;
 
   --color-live2d-recolor-base: #000000;
   --color-live2d-canvas-clear: transparent;
+  --color-clara-loader-pulse: var(--color-clara-hair);
+  --color-clara-loader-cover: var(--color-clara-hair);
 
   --color-clara-hair: #5faf67;
   --color-clara-hair-outline: #356b3f;

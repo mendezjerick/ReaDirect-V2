@@ -13,7 +13,18 @@ vi.mock("motion/react", async (importOriginal) => {
 });
 
 import { LearnerDashboardPage } from "../src/features/learner-dashboard/LearnerDashboardPage";
+import { RouteTransitionProvider } from "../src/components/transitions/RouteTransitionProvider";
 import { createAppQueryClient } from "../src/app/AppProviders";
+
+const claraSpeechMocks = vi.hoisted(() => ({
+  prepare: vi.fn().mockResolvedValue(new Blob()),
+  unlock: vi.fn(),
+}));
+
+vi.mock("../src/features/clara-audio/claraSpeech", () => ({
+  prepareClaraSpeech: claraSpeechMocks.prepare,
+  unlockClaraAudio: claraSpeechMocks.unlock,
+}));
 
 const learnerSession = {
   token: "learner-token",
@@ -53,10 +64,19 @@ function renderDashboard() {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={["/learner/dashboard"]}>
-        <Routes>
-          <Route path="/learner/dashboard" element={<LearnerDashboardPage />} />
-          <Route path="/learner/games" element={<div>Lobby route</div>} />
-        </Routes>
+        <RouteTransitionProvider>
+          <Routes>
+            <Route
+              path="/learner/dashboard"
+              element={<LearnerDashboardPage />}
+            />
+            <Route path="/learner/games" element={<div>Lobby route</div>} />
+            <Route
+              path="/learner/lesson-intro"
+              element={<div>Lesson intro route</div>}
+            />
+          </Routes>
+        </RouteTransitionProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -66,6 +86,7 @@ describe("LearnerDashboardPage", () => {
   afterEach(() => {
     window.sessionStorage.clear();
     vi.unstubAllGlobals();
+    vi.clearAllMocks();
   });
 
   it("keeps the required learning action visually primary", () => {
@@ -105,5 +126,20 @@ describe("LearnerDashboardPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /open game lobby/i }));
 
     expect(screen.getByText("Lobby route")).toBeInTheDocument();
+  });
+
+  it("prepares Clara and opens Lesson Intro from the primary action", () => {
+    renderDashboard();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /start diagnostic assessment/i }),
+    );
+
+    expect(claraSpeechMocks.unlock).toHaveBeenCalledOnce();
+    expect(claraSpeechMocks.prepare).toHaveBeenCalledWith(
+      "lesson-intro",
+      "learner-token",
+    );
+    expect(screen.getByText("Lesson intro route")).toBeInTheDocument();
   });
 });

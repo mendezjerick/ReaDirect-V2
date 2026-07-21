@@ -275,6 +275,26 @@ RESULT
 VoxCPM2 is one TTS implementation. It must use the engine-neutral isolated
 letter standard rather than maintaining its own competing A-Z table.
 
+Before an assessment or lesson opens, Lesson Intro may warm the persistent TTS
+runtime and play one approved Clara introduction line. Its Continue control
+must remain disabled until playback actually ends. This preparation does not
+override the turn-taking rules below: if learner recording or learner-audio
+playback starts, Clara speech must still stop immediately.
+
+TTS preparation may overlap Clara's Live2D initialization, but audible TTS
+playback must wait until the currently mounted shared Clara stage explicitly
+reports `ready`. A visible CSS pulse, active hair-color reveal, available
+speech blob, decoded audio buffer, elapsed delay, or previous route's model
+state is not sufficient. The `loading`, `revealing`, and `error` model states
+block playback and keep Clara's speaking overlay inactive.
+
+Runtime voice-cloning references are conditioned separately from learner
+recordings. Preserve their original sample rate, downmix stereo or multichannel
+input to mono, and cap peaks at `-6 dBFS`. This stage may attenuate but must not
+boost a quiet reference. Keep the authored reference unchanged and provide
+VoxCPM2 a versioned private working copy; changing the conditioning rule must
+invalidate generated-speech cache keys.
+
 VoxCPM2 must never speak while:
 
 - The learner recorder is listening

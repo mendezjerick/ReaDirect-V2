@@ -6,6 +6,7 @@ use App\Models\Learner;
 use App\Models\LearnerPortalRun;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
+use App\Services\LearnerSessionResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,6 +15,10 @@ use Illuminate\Validation\ValidationException;
 
 final class LearnerAuthController extends Controller
 {
+    public function __construct(
+        private readonly LearnerSessionResolver $sessionResolver,
+    ) {}
+
     public function store(Request $request): JsonResponse
     {
         $credentials = $request->validate([
@@ -70,7 +75,7 @@ final class LearnerAuthController extends Controller
 
     public function show(Request $request): JsonResponse
     {
-        $session = $this->resolveSession($request);
+        $session = $this->sessionResolver->resolve($request);
         $session->forceFill(['last_seen_at' => now()])->save();
 
         return response()->json($this->serializeSession($session, $session->learner));
@@ -78,32 +83,10 @@ final class LearnerAuthController extends Controller
 
     public function destroy(Request $request): JsonResponse
     {
-        $session = $this->resolveSession($request);
+        $session = $this->sessionResolver->resolve($request);
         $session->forceFill(['revoked_at' => now()])->save();
 
         return response()->json(['signed_out' => true]);
-    }
-
-    private function resolveSession(Request $request): LearnerSession
-    {
-        $plainToken = $request->bearerToken();
-
-        if (! $plainToken) {
-            abort(401, 'Learner session is required.');
-        }
-
-        $session = LearnerSession::query()
-            ->with(['learner.progressState'])
-            ->where('token_hash', hash('sha256', $plainToken))
-            ->whereNull('revoked_at')
-            ->where('expires_at', '>', now())
-            ->first();
-
-        if (! $session || ! $session->learner->is_active) {
-            abort(401, 'The Learner session has expired or was reset.');
-        }
-
-        return $session;
     }
 
     private function serializeSession(LearnerSession $session, Learner $learner): array

@@ -1,6 +1,12 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type BigButtonVariant = "primary" | "secondary" | "quiet";
+type BigButtonVariant =
+  | "primary"
+  | "primary-vertical"
+  | "unavailable"
+  | "unavailable-vertical"
+  | "secondary"
+  | "quiet";
 type BigButtonSize = "regular" | "large";
 
 interface BigButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -31,7 +37,12 @@ export function BigButton({
   type = "button",
   ...props
 }: BigButtonProps) {
-  const isDisabled = disabled || busy || committing;
+  const isDisabled =
+    disabled ||
+    busy ||
+    committing ||
+    variant === "unavailable" ||
+    variant === "unavailable-vertical";
 
   return (
     <button

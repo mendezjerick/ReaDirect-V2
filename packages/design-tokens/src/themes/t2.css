@@ -10,6 +10,11 @@
   --color-surface-panel: #f9fbff;
   --color-surface-notice: #eef5ff;
   --color-surface-muted: #e6edf6;
+  --color-learner-background-veil: color-mix(
+    in srgb,
+    var(--color-surface-page) 20%,
+    var(--color-transparent)
+  );
 
   --color-text-primary: #112640;
   --color-text-secondary: #39506d;
@@ -54,8 +59,6 @@
 
   --color-accent-coral-soft: #7ea2de;
   --color-accent-sun: #c8daf8;
-  --color-fallback-portrait-surface: #7c98c3;
-  --color-fallback-portrait-depth: #516d9d;
 
   --color-live2d-recolor-base: #000000;
   --color-live2d-canvas-clear: transparent;
