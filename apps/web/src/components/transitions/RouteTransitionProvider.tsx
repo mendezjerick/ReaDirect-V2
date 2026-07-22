@@ -1,9 +1,7 @@
 import { useReducedMotion } from "motion/react";
 import {
-  createContext,
   type ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -19,29 +17,19 @@ import {
   LinkStartTransition,
   type LinkStartVariant,
 } from "./LinkStartTransition";
+import {
+  RouteTransitionContext,
+  type RouteTransitionContextValue,
+  type RouteTransitionRequest,
+} from "./routeTransitionContext";
 
 export const ROUTE_TRANSITION_PRESS_COMMIT_MS = 180;
 
 type RouteTransitionState = "idle" | "committing" | "running";
 
-interface RouteTransitionContextValue {
-  beginRouteTransition: (request: RouteTransitionRequest) => void;
-  isTransitioning: boolean;
-}
-
-export interface RouteTransitionOptions {
-  destination: string;
-  variant?: LinkStartVariant;
-}
-
-export type RouteTransitionRequest = string | RouteTransitionOptions;
-
 interface RouteTransitionProviderProps {
   children: ReactNode;
 }
-
-const RouteTransitionContext =
-  createContext<RouteTransitionContextValue | null>(null);
 
 export function RouteTransitionProvider({
   children,
@@ -145,16 +133,4 @@ export function RouteTransitionProvider({
       ) : null}
     </RouteTransitionContext.Provider>
   );
-}
-
-export function useRouteTransition(): RouteTransitionContextValue {
-  const context = useContext(RouteTransitionContext);
-
-  if (!context) {
-    throw new Error(
-      "useRouteTransition must be used inside RouteTransitionProvider.",
-    );
-  }
-
-  return context;
 }

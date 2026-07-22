@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-import {
-  SpeechSandboxShell,
-  useSystemAdminSpeechSession,
-} from "../../components/staff/SpeechSandboxShell";
+import { SpeechSandboxShell } from "../../components/staff/SpeechSandboxShell";
+import { useSystemAdminSpeechSession } from "../../components/staff/useSystemAdminSpeechSession";
 import { Surface } from "../../components/ui/Surface";
 import { getRawConfusionMatrix } from "./speechSandboxApi";
 

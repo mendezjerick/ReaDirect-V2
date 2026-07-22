@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
-import { useRouteTransition } from "../../components/transitions/RouteTransitionProvider";
+import { useRouteTransition } from "../../components/transitions/routeTransitionContext";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { TextField } from "../../components/ui/TextField";

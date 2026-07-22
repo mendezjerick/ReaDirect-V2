@@ -8,7 +8,7 @@ vi.mock("motion/react", async (importOriginal) => {
   return { ...motion, useReducedMotion: () => false };
 });
 
-import { createAppQueryClient } from "../src/app/AppProviders";
+import { createAppQueryClient } from "../src/app/queryClient";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { SystemAdminPagePortalsPage } from "../src/features/staff-dashboard/SystemAdminPagePortalsPage";
 

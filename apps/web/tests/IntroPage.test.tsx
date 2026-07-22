@@ -49,8 +49,8 @@ import {
   INTRO_ACTION_COMMIT_DELAY_MS,
   INTRO_CENTER_HOLD_MS,
   INTRO_EXPRESSION_SEQUENCE,
-  IntroPage,
-} from "../src/features/intro/IntroPage";
+} from "../src/features/intro/introConfig";
+import { IntroPage } from "../src/features/intro/IntroPage";
 
 function renderIntro() {
   return render(

@@ -1,4 +1,5 @@
-import { THEME_OPTIONS, useTheme } from "./ThemeProvider";
+import { THEME_OPTIONS } from "./theme";
+import { useTheme } from "./themeContext";
 
 export function ThemeSelector() {
   const { theme: selectedTheme, setTheme } = useTheme();

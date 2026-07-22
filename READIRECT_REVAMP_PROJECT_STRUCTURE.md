@@ -300,15 +300,21 @@ Contains the standalone FastAPI voice-generation service and its generated-audio
 
 The service owns one process-wide, lazily loaded VoxCPM2 runtime. Concurrent
 warm-up requests must share that runtime, generation must be serialized around
-the non-reentrant model, and a cache hit must still confirm that the live model
-is resident. Laravel is the authenticated browser-facing proxy and maps stable
-speech keys to fixed text plus semantic reference roles such as `introduce`,
-`instruction`, `question`, `praise`, and `result`. Browser code must never send
-or receive private reference-file paths.
+the non-reentrant model, and a dynamic cache hit must still confirm that the
+runtime is resident. VoxCPM2 is used for controlled speech publication and
+future unpredictable final-transcript feedback; fixed learner-flow lines do not
+call it at runtime.
 
-Dashboard entry may begin a deduplicated Lesson Intro synthesis request during
+Laravel is the authenticated browser-facing speech proxy. Published metadata
+belongs in `tts_voice_versions` and `tts_speech_lines`, while approved WAVs live
+under `apps/api/storage/app/private/tts/catalog/`. The current `clara-sh-v1`
+catalog contains Lesson Intro and every fixed Part 1 instruction and ordinal
+cue. Laravel verifies the catalog status, file existence, and SHA-256 checksum
+before returning audio. Browser code must never send or receive private paths.
+
+Dashboard entry may begin a deduplicated Lesson Intro catalog request during
 the shared route transition. The destination reuses that same in-memory browser
-promise rather than issuing a duplicate generation request.
+promise rather than issuing a duplicate file request.
 
 Before VoxCPM2 receives a Clara reference, the TTS adapter creates a private
 conditioned working copy under `services/tts/storage/reference-cache/`. The

@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createAppQueryClient } from "../src/app/AppProviders";
+import { createAppQueryClient } from "../src/app/queryClient";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { saveStaffSession } from "../src/features/staff-auth/staffApi";
 import { TeacherDashboardPage } from "../src/features/staff-dashboard/TeacherDashboardPage";

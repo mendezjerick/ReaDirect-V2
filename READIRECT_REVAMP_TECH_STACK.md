@@ -108,6 +108,8 @@ defined in READIRECT_REVAMP_GAME_TECH_STACK.md.
 - jiwer
 - CMU Pronouncing Dictionary
 - VoxCPM2
+- Laravel-backed published speech catalog for approved fixed Clara WAVs
+- Runtime VoxCPM2 generation only for unpredictable final-transcript feedback
 - Engine-neutral isolated-letter pronunciation registry defined by
   `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`
 - WebSocket

@@ -654,19 +654,20 @@ mouth-form, confused, glasses, color, or drawable parameters.
 
 Every dashboard primary reading action enters the shared Lesson Intro before
 an assessment or lesson. Lesson Intro keeps Clara in the `happy` base emotion
-and applies the independent `speaking` overlay only while her generated line is
-audibly playing.
+and applies the independent `speaking` overlay only while its approved,
+published catalog line is audibly playing. Fixed Lesson Intro and assessment
+speech must never invoke runtime synthesis.
 
 The browser must derive `speechLevel` from the actual playback signal when the
-Web Audio API is available. Fetch completion, TTS generation completion, and
-audio decoding do not count as completed speech. The `Continue` button remains
-disabled until the playback source emits its terminal `ended` event. If
-preparation or playback fails, Continue remains disabled and the learner is
-offered a retry.
+Web Audio API is available. Catalog fetch completion, any separate runtime TTS
+preparation, and audio decoding do not count as completed speech. The
+`Continue` button remains disabled until the playback source emits its terminal
+`ended` event. If preparation or playback fails, Continue remains disabled and
+the learner is offered a retry.
 
-The initial Lesson Intro line uses the semantic `introduce` Clara reference.
-Reference paths stay server-owned; React requests a named speech key and never
-selects a filesystem path.
+The initial Lesson Intro line uses the semantic `lesson-intro` speech key from
+the published `clara-sh-v1` catalog. Catalog paths stay server-owned; React
+requests a named speech key and never selects a filesystem path.
 
 ### Global Live2D-Ready Speech Gate
 

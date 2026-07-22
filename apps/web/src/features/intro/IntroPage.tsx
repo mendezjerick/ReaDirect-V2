@@ -1,27 +1,18 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
-import {
-  ROUTE_TRANSITION_PRESS_COMMIT_MS,
-  useRouteTransition,
-} from "../../components/transitions/RouteTransitionProvider";
+import { useRouteTransition } from "../../components/transitions/routeTransitionContext";
 import { BigButton } from "../../components/ui/BigButton";
 import { preloadCssImageToken } from "../../utils/preloadCssImageToken";
 import { ThemeSelector } from "../theme/ThemeSelector";
-import { useTheme } from "../theme/ThemeProvider";
+import { useTheme } from "../theme/themeContext";
 import { ClaraIntroStage } from "./ClaraIntroStage";
-import type { ClaraEmotion } from "./live2d/ClaraExpressionController";
-
-export const INTRO_EXPRESSION_SEQUENCE = [
-  "default",
-  "happy",
-  "confused",
-  "thinking",
-] as const satisfies readonly ClaraEmotion[];
+import {
+  INTRO_CENTER_HOLD_MS,
+  INTRO_EXPRESSION_SEQUENCE,
+} from "./introConfig";
 
 const INTRO_EXPRESSION_DURATION_MS = 2000;
-export const INTRO_CENTER_HOLD_MS = 2000;
-export const INTRO_ACTION_COMMIT_DELAY_MS = ROUTE_TRANSITION_PRESS_COMMIT_MS;
 const INTRO_TITLE_RISE_PX = 80;
 
 export function IntroPage() {

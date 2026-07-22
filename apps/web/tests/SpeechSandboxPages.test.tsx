@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createAppQueryClient } from "../src/app/AppProviders";
+import { createAppQueryClient } from "../src/app/queryClient";
 import { EquivalenceBookPage } from "../src/features/staff-dashboard/EquivalenceBookPage";
 import { IsoLetterSandboxPage } from "../src/features/staff-dashboard/IsoLetterSandboxPage";
 import { RawConfusionMatrixPage } from "../src/features/staff-dashboard/RawConfusionMatrixPage";

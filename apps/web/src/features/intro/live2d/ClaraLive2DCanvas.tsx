@@ -24,6 +24,7 @@ export function ClaraLive2DCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<ClaraWebGLRenderer | null>(null);
   const presentationRef = useRef(presentation);
+  const { emotion, speaking, speechLevel } = presentation;
 
   presentationRef.current = presentation;
 
@@ -146,15 +147,10 @@ export function ClaraLive2DCanvas({
     rendererRef.current?.render(
       0,
       false,
-      presentation,
+      { emotion, speaking, speechLevel },
       getClaraInteractionTracker().getTarget(),
     );
-  }, [
-    presentation.emotion,
-    presentation.speaking,
-    presentation.speechLevel,
-    reduceMotion,
-  ]);
+  }, [emotion, speaking, speechLevel, reduceMotion]);
 
   return (
     <canvas

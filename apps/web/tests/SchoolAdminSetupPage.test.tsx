@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createAppQueryClient } from "../src/app/AppProviders";
+import { createAppQueryClient } from "../src/app/queryClient";
 import { saveStaffSession } from "../src/features/staff-auth/staffApi";
 import { SchoolAdminSetupPage } from "../src/features/staff-dashboard/SchoolAdminSetupPage";
 

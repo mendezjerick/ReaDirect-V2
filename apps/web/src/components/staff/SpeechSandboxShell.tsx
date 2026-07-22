@@ -20,11 +20,6 @@ interface SpeechSandboxShellProps extends PropsWithChildren {
   sessionPurpose?: string;
 }
 
-export function useSystemAdminSpeechSession(): number | null {
-  const session = loadStaffSession();
-  return session?.staff.role === "system_admin" ? session.staff.id : null;
-}
-
 export function SpeechSandboxShell({
   eyebrow,
   title,

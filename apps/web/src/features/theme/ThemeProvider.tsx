@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -11,17 +9,10 @@ import {
 import {
   applyTheme,
   readStoredTheme,
-  THEME_OPTIONS,
   THEME_STORAGE_KEY,
   type ThemeId,
 } from "./theme";
-
-interface ThemeContextValue {
-  theme: ThemeId;
-  setTheme: (theme: ThemeId) => void;
-}
-
-const ThemeContext = createContext<ThemeContextValue | null>(null);
+import { ThemeContext } from "./themeContext";
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const [theme, setThemeState] = useState<ThemeId>(() => {
@@ -46,15 +37,3 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-
-  if (!context) {
-    throw new Error("useTheme must be used inside ThemeProvider.");
-  }
-
-  return context;
-}
-
-export { THEME_OPTIONS };

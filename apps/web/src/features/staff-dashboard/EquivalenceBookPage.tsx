@@ -1,10 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-import {
-  SpeechSandboxShell,
-  useSystemAdminSpeechSession,
-} from "../../components/staff/SpeechSandboxShell";
+import { SpeechSandboxShell } from "../../components/staff/SpeechSandboxShell";
+import { useSystemAdminSpeechSession } from "../../components/staff/useSystemAdminSpeechSession";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";

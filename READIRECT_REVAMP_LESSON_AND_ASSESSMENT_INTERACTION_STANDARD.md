@@ -71,6 +71,18 @@ Authority boundaries:
 13. Clara's TTS must never play while her Live2D model is loading. Speech may
     be prepared early, but audible playback waits for the currently mounted
     shared `ClaraStage` to report `ready`.
+14. Part 1 item 1 uses the complete task instruction. Items 2 through 10 use
+    the task's short ordinal cue: `Now, try the {ordinal} letter.`,
+    `Now, check the {ordinal} pair.`, or
+    `Now, read the {ordinal} word.` Controls remain unavailable until the cue
+    finishes.
+15. Ordinal cues are neutral and identical after Submit or Skip. All assessment
+    instructions and ordinal cues are published, pre-generated catalog WAVs;
+    they must never invoke runtime synthesis. Once the current instruction
+    finishes, prefetch only the next published file within that task. Never
+    fetch every remaining line or speculate across a score-dependent assessment
+    branch. If the next cue is not ready on entry, use the shared TTS cube loader
+    under the mandatory Clara-loader priority.
 
 ## Required Lesson Intro Gate
 

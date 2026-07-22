@@ -12,7 +12,7 @@ vi.mock("motion/react", async (importOriginal) => {
 });
 
 import { QueryClientProvider } from "@tanstack/react-query";
-import { createAppQueryClient } from "../src/app/AppProviders";
+import { createAppQueryClient } from "../src/app/queryClient";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { StaffLoginPage } from "../src/features/staff-auth/StaffLoginPage";
 

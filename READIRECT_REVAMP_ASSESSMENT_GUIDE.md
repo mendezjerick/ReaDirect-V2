@@ -450,6 +450,26 @@ assessment run:
   Submit-and-Skip action split; documented result pages replace it with
   Continue. These movements collapse to immediate state changes when reduced
   motion is enabled.
+- Item 1 of each Part 1 task plays the complete task instruction. Items 2
+  through 10 use one short neutral ordinal cue before their controls become
+  available:
+
+  | Task | Ordinal cue template |
+  | --- | --- |
+  | Task 1A Letters | `Now, try the {ordinal} letter.` |
+  | Task 2A Rhyme Check | `Now, check the {ordinal} pair.` |
+  | Task 2B Words | `Now, read the {ordinal} word.` |
+
+  The supported ordinal words are `second` through `tenth`. Submit and Skip
+  must produce the same next-item cue, and no cue may praise, criticize, or
+  reveal the previous response's score. Every Part 1 instruction and ordinal
+  cue is a published, pre-generated catalog WAV and must never invoke runtime
+  synthesis. After the current cue finishes, the client prefetches only the
+  next published file in the same task. It must not request all
+  remaining cues or speculate across a score-dependent task boundary. If the
+  learner skips before that cue is ready, the centered Clara voice cube appears
+  after a short anti-flicker delay and stays visible through the next-item
+  handoff. A completed file prefetch keeps fast skips unobstructed.
 - Task 1A uses Mu plus the strict letter resolver and active global letter
   equivalences. Task 2B uses Mu plus the expected-aware Equivalence Book
   resolver. Task 2A never calls ASR.
