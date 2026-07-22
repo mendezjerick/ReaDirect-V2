@@ -87,9 +87,11 @@ the dashboard navigates directly without a Link Start overlay. Lesson Intro
 then reuses the pending or completed request. Clara
 uses `happy + speaking` for the line; `speaking` becomes true only during actual
 playback. Speech preparation and Live2D initialization run in parallel, but
-playback begins only after both are ready. The CSS pulse, active hair-color
-reveal, an elapsed timer, or a ready state inherited from a previous route must
-never open this gate.
+playback begins only after both are ready. The Live2D CSS wave, active
+hair-color reveal, centered TTS warm-up cube, an elapsed timer, or a ready state
+inherited from a previous route must never open this gate. The model wave has
+loader priority: the TTS cube may appear only after the mounted Clara stage is
+ready and only while its requested speech is still preparing.
 
 The state contract is:
 
@@ -555,7 +557,7 @@ skipped
 technical_failure
 ```
 
-## Assessment Skip And Navigation Rule
+## Assessment Submit, Skip, And Automatic Advance Rule
 
 Scored assessment items show Skip before a response is committed. The
 unscored microphone orientation and result pages never show Skip.
@@ -565,13 +567,14 @@ unscored microphone orientation and result pages never show Skip.
 | Before submission | Submit 80% above Skip 20% |
 | Recording or playback active | Skip remains visible but unavailable |
 | Submitted and processing | Both actions remain unavailable |
-| Committed submitted response | Skip disappears and Submit transforms into full-height Next |
+| Committed submitted response | Save, fill progress, then automatically open the following item or result |
 | Skip processing | Save zero, then automatically open the following item |
 
 Before submission, the scored-item action slot uses an `80% / 20%` vertical
 split: Submit occupies the upper 80% and Skip occupies the lower 20%. After a
-normal submission is committed, Skip disappears, the split is removed, and
-Submit transforms into a Next button that fills 100% of the action column.
+normal submission is committed, both actions stay unavailable while the save is
+confirmed, then the next item restores the same split. A documented result page
+uses Continue. Active assessment items never show a separate Next button.
 Skip uses the shared fixed-color `skip-vertical` button variant: `#FFFAFA`
 surface through
 `--color-action-skip-surface`, with all border, hover, pressed, and fake-depth
@@ -1092,7 +1095,8 @@ During an active assessment:
 - Do not add bonus items, lives, streaks, penalties, or adaptive content outside
   the documented branch.
 - Do not celebrate an individual answer in a way that reveals its score.
-- Use neutral responses such as `Answer saved` before Next.
+- Keep processing and item replacement neutral, then advance automatically after
+  the committed response is confirmed.
 - Show score-based celebration only at documented result pages.
 
 ### Unscored microphone orientation
@@ -1107,6 +1111,7 @@ The orientation:
 - Does not affect any score or branch.
 - Confirms that the microphone receives usable audio.
 - Teaches the control flow before Task 1A begins.
+- A successful Submit opens Task 1A automatically without Continue or Next.
 
 ### Task 1A — Letter Pronunciation
 
@@ -1114,7 +1119,7 @@ The orientation:
 - Display the letter pair as large raised typography.
 - Use the shared recording review and Submit flow.
 - Save the final scoring response internally.
-- Use neutral committed feedback and then reveal Next.
+- After neutral persistence, open the next letter automatically.
 - Do not show `CORRECT`, `UNCERTAIN`, or another decision during the active
   task.
 
@@ -1124,9 +1129,9 @@ The orientation:
 - Display the two words as large text units.
 - Use two large tactile Yes and No controls.
 - Permit changing the selection before Submit.
-- Submit commits the selected choice.
+- Submit atomically commits the selected choice and opens the next rhyme item.
 - Lock both choices during persistence.
-- Reveal Next after a neutral saved result.
+- Do not reveal a separate Next action for Task 2A.
 - Do not add recording or ASR.
 - Do not make a word playable or pronounce it unless the assessment protocol
   explicitly requires that support.
@@ -1138,7 +1143,7 @@ The orientation:
 - The word may assemble before the activity becomes ready.
 - Use the shared recording review and Submit flow.
 - Do not reveal whether the scoring transcript matched during the active task.
-- Reveal Next after the response is committed.
+- After neutral persistence, open the next word or Part 1 Results automatically.
 
 ### Part 1 Score result
 
@@ -1185,7 +1190,7 @@ Assessment Task 3B is distinct from Lesson 6 spoken comprehension.
 - Permit changing the selected answer before Submit.
 - Submit commits one selected choice.
 - Do not reveal the correct choice during the active task.
-- Reveal Next after a neutral committed response.
+- After neutral persistence, open the next question or final result automatically.
 - Display the comprehension result only at the documented result stage.
 
 ## Explicit Assessment Interaction Examples
@@ -1195,10 +1200,10 @@ changing its content or revealing correctness.
 
 Every scored-item wireframe in this section inherits the canonical assessment
 action dock even when its compact text row labels only the primary action:
-Submit occupies the upper 80%, Skip occupies the lower 20%, a committed normal
-response replaces both with a 100%-height Next button, and Skip commits zero
-then advances automatically without showing Next. The microphone orientation,
-story selection, and result screens remain non-skippable.
+Submit occupies the upper 80%, Skip occupies the lower 20%, and either action
+advances automatically after persistence without showing Next. Skip additionally
+commits zero. The microphone orientation, story selection, and result screens
+remain non-skippable.
 
 ### Assessment orientation screen
 
@@ -1222,7 +1227,7 @@ Visible behavior:
 3. The learner can Stop, Play, and Retry using the real controls.
 4. The system checks only whether usable audio was captured.
 5. No Nu or Mu assessment score is produced.
-6. Continue appears when the orientation succeeds.
+6. A successful Submit opens Task 1A immediately.
 
 The orientation must not reuse a scored target or teach an assessment answer.
 
@@ -1252,8 +1257,8 @@ letter tiles settle
     -> Play
     -> Retry? or Submit
     -> neutral Processing
-    -> Answer saved
-    -> Next
+    -> progress segment fills
+    -> next letter
 ```
 
 After processing, both tiles may depress neutrally. They must use the same
@@ -1299,7 +1304,8 @@ Rules:
 - After Submit, both choices lock and the navigation slot stays empty while the
   response saves.
 - The same neutral lock animation is used for correct and incorrect choices.
-- Next appears after persistence.
+- After persistence, the progress segment fills and the next rhyme pair replaces
+  the current pair directly. Next never appears for Task 2A.
 - Before submission, Skip follows the shared zero-score automatic-advance rule.
 
 ### Task 2B screen — Word Pronunciation
@@ -1322,7 +1328,8 @@ Rules:
 - The target word may assemble before Ready.
 - It must remain still during recording and playback.
 - Retry and Submit follow the shared short-recording rules.
-- The committed result receives neutral `Answer saved` feedback.
+- The committed result advances to the next word or Part 1 Results without a
+  separate Next action.
 - No matching or non-matching transcript is revealed while Task 2B remains
   active.
 - Before submission, Skip follows the shared zero-score automatic-advance rule.
@@ -1418,6 +1425,7 @@ Interaction rules:
 - Submit may be used after capture without forcing a full one-minute playback.
 - Play remains available for optional review.
 - Retry appears only after playback and restarts the entire passage attempt.
+- A successful Submit opens Task 3B automatically after neutral persistence.
 - Before submission, Skip follows the shared zero-score automatic-advance rule.
   It discards any unsubmitted local capture and advances to Task 3B without an
   intermediate Next button.
@@ -1458,24 +1466,23 @@ Interaction:
 2. Selecting a choice raises or depresses it into a stable selected state.
 3. The learner may change the selected choice before Submit.
 4. Submit is disabled until one choice is selected.
-5. Submit commits the selected choice and locks all four tiles.
+5. Submit commits the selected choice and locks all four tiles during processing.
 6. The processing state reveals neither correctness nor the correct tile.
-7. `Answer saved` appears neutrally.
-8. Next appears only after the selected choice is persisted.
+7. The progress segment fills after persistence.
+8. The next question or final result opens automatically without Next.
 9. No recorder or Retry is shown; Skip remains available until the selected
    response is committed.
 
 ### Neutral assessment result behavior
 
-Every active assessment item uses the same post-submit presentation regardless
-of correctness:
+Every assessment item uses the same post-submit presentation regardless of
+correctness:
 
 ```text
 Submitted
     -> neutral Processing
-    -> Answer saved
     -> progress segment fills
-    -> Next
+    -> next item or documented result
 ```
 
 Correctness-specific Clara expressions, colors, sounds, particles, word
@@ -1665,7 +1672,7 @@ Do not:
 - Replace Submit with ambiguous wording.
 - Show Skip after an answer is submitted.
 - Show Skip on the assessment microphone orientation or result pages.
-- Show Next before the committed result exists.
+- Show a learner-controlled Next action on an active assessment item.
 - Record a skipped lesson item as zero.
 - Treat a technical failure as a learner skip.
 - Reveal assessment item correctness before the appropriate result page.
@@ -1686,8 +1693,9 @@ The lesson and assessment interaction system is complete only when:
 3. The circular recorder is the largest speech-activity control and remains
    centered through every state.
 4. The displayed item is the second-largest element.
-5. Record, Stop, Play, Pause, Retry, Submit, Processing, Result, Skip, and Next
-   states follow this document exactly.
+5. Record, Stop, Play, Pause, Retry, Submit, Processing, Result, Skip,
+   assessment automatic advance, and lesson Next states follow this document
+   exactly.
 6. Lesson and assessment Skip rules are enforced by state, not visual
    convention alone; assessment skips persist as distinct zero-score responses.
 7. Discarded review recordings do not become scored attempts.
@@ -1696,8 +1704,9 @@ The lesson and assessment interaction system is complete only when:
 10. Assessment presentation preserves every fixed task, item count, branch,
     timer, and scoring rule.
 11. Component tests cover every interaction-state transition.
-12. API tests prove that Retry, Submit, Skip, technical failure, result, and
-    Next persist the correct distinct states.
+12. API tests prove that Retry, Submit, Skip, technical failure, result,
+    assessment automatic advance, and lesson Next persist the correct distinct
+    states.
 13. Playwright validates mobile-small, mobile-primary, mobile-large, tablet,
     desktop, and desktop-large layouts.
 14. Reduced-motion, keyboard, touch, audio failure, save failure, and refreshed

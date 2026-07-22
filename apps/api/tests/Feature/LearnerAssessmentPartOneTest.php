@@ -32,7 +32,7 @@ final class LearnerAssessmentPartOneTest extends TestCase
         $this->assertDatabaseCount('assessment_runs', 1);
     }
 
-    public function test_orientation_and_letter_submission_use_asr_without_revealing_correctness(): void
+    public function test_orientation_and_letter_submission_use_asr_and_advance_without_revealing_correctness(): void
     {
         Http::fake([
             'http://127.0.0.1:8001/mu/transcribe' => Http::response([
@@ -51,16 +51,13 @@ final class LearnerAssessmentPartOneTest extends TestCase
             ->post('/api/learners/assessments/part-one/start')
             ->json('run_id');
 
-        $this->withToken($token)
+        $letter = $this->withToken($token)
             ->post("/api/learners/assessments/part-one/{$runId}/orientation", [
                 'audio' => UploadedFile::fake()->create('ready.webm', 12, 'audio/webm'),
             ])
             ->assertOk()
-            ->assertJsonPath('orientation_ready', true);
-
-        $letter = $this->withToken($token)
-            ->post("/api/learners/assessments/part-one/{$runId}/advance")
             ->assertJsonPath('stage', 'task-1a')
+            ->assertJsonPath('orientation_ready', true)
             ->assertJsonPath('item.display_text', 'A a')
             ->json('item');
 
@@ -70,7 +67,10 @@ final class LearnerAssessmentPartOneTest extends TestCase
                 'audio' => UploadedFile::fake()->create('letter.webm', 12, 'audio/webm'),
             ])
             ->assertOk()
-            ->assertJsonPath('response_committed', true)
+            ->assertJsonPath('response_committed', false)
+            ->assertJsonPath('progress.current', 2)
+            ->assertJsonPath('progress.completed', 1)
+            ->assertJsonPath('item.display_text', 'C c')
             ->assertJsonMissing(['decision' => 'CORRECT'])
             ->assertJsonMissing(['score' => 1]);
 
@@ -80,6 +80,29 @@ final class LearnerAssessmentPartOneTest extends TestCase
             'decision' => 'CORRECT',
             'score' => 1,
         ]);
+    }
+
+    public function test_resume_advances_past_a_legacy_committed_item(): void
+    {
+        [$token, $run] = $this->createRunAtTask('task-1a');
+        $item = $run->content_snapshot['task-1a'][0];
+        AssessmentResponse::query()->create([
+            'assessment_run_id' => $run->id,
+            'task_key' => 'task-1a',
+            'item_key' => $item['item_key'],
+            'item_order' => (int) $item['sort_order'],
+            'response_type' => 'speech',
+            'decision' => 'CORRECT',
+            'score' => 1,
+        ]);
+
+        $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->assertOk()
+            ->assertJsonPath('stage', 'task-1a')
+            ->assertJsonPath('progress.current', 2)
+            ->assertJsonPath('response_committed', false)
+            ->assertJsonPath('item.display_text', 'C c');
     }
 
     public function test_skipping_commits_a_distinct_zero_score_and_advances_automatically(): void
@@ -107,6 +130,35 @@ final class LearnerAssessmentPartOneTest extends TestCase
             'score' => 0,
         ]);
 
+        $this->assertSame(1, $run->fresh()->current_item_index);
+    }
+
+    public function test_rhyme_submission_commits_and_advances_without_a_separate_next_action(): void
+    {
+        [$token, $run] = $this->createRunAtTask('task-2a');
+        $item = $run->content_snapshot['task-2a'][0];
+
+        $this->withToken($token)
+            ->postJson("/api/learners/assessments/part-one/{$run->id}/rhyme", [
+                'item_key' => $item['item_key'],
+                'choice' => $item['correct_response'],
+            ])
+            ->assertOk()
+            ->assertJsonPath('stage', 'task-2a')
+            ->assertJsonPath('progress.current', 2)
+            ->assertJsonPath('progress.completed', 1)
+            ->assertJsonPath('response_committed', false)
+            ->assertJsonMissing(['decision' => 'CORRECT'])
+            ->assertJsonMissing(['score' => 1]);
+
+        $this->assertDatabaseHas('assessment_responses', [
+            'assessment_run_id' => $run->id,
+            'task_key' => 'task-2a',
+            'item_key' => $item['item_key'],
+            'response_type' => 'choice',
+            'decision' => 'CORRECT',
+            'score' => 1,
+        ]);
         $this->assertSame(1, $run->fresh()->current_item_index);
     }
 

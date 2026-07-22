@@ -8,10 +8,13 @@ import { StaffShell } from "../../components/staff/StaffShell";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { saveLearnerSession } from "../learner-auth/learnerApi";
 import {
   clearStaffSession,
   getPortalSystemLearner,
+  launchPortalSystemLearner,
   loadStaffSession,
+  type PortalTargetKey,
   resetPortalSystemLearner,
 } from "../staff-auth/staffApi";
 
@@ -43,7 +46,11 @@ export function SystemAdminPagePortalsPage() {
     session?.staff.display_name ?? "System Administrator";
   const exitCommit = useButtonCommit();
   const resetCommit = useButtonCommit();
+  const launchCommit = useButtonCommit();
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [selectedTarget, setSelectedTarget] = useState<PortalTargetKey | null>(
+    null,
+  );
   const portalQuery = useQuery({
     queryKey: ["system-admin-page-portals", staffUserId],
     queryFn: () => getPortalSystemLearner(staffUserId as number),
@@ -57,6 +64,18 @@ export function SystemAdminPagePortalsPage() {
         data,
       );
       setConfirmingReset(false);
+    },
+  });
+  const launchMutation = useMutation({
+    mutationFn: (targetKey: PortalTargetKey) =>
+      launchPortalSystemLearner(staffUserId as number, targetKey),
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        ["system-admin-page-portals", staffUserId],
+        data,
+      );
+      saveLearnerSession(data.launch.learner_session);
+      navigate(data.launch.route);
     },
   });
   const learner = portalQuery.data?.learner;
@@ -253,29 +272,75 @@ export function SystemAdminPagePortalsPage() {
                 <p>Workflow destinations</p>
                 <h2>Choose a starting page</h2>
               </div>
-              <span>Preparing</span>
+              <span>
+                {portalQuery.data?.portal_launch.available
+                  ? "Part 1 ready"
+                  : "Preparing"}
+              </span>
             </header>
 
-            <div className="staff-portal-placeholder">
-              <span
-                className="staff-portal-placeholder__mark"
-                aria-hidden="true"
-              >
-                →
-              </span>
-              <div>
-                <strong>Portal launching is not active yet</strong>
-                <p>
-                  {portalQuery.data?.portal_launch.reason ??
-                    "Waiting for the learner workflow records."}
-                </p>
+            {portalQuery.data?.portal_launch.available ? (
+              <div className="staff-portal-target-grid">
+                {portalQuery.data.portal_launch.targets.map((target) => (
+                  <article className="staff-portal-target" key={target.key}>
+                    <div>
+                      <span>{target.task}</span>
+                      <h3>{target.label}</h3>
+                      <p>{target.description}</p>
+                    </div>
+                    <BigButton
+                      variant="secondary"
+                      size="regular"
+                      aria-label={`Open ${target.label} portal`}
+                      disabled={launchMutation.isPending}
+                      committing={
+                        selectedTarget === target.key && launchCommit.committing
+                      }
+                      busy={
+                        selectedTarget === target.key &&
+                        launchMutation.isPending
+                      }
+                      busyLabel="Opening"
+                      onClick={() => {
+                        setSelectedTarget(target.key);
+                        launchCommit.commit(() =>
+                          launchMutation.mutate(target.key),
+                        );
+                      }}
+                    >
+                      Open portal
+                    </BigButton>
+                  </article>
+                ))}
               </div>
-            </div>
+            ) : (
+              <div className="staff-portal-placeholder">
+                <span
+                  className="staff-portal-placeholder__mark"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
+                <div>
+                  <strong>Portal launching is not active yet</strong>
+                  <p>
+                    {portalQuery.data?.portal_launch.reason ??
+                      "Waiting for the learner workflow records."}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {launchMutation.isError ? (
+              <p className="staff-portal-error" role="alert">
+                {launchMutation.error.message}
+              </p>
+            ) : null}
 
             <p className="staff-portal-note">
-              Destinations will appear only after Diagnostic Assessment and
-              lesson progress can be saved truthfully. No simulated completion
-              records are being invented.
+              Each launch resets Kristen, creates persisted prerequisite Part 1
+              records, and opens the chosen checkpoint. Lesson destinations
+              remain unavailable until their real save workflow exists.
             </p>
           </Surface>
         </div>

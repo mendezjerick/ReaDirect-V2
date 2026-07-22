@@ -170,6 +170,7 @@ describe("AssessmentPartOnePage", () => {
     );
     await act(async () => undefined);
     expect(speechMocks.play).not.toHaveBeenCalled();
+    expect(document.querySelector(".clara-speech-loader")).toBeNull();
 
     await waitFor(() => expect(live2dMocks.setState).toBeTypeOf("function"));
     act(() => live2dMocks.setState?.("ready"));
@@ -224,13 +225,13 @@ describe("AssessmentPartOnePage", () => {
     );
   });
 
-  it("expands Next to the full action slot after a normal submission", async () => {
+  it("does not expose a Next action for a committed assessment item", async () => {
     speechMocks.prepare.mockResolvedValue(new Blob(["wave"]));
     speechMocks.play.mockResolvedValue({
       finished: Promise.resolve(),
       stop: vi.fn(),
     });
-    renderAssessment({
+    const { container } = renderAssessment({
       run_id: 6,
       assessment_type: "diagnostic",
       stage: "task-1a",
@@ -246,11 +247,19 @@ describe("AssessmentPartOnePage", () => {
       result: null,
     });
 
-    const next = await screen.findByRole("button", { name: "Next" });
-    expect(next).toBeEnabled();
-    expect(next.closest(".assessment-action-slot")).not.toHaveAttribute(
-      "data-assessment-action-split",
+    await screen.findByRole("heading", { name: "Letters" });
+    expect(container.querySelector(".assessment-item")).toHaveAttribute(
+      "data-response-state",
+      "committed",
     );
+    expect(container.querySelectorAll(".assessment-letter-tile")).toHaveLength(
+      2,
+    );
+    expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Submit" })).toBeDisabled();
+    expect(
+      container.querySelector(".assessment-action-slot"),
+    ).not.toHaveAttribute("data-assessment-action-split");
     expect(screen.queryByRole("button", { name: "Skip" })).toBeNull();
   });
 
@@ -311,9 +320,104 @@ describe("AssessmentPartOnePage", () => {
     await waitFor(() =>
       expect(
         container.querySelector(".assessment-item__prompt strong"),
-      ).toHaveTextContent("B b"),
+      ).toHaveAttribute("aria-label", "B b"),
     );
     expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
     expect(screen.getByRole("button", { name: "Skip" })).toBeEnabled();
+  });
+
+  it("advances rhyme choices immediately after Submit without showing Next", async () => {
+    speechMocks.prepare.mockResolvedValue(new Blob(["wave"]));
+    speechMocks.play.mockResolvedValue({
+      finished: Promise.resolve(),
+      stop: vi.fn(),
+    });
+    const activeRhyme = {
+      run_id: 9,
+      assessment_type: "diagnostic",
+      stage: "task-2a",
+      orientation_ready: true,
+      progress: { current: 1, total: 10, completed: 0 },
+      item: {
+        item_key: "task2a-cat-hat",
+        word_one: "cat",
+        word_two: "hat",
+      },
+      response_committed: false,
+      result: null,
+    };
+    const { container } = renderAssessment(activeRhyme, [
+      {
+        ...activeRhyme,
+        progress: { current: 2, total: 10, completed: 1 },
+        item: {
+          item_key: "task2a-sun-fan",
+          word_one: "sun",
+          word_two: "fan",
+        },
+      },
+    ]);
+
+    expect(
+      await screen.findByRole("heading", { name: "Rhyme check" }),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(live2dMocks.setState).toBeTypeOf("function"));
+    act(() => live2dMocks.setState?.("ready"));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "yes" })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "yes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenLastCalledWith(
+        "/api/learners/assessments/part-one/9/rhyme",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            item_key: "task2a-cat-hat",
+            choice: "yes",
+          }),
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(
+        container.querySelector(".assessment-rhyme__words"),
+      ).toHaveTextContent("sunfan"),
+    );
+    expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+  });
+
+  it("assembles Task 2B words as one neutral animated item", async () => {
+    speechMocks.prepare.mockResolvedValue(new Blob(["wave"]));
+    speechMocks.play.mockResolvedValue({
+      finished: Promise.resolve(),
+      stop: vi.fn(),
+    });
+    const { container } = renderAssessment({
+      run_id: 8,
+      assessment_type: "diagnostic",
+      stage: "task-2b",
+      orientation_ready: true,
+      progress: { current: 3, total: 10, completed: 2 },
+      item: {
+        item_key: "task2b-cat",
+        display_text: "cat",
+      },
+      response_committed: false,
+      result: null,
+    });
+
+    expect(
+      await screen.findByRole("heading", { name: "Words" }),
+    ).toBeInTheDocument();
+    const assembly = container.querySelector(".assessment-word-assembly");
+    expect(assembly).toHaveAttribute("aria-label", "cat");
+    expect(assembly?.querySelectorAll("span")).toHaveLength(3);
+    expect(container.querySelector(".assessment-item")).toHaveAttribute(
+      "data-response-state",
+      "active",
+    );
   });
 });

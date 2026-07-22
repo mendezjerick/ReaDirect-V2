@@ -141,6 +141,8 @@
 
 .assessment-stage {
   display: grid;
+  width: 100%;
+  height: 100%;
   min-height: 0;
   place-items: center;
 }
@@ -187,6 +189,37 @@
 
 .assessment-item[data-stage="task-2b"] .assessment-item__prompt strong {
   font-size: clamp(2.75rem, 13vw, 5.25rem);
+}
+
+.assessment-letter-pair {
+  justify-content: center;
+  gap: clamp(0.18em, 3vw, 0.32em);
+}
+
+.assessment-letter-tile {
+  display: grid;
+  min-width: 1.35em;
+  place-items: center;
+  border: 2px solid var(--color-border-soft);
+  border-radius: var(--radius-notice);
+  padding: 0.12em 0.2em;
+  background: var(--color-surface-panel);
+  box-shadow: 0 5px 0 var(--color-frame-depth);
+  line-height: 0.9;
+  transition: box-shadow 180ms ease-out;
+}
+
+.assessment-item[data-response-state="committed"] .assessment-letter-tile {
+  box-shadow: 0 1px 0 var(--color-frame-depth);
+}
+
+.assessment-word-assembly {
+  justify-content: center;
+  gap: 0.015em;
+}
+
+.assessment-word-assembly span {
+  display: inline-block;
 }
 
 .assessment-recorder {
@@ -419,6 +452,22 @@
   align-self: start;
 }
 
+.assessment-action-primary,
+.assessment-action-transition {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.assessment-action-primary {
+  grid-row: 1 / -1;
+}
+
+.assessment-action-transition {
+  place-items: stretch;
+}
+
 .assessment-action-slot .big-button {
   width: 100%;
   height: 100%;
@@ -427,6 +476,16 @@
 .assessment-action-slot[data-assessment-action-split] {
   grid-template-rows: minmax(0, 4fr) minmax(0, 1fr);
   gap: 0.7rem;
+}
+
+.assessment-action-slot[data-assessment-action-split]
+  .assessment-action-primary {
+  grid-row: 1;
+}
+
+.assessment-action-slot[data-assessment-action-split]
+  > .big-button--skip-vertical {
+  grid-row: 2;
 }
 
 .assessment-action-slot[data-assessment-action-split] .big-button {
@@ -726,7 +785,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .assessment-recorder__control,
-  .assessment-rhyme__choices button {
+  .assessment-rhyme__choices button,
+  .assessment-letter-tile {
     transition: none;
   }
 

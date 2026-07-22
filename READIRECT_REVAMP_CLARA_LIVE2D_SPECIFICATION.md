@@ -253,7 +253,7 @@ Reference structure:
 ```tsx
 <figure className="clara-stage" aria-label="Ma'am Clara">
   <div className="clara-stage__loader" aria-hidden="true">
-    <span className="clara-stage__loader-pulse" />
+    <span className="clara-stage__loader-wave" />
     <span className="clara-stage__loader-cover" />
   </div>
   <div className="clara-stage__viewport">
@@ -723,20 +723,22 @@ The stage has four visual runtime states:
 
 | State       | Presentation                                                    |
 | ----------- | --------------------------------------------------------------- |
-| `loading`   | Show the centered CSS pulse while Live2D initializes invisibly  |
-| `revealing` | Expand the pulse into the full-screen hair-color transition      |
-| `ready`     | Hide the transition and show the first-rendered Live2D canvas    |
-| `error`     | Keep a static muted CSS pulse and continue blocking Clara speech |
+| `loading`   | Show the centered CSS wave while Live2D initializes invisibly   |
+| `revealing` | Expand the wave core into the full-screen hair-color transition |
+| `ready`     | Hide the transition and show the first-rendered Live2D canvas   |
+| `error`     | Keep a static muted CSS core and continue blocking Clara speech |
 
-The loading indicator is CSS-only. Its base circle is `40px` (`2.5rem`), which
-is 200% of the original `20px` pulse. It uses
-`--color-clara-loader-pulse` and pulses on a `1200ms` loop. It must not use a
-PNG, GIF, video, encoded SVG, canvas animation, or third-party loader package.
-Both `--color-clara-loader-pulse` and `--color-clara-loader-cover` must resolve
-to `--color-clara-hair`, so the pulse and complete viewport cover always match
-Clara's theme-aware primary hair color.
+The loading indicator is CSS-only. Its solid core is `40px` (`2.5rem`), which
+is 200% of the original `20px` indicator. Two circular outline waves expand
+from that core on a `1500ms` loop; the second wave starts `600ms` after the
+first. The waves must be made with the core element's `::before` and `::after`
+pseudo-elements. It must not use a PNG, GIF, video, encoded SVG, canvas
+animation, or third-party loader package. Both `--color-clara-loader-wave` and
+`--color-clara-loader-cover` must resolve to `--color-clara-hair`, so the wave
+and complete viewport cover always match Clara's theme-aware primary hair
+color.
 
-The pulse origin is the measured center of Clara's canonical square stage, not
+The wave origin is the measured center of Clara's canonical square stage, not
 the center of the screen. The shared stage must update this origin when its
 square or the viewport resizes. The loader is portaled to the document body so
 its full-screen cover cannot be trapped beneath the Clara dock, activity
@@ -747,7 +749,7 @@ hidden. Only after that successful first render may it report renderer-ready
 and start this exact `3000ms` visual sequence:
 
 ```text
-0ms    pulse begins expanding from the center of Clara's square
+0ms    wave core begins expanding from the center of Clara's square
 2000ms hair-color cover fills the viewport; reveal Live2D underneath
 2200ms full-cover hold ends
 3000ms cover reaches zero opacity; stage reports ready
@@ -763,7 +765,7 @@ uses the final `800ms` for a slower seamless fade.
 The external Clara readiness gate must remain closed for both `loading` and
 `revealing`. It changes to `ready` only after the complete three-second reveal,
 so TTS cannot begin behind the active cover. Under `prefers-reduced-motion`, skip
-the pulse and cover animation, reveal the first-rendered canvas immediately,
+the wave and cover animation, reveal the first-rendered canvas immediately,
 and then report ready.
 
 The loader is a fixed viewport overlay and temporarily blocks pointer and touch
@@ -772,12 +774,55 @@ page content but below an active route-level Link Start transition. It must not
 change the Clara canvas dimensions, model matrix, crop, placement, scale, or
 motion behavior.
 
+### TTS Warm-Up Loader and Loader Priority
+
+Every learner flow that prepares Clara speech must use the shared
+`ClaraSpeechWarmupLoader`. This second loader represents voice preparation
+only; it must never be used as a substitute for the Live2D wave and reveal.
+
+The loading hierarchy is mandatory:
+
+```text
+route-level transition
+  > Clara Live2D wave and reveal
+  > Clara TTS warm-up cube
+  > interactive page
+```
+
+The TTS request may continue in parallel while Live2D loads, but the cube must
+not render until `ClaraStage` reports `ready`. If the voice is ready before the
+model reveal finishes, the cube is skipped completely. If the model becomes
+unready while the cube is present, remove the cube immediately so its exit fade
+cannot overlap the higher-priority model loader.
+
+While visible, the TTS loader must:
+
+- use a fixed viewport overlay and remain centered on the screen, independent
+  of Clara's stage position;
+- block pointer and touch input;
+- dim the page by exactly 20% through
+  `--color-clara-speech-loader-scrim`;
+- render the shared CSS-only wireframe cube using
+  `--color-clara-speech-loader-line` and
+  `--color-clara-speech-loader-glow`;
+- rotate on a continuous `2000ms` linear loop;
+- fade in and out over `420ms` with an ease-in-out curve;
+- fade away as soon as the requested speech blob is ready, before ordinary
+  learner interaction becomes available; and
+- disable cube rotation and remove fade duration under
+  `prefers-reduced-motion`.
+
+The cube, glow, and scrim colors must remain semantic design tokens. Page
+components may not hard-code loader colors or create private TTS spinners.
+
 Accessibility requirements:
 
 - The figure must use `aria-label="Ma'am Clara"`.
 - The canvas must use `aria-hidden="true"` because the figure supplies the
   accessible name.
-- The visual pulse and cover must use `aria-hidden="true"`.
+- The visual wave and cover must use `aria-hidden="true"`.
+- The TTS cube itself must be hidden from assistive technology while its fixed
+  overlay exposes one polite `status` named `Preparing Ma'am Clara's voice`.
 - Loading, error, and ready states must be announced through one visually
   hidden status region owned by the shared Clara stage.
 - The canvas must not accept pointer events.
@@ -841,9 +886,11 @@ A Ma'am Clara implementation is compliant only when:
 - [ ] Clara's colors are read from semantic theme variables.
 - [ ] No platform or ground decoration is present.
 - [ ] The background remains transparent and visually minimal.
-- [ ] The CSS pulse and three-second hair-color reveal replace the raster
+- [ ] The CSS wave and three-second hair-color reveal replace the raster
       fallback.
 - [ ] Ready is reported only after the first frame and reveal both complete.
+- [ ] TTS warm-up uses the centered shared cube only after Clara is ready.
+- [ ] The model wave and TTS cube never appear simultaneously.
 - [ ] Reduced-motion behavior is respected.
 - [ ] Mouse and pen hover drive Clara's eyes, gentle head follow, and slight
       body sway without moving the fixed crop.

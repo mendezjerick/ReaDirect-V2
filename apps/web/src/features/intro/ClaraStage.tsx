@@ -164,7 +164,7 @@ export function ClaraStage({
               style={loaderStyle}
               aria-hidden="true"
             >
-              <span className="clara-stage__loader-pulse" />
+              <span className="clara-stage__loader-wave" />
               <span
                 ref={revealCoverRef}
                 className="clara-stage__loader-cover"

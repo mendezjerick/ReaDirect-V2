@@ -141,6 +141,41 @@ describe("LessonIntroPage", () => {
     expect(screen.getByText("Ready!")).toBeInTheDocument();
   });
 
+  it("shows the centered TTS loader only after the model loader is gone", async () => {
+    let finishPreparing: ((speech: Blob) => void) | undefined;
+    const prepared = new Promise<Blob>((resolve) => {
+      finishPreparing = resolve;
+    });
+    speechMocks.prepare.mockReturnValue(prepared);
+    speechMocks.play.mockResolvedValue({
+      finished: Promise.resolve(),
+      stop: vi.fn(),
+    });
+
+    renderLessonIntro();
+
+    await waitFor(() => expect(speechMocks.prepare).toHaveBeenCalledOnce());
+    expect(document.querySelector(".clara-stage__loader-wave")).toBeTruthy();
+    expect(document.querySelector(".clara-speech-loader")).toBeNull();
+
+    await waitFor(() => expect(live2dMocks.setState).toBeTypeOf("function"));
+    act(() => live2dMocks.setState?.("ready"));
+
+    expect(document.querySelector(".clara-stage__loader")).toBeNull();
+    expect(document.querySelector(".clara-speech-loader")).toBeTruthy();
+    expect(
+      screen.getByRole("status", {
+        name: "Preparing Ma'am Clara's voice",
+      }),
+    ).toBeInTheDocument();
+
+    await act(async () => finishPreparing?.(new Blob(["wave"])));
+
+    await waitFor(() =>
+      expect(document.querySelector(".clara-speech-loader")).toBeNull(),
+    );
+  });
+
   it("keeps Continue disabled and offers retry when speech fails", async () => {
     speechMocks.prepare.mockRejectedValue(new Error("TTS unavailable"));
 

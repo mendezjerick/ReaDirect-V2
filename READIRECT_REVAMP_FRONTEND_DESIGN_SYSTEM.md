@@ -1109,6 +1109,12 @@ page-level preference.
 - The fixed CSS loading reveal originates from the center of the model's
   canonical square viewport but must not resize, reposition, or replace that
   viewport, so the ready state causes no layout shift.
+- Clara voice preparation must use the shared fixed-viewport TTS cube loader.
+  It stays centered on the screen, dims the interface by 20%, blocks input,
+  and fades away when the requested speech is ready.
+- The Clara model wave/reveal always outranks the TTS loader. A page must never
+  display both loaders at once; TTS may warm in parallel while its loader stays
+  suppressed behind the model loader.
 - Character stages must not include circular platforms, pedestals, ground
   ellipses, or similar decorations below the character.
 - Keep the character background transparent or use the page's plain solid

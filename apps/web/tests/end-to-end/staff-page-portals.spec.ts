@@ -14,9 +14,41 @@ const portalState = {
     active_portal_run: null,
   },
   portal_launch: {
-    available: false,
+    available: true,
     reason:
-      "Portal destinations will activate after assessment and lesson save records are implemented.",
+      "Assessment Part 1 checkpoints are ready. Lesson checkpoints remain unavailable until their persisted workflow exists.",
+    targets: [
+      {
+        key: "assessment-orientation",
+        label: "Microphone check",
+        description: "Open Part 1 before the first scored item.",
+        task: "Setup",
+      },
+      {
+        key: "assessment-task-1a",
+        label: "Letters",
+        description: "Start Task 1A at its first letter pair.",
+        task: "Task 1A",
+      },
+      {
+        key: "assessment-task-2a",
+        label: "Rhyme Yes / No",
+        description: "Use the low branch and open its first rhyme pair.",
+        task: "Task 2A",
+      },
+      {
+        key: "assessment-task-2b",
+        label: "Words",
+        description: "Use the high branch and open its first word.",
+        task: "Task 2B",
+      },
+      {
+        key: "assessment-part-1-results",
+        label: "Part 1 Results",
+        description: "Open a persisted high-branch Part 1 result.",
+        task: "Result",
+      },
+    ],
   },
 };
 
@@ -69,6 +101,9 @@ test("System Admin Page Portals protects Kristen across viewports", async ({
   ).toBeVisible();
   await expect(page.getByText("Kristen Rhine Wright")).toBeVisible();
   await expect(page.getByText("Excluded")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open Rhyme Yes / No portal" }),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Reset Kristen's progress" }).click();
   await expect(page.getByText("Reset Kristen now?")).toBeVisible();
