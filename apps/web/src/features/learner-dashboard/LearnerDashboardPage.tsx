@@ -2,7 +2,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useRouteTransition } from "../../components/transitions/RouteTransitionProvider";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
@@ -77,7 +76,7 @@ function TrophyIcon() {
 
 export function LearnerDashboardPage() {
   const navigate = useNavigate();
-  const { beginRouteTransition, isTransitioning } = useRouteTransition();
+  const readingCommit = useButtonCommit();
   const gamesCommit = useButtonCommit();
   const logoutCommit = useButtonCommit();
   const storedSession = loadLearnerSession();
@@ -115,10 +114,7 @@ export function LearnerDashboardPage() {
       void prepareClaraSpeech("lesson-intro", storedSession.token);
     }
 
-    beginRouteTransition({
-      destination: "/learner/lesson-intro",
-      variant: "white",
-    });
+    readingCommit.commit(() => navigate("/learner/lesson-intro"));
   };
 
   if (!storedSession || sessionQuery.isError) {
@@ -214,13 +210,13 @@ export function LearnerDashboardPage() {
           <BigButton
             className="learner-dashboard__primary-action"
             aria-label="Start Diagnostic Assessment"
-            committing={isTransitioning}
+            committing={readingCommit.committing}
             onClick={openNextReadingActivity}
           >
             Start Diagnostic
           </BigButton>
           <p className="learner-dashboard__notice" aria-live="polite">
-            {isTransitioning ? "Getting Ma'am Clara ready..." : ""}
+            {readingCommit.committing ? "Getting Ma'am Clara ready..." : ""}
           </p>
         </Surface>
 

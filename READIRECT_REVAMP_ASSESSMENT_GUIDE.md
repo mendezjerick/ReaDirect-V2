@@ -2,7 +2,7 @@
 
 Purpose: define the ReaDirect Assessment task rules for the revamp.
 
-Learner-facing assessment layout, recorder review, Retry, Submit, no-Skip
+Learner-facing assessment layout, recorder review, Retry, Submit, Skip
 behavior, neutral item feedback, and responsive interaction are defined by
 `READIRECT_REVAMP_LESSON_AND_ASSESSMENT_INTERACTION_STANDARD.md`.
 
@@ -421,8 +421,11 @@ assessment run:
 - `assessment_runs` stores the fixed `v1` content snapshot, current stage,
   current item, branch, separate task scores, Part 1 score, and Part 1 level.
 - `assessment_responses` stores the committed choice or speech scoring
-  response, private audio evidence, raw transcript, scoring transcript,
-  decision, score, and resolver evidence.
+  response, or a distinct learner-selected skip. A skip is stored with
+  `response_type = skipped`, `decision = SKIPPED`, and `score = 0`; it carries
+  no audio or transcript evidence. Submitted responses retain private audio
+  evidence, raw transcript, scoring transcript, decision, score, and resolver
+  evidence as applicable.
 - Laravel imports the active shared Part 1 CSV rows into the immutable run
   snapshot when a run begins. React never reads a root CSV.
 - Orientation, Task 1A, Task 2A, Task 2B, and Part 1 Results are served by the
@@ -431,6 +434,11 @@ assessment run:
   to React contains only the neutral committed state. `Next` performs the
   separate server-owned advance, which makes refresh resume on either the saved
   item or the next item deterministic.
+- Skip is an atomic save-and-advance action. It commits zero for the active
+  scored item and opens the following item in the same server operation without
+  exposing `Next`. It is unavailable on the microphone orientation and result
+  pages. Normal Submit remains save-only and transforms into `Next` after the
+  response is committed.
 - Task 1A uses Mu plus the strict letter resolver and active global letter
   equivalences. Task 2B uses Mu plus the expected-aware Equivalence Book
   resolver. Task 2A never calls ASR.

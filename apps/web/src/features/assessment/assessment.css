@@ -424,6 +424,26 @@
   height: 100%;
 }
 
+.assessment-action-slot[data-assessment-action-split] {
+  grid-template-rows: minmax(0, 4fr) minmax(0, 1fr);
+  gap: 0.7rem;
+}
+
+.assessment-action-slot[data-assessment-action-split] .big-button {
+  min-height: 0;
+  padding-block: 0.45rem;
+}
+
+.assessment-action-slot[data-assessment-action-split]
+  .big-button--primary-vertical
+  .big-button__icon,
+.assessment-action-slot[data-assessment-action-split]
+  .big-button--unavailable-vertical
+  .big-button__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 .assessment-result {
   position: relative;
   display: grid;

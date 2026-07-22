@@ -760,6 +760,20 @@ Use for optional or low-priority actions.
 - Text label is preferred over an icon-only control.
 - Must still show a visible keyboard focus ring.
 
+#### Assessment Skip button
+
+Use the shared `skip-vertical` variant only for a learner-selected assessment
+skip before an answer is committed.
+
+- The surface is fixed across themes through
+  `--color-action-skip-surface: #FFFAFA`.
+- Hover, pressed, border, and fake-shadow colors use the corresponding
+  `--color-action-skip-*` variables and must never be hard-coded in a component.
+- It remains visually secondary in the lower 20% of the assessment action
+  dock before submission. Submit occupies the upper 80%; once committed, Skip
+  disappears and the replacement Next expands to 100% of the action column.
+- It retains the standard tactile commit animation and accessible focus ring.
+
 Destructive buttons are normally staff-facing and must not visually resemble a
 learner's positive primary action.
 

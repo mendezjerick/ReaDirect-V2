@@ -81,9 +81,10 @@ without the `ReaDirect` title or theme selector: plain themed surface, the
 canonical square Clara stage at the bottom, and one primary button labeled
 `Continue`.
 
-The dashboard click must synchronously unlock browser audio, begin the
-deduplicated named Clara speech request, and invoke the approved white Link
-Start variant. Lesson Intro then reuses the pending or completed request. Clara
+The dashboard click must synchronously unlock browser audio and begin the
+deduplicated named Clara speech request. After the shared tactile button commit,
+the dashboard navigates directly without a Link Start overlay. Lesson Intro
+then reuses the pending or completed request. Clara
 uses `happy + speaking` for the line; `speaking` becomes true only during actual
 playback. Speech preparation and Live2D initialization run in parallel, but
 playback begins only after both are ready. The CSS pulse, active hair-color
@@ -554,15 +555,34 @@ skipped
 technical_failure
 ```
 
-## Assessment Navigation Rule
+## Assessment Skip And Navigation Rule
 
-Assessments never show Skip.
+Scored assessment items show Skip before a response is committed. The
+unscored microphone orientation and result pages never show Skip.
 
-| Assessment item state | Navigation slot |
+| Assessment item state | Action slot |
 |---|---|
-| Before submission | Empty |
-| Submitted and processing | Empty |
-| Committed response available | Next |
+| Before submission | Submit 80% above Skip 20% |
+| Recording or playback active | Skip remains visible but unavailable |
+| Submitted and processing | Both actions remain unavailable |
+| Committed submitted response | Skip disappears and Submit transforms into full-height Next |
+| Skip processing | Save zero, then automatically open the following item |
+
+Before submission, the scored-item action slot uses an `80% / 20%` vertical
+split: Submit occupies the upper 80% and Skip occupies the lower 20%. After a
+normal submission is committed, Skip disappears, the split is removed, and
+Submit transforms into a Next button that fills 100% of the action column.
+Skip uses the shared fixed-color `skip-vertical` button variant: `#FFFAFA`
+surface through
+`--color-action-skip-surface`, with all border, hover, pressed, and fake-depth
+colors supplied by semantic variables.
+
+Pressing Skip follows the tactile commit delay, persists a distinct response
+with `response_type = skipped`, `decision = SKIPPED`, and `score = 0`, and then
+atomically advances to the following assessment item. It never reveals an
+intermediate Next button. Skip never sends an unsubmitted recording to ASR,
+and it must be unavailable while recording, playing, uploading, ASR, or scoring
+is active.
 
 Pre-submission Retry remains available for speech assessment items. After a
 valid submission, the response is final. A recording can return to review only
@@ -1173,6 +1193,13 @@ Assessment Task 3B is distinct from Lesson 6 spoken comprehension.
 These screens define how the fixed assessment feels interactive without
 changing its content or revealing correctness.
 
+Every scored-item wireframe in this section inherits the canonical assessment
+action dock even when its compact text row labels only the primary action:
+Submit occupies the upper 80%, Skip occupies the lower 20%, a committed normal
+response replaces both with a 100%-height Next button, and Skip commits zero
+then advances automatically without showing Next. The microphone orientation,
+story selection, and result screens remain non-skippable.
+
 ### Assessment orientation screen
 
 Before scored items:
@@ -1234,6 +1261,7 @@ animation regardless of `CORRECT`, `UNCERTAIN`, `INCORRECT`, `SILENCE`,
 `UNKNOWN`, or `UNUSABLE_AUDIO`. Browser-side capture failure may be corrected
 before Submit. Once the scoring response is committed, its Assessment Guide
 score applies without revealing the decision during the active task.
+Before submission, Skip follows the shared zero-score automatic-advance rule.
 
 ### Task 2A screen — Rhyme Check
 
@@ -1272,6 +1300,7 @@ Rules:
   response saves.
 - The same neutral lock animation is used for correct and incorrect choices.
 - Next appears after persistence.
+- Before submission, Skip follows the shared zero-score automatic-advance rule.
 
 ### Task 2B screen — Word Pronunciation
 
@@ -1296,6 +1325,7 @@ Rules:
 - The committed result receives neutral `Answer saved` feedback.
 - No matching or non-matching transcript is revealed while Task 2B remains
   active.
+- Before submission, Skip follows the shared zero-score automatic-advance rule.
 
 ### Part 1 Score screen
 
@@ -1388,7 +1418,9 @@ Interaction rules:
 - Submit may be used after capture without forcing a full one-minute playback.
 - Play remains available for optional review.
 - Retry appears only after playback and restarts the entire passage attempt.
-- No Skip appears at any point.
+- Before submission, Skip follows the shared zero-score automatic-advance rule.
+  It discards any unsubmitted local capture and advances to Task 3B without an
+  intermediate Next button.
 - Unread words remain governed by the Assessment Guide.
 
 ### Task 3B screen — Four-choice comprehension
@@ -1430,7 +1462,8 @@ Interaction:
 6. The processing state reveals neither correctness nor the correct tile.
 7. `Answer saved` appears neutrally.
 8. Next appears only after the selected choice is persisted.
-9. No recorder, Retry, or Skip is shown.
+9. No recorder or Retry is shown; Skip remains available until the selected
+   response is committed.
 
 ### Neutral assessment result behavior
 
@@ -1496,6 +1529,10 @@ item_skipped
 item_completed
 next_selected
 ```
+
+Assessment skips emit `assessment_item_skipped` separately from incorrect
+submitted answers. The persisted zero affects the assessment score, while the
+distinct skipped response type preserves the omission for later analysis.
 
 Lesson skip analytics should retain:
 
@@ -1627,7 +1664,7 @@ Do not:
 - Upload or score audio merely because recording stopped.
 - Replace Submit with ambiguous wording.
 - Show Skip after an answer is submitted.
-- Show Skip anywhere in an assessment.
+- Show Skip on the assessment microphone orientation or result pages.
 - Show Next before the committed result exists.
 - Record a skipped lesson item as zero.
 - Treat a technical failure as a learner skip.
@@ -1651,8 +1688,8 @@ The lesson and assessment interaction system is complete only when:
 4. The displayed item is the second-largest element.
 5. Record, Stop, Play, Pause, Retry, Submit, Processing, Result, Skip, and Next
    states follow this document exactly.
-6. Lesson Skip and assessment no-Skip rules are enforced by state, not visual
-   convention alone.
+6. Lesson and assessment Skip rules are enforced by state, not visual
+   convention alone; assessment skips persist as distinct zero-score responses.
 7. Discarded review recordings do not become scored attempts.
 8. Lesson content uses no instructional images.
 9. Typography interaction remains still during active reading and recording.

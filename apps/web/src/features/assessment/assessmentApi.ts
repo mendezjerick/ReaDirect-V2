@@ -135,6 +135,20 @@ export async function submitRhyme(
   );
 }
 
+export async function skipAssessmentItem(
+  token: string,
+  runId: number,
+  itemKey: string,
+): Promise<AssessmentState> {
+  return parseResponse(
+    await fetch(`/api/learners/assessments/part-one/${runId}/skip`, {
+      method: "POST",
+      headers: { ...authHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ item_key: itemKey }),
+    }),
+  );
+}
+
 export async function advancePartOne(
   token: string,
   runId: number,

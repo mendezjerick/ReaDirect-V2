@@ -5,6 +5,7 @@ type BigButtonVariant =
   | "primary-vertical"
   | "unavailable"
   | "unavailable-vertical"
+  | "skip-vertical"
   | "secondary"
   | "quiet";
 type BigButtonSize = "regular" | "large";

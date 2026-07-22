@@ -728,8 +728,9 @@ The stage has four visual runtime states:
 | `ready`     | Hide the transition and show the first-rendered Live2D canvas    |
 | `error`     | Keep a static muted CSS pulse and continue blocking Clara speech |
 
-The loading indicator is CSS-only. It is a `20px` circle, uses
-`--color-clara-loader-pulse`, and pulses on a `1200ms` loop. It must not use a
+The loading indicator is CSS-only. Its base circle is `40px` (`2.5rem`), which
+is 200% of the original `20px` pulse. It uses
+`--color-clara-loader-pulse` and pulses on a `1200ms` loop. It must not use a
 PNG, GIF, video, encoded SVG, canvas animation, or third-party loader package.
 Both `--color-clara-loader-pulse` and `--color-clara-loader-cover` must resolve
 to `--color-clara-hair`, so the pulse and complete viewport cover always match

@@ -1,4 +1,10 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -66,18 +72,27 @@ const learnerSession = {
   session: { expires_at: "2026-07-20T12:00:00+00:00" },
 };
 
-function renderAssessment(payload: object) {
+function renderAssessment(payload: object, followUpPayloads: object[] = []) {
   window.sessionStorage.setItem(
     "readirect.learner-session",
     JSON.stringify(learnerSession),
   );
+  const responses = [payload, ...followUpPayloads];
+  let responseIndex = 0;
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue(
-      new Response(JSON.stringify(payload), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
+    vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify(
+            responses[Math.min(responseIndex++, responses.length - 1)],
+          ),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      ),
     ),
   );
 
@@ -207,5 +222,98 @@ describe("AssessmentPartOnePage", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled(),
     );
+  });
+
+  it("expands Next to the full action slot after a normal submission", async () => {
+    speechMocks.prepare.mockResolvedValue(new Blob(["wave"]));
+    speechMocks.play.mockResolvedValue({
+      finished: Promise.resolve(),
+      stop: vi.fn(),
+    });
+    renderAssessment({
+      run_id: 6,
+      assessment_type: "diagnostic",
+      stage: "task-1a",
+      orientation_ready: true,
+      progress: { current: 1, total: 10, completed: 1 },
+      item: {
+        item_key: "task1a-a",
+        display_text: "A a",
+        uppercase_form: "A",
+        lowercase_form: "a",
+      },
+      response_committed: true,
+      result: null,
+    });
+
+    const next = await screen.findByRole("button", { name: "Next" });
+    expect(next).toBeEnabled();
+    expect(next.closest(".assessment-action-slot")).not.toHaveAttribute(
+      "data-assessment-action-split",
+    );
+    expect(screen.queryByRole("button", { name: "Skip" })).toBeNull();
+  });
+
+  it("persists Skip and advances directly without revealing Next", async () => {
+    speechMocks.prepare.mockResolvedValue(new Blob(["wave"]));
+    speechMocks.play.mockResolvedValue({
+      finished: Promise.resolve(),
+      stop: vi.fn(),
+    });
+    const activeItem = {
+      run_id: 7,
+      assessment_type: "diagnostic",
+      stage: "task-1a",
+      orientation_ready: true,
+      progress: { current: 1, total: 10, completed: 0 },
+      item: {
+        item_key: "task1a-a",
+        display_text: "A a",
+        uppercase_form: "A",
+        lowercase_form: "a",
+      },
+      response_committed: false,
+      result: null,
+    };
+    const { container } = renderAssessment(activeItem, [
+      {
+        ...activeItem,
+        progress: { current: 2, total: 10, completed: 1 },
+        item: {
+          item_key: "task1a-b",
+          display_text: "B b",
+          uppercase_form: "B",
+          lowercase_form: "b",
+        },
+      },
+    ]);
+
+    expect(
+      await screen.findByRole("heading", { name: "Letters" }),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(live2dMocks.setState).toBeTypeOf("function"));
+    act(() => live2dMocks.setState?.("ready"));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Skip" })).toBeEnabled(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Skip" }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenLastCalledWith(
+        "/api/learners/assessments/part-one/7/skip",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ item_key: "task1a-a" }),
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(
+        container.querySelector(".assessment-item__prompt strong"),
+      ).toHaveTextContent("B b"),
+    );
+    expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Skip" })).toBeEnabled();
   });
 });

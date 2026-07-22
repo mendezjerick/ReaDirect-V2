@@ -252,6 +252,12 @@ are the PostgreSQL source of truth for resume state and committed Part 1
 evidence. Browser code never supplies expected answers, branch decisions,
 scores, or result labels.
 
+Normal Part 1 Submit endpoints persist the active response and leave navigation
+to the separate `advance` endpoint. The dedicated `skip` endpoint is the only
+exception: it atomically stores `response_type = skipped`, `decision = SKIPPED`,
+and `score = 0`, then moves to the next item or completes the current task. This
+keeps refresh and retry behavior deterministic during automatic Skip advances.
+
 Laravel owns the admin speech-content catalog boundary and Equivalence Book
 management API. It exposes only the active Mu-spoken targets approved for True
 Sandbox and keeps choice-only, question-only, and isolated-letter content out of

@@ -57,6 +57,11 @@
   --color-action-primary-depth: #892b08;
   --color-action-secondary: #ffffff;
   --color-action-secondary-hover: #fff5ed;
+  --color-action-skip-surface: #fffafa;
+  --color-action-skip-hover: #fff2f2;
+  --color-action-skip-pressed: #f5e8e8;
+  --color-action-skip-border: #bca9a9;
+  --color-action-skip-depth: #d8c5c5;
 
   --color-success: #247451;
   --color-success-soft: #e8f6ef;
