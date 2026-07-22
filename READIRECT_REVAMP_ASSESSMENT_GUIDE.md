@@ -430,15 +430,26 @@ assessment run:
   snapshot when a run begins. React never reads a root CSV.
 - Orientation, Task 1A, Task 2A, Task 2B, and Part 1 Results are served by the
   learner Part 1 API under `/api/learners/assessments/part-one`.
-- Submit persists the current response without advancing. The response exposed
-  to React contains only the neutral committed state. `Next` performs the
-  separate server-owned advance, which makes refresh resume on either the saved
-  item or the next item deterministic.
+- Every assessment Submit atomically persists the current response and opens
+  the next item or documented result page. The response exposed to React never
+  reveals per-item correctness, and active assessment items never expose a
+  separate learner-controlled Next action. The microphone check follows the
+  same rule after usable audio is confirmed.
 - Skip is an atomic save-and-advance action. It commits zero for the active
   scored item and opens the following item in the same server operation without
   exposing `Next`. It is unavailable on the microphone orientation and result
-  pages. Normal Submit remains save-only and transforms into `Next` after the
-  response is committed.
+  pages. Submit and Skip both advance automatically, but only Skip persists the
+  distinct zero-score skipped response.
+- Part 1 uses neutral, keyed item motion without exposing correctness: Task 1A
+  letter tiles settle into place, Task 2A words enter from opposite sides, and
+  Task 2B words assemble letter by letter. Processing only applies a neutral
+  visual lock, while a committed response depresses the active item consistently
+  for both correct and incorrect results.
+- Submit or Skip replaces the active item with a short exit-and-entry sequence
+  and animates the completed progress segment. The next item restores the normal
+  Submit-and-Skip action split; documented result pages replace it with
+  Continue. These movements collapse to immediate state changes when reduced
+  motion is enabled.
 - Task 1A uses Mu plus the strict letter resolver and active global letter
   equivalences. Task 2B uses Mu plus the expected-aware Equivalence Book
   resolver. Task 2A never calls ASR.

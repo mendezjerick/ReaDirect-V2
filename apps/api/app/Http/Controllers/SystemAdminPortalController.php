@@ -7,8 +7,11 @@ use App\Models\LearnerPortalRun;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
 use App\Models\StaffUser;
+use App\Services\LearnerPortalLaunchService;
 use App\Services\LearnerProgressResetService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 final class SystemAdminPortalController extends Controller
 {
@@ -29,6 +32,40 @@ final class SystemAdminPortalController extends Controller
         return response()->json([
             'message' => 'Kristen was reset to before the Diagnostic Assessment.',
             ...$this->serialize($learner),
+        ]);
+    }
+
+    public function launch(
+        Request $request,
+        StaffUser $staffUser,
+        LearnerPortalLaunchService $launchService,
+    ): JsonResponse {
+        $this->assertSystemAdministrator($staffUser);
+        $validated = $request->validate([
+            'target_key' => [
+                'required',
+                'string',
+                Rule::in(array_column(LearnerPortalLaunchService::targets(), 'key')),
+            ],
+        ]);
+        $launch = $launchService->launch(
+            $this->portalLearner(),
+            $staffUser,
+            $validated['target_key'],
+        );
+        $learner = $launch['learner'];
+
+        return response()->json([
+            'message' => "Kristen is ready at {$validated['target_key']}.",
+            ...$this->serialize($learner),
+            'launch' => [
+                'target_key' => $launch['target_key'],
+                'route' => $launch['route'],
+                'learner_session' => [
+                    'token' => $launch['token'],
+                    ...$this->serializeLearnerSession($learner, $launch['expires_at']),
+                ],
+            ],
         ]);
     }
 
@@ -88,9 +125,41 @@ final class SystemAdminPortalController extends Controller
                 ] : null,
             ],
             'portal_launch' => [
-                'available' => false,
-                'reason' => 'Portal destinations will activate after assessment and lesson save records are implemented.',
+                'available' => true,
+                'reason' => 'Assessment Part 1 checkpoints are ready. Lesson checkpoints remain unavailable until their persisted workflow exists.',
+                'targets' => LearnerPortalLaunchService::targets(),
             ],
+        ];
+    }
+
+    private function serializeLearnerSession(Learner $learner, string $expiresAt): array
+    {
+        $progress = LearnerProgressState::query()->firstOrCreate(
+            ['learner_id' => $learner->id],
+            ['stage' => LearnerProgressState::BASELINE_STAGE],
+        );
+
+        return [
+            'learner' => [
+                'id' => $learner->id,
+                'learner_code' => $learner->learner_code,
+                'full_name' => implode(' ', array_filter([
+                    $learner->first_name,
+                    $learner->middle_name,
+                    $learner->last_name,
+                    $learner->suffix,
+                ])),
+                'first_name' => $learner->first_name,
+                'account_purpose' => $learner->account_purpose,
+                'school' => $learner->school?->name,
+                'grade_level' => $learner->grade_level,
+                'section' => $learner->section,
+                'progress' => [
+                    'stage' => $progress->stage,
+                    'current_required_lesson_order' => $progress->current_required_lesson_order,
+                ],
+            ],
+            'session' => ['expires_at' => $expiresAt],
         ];
     }
 }

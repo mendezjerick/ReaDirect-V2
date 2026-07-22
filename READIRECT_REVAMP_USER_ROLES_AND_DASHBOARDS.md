@@ -151,6 +151,18 @@ System Administrator page portal and ASR review tools:
 - Portal destinations remain disabled until the corresponding real assessment
   and lesson save records exist. A page must not mark prerequisites complete
   using placeholder data.
+- Assessment Part 1 Page Portals are available for the microphone check, Task
+  1A, Task 2A, Task 2B, and Part 1 Results because those checkpoints now have
+  real Laravel persistence. Each launch resets Kristen, creates an active
+  Diagnostic Part 1 run in the normal assessment tables, and opens the selected
+  checkpoint with a one-hour portal Learner session.
+- Later Part 1 checkpoints use explicit `portal_prerequisite` response records
+  in the same assessment run to establish the required low or high branch.
+  These records are marked as portal-created evidence, remain exclusive to
+  `KW000`, and are excluded from all analytics. They must never be created for a
+  standard Learner.
+- Lesson Page Portals remain disabled until the corresponding lesson save and
+  progression records are implemented.
 - IsoLetter Sandbox is the direct Nu testing page for isolated-letter audio.
   Nu is Mu's letter mode. The page shows the expected letter, raw and normalized
   Mu transcript, resolved A-Z/`SILENCE`/`UNKNOWN` class, matched alias, mapping

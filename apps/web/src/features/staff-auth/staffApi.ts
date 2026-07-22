@@ -146,6 +146,21 @@ export type SchoolAdminOverview = z.infer<typeof schoolAdminOverviewSchema>;
 export type TeacherOverview = z.infer<typeof teacherOverviewSchema>;
 export type SystemAdminOverview = z.infer<typeof systemAdminOverviewSchema>;
 
+const portalTargetKeySchema = z.enum([
+  "assessment-orientation",
+  "assessment-task-1a",
+  "assessment-task-2a",
+  "assessment-task-2b",
+  "assessment-part-1-results",
+]);
+
+const portalTargetSchema = z.object({
+  key: portalTargetKeySchema,
+  label: z.string(),
+  description: z.string(),
+  task: z.string(),
+});
+
 const portalSystemLearnerSchema = z.object({
   learner: z.object({
     id: z.number().int().positive(),
@@ -169,10 +184,41 @@ const portalSystemLearnerSchema = z.object({
   portal_launch: z.object({
     available: z.boolean(),
     reason: z.string(),
+    targets: z.array(portalTargetSchema),
+  }),
+});
+
+const portalLearnerSessionSchema = z.object({
+  token: z.string().min(1),
+  learner: z.object({
+    id: z.number().int().positive(),
+    learner_code: z.literal("KW000"),
+    full_name: z.string(),
+    first_name: z.string(),
+    account_purpose: z.literal("portal_system"),
+    school: z.string().nullable(),
+    grade_level: z.number().int().min(1).max(6).nullable(),
+    section: z.string().nullable(),
+    progress: z.object({
+      stage: z.string(),
+      current_required_lesson_order: z.number().int().positive().nullable(),
+    }),
+  }),
+  session: z.object({ expires_at: z.string() }),
+});
+
+const portalLaunchResponseSchema = portalSystemLearnerSchema.extend({
+  message: z.string(),
+  launch: z.object({
+    target_key: portalTargetKeySchema,
+    route: z.literal("/learner/assessment/part-one"),
+    learner_session: portalLearnerSessionSchema,
   }),
 });
 
 export type PortalSystemLearner = z.infer<typeof portalSystemLearnerSchema>;
+export type PortalTargetKey = z.infer<typeof portalTargetKeySchema>;
+export type PortalLaunchResponse = z.infer<typeof portalLaunchResponseSchema>;
 
 const staffSessionStorageKey = "readirect.staff-session";
 
@@ -537,6 +583,29 @@ export async function resetPortalSystemLearner(
   }
 
   return portalSystemLearnerSchema.parse(await response.json());
+}
+
+export async function launchPortalSystemLearner(
+  staffUserId: number,
+  targetKey: PortalTargetKey,
+): Promise<PortalLaunchResponse> {
+  const response = await fetch(
+    `/api/staff/system-admin/${staffUserId}/page-portals/launch`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ target_key: targetKey }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return portalLaunchResponseSchema.parse(await response.json());
 }
 
 export async function completeSchoolAdminSetup(input: {

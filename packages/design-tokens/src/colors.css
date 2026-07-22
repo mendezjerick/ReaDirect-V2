@@ -102,8 +102,19 @@
 
   --color-live2d-recolor-base: #000000;
   --color-live2d-canvas-clear: transparent;
-  --color-clara-loader-pulse: var(--color-clara-hair);
+  --color-clara-loader-wave: var(--color-clara-hair);
   --color-clara-loader-cover: var(--color-clara-hair);
+  --color-clara-speech-loader-line: var(--color-clara-hair);
+  --color-clara-speech-loader-glow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 62%,
+    var(--color-transparent)
+  );
+  --color-clara-speech-loader-scrim: color-mix(
+    in srgb,
+    var(--color-live2d-recolor-base) 20%,
+    var(--color-transparent)
+  );
 
   --color-clara-hair: #5faf67;
   --color-clara-hair-outline: #356b3f;

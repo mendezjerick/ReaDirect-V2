@@ -46,6 +46,7 @@ final class LearnerAssessmentPartOneController extends Controller
                 'content_snapshot' => $this->contentCatalog->partOneSnapshot(),
             ]);
         }
+        $run = $this->resumePastCommittedItem($run);
 
         $session->forceFill(['last_seen_at' => now()])->save();
 
@@ -54,7 +55,9 @@ final class LearnerAssessmentPartOneController extends Controller
 
     public function show(Request $request): JsonResponse
     {
-        return response()->json($this->serialize($this->resolveRun($request)));
+        return response()->json($this->serialize(
+            $this->resumePastCommittedItem($this->resolveRun($request)),
+        ));
     }
 
     public function submitOrientation(Request $request): JsonResponse
@@ -75,7 +78,15 @@ final class LearnerAssessmentPartOneController extends Controller
             ], 422);
         }
 
-        $run->forceFill(['orientation_completed_at' => now()])->save();
+        DB::transaction(function () use ($run): void {
+            $run->refresh();
+            abort_unless($run->stage === 'orientation', 409, 'The microphone check is already complete.');
+            $run->forceFill([
+                'orientation_completed_at' => now(),
+                'stage' => 'task-1a',
+                'current_item_index' => 0,
+            ])->save();
+        });
 
         return response()->json($this->serialize($run->fresh()));
     }
@@ -93,7 +104,12 @@ final class LearnerAssessmentPartOneController extends Controller
 
         $existing = $this->currentResponse($run, $item);
         if ($existing) {
-            return response()->json($this->serialize($run));
+            DB::transaction(function () use ($run): void {
+                $run->refresh();
+                $this->advanceCurrentItem($run);
+            });
+
+            return response()->json($this->serialize($run->fresh()));
         }
 
         /** @var UploadedFile $audio */
@@ -128,20 +144,33 @@ final class LearnerAssessmentPartOneController extends Controller
         $path = "assessment-audio/{$run->id}/{$run->stage}/{$item['item_key']}-{$sha}.{$extension}";
         Storage::disk('local')->put($path, $audioBytes);
 
-        AssessmentResponse::query()->create([
-            'assessment_run_id' => $run->id,
-            'task_key' => $run->stage,
-            'item_key' => $item['item_key'],
-            'item_order' => (int) $item['sort_order'],
-            'response_type' => 'speech',
-            'raw_transcript' => $rawTranscript,
-            'scoring_transcript' => $scoringTranscript,
-            'decision' => $decision,
-            'score' => $score,
-            'audio_path' => $path,
-            'audio_sha256' => $sha,
-            'evidence' => $evidence,
-        ]);
+        DB::transaction(function () use (
+            $run,
+            $item,
+            $rawTranscript,
+            $scoringTranscript,
+            $decision,
+            $score,
+            $path,
+            $sha,
+            $evidence,
+        ): void {
+            AssessmentResponse::query()->create([
+                'assessment_run_id' => $run->id,
+                'task_key' => $run->stage,
+                'item_key' => $item['item_key'],
+                'item_order' => (int) $item['sort_order'],
+                'response_type' => 'speech',
+                'raw_transcript' => $rawTranscript,
+                'scoring_transcript' => $scoringTranscript,
+                'decision' => $decision,
+                'score' => $score,
+                'audio_path' => $path,
+                'audio_sha256' => $sha,
+                'evidence' => $evidence,
+            ]);
+            $this->advanceCurrentItem($run);
+        });
 
         return response()->json($this->serialize($run->fresh()));
     }
@@ -149,27 +178,33 @@ final class LearnerAssessmentPartOneController extends Controller
     public function submitRhyme(Request $request): JsonResponse
     {
         $run = $this->resolveRun($request);
-        abort_unless($run->stage === 'task-2a', 409, 'This is not a rhyme item.');
         $validated = $request->validate([
             'item_key' => ['required', 'string', 'max:80'],
             'choice' => ['required', Rule::in(['yes', 'no'])],
         ]);
-        $item = $this->currentItem($run);
-        abort_unless($item !== null && hash_equals($item['item_key'], $validated['item_key']), 409, 'That item is no longer active.');
 
-        if (! $this->currentResponse($run, $item)) {
-            AssessmentResponse::query()->create([
-                'assessment_run_id' => $run->id,
-                'task_key' => 'task-2a',
-                'item_key' => $item['item_key'],
-                'item_order' => (int) $item['sort_order'],
-                'response_type' => 'choice',
-                'selected_response' => $validated['choice'],
-                'decision' => $validated['choice'] === $item['correct_response'] ? 'CORRECT' : 'INCORRECT',
-                'score' => $validated['choice'] === $item['correct_response'] ? 1 : 0,
-                'evidence' => ['response_committed' => true],
-            ]);
-        }
+        DB::transaction(function () use ($run, $validated): void {
+            $run->refresh();
+            abort_unless($run->stage === 'task-2a', 409, 'This is not a rhyme item.');
+            $item = $this->currentItem($run);
+            abort_unless($item !== null && hash_equals($item['item_key'], $validated['item_key']), 409, 'That item is no longer active.');
+
+            if (! $this->currentResponse($run, $item)) {
+                AssessmentResponse::query()->create([
+                    'assessment_run_id' => $run->id,
+                    'task_key' => 'task-2a',
+                    'item_key' => $item['item_key'],
+                    'item_order' => (int) $item['sort_order'],
+                    'response_type' => 'choice',
+                    'selected_response' => $validated['choice'],
+                    'decision' => $validated['choice'] === $item['correct_response'] ? 'CORRECT' : 'INCORRECT',
+                    'score' => $validated['choice'] === $item['correct_response'] ? 1 : 0,
+                    'evidence' => ['response_committed' => true],
+                ]);
+            }
+
+            $this->advanceCurrentItem($run);
+        });
 
         return response()->json($this->serialize($run->fresh()));
     }
@@ -203,14 +238,7 @@ final class LearnerAssessmentPartOneController extends Controller
                 ]);
             }
 
-            $items = $run->content_snapshot[$run->stage];
-            if ($run->current_item_index + 1 < count($items)) {
-                $run->increment('current_item_index');
-
-                return;
-            }
-
-            $this->completeTask($run);
+            $this->advanceCurrentItem($run);
         });
 
         return response()->json($this->serialize($run->fresh()));
@@ -232,15 +260,7 @@ final class LearnerAssessmentPartOneController extends Controller
             abort_unless(in_array($run->stage, ['task-1a', 'task-2a', 'task-2b'], true), 409, 'There is no next item yet.');
             $item = $this->currentItem($run);
             abort_unless($item !== null && $this->currentResponse($run, $item) !== null, 409, 'Submit this answer first.');
-            $items = $run->content_snapshot[$run->stage];
-
-            if ($run->current_item_index + 1 < count($items)) {
-                $run->increment('current_item_index');
-
-                return;
-            }
-
-            $this->completeTask($run);
+            $this->advanceCurrentItem($run);
         });
 
         return response()->json($this->serialize($run->fresh()));
@@ -336,6 +356,40 @@ final class LearnerAssessmentPartOneController extends Controller
             ->where('task_key', $run->stage)
             ->where('item_key', $item['item_key'])
             ->first();
+    }
+
+    private function resumePastCommittedItem(AssessmentRun $run): AssessmentRun
+    {
+        DB::transaction(function () use ($run): void {
+            $run->refresh();
+            if ($run->stage === 'orientation' && $run->orientation_completed_at !== null) {
+                $run->forceFill([
+                    'stage' => 'task-1a',
+                    'current_item_index' => 0,
+                ])->save();
+
+                return;
+            }
+
+            $item = $this->currentItem($run);
+            if ($item !== null && $this->currentResponse($run, $item) !== null) {
+                $this->advanceCurrentItem($run);
+            }
+        });
+
+        return $run->fresh();
+    }
+
+    private function advanceCurrentItem(AssessmentRun $run): void
+    {
+        $items = $run->content_snapshot[$run->stage];
+        if ($run->current_item_index + 1 < count($items)) {
+            $run->increment('current_item_index');
+
+            return;
+        }
+
+        $this->completeTask($run);
     }
 
     private function completeTask(AssessmentRun $run): void

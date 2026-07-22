@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\AssessmentResponse;
+use App\Models\AssessmentRun;
 use App\Models\Learner;
 use App\Models\LearnerPortalRun;
 use App\Models\LearnerProgressState;
@@ -70,7 +72,8 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('learner.learner_code', 'KW000')
             ->assertJsonPath('learner.analytics_excluded', true)
             ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
-            ->assertJsonPath('portal_launch.available', false);
+            ->assertJsonPath('portal_launch.available', true)
+            ->assertJsonCount(5, 'portal_launch.targets');
     }
 
     public function test_kw000_can_use_normal_case_insensitive_learner_login(): void
@@ -165,6 +168,68 @@ final class PortalSystemLearnerTest extends TestCase
         $this->assertDatabaseHas('staff_audit_logs', [
             'staff_user_id' => $systemAdministrator->id,
             'action_key' => 'portal_system_learner.progress_reset',
+        ]);
+    }
+
+    public function test_system_admin_can_launch_each_persisted_part_one_checkpoint(): void
+    {
+        (new PortalSystemLearnerSeeder)->run();
+        $learner = Learner::query()->where('learner_code', 'KW000')->firstOrFail();
+        $systemAdministrator = $this->createSystemAdministrator();
+        $targets = [
+            'assessment-orientation' => ['orientation', null, null, 0],
+            'assessment-task-1a' => ['task-1a', null, null, 0],
+            'assessment-task-2a' => ['task-2a', 6, null, 10],
+            'assessment-task-2b' => ['task-2b', 7, 10, 10],
+            'assessment-part-1-results' => ['part-1-results', 7, 10, 20],
+        ];
+
+        foreach ($targets as $targetKey => [$stage, $taskOneScore, $taskTwoAScore, $responseCount]) {
+            $launch = $this->postJson(
+                "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
+                ['target_key' => $targetKey],
+            )
+                ->assertOk()
+                ->assertJsonPath('portal_launch.available', true)
+                ->assertJsonPath('learner.active_portal_run.target_key', $targetKey)
+                ->assertJsonPath('launch.target_key', $targetKey)
+                ->assertJsonPath('launch.route', '/learner/assessment/part-one')
+                ->assertJsonPath('launch.learner_session.learner.learner_code', 'KW000');
+
+            $token = $launch->json('launch.learner_session.token');
+            $this->withToken($token)
+                ->post('/api/learners/assessments/part-one/start')
+                ->assertOk()
+                ->assertJsonPath('stage', $stage);
+
+            $run = AssessmentRun::query()
+                ->where('learner_id', $learner->id)
+                ->latest('id')
+                ->firstOrFail();
+            $this->assertSame($stage, $run->stage);
+            $this->assertSame($taskOneScore, $run->task_1a_score);
+            $this->assertSame($taskTwoAScore, $run->task_2a_score);
+            $this->assertSame(
+                $responseCount,
+                AssessmentResponse::query()
+                    ->where('assessment_run_id', $run->id)
+                    ->where('response_type', 'portal_prerequisite')
+                    ->count(),
+            );
+        }
+
+        $this->assertSame(1, LearnerPortalRun::query()
+            ->where('learner_id', $learner->id)
+            ->where('status', LearnerPortalRun::ACTIVE_STATUS)
+            ->count());
+        $this->assertDatabaseHas('learner_sessions', [
+            'learner_id' => $learner->id,
+            'session_type' => 'portal',
+            'revoked_at' => null,
+        ]);
+        $this->assertDatabaseHas('staff_audit_logs', [
+            'staff_user_id' => $systemAdministrator->id,
+            'action_key' => 'portal_system_learner.portal_launched',
         ]);
     }
 

@@ -24,6 +24,7 @@ Route::prefix('staff')->group(function (): void {
     Route::post('/system-admin/school-administrators', [SchoolAdministratorController::class, 'store']);
     Route::get('/system-admin/{staffUser}/page-portals', [SystemAdminPortalController::class, 'show']);
     Route::post('/system-admin/{staffUser}/page-portals/reset-kristen', [SystemAdminPortalController::class, 'reset']);
+    Route::post('/system-admin/{staffUser}/page-portals/launch', [SystemAdminPortalController::class, 'launch']);
     Route::get('/system-admin/{staffUser}/speech/status', [SystemAdminSpeechSandboxController::class, 'status']);
     Route::get('/system-admin/{staffUser}/speech/content-catalog', [SystemAdminSpeechSandboxController::class, 'contentCatalog']);
     Route::post('/system-admin/{staffUser}/speech/letter/resolve', [SystemAdminSpeechSandboxController::class, 'resolveLetter']);

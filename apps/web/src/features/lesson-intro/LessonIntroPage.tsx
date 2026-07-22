@@ -8,6 +8,7 @@ import {
   prepareClaraSpeech,
   type ClaraSpeechPlayback,
 } from "../clara-audio/claraSpeech";
+import { ClaraSpeechWarmupLoader } from "../clara-audio/ClaraSpeechWarmupLoader";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { ClaraIntroStage } from "../intro/ClaraIntroStage";
 import "./lesson-intro.css";
@@ -113,48 +114,54 @@ export function LessonIntroPage() {
   }, [claraReady, preparedSpeech]);
 
   return (
-    <ClaraIntroStage
-      ariaLabelledBy="lesson-intro-title"
-      className="lesson-intro-page"
-      emotion="happy"
-      speaking={state === "speaking"}
-      speechLevel={speechLevel}
-      onClaraLoadStateChange={(loadState) =>
-        setClaraReady(loadState === "ready")
-      }
-      routeFocus
-    >
-      <div className="lesson-intro-page__action-panel">
-        <h1 id="lesson-intro-title" className="visually-hidden">
-          Get ready to read
-        </h1>
-        <p className="lesson-intro-page__status" aria-live="polite">
-          {statusMessages[state]}
-        </p>
-        <BigButton
-          className="intro-page__continue lesson-intro-page__continue"
-          variant={state === "ready" ? "primary" : "unavailable"}
-          committing={continueCommit.committing}
-          disabled={state !== "ready"}
-          onClick={() =>
-            continueCommit.commit(() =>
-              navigate("/learner/assessment/part-one"),
-            )
-          }
-        >
-          Continue
-        </BigButton>
-        {state === "error" ? (
+    <>
+      <ClaraSpeechWarmupLoader
+        active={state === "preparing" && !preparedSpeech}
+        modelReady={claraReady}
+      />
+      <ClaraIntroStage
+        ariaLabelledBy="lesson-intro-title"
+        className="lesson-intro-page"
+        emotion="happy"
+        speaking={state === "speaking"}
+        speechLevel={speechLevel}
+        onClaraLoadStateChange={(loadState) =>
+          setClaraReady(loadState === "ready")
+        }
+        routeFocus
+      >
+        <div className="lesson-intro-page__action-panel">
+          <h1 id="lesson-intro-title" className="visually-hidden">
+            Get ready to read
+          </h1>
+          <p className="lesson-intro-page__status" aria-live="polite">
+            {statusMessages[state]}
+          </p>
           <BigButton
-            className="lesson-intro-page__retry"
-            variant="secondary"
-            size="regular"
-            onClick={() => setAttempt((current) => current + 1)}
+            className="intro-page__continue lesson-intro-page__continue"
+            variant={state === "ready" ? "primary" : "unavailable"}
+            committing={continueCommit.committing}
+            disabled={state !== "ready"}
+            onClick={() =>
+              continueCommit.commit(() =>
+                navigate("/learner/assessment/part-one"),
+              )
+            }
           >
-            Try again
+            Continue
           </BigButton>
-        ) : null}
-      </div>
-    </ClaraIntroStage>
+          {state === "error" ? (
+            <BigButton
+              className="lesson-intro-page__retry"
+              variant="secondary"
+              size="regular"
+              onClick={() => setAttempt((current) => current + 1)}
+            >
+              Try again
+            </BigButton>
+          ) : null}
+        </div>
+      </ClaraIntroStage>
+    </>
   );
 }

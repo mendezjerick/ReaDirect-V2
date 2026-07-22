@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -10,13 +10,13 @@ import {
   type ClaraSpeechKey,
   type ClaraSpeechPlayback,
 } from "../clara-audio/claraSpeech";
+import { ClaraSpeechWarmupLoader } from "../clara-audio/ClaraSpeechWarmupLoader";
 import { ClaraStage } from "../intro/ClaraStage";
 import { PointerTrail } from "../intro/PointerTrail";
 import { VectorCursor } from "../intro/VectorCursor";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 
 import {
-  advancePartOne,
   skipAssessmentItem,
   startPartOne,
   submitOrientation,
@@ -163,6 +163,7 @@ function Recorder({
 }
 
 function ProgressRail({ state }: { state: AssessmentState }) {
+  const reduceMotion = useReducedMotion();
   if (!state.progress) return null;
 
   return (
@@ -174,14 +175,167 @@ function ProgressRail({ state }: { state: AssessmentState }) {
         Item {state.progress.current}/{state.progress.total}
       </span>
       <div className="assessment-progress__rail" aria-hidden="true">
-        {Array.from({ length: state.progress.total }, (_, index) => (
-          <i
-            key={index}
-            data-complete={index < state.progress!.completed || undefined}
-          />
-        ))}
+        {Array.from({ length: state.progress.total }, (_, index) => {
+          const complete = index < state.progress!.completed;
+
+          return (
+            <motion.i
+              key={index}
+              data-complete={complete || undefined}
+              initial={false}
+              animate={
+                reduceMotion
+                  ? undefined
+                  : {
+                      y: complete ? -2 : 0,
+                      scaleY: complete ? 1 : 0.82,
+                    }
+              }
+              transition={{ duration: 0.22, ease: "easeOut" }}
+            />
+          );
+        })}
       </div>
     </div>
+  );
+}
+
+function ActiveAssessmentItem({
+  state,
+  committed,
+  processing,
+}: {
+  state: AssessmentState;
+  committed: boolean;
+  processing: boolean;
+}) {
+  const reduceMotion = useReducedMotion();
+  const itemKey = `${state.stage}:${state.item?.item_key ?? "orientation"}`;
+  const responseState = processing
+    ? "processing"
+    : committed
+      ? "committed"
+      : "active";
+  const settleTransition = {
+    duration: reduceMotion ? 0 : 0.28,
+    ease: "easeOut" as const,
+  };
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={itemKey}
+        className="assessment-item"
+        data-stage={state.stage}
+        data-response-state={responseState}
+        initial={reduceMotion ? false : { opacity: 0, y: 14, scale: 0.97 }}
+        animate={{
+          opacity: processing ? 0.82 : 1,
+          y: committed ? 4 : 0,
+          scale: processing ? 0.985 : 1,
+        }}
+        exit={reduceMotion ? undefined : { opacity: 0, y: -10, scale: 0.98 }}
+        transition={settleTransition}
+      >
+        {state.stage === "orientation" ? (
+          <div className="assessment-item__prompt">
+            <small>Say</small>
+            <motion.strong
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={settleTransition}
+            >
+              READY
+            </motion.strong>
+          </div>
+        ) : state.item && isRhymeItem(state.item) ? (
+          <div className="assessment-rhyme__words">
+            <motion.strong
+              initial={reduceMotion ? false : { x: -24, opacity: 0 }}
+              animate={{ x: 0, y: committed ? 3 : 0, opacity: 1 }}
+              transition={{
+                ...settleTransition,
+                delay: reduceMotion ? 0 : 0.04,
+              }}
+            >
+              {state.item.word_one}
+            </motion.strong>
+            <motion.strong
+              initial={reduceMotion ? false : { x: 24, opacity: 0 }}
+              animate={{ x: 0, y: committed ? 3 : 0, opacity: 1 }}
+              transition={{
+                ...settleTransition,
+                delay: reduceMotion ? 0 : 0.1,
+              }}
+            >
+              {state.item.word_two}
+            </motion.strong>
+          </div>
+        ) : state.item ? (
+          <div className="assessment-item__prompt">
+            {"uppercase_form" in state.item ? (
+              <strong
+                className="assessment-letter-pair"
+                aria-label={state.item.display_text}
+              >
+                {[state.item.uppercase_form, state.item.lowercase_form].map(
+                  (letter, index) => (
+                    <motion.span
+                      key={`${letter}:${index}`}
+                      className="assessment-letter-tile"
+                      aria-hidden="true"
+                      initial={
+                        reduceMotion
+                          ? false
+                          : { opacity: 0, y: -18, rotate: index ? 3 : -3 }
+                      }
+                      animate={{
+                        opacity: 1,
+                        y: committed ? 4 : 0,
+                        rotate: 0,
+                      }}
+                      transition={{
+                        ...settleTransition,
+                        delay: reduceMotion ? 0 : 0.05 + index * 0.08,
+                      }}
+                    >
+                      {letter}
+                    </motion.span>
+                  ),
+                )}
+              </strong>
+            ) : (
+              <strong
+                className="assessment-word-assembly"
+                aria-label={state.item.display_text}
+              >
+                {Array.from(state.item.display_text).map((letter, index) => (
+                  <motion.span
+                    key={`${letter}:${index}`}
+                    aria-hidden="true"
+                    initial={
+                      reduceMotion ? false : { opacity: 0, y: 12, scale: 0.86 }
+                    }
+                    animate={{
+                      opacity: 1,
+                      y: committed ? 3 : 0,
+                      scale: 1,
+                    }}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.2,
+                      delay: reduceMotion ? 0 : index * 0.035,
+                      ease: "easeOut",
+                    }}
+                  >
+                    {letter === " " ? "\u00a0" : letter}
+                  </motion.span>
+                ))}
+              </strong>
+            )}
+          </div>
+        ) : null}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -248,6 +402,7 @@ function ResultView({ state }: { state: AssessmentState }) {
 
 export function AssessmentPartOnePage() {
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const storedSession = loadLearnerSession();
   const [assessment, setAssessment] = useState<AssessmentState | null>(null);
   const [loadingError, setLoadingError] = useState("");
@@ -262,7 +417,6 @@ export function AssessmentPartOnePage() {
     speech: Blob;
   } | null>(null);
   const playbackRef = useRef<ClaraSpeechPlayback | null>(null);
-  const nextCommit = useButtonCommit();
   const submitCommit = useButtonCommit();
   const skipCommit = useButtonCommit();
   const resultCommit = useButtonCommit();
@@ -357,7 +511,12 @@ export function AssessmentPartOnePage() {
     setSaveAction(action);
     setSaveState("processing");
     try {
-      setAssessment(await request);
+      const nextAssessment = await request;
+      if (assessment && nextAssessment.stage !== assessment.stage) {
+        playbackRef.current?.stop();
+        setGuideState("preparing");
+      }
+      setAssessment(nextAssessment);
       setSaveState("saved");
     } catch {
       setSaveState("error");
@@ -409,23 +568,6 @@ export function AssessmentPartOnePage() {
     );
   };
 
-  const advance = () => {
-    if (!assessment || !storedSession?.token) return;
-    nextCommit.commit(() => {
-      setSaveState("processing");
-      void advancePartOne(storedSession.token, assessment.run_id)
-        .then((nextAssessment) => {
-          if (nextAssessment.stage !== assessment.stage) {
-            setGuideState("preparing");
-          }
-          setAssessment(nextAssessment);
-        })
-        .catch(() => {
-          setSaveState("error");
-        });
-    });
-  };
-
   if (!assessment) {
     return (
       <main className="assessment-page learner-flow-page learner-typography-page assessment-page--loading">
@@ -458,6 +600,58 @@ export function AssessmentPartOnePage() {
     recorder.state === "recording" ||
     recorder.state === "playing";
   const emotion = isResult ? "happy" : isRhyme ? "thinking" : "default";
+  const primaryActionKey = isResult
+    ? "continue"
+    : isRhyme
+      ? "submit-choice"
+      : "submit-speech";
+  const primaryAction = isResult ? (
+    <BigButton
+      variant={
+        guideState === "ready" ? "primary-vertical" : "unavailable-vertical"
+      }
+      leadingIcon={<DockActionIcon kind="next" />}
+      disabled={guideState !== "ready"}
+      committing={resultCommit.committing}
+      onClick={() => resultCommit.commit(() => undefined)}
+    >
+      Continue
+    </BigButton>
+  ) : isRhyme ? (
+    <BigButton
+      variant={
+        choice && !controlsUnavailable
+          ? "primary-vertical"
+          : "unavailable-vertical"
+      }
+      leadingIcon={<DockActionIcon kind="submit" />}
+      disabled={!choice || controlsUnavailable}
+      busy={saveState === "processing" && saveAction === "submit"}
+      committing={submitCommit.committing}
+      onClick={() => submitCommit.commit(submitChoice)}
+    >
+      Submit
+    </BigButton>
+  ) : (
+    <BigButton
+      variant={
+        canSubmitAudio && !controlsUnavailable
+          ? "primary-vertical"
+          : "unavailable-vertical"
+      }
+      leadingIcon={<DockActionIcon kind="submit" />}
+      disabled={!canSubmitAudio || controlsUnavailable}
+      busy={saveState === "processing" && saveAction === "submit"}
+      busyLabel="Saving"
+      committing={submitCommit.committing}
+      onClick={() =>
+        recorder.audio &&
+        submitCommit.commit(() => submitAudio(recorder.audio!))
+      }
+    >
+      Submit
+    </BigButton>
+  );
 
   return (
     <main
@@ -465,6 +659,10 @@ export function AssessmentPartOnePage() {
       data-route-focus
       tabIndex={-1}
     >
+      <ClaraSpeechWarmupLoader
+        active={guideState === "preparing" && preparedGuide?.key !== speechKey}
+        modelReady={claraReady}
+      />
       <PointerTrail />
       <VectorCursor />
       <header className="assessment-header">
@@ -482,44 +680,11 @@ export function AssessmentPartOnePage() {
           {isResult ? (
             <ResultView state={assessment} />
           ) : (
-            <div className="assessment-item" data-stage={assessment.stage}>
-              {assessment.stage === "orientation" ? (
-                <div className="assessment-item__prompt">
-                  <small>Say</small>
-                  <strong>READY</strong>
-                </div>
-              ) : assessment.item && isRhymeItem(assessment.item) ? (
-                <>
-                  <div className="assessment-rhyme__words">
-                    <motion.strong
-                      initial={{ x: -18, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                    >
-                      {assessment.item.word_one}
-                    </motion.strong>
-                    <motion.strong
-                      initial={{ x: 18, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                    >
-                      {assessment.item.word_two}
-                    </motion.strong>
-                  </div>
-                </>
-              ) : assessment.item ? (
-                <div className="assessment-item__prompt">
-                  <strong>
-                    {"uppercase_form" in assessment.item ? (
-                      <>
-                        <span>{assessment.item.uppercase_form}</span>{" "}
-                        <span>{assessment.item.lowercase_form}</span>
-                      </>
-                    ) : (
-                      assessment.item.display_text
-                    )}
-                  </strong>
-                </div>
-              ) : null}
-            </div>
+            <ActiveAssessmentItem
+              state={assessment}
+              committed={committed}
+              processing={saveState === "processing"}
+            />
           )}
         </section>
       </section>
@@ -570,42 +735,31 @@ export function AssessmentPartOnePage() {
           className="assessment-action-slot"
           data-assessment-action-split={canSkip || undefined}
         >
-          {!isResult && !committed && isRhyme ? (
-            <BigButton
-              variant={
-                choice && !controlsUnavailable
-                  ? "primary-vertical"
-                  : "unavailable-vertical"
-              }
-              leadingIcon={<DockActionIcon kind="submit" />}
-              disabled={!choice || controlsUnavailable}
-              busy={saveState === "processing" && saveAction === "submit"}
-              committing={submitCommit.committing}
-              onClick={() => submitCommit.commit(submitChoice)}
-            >
-              Submit
-            </BigButton>
-          ) : null}
-          {!isResult && !committed && !isRhyme ? (
-            <BigButton
-              variant={
-                canSubmitAudio && !controlsUnavailable
-                  ? "primary-vertical"
-                  : "unavailable-vertical"
-              }
-              leadingIcon={<DockActionIcon kind="submit" />}
-              disabled={!canSubmitAudio || controlsUnavailable}
-              busy={saveState === "processing" && saveAction === "submit"}
-              busyLabel="Saving"
-              committing={submitCommit.committing}
-              onClick={() =>
-                recorder.audio &&
-                submitCommit.commit(() => submitAudio(recorder.audio!))
-              }
-            >
-              Submit
-            </BigButton>
-          ) : null}
+          <motion.div
+            className="assessment-action-primary"
+            layout={!reduceMotion}
+            transition={{ duration: reduceMotion ? 0 : 0.26, ease: "easeOut" }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={primaryActionKey}
+                className="assessment-action-transition"
+                initial={
+                  reduceMotion ? false : { opacity: 0, scale: 0.94, y: 8 }
+                }
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={
+                  reduceMotion ? undefined : { opacity: 0, scale: 0.97, y: -6 }
+                }
+                transition={{
+                  duration: reduceMotion ? 0 : 0.2,
+                  ease: "easeOut",
+                }}
+              >
+                {primaryAction}
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
           {canSkip ? (
             <BigButton
               variant="skip-vertical"
@@ -616,30 +770,6 @@ export function AssessmentPartOnePage() {
               onClick={() => skipCommit.commit(skipCurrentItem)}
             >
               Skip
-            </BigButton>
-          ) : null}
-          {committed && !isResult ? (
-            <BigButton
-              variant="primary-vertical"
-              leadingIcon={<DockActionIcon kind="next" />}
-              committing={nextCommit.committing}
-              onClick={advance}
-            >
-              Next
-            </BigButton>
-          ) : isResult ? (
-            <BigButton
-              variant={
-                guideState === "ready"
-                  ? "primary-vertical"
-                  : "unavailable-vertical"
-              }
-              leadingIcon={<DockActionIcon kind="next" />}
-              disabled={guideState !== "ready"}
-              committing={resultCommit.committing}
-              onClick={() => resultCommit.commit(() => undefined)}
-            >
-              Continue
             </BigButton>
           ) : null}
         </div>

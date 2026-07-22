@@ -123,7 +123,7 @@ describe("IntroPage", () => {
       expect(
         screen.getByRole("heading", { name: "ReaDirect" }),
       ).toBeInTheDocument();
-      expect(document.querySelector(".clara-stage__loader-pulse")).toBeTruthy();
+      expect(document.querySelector(".clara-stage__loader-wave")).toBeTruthy();
       expect(screen.queryByAltText("Ma'am Clara")).not.toBeInTheDocument();
       expect(continueButton).toBeDisabled();
 
@@ -141,7 +141,7 @@ describe("IntroPage", () => {
     }
   });
 
-  it("uses the model-centered CSS pulse and completes its reveal", () => {
+  it("uses the model-centered CSS wave and completes its reveal", () => {
     const boundsSpy = vi
       .spyOn(HTMLElement.prototype, "getBoundingClientRect")
       .mockReturnValue(new DOMRect(40, 100, 200, 200));
@@ -153,7 +153,7 @@ describe("IntroPage", () => {
     );
 
     expect(stage).toHaveAttribute("data-live2d-state", "loading");
-    expect(document.querySelector(".clara-stage__loader-pulse")).toBeTruthy();
+    expect(document.querySelector(".clara-stage__loader-wave")).toBeTruthy();
     expect(cover).toBeTruthy();
     expect(loader?.style.getPropertyValue("--clara-loader-origin-x")).toBe(
       "140px",
