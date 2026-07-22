@@ -17,6 +17,7 @@ import { VectorCursor } from "../intro/VectorCursor";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 
 import {
+  continuePartOneResult,
   skipAssessmentItem,
   startPartOne,
   submitOrientation,
@@ -29,6 +30,10 @@ import {
   getAssessmentSpeechKey,
   getNextAssessmentSpeechKey,
 } from "./assessmentSpeech";
+import {
+  AssessmentDockActionIcon as DockActionIcon,
+  AssessmentRecorder as Recorder,
+} from "./AssessmentRecorder";
 import { useAudioRecorder } from "./useAudioRecorder";
 import "./assessment.css";
 
@@ -46,118 +51,10 @@ const stageCopy = {
   "part-1-results": { eyebrow: "Milestone reached", title: "Part 1 Results" },
 } as const;
 
-function MicrophoneIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <rect x="17" y="7" width="14" height="24" rx="7" />
-      <path d="M11 24c0 8 5 13 13 13s13-5 13-13M24 37v6M17 43h14" />
-    </svg>
-  );
-}
-
-function StopIcon() {
-  return <span className="assessment-recorder__stop-icon" aria-hidden="true" />;
-}
-
-function PlayIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="m16 10 24 14-24 14V10Z" />
-    </svg>
-  );
-}
-
-function DockActionIcon({ kind }: { kind: "submit" | "next" }) {
-  return kind === "submit" ? (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="m11 25 8 8 18-19" />
-      <path d="M8 8h32v32H8z" />
-    </svg>
-  ) : (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M9 24h28M27 13l11 11-11 11" />
-    </svg>
-  );
-}
-
 function isRhymeItem(
   item: AssessmentItem,
 ): item is Extract<AssessmentItem, { word_one: string }> {
   return "word_one" in item;
-}
-
-function Recorder({
-  recorder,
-  unavailable,
-  committed,
-  onAudioAction,
-}: {
-  recorder: ReturnType<typeof useAudioRecorder>;
-  unavailable: boolean;
-  committed: boolean;
-  onAudioAction: () => void;
-}) {
-  const label =
-    recorder.state === "recording"
-      ? "Stop"
-      : recorder.state === "playing"
-        ? "Playing"
-        : recorder.state === "recorded"
-          ? "Play"
-          : "Record";
-
-  const useRecorder = () => {
-    if (unavailable || committed) return;
-    onAudioAction();
-    if (recorder.state === "idle") void recorder.record();
-    else if (recorder.state === "recording") recorder.stop();
-    else if (recorder.state === "recorded") recorder.play();
-  };
-
-  return (
-    <div className="assessment-recorder">
-      <button
-        type="button"
-        className="assessment-recorder__control"
-        data-state={recorder.state}
-        disabled={unavailable || committed || recorder.state === "playing"}
-        aria-label={label}
-        onClick={useRecorder}
-      >
-        <span className="assessment-recorder__icon">
-          {recorder.state === "recording" ? (
-            <StopIcon />
-          ) : recorder.state === "recorded" || recorder.state === "playing" ? (
-            <PlayIcon />
-          ) : (
-            <MicrophoneIcon />
-          )}
-        </span>
-        <strong>{label}</strong>
-        <span className="assessment-recorder__bars" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-        </span>
-      </button>
-      <div className="assessment-recorder__review-slot">
-        {recorder.hasPlayed && !committed ? (
-          <button
-            type="button"
-            className="assessment-recorder__retry"
-            onClick={recorder.retry}
-          >
-            Retry?
-          </button>
-        ) : null}
-      </div>
-      <p className="assessment-recorder__error" aria-live="polite">
-        {recorder.error}
-      </p>
-    </div>
-  );
 }
 
 function ProgressRail({ state }: { state: AssessmentState }) {
@@ -643,6 +540,14 @@ export function AssessmentPartOnePage() {
     );
   };
 
+  const continueFromResult = () => {
+    if (!assessment || !storedSession?.token) return;
+    setSaveState("processing");
+    void continuePartOneResult(storedSession.token, assessment.run_id)
+      .then(({ next_route }) => navigate(next_route))
+      .catch(() => setSaveState("error"));
+  };
+
   if (!assessment) {
     return (
       <main className="assessment-page learner-flow-page learner-typography-page assessment-page--loading">
@@ -687,8 +592,10 @@ export function AssessmentPartOnePage() {
       }
       leadingIcon={<DockActionIcon kind="next" />}
       disabled={guideState !== "ready"}
+      busy={saveState === "processing"}
+      busyLabel="Opening"
       committing={resultCommit.committing}
-      onClick={() => resultCommit.commit(() => undefined)}
+      onClick={() => resultCommit.commit(continueFromResult)}
     >
       Continue
     </BigButton>

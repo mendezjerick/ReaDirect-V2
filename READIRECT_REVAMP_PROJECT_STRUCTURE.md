@@ -308,9 +308,12 @@ call it at runtime.
 Laravel is the authenticated browser-facing speech proxy. Published metadata
 belongs in `tts_voice_versions` and `tts_speech_lines`, while approved WAVs live
 under `apps/api/storage/app/private/tts/catalog/`. The current `clara-sh-v1`
-catalog contains Lesson Intro and every fixed Part 1 instruction and ordinal
-cue. Laravel verifies the catalog status, file existence, and SHA-256 checksum
-before returning audio. Browser code must never send or receive private paths.
+catalog contains Lesson Intro, every fixed Part 1 instruction and ordinal cue,
+all fixed Part 2 prompts and questions, and the assessment completion line. Its
+47 published rows are grouped under `sh/lesson-intro/`, `sh/part-1/`,
+`sh/part-2/`, and `sh/completion/` for human review. Laravel verifies the
+catalog status, file existence, and SHA-256 checksum before returning audio.
+Browser code must never send or receive private paths.
 
 Dashboard entry may begin a deduplicated Lesson Intro catalog request during
 the shared route transition. The destination reuses that same in-memory browser

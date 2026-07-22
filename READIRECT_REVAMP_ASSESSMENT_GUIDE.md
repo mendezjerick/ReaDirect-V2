@@ -413,7 +413,7 @@ Task 1A Letter Pronunciation
   learner dashboard can apply its fixed progression gates.
 - Do not use an assessment score to choose, reorder, skip, or replace lessons.
 
-### Implemented Part 1 runtime boundary
+### Implemented diagnostic runtime boundary
 
 The Diagnostic Part 1 implementation uses one Laravel-owned, refresh-safe
 assessment run:
@@ -473,7 +473,20 @@ assessment run:
 - Task 1A uses Mu plus the strict letter resolver and active global letter
   equivalences. Task 2B uses Mu plus the expected-aware Equivalence Book
   resolver. Task 2A never calls ASR.
-- The current frontend stops at the documented Part 1 Results handoff. The high
-  branch handoff to story selection and the low branch handoff to Assessment
-  Complete must be connected only when those next pages are implemented; Part
-  1 must not invent substitute pages.
+- Part 1 Results continues through a server-owned branch. A high Part 1 score
+  opens story selection and Part 2; a low Part 1 score opens Assessment Complete
+  without creating an empty Part 2 result.
+- The high branch persists one immutable story choice, administers its Task 3A
+  passage and five linked Task 3B questions, then calculates and stores reading
+  accuracy, comprehension, final reading score, and final reading profile.
+- Task 3A and Task 3B Submit and Skip are atomic save-and-advance operations.
+  Task 3A Skip stores zero reading accuracy and opens Task 3B. Task 3B Skip
+  stores a distinct zero-score skipped response and opens the next question or
+  Part 2 Results.
+- Part 2 Results continues to Assessment Complete. Finishing the completion
+  page marks the assessment run completed and advances the learner progression
+  state to required Lesson 1.
+- System-admin page portals expose every persisted diagnostic checkpoint:
+  orientation, Tasks 1A/2A/2B, Part 1 Results, story selection, Tasks 3A/3B,
+  Part 2 Results, and Assessment Complete. Each portal builds the same prior
+  persisted state used by normal learner progression and is reset on exit.

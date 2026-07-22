@@ -30,7 +30,6 @@ REFERENCE_FILES = {
     "introduce": REFERENCE_ROOT / "introduce.wav",
     "instruction": REFERENCE_ROOT / "instruction.wav",
     "question": REFERENCE_ROOT / "question.wav",
-    "praise": REFERENCE_ROOT / "praise.wav",
     "result": REFERENCE_ROOT / "result.wav",
 }
 
@@ -43,7 +42,6 @@ class SynthesisRequest(BaseModel):
         "introduce",
         "instruction",
         "question",
-        "praise",
         "result",
     ]
 

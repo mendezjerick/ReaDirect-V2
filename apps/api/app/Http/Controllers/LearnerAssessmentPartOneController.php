@@ -43,7 +43,7 @@ final class LearnerAssessmentPartOneController extends Controller
                 'status' => AssessmentRun::STATUS_ACTIVE,
                 'stage' => 'orientation',
                 'current_item_index' => 0,
-                'content_snapshot' => $this->contentCatalog->partOneSnapshot(),
+                'content_snapshot' => $this->contentCatalog->assessmentSnapshot(),
             ]);
         }
         $run = $this->resumePastCommittedItem($run);
@@ -264,6 +264,43 @@ final class LearnerAssessmentPartOneController extends Controller
         });
 
         return response()->json($this->serialize($run->fresh()));
+    }
+
+    public function continueResult(Request $request): JsonResponse
+    {
+        $run = $this->resolveRun($request);
+
+        DB::transaction(function () use ($run): void {
+            $run->refresh();
+            abort_unless($run->stage === 'part-1-results', 409, 'Part 1 is not ready to continue.');
+
+            if ($run->part_one_branch === 'high') {
+                $run->forceFill([
+                    'stage' => 'story-selection',
+                    'current_item_index' => 0,
+                ])->save();
+
+                return;
+            }
+
+            $run->forceFill([
+                'stage' => 'assessment-complete',
+                'current_item_index' => 0,
+                'passage_incorrect_words' => 50,
+                'reading_accuracy_percent' => 0,
+                'comprehension_score' => 0,
+                'comprehension_percent' => 0,
+                'final_reading_score' => 0,
+                'final_reading_profile' => 'Low Emerging Reader',
+            ])->save();
+        });
+
+        return response()->json([
+            'run_id' => $run->id,
+            'next_route' => $run->fresh()->stage === 'story-selection'
+                ? '/learner/assessment/part-two'
+                : '/learner/assessment/complete',
+        ]);
     }
 
     /** @return array<string, mixed> */

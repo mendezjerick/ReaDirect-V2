@@ -126,7 +126,7 @@ final class SystemAdminPortalController extends Controller
             ],
             'portal_launch' => [
                 'available' => true,
-                'reason' => 'Assessment Part 1 checkpoints are ready. Lesson checkpoints remain unavailable until their persisted workflow exists.',
+                'reason' => 'Diagnostic Assessment checkpoints are ready through Part 2 and completion. Lesson checkpoints remain unavailable until their persisted workflow exists.',
                 'targets' => LearnerPortalLaunchService::targets(),
             ],
         ];

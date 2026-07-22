@@ -73,7 +73,7 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('learner.analytics_excluded', true)
             ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
             ->assertJsonPath('portal_launch.available', true)
-            ->assertJsonCount(5, 'portal_launch.targets');
+            ->assertJsonCount(10, 'portal_launch.targets');
     }
 
     public function test_kw000_can_use_normal_case_insensitive_learner_login(): void
@@ -171,7 +171,7 @@ final class PortalSystemLearnerTest extends TestCase
         ]);
     }
 
-    public function test_system_admin_can_launch_each_persisted_part_one_checkpoint(): void
+    public function test_system_admin_can_launch_each_persisted_assessment_checkpoint(): void
     {
         (new PortalSystemLearnerSeeder)->run();
         $learner = Learner::query()->where('learner_code', 'KW000')->firstOrFail();
@@ -182,6 +182,11 @@ final class PortalSystemLearnerTest extends TestCase
             'assessment-task-2a' => ['task-2a', 6, null, 10],
             'assessment-task-2b' => ['task-2b', 7, 10, 10],
             'assessment-part-1-results' => ['part-1-results', 7, 10, 20],
+            'assessment-story-selection' => ['story-selection', 7, 10, 20],
+            'assessment-task-3a' => ['task-3a', 7, 10, 20],
+            'assessment-task-3b' => ['task-3b', 7, 10, 21],
+            'assessment-part-2-results' => ['part-2-results', 7, 10, 26],
+            'assessment-complete' => ['assessment-complete', 7, 10, 26],
         ];
 
         foreach ($targets as $targetKey => [$stage, $taskOneScore, $taskTwoAScore, $responseCount]) {
@@ -193,14 +198,20 @@ final class PortalSystemLearnerTest extends TestCase
                 ->assertJsonPath('portal_launch.available', true)
                 ->assertJsonPath('learner.active_portal_run.target_key', $targetKey)
                 ->assertJsonPath('launch.target_key', $targetKey)
-                ->assertJsonPath('launch.route', '/learner/assessment/part-one')
                 ->assertJsonPath('launch.learner_session.learner.learner_code', 'KW000');
 
             $token = $launch->json('launch.learner_session.token');
-            $this->withToken($token)
-                ->post('/api/learners/assessments/part-one/start')
-                ->assertOk()
-                ->assertJsonPath('stage', $stage);
+            if (in_array($stage, ['orientation', 'task-1a', 'task-2a', 'task-2b', 'part-1-results'], true)) {
+                $this->withToken($token)
+                    ->post('/api/learners/assessments/part-one/start')
+                    ->assertOk()
+                    ->assertJsonPath('stage', $stage);
+            } else {
+                $this->withToken($token)
+                    ->get('/api/learners/assessments/part-two/current')
+                    ->assertOk()
+                    ->assertJsonPath('stage', $stage);
+            }
 
             $run = AssessmentRun::query()
                 ->where('learner_id', $learner->id)

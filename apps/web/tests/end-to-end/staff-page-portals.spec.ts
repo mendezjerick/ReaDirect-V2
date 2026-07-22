@@ -16,7 +16,7 @@ const portalState = {
   portal_launch: {
     available: true,
     reason:
-      "Assessment Part 1 checkpoints are ready. Lesson checkpoints remain unavailable until their persisted workflow exists.",
+      "Diagnostic assessment checkpoints are ready. Lesson checkpoints remain unavailable until their persisted workflow exists.",
     targets: [
       {
         key: "assessment-orientation",
@@ -47,6 +47,36 @@ const portalState = {
         label: "Part 1 Results",
         description: "Open a persisted high-branch Part 1 result.",
         task: "Result",
+      },
+      {
+        key: "assessment-story-selection",
+        label: "Choose a story",
+        description: "Open the unscored story choice before passage reading.",
+        task: "Part 2",
+      },
+      {
+        key: "assessment-task-3a",
+        label: "Passage reading",
+        description: "Open the selected story at the passage recording task.",
+        task: "Task 3A",
+      },
+      {
+        key: "assessment-task-3b",
+        label: "Comprehension",
+        description: "Open the first linked 5W question.",
+        task: "Task 3B",
+      },
+      {
+        key: "assessment-part-2-results",
+        label: "Part 2 Results",
+        description: "Open a completed Part 2 result.",
+        task: "Result",
+      },
+      {
+        key: "assessment-complete",
+        label: "Assessment Complete",
+        description: "Open the final assessment completion screen.",
+        task: "Completion",
       },
     ],
   },
@@ -103,6 +133,12 @@ test("System Admin Page Portals protects Kristen across viewports", async ({
   await expect(page.getByText("Excluded")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Open Rhyme Yes / No portal" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open Passage reading portal" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open Assessment Complete portal" }),
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Reset Kristen's progress" }).click();

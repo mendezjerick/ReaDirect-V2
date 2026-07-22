@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LearnerAssessmentPartOneController;
+use App\Http\Controllers\LearnerAssessmentPartTwoController;
 use App\Http\Controllers\LearnerAuthController;
 use App\Http\Controllers\LearnerTtsController;
 use App\Http\Controllers\SchoolAdministratorController;
@@ -57,4 +58,12 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/assessments/part-one/{assessmentRun}/rhyme', [LearnerAssessmentPartOneController::class, 'submitRhyme']);
     Route::post('/assessments/part-one/{assessmentRun}/skip', [LearnerAssessmentPartOneController::class, 'skip']);
     Route::post('/assessments/part-one/{assessmentRun}/advance', [LearnerAssessmentPartOneController::class, 'advance']);
+    Route::post('/assessments/part-one/{assessmentRun}/continue', [LearnerAssessmentPartOneController::class, 'continueResult']);
+    Route::get('/assessments/part-two/current', [LearnerAssessmentPartTwoController::class, 'show']);
+    Route::post('/assessments/part-two/{assessmentRun}/story', [LearnerAssessmentPartTwoController::class, 'selectStory']);
+    Route::post('/assessments/part-two/{assessmentRun}/passage', [LearnerAssessmentPartTwoController::class, 'submitPassage']);
+    Route::post('/assessments/part-two/{assessmentRun}/comprehension', [LearnerAssessmentPartTwoController::class, 'submitComprehension']);
+    Route::post('/assessments/part-two/{assessmentRun}/skip', [LearnerAssessmentPartTwoController::class, 'skip']);
+    Route::post('/assessments/part-two/{assessmentRun}/continue', [LearnerAssessmentPartTwoController::class, 'continueResult']);
+    Route::post('/assessments/part-two/{assessmentRun}/finish', [LearnerAssessmentPartTwoController::class, 'finish']);
 });

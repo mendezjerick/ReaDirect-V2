@@ -160,3 +160,20 @@ export async function advancePartOne(
     }),
   );
 }
+
+export async function continuePartOneResult(
+  token: string,
+  runId: number,
+): Promise<{ run_id: number; next_route: string }> {
+  const response = await fetch(
+    `/api/learners/assessments/part-one/${runId}/continue`,
+    { method: "POST", headers: authHeaders(token) },
+  );
+  if (!response.ok) {
+    throw new Error("Part 1 could not continue yet.");
+  }
+
+  return z
+    .object({ run_id: z.number().int().positive(), next_route: z.string() })
+    .parse(await response.json());
+}

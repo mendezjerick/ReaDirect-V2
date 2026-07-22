@@ -56,7 +56,7 @@ final class LearnerTtsTest extends TestCase
         $token = $this->createLearnerSession();
         $definitions = $this->speechDefinitions();
 
-        $this->assertCount(33, $definitions);
+        $this->assertCount(47, $definitions);
         foreach ($definitions as $speechKey => $definition) {
             $audio = "RIFF-published-{$speechKey}";
             $this->publishSpeech(
@@ -126,7 +126,7 @@ final class LearnerTtsTest extends TestCase
         Http::assertNothingSent();
     }
 
-    /** @return array<string, array{text: string, reference: string}> */
+    /** @return array<string, array{text: string, reference: string, path?: string}> */
     private function speechDefinitions(): array
     {
         $definitions = config('speech.clara_lines');

@@ -214,6 +214,30 @@ final class LearnerAssessmentPartOneTest extends TestCase
             ->assertJsonPath('result.continues_to_part_two', true);
     }
 
+    public function test_low_part_one_result_skips_part_two_and_opens_completion(): void
+    {
+        [$token, $run] = $this->createRunAtTask('part-1-results');
+        $run->forceFill([
+            'part_one_branch' => 'low',
+            'task_1a_score' => 6,
+            'task_2a_score' => 8,
+            'task_2b_score' => 0,
+            'part_one_score' => 14,
+            'part_one_level' => 'Moderate Refresher',
+            'part_one_completed_at' => now(),
+        ])->save();
+
+        $this->withToken($token)
+            ->post("/api/learners/assessments/part-one/{$run->id}/continue")
+            ->assertOk()
+            ->assertJsonPath('next_route', '/learner/assessment/complete');
+
+        $run->refresh();
+        $this->assertSame('assessment-complete', $run->stage);
+        $this->assertSame(0, $run->final_reading_score);
+        $this->assertSame('Low Emerging Reader', $run->final_reading_profile);
+    }
+
     /** @return array{string, AssessmentRun} */
     private function createRunAtTask(string $stage): array
     {

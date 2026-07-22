@@ -14,7 +14,11 @@ use Illuminate\Support\Str;
 
 final class LearnerPortalLaunchService
 {
-    public const ROUTE = '/learner/assessment/part-one';
+    public const PART_ONE_ROUTE = '/learner/assessment/part-one';
+
+    public const PART_TWO_ROUTE = '/learner/assessment/part-two';
+
+    public const COMPLETION_ROUTE = '/learner/assessment/complete';
 
     public function __construct(
         private readonly AssessmentContentCatalog $contentCatalog,
@@ -55,6 +59,36 @@ final class LearnerPortalLaunchService
                 'description' => 'Open a persisted high-branch Part 1 result.',
                 'task' => 'Result',
             ],
+            [
+                'key' => 'assessment-story-selection',
+                'label' => 'Choose a story',
+                'description' => 'Open the persisted high branch before a story is confirmed.',
+                'task' => 'Part 2',
+            ],
+            [
+                'key' => 'assessment-task-3a',
+                'label' => 'Passage reading',
+                'description' => 'Open Task 3A with Lena at the Park confirmed.',
+                'task' => 'Task 3A',
+            ],
+            [
+                'key' => 'assessment-task-3b',
+                'label' => 'Comprehension',
+                'description' => 'Open the first linked 5W question after a persisted passage result.',
+                'task' => 'Task 3B',
+            ],
+            [
+                'key' => 'assessment-part-2-results',
+                'label' => 'Part 2 Results',
+                'description' => 'Open a committed reading-and-understanding result.',
+                'task' => 'Result',
+            ],
+            [
+                'key' => 'assessment-complete',
+                'label' => 'Assessment Complete',
+                'description' => 'Open the final Diagnostic completion celebration.',
+                'task' => 'Completion',
+            ],
         ];
     }
 
@@ -71,7 +105,7 @@ final class LearnerPortalLaunchService
     {
         return DB::transaction(function () use ($learner, $actor, $targetKey): array {
             $learner = $this->resetService->reset($learner, $actor);
-            $snapshot = $this->contentCatalog->partOneSnapshot();
+            $snapshot = $this->contentCatalog->assessmentSnapshot();
             $run = $this->createAssessmentRun($learner, $snapshot, $targetKey);
             $this->seedPrerequisites($run, $targetKey);
 
@@ -110,7 +144,7 @@ final class LearnerPortalLaunchService
                 'learner' => $learner->fresh(),
                 'token' => $plainToken,
                 'target_key' => $targetKey,
-                'route' => self::ROUTE,
+                'route' => $this->routeFor($targetKey),
                 'expires_at' => $expiresAt->toIso8601String(),
             ];
         });
@@ -130,6 +164,11 @@ final class LearnerPortalLaunchService
                 'assessment-task-2a' => 'task-2a',
                 'assessment-task-2b' => 'task-2b',
                 'assessment-part-1-results' => 'part-1-results',
+                'assessment-story-selection' => 'story-selection',
+                'assessment-task-3a' => 'task-3a',
+                'assessment-task-3b' => 'task-3b',
+                'assessment-part-2-results' => 'part-2-results',
+                'assessment-complete' => 'assessment-complete',
             },
             'current_item_index' => 0,
             'content_snapshot' => $snapshot,
@@ -143,7 +182,16 @@ final class LearnerPortalLaunchService
             ];
         }
 
-        if (in_array($targetKey, ['assessment-task-2b', 'assessment-part-1-results'], true)) {
+        $highBranchTargets = [
+            'assessment-task-2b',
+            'assessment-part-1-results',
+            'assessment-story-selection',
+            'assessment-task-3a',
+            'assessment-task-3b',
+            'assessment-part-2-results',
+            'assessment-complete',
+        ];
+        if (in_array($targetKey, $highBranchTargets, true)) {
             $attributes += [
                 'part_one_branch' => 'high',
                 'task_1a_score' => 7,
@@ -151,12 +199,36 @@ final class LearnerPortalLaunchService
             ];
         }
 
-        if ($targetKey === 'assessment-part-1-results') {
+        if (in_array($targetKey, array_slice($highBranchTargets, 1), true)) {
             $attributes += [
                 'task_2b_score' => 8,
                 'part_one_score' => 25,
                 'part_one_level' => 'Light Refresher',
                 'part_one_completed_at' => now(),
+            ];
+        }
+
+        if (in_array($targetKey, ['assessment-task-3a', 'assessment-task-3b', 'assessment-part-2-results', 'assessment-complete'], true)) {
+            $attributes += [
+                'selected_story_key' => 'story:lena-at-park',
+                'story_selected_at' => now(),
+            ];
+        }
+
+        if (in_array($targetKey, ['assessment-task-3b', 'assessment-part-2-results', 'assessment-complete'], true)) {
+            $attributes += [
+                'passage_incorrect_words' => 10,
+                'reading_accuracy_percent' => 80,
+            ];
+        }
+
+        if (in_array($targetKey, ['assessment-part-2-results', 'assessment-complete'], true)) {
+            $attributes += [
+                'comprehension_score' => 4,
+                'comprehension_percent' => 80,
+                'final_reading_score' => 80,
+                'final_reading_profile' => 'Transitioning Reader',
+                'part_two_completed_at' => now(),
             ];
         }
 
@@ -169,12 +241,29 @@ final class LearnerPortalLaunchService
             $this->seedTaskResponses($run, 'task-1a', 6, $targetKey);
         }
 
-        if (in_array($targetKey, ['assessment-task-2b', 'assessment-part-1-results'], true)) {
+        $highBranchTargets = [
+            'assessment-task-2b',
+            'assessment-part-1-results',
+            'assessment-story-selection',
+            'assessment-task-3a',
+            'assessment-task-3b',
+            'assessment-part-2-results',
+            'assessment-complete',
+        ];
+        if (in_array($targetKey, $highBranchTargets, true)) {
             $this->seedTaskResponses($run, 'task-1a', 7, $targetKey);
         }
 
-        if ($targetKey === 'assessment-part-1-results') {
+        if (in_array($targetKey, array_slice($highBranchTargets, 1), true)) {
             $this->seedTaskResponses($run, 'task-2b', 8, $targetKey);
+        }
+
+        if (in_array($targetKey, ['assessment-task-3b', 'assessment-part-2-results', 'assessment-complete'], true)) {
+            $this->seedPassageResponse($run, $targetKey);
+        }
+
+        if (in_array($targetKey, ['assessment-part-2-results', 'assessment-complete'], true)) {
+            $this->seedComprehensionResponses($run, $targetKey);
         }
     }
 
@@ -201,5 +290,68 @@ final class LearnerPortalLaunchService
                 ],
             ]);
         }
+    }
+
+    private function seedPassageResponse(AssessmentRun $run, string $targetKey): void
+    {
+        $item = collect($run->content_snapshot['task-3a'])
+            ->firstWhere('story_key', 'story:lena-at-park');
+        AssessmentResponse::query()->create([
+            'assessment_run_id' => $run->id,
+            'task_key' => 'task-3a',
+            'item_key' => $item['item_key'],
+            'item_order' => 1,
+            'response_type' => 'portal_prerequisite',
+            'decision' => 'COMPLETED',
+            'score' => 80,
+            'evidence' => [
+                'portal_prerequisite' => true,
+                'portal_target_key' => $targetKey,
+                'scoring' => ['incorrect_words' => 10, 'reading_accuracy_percent' => 80],
+            ],
+        ]);
+    }
+
+    private function seedComprehensionResponses(AssessmentRun $run, string $targetKey): void
+    {
+        $questions = collect($run->content_snapshot['task-3b'])
+            ->where('story_key', 'story:lena-at-park')
+            ->sortBy('story_question_order')
+            ->values();
+        foreach ($questions as $index => $item) {
+            $correct = $index < 4;
+            AssessmentResponse::query()->create([
+                'assessment_run_id' => $run->id,
+                'task_key' => 'task-3b',
+                'item_key' => $item['item_key'],
+                'item_order' => (int) $item['story_question_order'],
+                'response_type' => 'portal_prerequisite',
+                'selected_response' => $correct ? $item['correct_choice_key'] : 'd',
+                'decision' => $correct ? 'CORRECT' : 'INCORRECT',
+                'score' => $correct ? 1 : 0,
+                'evidence' => [
+                    'portal_prerequisite' => true,
+                    'portal_target_key' => $targetKey,
+                ],
+            ]);
+        }
+    }
+
+    private function routeFor(string $targetKey): string
+    {
+        if ($targetKey === 'assessment-complete') {
+            return self::COMPLETION_ROUTE;
+        }
+
+        if (in_array($targetKey, [
+            'assessment-story-selection',
+            'assessment-task-3a',
+            'assessment-task-3b',
+            'assessment-part-2-results',
+        ], true)) {
+            return self::PART_TWO_ROUTE;
+        }
+
+        return self::PART_ONE_ROUTE;
     }
 }

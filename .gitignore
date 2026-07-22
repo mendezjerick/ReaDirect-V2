@@ -24,6 +24,10 @@ apps/api/storage/app/private/tts/catalog/*
 !apps/api/storage/app/private/tts/catalog/sh/
 apps/api/storage/app/private/tts/catalog/sh/*
 !apps/api/storage/app/private/tts/catalog/sh/*.wav
+!apps/api/storage/app/private/tts/catalog/sh/**/
+!apps/api/storage/app/private/tts/catalog/sh/**/*.wav
+!apps/api/storage/app/private/tts/catalog/sh/**/REVIEW.md
+apps/api/storage/app/private/tts/catalog/sh/unresolved/
 apps/api/storage/logs/
 apps/api/storage/framework/testing/
 apps/api/bootstrap/cache/*.php

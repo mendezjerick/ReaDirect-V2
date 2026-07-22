@@ -11,11 +11,12 @@ This specification covers speech synthesis only. Learner speech recognition,
 content scoring, and general interface composition are governed by their own
 standards.
 
-Implementation status: published catalog delivery is active for Lesson Intro
-and all 32 fixed lines in the currently implemented Part 1 assessment flow.
-PostgreSQL holds one published `clara-sh-v1` voice version and the 33 speech
-metadata rows; Laravel verifies and returns their private WAVs without calling
-VoxCPM2. Dynamic final-transcript feedback remains a future implementation.
+Implementation status: published catalog delivery is active for Lesson Intro,
+all 32 fixed Part 1 assessment lines, and all 14 fixed Part 2 and assessment
+completion lines. PostgreSQL holds one published `clara-sh-v1` voice version
+and 47 speech metadata rows; Laravel verifies and returns their private WAVs
+without calling VoxCPM2. Dynamic final-transcript feedback remains a future
+implementation.
 
 ## Approved Runtime Stack
 
@@ -195,6 +196,29 @@ Local development may use a private Laravel storage disk rooted at:
 apps/api/storage/app/private/tts/catalog/
 ```
 
+The current `clara-sh-v1` catalog is grouped by learner-flow responsibility so
+human reviewers do not need to inspect one flat audio directory:
+
+```text
+sh/
+|-- lesson-intro/
+|-- part-1/
+|   |-- orientation/
+|   |-- task-1a/
+|   |-- task-2a/
+|   |-- task-2b/
+|   \-- results/
+|-- part-2/
+|   |-- story-choice/
+|   |-- passage/
+|   |-- comprehension/
+|   \-- results/
+\-- completion/
+```
+
+`sh/part-2/REVIEW.md` is the listening-review manifest for the Part 2 files.
+Paths in configuration and seed data must preserve this hierarchy.
+
 A deployment may map the same storage-disk contract to private object storage.
 The database continues to store the disk name, private object path, checksum,
 and metadata rather than the audio body.
@@ -263,11 +287,10 @@ the requested line.
 | `introduce` | `introduce.wav` | Welcoming and introductory lines | 48 kHz, stereo, PCM 16-bit, about 5.50 s |
 | `instruction` | `instruction.wav` | Clear activity directions and neutral item cues | 48 kHz, stereo, PCM 16-bit, about 9.39 s |
 | `question` | `question.wav` | Questions and choice prompts | 48 kHz, stereo, PCM 16-bit, about 2.86 s |
-| `praise` | `praise.wav` | Positive reinforcement and celebrations | 48 kHz, stereo, PCM 16-bit, about 9.88 s |
 | `result` | `result.wav` | Results, milestones, and completion summaries | 48 kHz, stereo, PCM 16-bit, about 3.88 s |
 
 The role must match the intended delivery. A question should not use the
-instruction sample merely because both contain clear speech, and praise should
+instruction sample merely because both contain clear speech, and result should
 not be used for neutral assessment cues that could imply whether a response was
 correct.
 
@@ -393,8 +416,8 @@ cache misses:
 Rules:
 
 - `text` is trimmed and must contain between 1 and 500 characters.
-- `reference` must be one of `introduce`, `instruction`, `question`, `praise`,
-  or `result`.
+- `reference` must be one of `introduce`, `instruction`, `question`, or
+  `result`.
 - A missing reference file returns HTTP `503`.
 - A successful response is an `audio/wav` file named `clara-speech.wav`.
 - `X-ReaDirect-TTS-Cache` reports `hit` or `miss`.
@@ -508,6 +531,18 @@ speech generation. Published speech requests do not use them.
 | `assessment-rhymes` | Look at both words. Choose yes if they rhyme, or no if they do not. | `question` |
 | `assessment-words` | Read the word you see. Listen to your voice before you submit. | `instruction` |
 | `assessment-part-one-result` | Part one is complete. You worked hard, and I am proud of you! | `result` |
+| `assessment-story-choice` | Choose the story you want to read. You can pick Lena at the Park or Rosa in the Garden. | `question` |
+| `assessment-passage` | Read the story aloud. You have one minute. You can submit when you finish. | `instruction` |
+| `assessment-part-two-result` | Part two is complete. You finished reading and understanding the story. | `result` |
+| `assessment-complete` | Assessment complete! Your first lesson is ready. | `result` |
+
+Task 3B has ten additional published keys, five for each selectable story:
+`assessment-comprehension-lena-item-1` through `-5` and
+`assessment-comprehension-rosa-item-1` through `-5`. Item 1 includes the full
+choice instruction and its Who question. Items 2 through 5 speak the linked
+What, Where, When, and Why questions exactly as authored in the active
+assessment CSV. These keys are fixed assessment content and must never fall
+through to runtime synthesis.
 
 ### Required published assessment item cues
 
