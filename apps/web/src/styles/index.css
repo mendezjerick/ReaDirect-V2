@@ -179,7 +179,8 @@ button {
 }
 
 .big-button--primary-vertical,
-.big-button--unavailable-vertical {
+.big-button--unavailable-vertical,
+.big-button--skip-vertical {
   min-width: 0;
   min-height: 100%;
   flex-direction: column;
@@ -205,6 +206,14 @@ button {
   color: var(--color-button-unavailable-text);
   background: var(--color-button-unavailable-surface);
   box-shadow: 0 8px 0 var(--color-button-unavailable-depth);
+}
+
+.big-button--skip-vertical {
+  border-width: 3px;
+  border-color: var(--color-action-skip-border);
+  color: var(--color-text-primary);
+  background: var(--color-action-skip-surface);
+  box-shadow: 0 6px 0 var(--color-action-skip-depth);
 }
 
 .big-button--primary-vertical .big-button__icon,
@@ -248,6 +257,10 @@ button {
   background: var(--color-action-primary-hover);
 }
 
+.big-button--skip-vertical:not(:disabled):hover {
+  background: var(--color-action-skip-hover);
+}
+
 .big-button--secondary:not(:disabled):hover {
   background: var(--color-action-secondary-hover);
 }
@@ -263,6 +276,13 @@ button {
   transform: translateY(6px);
   background: var(--color-action-primary-pressed);
   box-shadow: 0 2px 0 var(--color-action-primary-depth);
+}
+
+.big-button--skip-vertical:active,
+.big-button--skip-vertical[data-press-state="committing"] {
+  transform: translateY(4px);
+  background: var(--color-action-skip-pressed);
+  box-shadow: 0 2px 0 var(--color-action-skip-depth);
 }
 
 .big-button--secondary:active,
@@ -3321,8 +3341,8 @@ button {
   left: var(--clara-loader-origin-x);
   z-index: 1;
   display: block;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 50%;
   background: var(--color-clara-loader-pulse);
   translate: -50% -50%;

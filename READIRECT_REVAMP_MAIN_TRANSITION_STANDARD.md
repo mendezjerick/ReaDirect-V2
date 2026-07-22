@@ -253,8 +253,12 @@ Do not:
 ```text
 Intro page -> Home page
 Learner login -> Learner dashboard (after successful authentication)
-Learner dashboard -> Lesson Intro (white variant)
 ```
 
 This list changes only when the project owner explicitly approves another
 placement.
+
+The Learner dashboard -> Lesson Intro handoff deliberately uses the shared
+button press-commit delay followed by direct route navigation. It must not use
+the full or white Link Start transition. Lesson Intro owns its own Clara loading
+reveal after the route mounts.

@@ -174,6 +174,48 @@ final class LearnerAssessmentPartOneController extends Controller
         return response()->json($this->serialize($run->fresh()));
     }
 
+    public function skip(Request $request): JsonResponse
+    {
+        $run = $this->resolveRun($request);
+        $validated = $request->validate([
+            'item_key' => ['required', 'string', 'max:80'],
+        ]);
+
+        DB::transaction(function () use ($run, $validated): void {
+            $run->refresh();
+            abort_unless(in_array($run->stage, ['task-1a', 'task-2a', 'task-2b'], true), 409, 'This assessment item cannot be skipped.');
+            $item = $this->currentItem($run);
+            abort_unless($item !== null && hash_equals($item['item_key'], $validated['item_key']), 409, 'That item is no longer active.');
+
+            if (! $this->currentResponse($run, $item)) {
+                AssessmentResponse::query()->create([
+                    'assessment_run_id' => $run->id,
+                    'task_key' => $run->stage,
+                    'item_key' => $item['item_key'],
+                    'item_order' => (int) $item['sort_order'],
+                    'response_type' => 'skipped',
+                    'decision' => 'SKIPPED',
+                    'score' => 0,
+                    'evidence' => [
+                        'learner_selected_skip' => true,
+                        'response_committed' => true,
+                    ],
+                ]);
+            }
+
+            $items = $run->content_snapshot[$run->stage];
+            if ($run->current_item_index + 1 < count($items)) {
+                $run->increment('current_item_index');
+
+                return;
+            }
+
+            $this->completeTask($run);
+        });
+
+        return response()->json($this->serialize($run->fresh()));
+    }
+
     public function advance(Request $request): JsonResponse
     {
         $run = $this->resolveRun($request);

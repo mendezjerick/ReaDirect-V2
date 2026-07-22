@@ -82,6 +82,34 @@ final class LearnerAssessmentPartOneTest extends TestCase
         ]);
     }
 
+    public function test_skipping_commits_a_distinct_zero_score_and_advances_automatically(): void
+    {
+        [$token, $run] = $this->createRunAtTask('task-1a');
+        $item = $run->content_snapshot['task-1a'][0];
+
+        $this->withToken($token)
+            ->postJson("/api/learners/assessments/part-one/{$run->id}/skip", [
+                'item_key' => $item['item_key'],
+            ])
+            ->assertOk()
+            ->assertJsonPath('response_committed', false)
+            ->assertJsonPath('progress.current', 2)
+            ->assertJsonPath('progress.completed', 1)
+            ->assertJsonMissing(['decision' => 'SKIPPED'])
+            ->assertJsonMissing(['score' => 0]);
+
+        $this->assertDatabaseHas('assessment_responses', [
+            'assessment_run_id' => $run->id,
+            'task_key' => 'task-1a',
+            'item_key' => $item['item_key'],
+            'response_type' => 'skipped',
+            'decision' => 'SKIPPED',
+            'score' => 0,
+        ]);
+
+        $this->assertSame(1, $run->fresh()->current_item_index);
+    }
+
     public function test_low_branch_administers_rhymes_and_finishes_with_task_two_b_not_administered(): void
     {
         [$token, $run] = $this->createRunAtTask('task-1a');

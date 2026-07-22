@@ -17,6 +17,7 @@ import { loadLearnerSession } from "../learner-auth/learnerApi";
 
 import {
   advancePartOne,
+  skipAssessmentItem,
   startPartOne,
   submitOrientation,
   submitRhyme,
@@ -28,6 +29,7 @@ import { useAudioRecorder } from "./useAudioRecorder";
 import "./assessment.css";
 
 type SaveState = "idle" | "processing" | "saved" | "error";
+type SaveAction = "submit" | "skip" | null;
 type GuideState = "preparing" | "speaking" | "ready" | "error";
 
 const stageCopy = {
@@ -250,6 +252,7 @@ export function AssessmentPartOnePage() {
   const [assessment, setAssessment] = useState<AssessmentState | null>(null);
   const [loadingError, setLoadingError] = useState("");
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [saveAction, setSaveAction] = useState<SaveAction>(null);
   const [choice, setChoice] = useState<"yes" | "no" | null>(null);
   const [guideState, setGuideState] = useState<GuideState>("preparing");
   const [speechLevel, setSpeechLevel] = useState(0);
@@ -261,6 +264,7 @@ export function AssessmentPartOnePage() {
   const playbackRef = useRef<ClaraSpeechPlayback | null>(null);
   const nextCommit = useButtonCommit();
   const submitCommit = useButtonCommit();
+  const skipCommit = useButtonCommit();
   const resultCommit = useButtonCommit();
 
   useEffect(() => {
@@ -342,16 +346,23 @@ export function AssessmentPartOnePage() {
 
   useEffect(() => {
     setChoice(null);
+    setSaveAction(null);
     setSaveState(assessment?.response_committed ? "saved" : "idle");
   }, [resetKey, assessment?.response_committed]);
 
-  const save = async (request: Promise<AssessmentState>) => {
+  const save = async (
+    request: Promise<AssessmentState>,
+    action: Exclude<SaveAction, null> = "submit",
+  ) => {
+    setSaveAction(action);
     setSaveState("processing");
     try {
       setAssessment(await request);
       setSaveState("saved");
     } catch {
       setSaveState("error");
+    } finally {
+      setSaveAction(null);
     }
   };
 
@@ -382,6 +393,19 @@ export function AssessmentPartOnePage() {
         assessment.item.item_key,
         choice,
       ),
+    );
+  };
+
+  const skipCurrentItem = () => {
+    if (!assessment?.item || !storedSession?.token) return;
+    recorder.retry();
+    void save(
+      skipAssessmentItem(
+        storedSession.token,
+        assessment.run_id,
+        assessment.item.item_key,
+      ),
+      "skip",
     );
   };
 
@@ -428,6 +452,11 @@ export function AssessmentPartOnePage() {
   const controlsUnavailable =
     guideState !== "ready" || saveState === "processing" || committed;
   const canSubmitAudio = Boolean(recorder.audio && recorder.hasPlayed);
+  const canSkip = !isResult && assessment.stage !== "orientation" && !committed;
+  const skipUnavailable =
+    controlsUnavailable ||
+    recorder.state === "recording" ||
+    recorder.state === "playing";
   const emotion = isResult ? "happy" : isRhyme ? "thinking" : "default";
 
   return (
@@ -537,7 +566,10 @@ export function AssessmentPartOnePage() {
           />
         </div>
 
-        <div className="assessment-action-slot">
+        <div
+          className="assessment-action-slot"
+          data-assessment-action-split={canSkip || undefined}
+        >
           {!isResult && !committed && isRhyme ? (
             <BigButton
               variant={
@@ -547,7 +579,7 @@ export function AssessmentPartOnePage() {
               }
               leadingIcon={<DockActionIcon kind="submit" />}
               disabled={!choice || controlsUnavailable}
-              busy={saveState === "processing"}
+              busy={saveState === "processing" && saveAction === "submit"}
               committing={submitCommit.committing}
               onClick={() => submitCommit.commit(submitChoice)}
             >
@@ -563,7 +595,7 @@ export function AssessmentPartOnePage() {
               }
               leadingIcon={<DockActionIcon kind="submit" />}
               disabled={!canSubmitAudio || controlsUnavailable}
-              busy={saveState === "processing"}
+              busy={saveState === "processing" && saveAction === "submit"}
               busyLabel="Saving"
               committing={submitCommit.committing}
               onClick={() =>
@@ -572,6 +604,18 @@ export function AssessmentPartOnePage() {
               }
             >
               Submit
+            </BigButton>
+          ) : null}
+          {canSkip ? (
+            <BigButton
+              variant="skip-vertical"
+              disabled={skipUnavailable}
+              busy={saveState === "processing" && saveAction === "skip"}
+              busyLabel="Skipping"
+              committing={skipCommit.committing}
+              onClick={() => skipCommit.commit(skipCurrentItem)}
+            >
+              Skip
             </BigButton>
           ) : null}
           {committed && !isResult ? (

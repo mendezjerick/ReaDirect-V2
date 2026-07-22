@@ -54,5 +54,6 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/assessments/part-one/{assessmentRun}/orientation', [LearnerAssessmentPartOneController::class, 'submitOrientation']);
     Route::post('/assessments/part-one/{assessmentRun}/speech', [LearnerAssessmentPartOneController::class, 'submitSpeech']);
     Route::post('/assessments/part-one/{assessmentRun}/rhyme', [LearnerAssessmentPartOneController::class, 'submitRhyme']);
+    Route::post('/assessments/part-one/{assessmentRun}/skip', [LearnerAssessmentPartOneController::class, 'skip']);
     Route::post('/assessments/part-one/{assessmentRun}/advance', [LearnerAssessmentPartOneController::class, 'advance']);
 });

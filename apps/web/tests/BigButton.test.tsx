@@ -38,4 +38,12 @@ describe("BigButton", () => {
     expect(button).toBeEnabled();
     expect(button).toHaveClass("big-button--primary-vertical");
   });
+
+  it("supports the fixed-color vertical skip action variant", () => {
+    render(<BigButton variant="skip-vertical">Skip</BigButton>);
+
+    const button = screen.getByRole("button", { name: "Skip" });
+    expect(button).toBeEnabled();
+    expect(button).toHaveClass("big-button--skip-vertical");
+  });
 });
