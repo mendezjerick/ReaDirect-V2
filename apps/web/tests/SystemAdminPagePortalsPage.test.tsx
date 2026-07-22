@@ -28,7 +28,7 @@ const response = {
   portal_launch: {
     available: true,
     reason:
-      "Assessment Part 1 checkpoints are ready. Lesson checkpoints remain unavailable until their persisted workflow exists.",
+      "Diagnostic assessment checkpoints are ready. Lesson checkpoints remain unavailable until their persisted workflow exists.",
     targets: [
       {
         key: "assessment-orientation",
@@ -59,6 +59,36 @@ const response = {
         label: "Part 1 Results",
         description: "Open a persisted high-branch Part 1 result.",
         task: "Result",
+      },
+      {
+        key: "assessment-story-selection",
+        label: "Choose a Story",
+        description: "Open the unscored story choice before passage reading.",
+        task: "Part 2",
+      },
+      {
+        key: "assessment-task-3a",
+        label: "Passage Reading",
+        description: "Open the selected story at the passage recording task.",
+        task: "Task 3A",
+      },
+      {
+        key: "assessment-task-3b",
+        label: "Comprehension",
+        description: "Open the first linked 5W question.",
+        task: "Task 3B",
+      },
+      {
+        key: "assessment-part-2-results",
+        label: "Part 2 Results",
+        description: "Open a completed Part 2 result.",
+        task: "Result",
+      },
+      {
+        key: "assessment-complete",
+        label: "Assessment Complete",
+        description: "Open the final assessment completion screen.",
+        task: "Completion",
       },
     ],
   },
@@ -93,6 +123,14 @@ function renderPage() {
             path="/learner/assessment/part-one"
             element={<div>Assessment portal opened</div>}
           />
+          <Route
+            path="/learner/assessment/part-two"
+            element={<div>Part two portal opened</div>}
+          />
+          <Route
+            path="/learner/assessment/complete"
+            element={<div>Completion portal opened</div>}
+          />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -106,7 +144,7 @@ describe("SystemAdminPagePortalsPage", () => {
     vi.useRealTimers();
   });
 
-  it("shows the isolated learner and the available Part 1 checkpoints", async () => {
+  it("shows the isolated learner and all diagnostic checkpoints", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -122,6 +160,8 @@ describe("SystemAdminPagePortalsPage", () => {
     expect(screen.getByText("KW000")).toBeVisible();
     expect(screen.getByText("Excluded")).toBeVisible();
     expect(screen.getByText("Rhyme Yes / No")).toBeVisible();
+    expect(screen.getByText("Passage Reading")).toBeVisible();
+    expect(screen.getByText("Assessment Complete")).toBeVisible();
     expect(
       screen.getByRole("button", { name: "Open Words portal" }),
     ).toBeEnabled();

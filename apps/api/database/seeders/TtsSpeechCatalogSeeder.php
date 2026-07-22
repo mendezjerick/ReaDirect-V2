@@ -15,7 +15,7 @@ final class TtsSpeechCatalogSeeder extends Seeder
 
     private const VOICE_KEY = 'clara-sh-v1';
 
-    private const EXPECTED_LINE_COUNT = 33;
+    private const EXPECTED_LINE_COUNT = 47;
 
     public function run(): void
     {
@@ -52,7 +52,7 @@ final class TtsSpeechCatalogSeeder extends Seeder
             $voice->save();
 
             foreach ($definitions as $speechKey => $definition) {
-                $relativePath = "sh/{$speechKey}.wav";
+                $relativePath = "sh/{$definition['path']}";
                 $disk = Storage::disk(self::CATALOG_DISK);
                 if (! $disk->exists($relativePath)) {
                     throw new RuntimeException("Published TTS audio is missing: {$relativePath}");
@@ -90,15 +90,16 @@ final class TtsSpeechCatalogSeeder extends Seeder
         });
     }
 
-    /** @return array<string, array{text: string, reference: string}> */
+    /** @return array<string, array{text: string, reference: string, path: string}> */
     private function speechDefinitions(): array
     {
         $definitions = [];
         foreach ((array) config('speech.clara_lines') as $speechKey => $speech) {
             if (! is_array($speech)
-                || ! isset($speech['text'], $speech['reference'])
+                || ! isset($speech['text'], $speech['reference'], $speech['path'])
                 || ! is_string($speech['text'])
-                || ! is_string($speech['reference'])) {
+                || ! is_string($speech['reference'])
+                || ! is_string($speech['path'])) {
                 throw new RuntimeException("Invalid fixed TTS definition: {$speechKey}");
             }
 
@@ -108,9 +109,10 @@ final class TtsSpeechCatalogSeeder extends Seeder
         $ordinals = (array) config('speech.assessment_item_cues.ordinals');
         foreach ((array) config('speech.assessment_item_cues.tasks') as $task => $definition) {
             if (! is_array($definition)
-                || ! isset($definition['text'], $definition['reference'])
+                || ! isset($definition['text'], $definition['reference'], $definition['path'])
                 || ! is_string($definition['text'])
-                || ! is_string($definition['reference'])) {
+                || ! is_string($definition['reference'])
+                || ! is_string($definition['path'])) {
                 throw new RuntimeException("Invalid assessment TTS definition: {$task}");
             }
 
@@ -122,6 +124,7 @@ final class TtsSpeechCatalogSeeder extends Seeder
                 $definitions["assessment-{$task}-item-{$position}"] = [
                     'text' => sprintf($definition['text'], $ordinal),
                     'reference' => $definition['reference'],
+                    'path' => "{$definition['path']}/assessment-{$task}-item-{$position}.wav",
                 ];
             }
         }

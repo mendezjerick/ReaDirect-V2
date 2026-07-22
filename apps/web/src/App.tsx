@@ -35,6 +35,12 @@ const AssessmentPartOnePage = lazy(() =>
   })),
 );
 
+const AssessmentPartTwoPage = lazy(() =>
+  import("./features/assessment/AssessmentPartTwoPage").then((module) => ({
+    default: module.AssessmentPartTwoPage,
+  })),
+);
+
 const GameOneRoutePage = lazy(() =>
   import("@readirect/game-one").then((module) => ({
     default: module.GameOneRoutePage,
@@ -150,6 +156,14 @@ export function App() {
             <Route
               path="/learner/assessment/part-one"
               element={<AssessmentPartOnePage />}
+            />
+            <Route
+              path="/learner/assessment/part-two"
+              element={<AssessmentPartTwoPage />}
+            />
+            <Route
+              path="/learner/assessment/complete"
+              element={<AssessmentPartTwoPage />}
             />
             <Route path="/learner/games" element={<GameLobbyPage />} />
             <Route

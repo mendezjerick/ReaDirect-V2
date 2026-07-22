@@ -210,8 +210,18 @@ abstract class TestCase extends BaseTestCase
             $table->unsignedTinyInteger('task_2b_score')->nullable();
             $table->unsignedTinyInteger('part_one_score')->nullable();
             $table->string('part_one_level', 40)->nullable();
+            $table->string('selected_story_key', 120)->nullable();
+            $table->unsignedTinyInteger('passage_incorrect_words')->nullable();
+            $table->unsignedTinyInteger('reading_accuracy_percent')->nullable();
+            $table->unsignedTinyInteger('comprehension_score')->nullable();
+            $table->unsignedTinyInteger('comprehension_percent')->nullable();
+            $table->unsignedTinyInteger('final_reading_score')->nullable();
+            $table->string('final_reading_profile', 48)->nullable();
             $table->timestamp('orientation_completed_at')->nullable();
             $table->timestamp('part_one_completed_at')->nullable();
+            $table->timestamp('story_selected_at')->nullable();
+            $table->timestamp('part_two_completed_at')->nullable();
+            $table->timestamp('assessment_completed_at')->nullable();
             $table->timestamps();
         });
 

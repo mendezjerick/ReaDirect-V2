@@ -2,19 +2,41 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type RecorderState = "idle" | "recording" | "recorded" | "playing";
 
-export function useAudioRecorder(resetKey: string) {
+interface AudioRecorderOptions {
+  maximumDurationMs?: number;
+}
+
+export function useAudioRecorder(
+  resetKey: string,
+  options: AudioRecorderOptions = {},
+) {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const playerRef = useRef<HTMLAudioElement | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const recordingStartedAtRef = useRef(0);
+  const maximumDurationTimeoutRef = useRef<number | null>(null);
+  const elapsedIntervalRef = useRef<number | null>(null);
   const [state, setState] = useState<RecorderState>("idle");
   const [audio, setAudio] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [hasPlayed, setHasPlayed] = useState(false);
   const [error, setError] = useState("");
+  const [recordingElapsedMs, setRecordingElapsedMs] = useState(0);
+
+  const clearRecordingTimers = useCallback(() => {
+    if (maximumDurationTimeoutRef.current !== null) {
+      window.clearTimeout(maximumDurationTimeoutRef.current);
+      maximumDurationTimeoutRef.current = null;
+    }
+    if (elapsedIntervalRef.current !== null) {
+      window.clearInterval(elapsedIntervalRef.current);
+      elapsedIntervalRef.current = null;
+    }
+  }, []);
 
   const clear = useCallback(() => {
+    clearRecordingTimers();
     playerRef.current?.pause();
     recorderRef.current = null;
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -27,7 +49,8 @@ export function useAudioRecorder(resetKey: string) {
     });
     setHasPlayed(false);
     setError("");
-  }, []);
+    setRecordingElapsedMs(0);
+  }, [clearRecordingTimers]);
 
   useEffect(() => {
     clear();
@@ -49,7 +72,9 @@ export function useAudioRecorder(resetKey: string) {
       recorder.addEventListener(
         "stop",
         () => {
+          clearRecordingTimers();
           const durationMilliseconds = performance.now() - recordingStartedAtRef.current;
+          setRecordingElapsedMs(durationMilliseconds);
           if (durationMilliseconds < 500) {
             setState("idle");
             setError("Record for at least half a second, then try again.");
@@ -72,10 +97,19 @@ export function useAudioRecorder(resetKey: string) {
       recordingStartedAtRef.current = performance.now();
       recorder.start();
       setState("recording");
+      setRecordingElapsedMs(0);
+      elapsedIntervalRef.current = window.setInterval(() => {
+        setRecordingElapsedMs(performance.now() - recordingStartedAtRef.current);
+      }, 250);
+      if (options.maximumDurationMs) {
+        maximumDurationTimeoutRef.current = window.setTimeout(() => {
+          if (recorder.state === "recording") recorder.stop();
+        }, options.maximumDurationMs);
+      }
     } catch {
       setError("Microphone access is needed to record your voice.");
     }
-  }, []);
+  }, [clearRecordingTimers, options.maximumDurationMs]);
 
   const stop = useCallback(() => {
     if (recorderRef.current?.state === "recording") recorderRef.current.stop();
@@ -101,5 +135,15 @@ export function useAudioRecorder(resetKey: string) {
     });
   }, [audioUrl]);
 
-  return { state, audio, hasPlayed, error, record, stop, play, retry: clear };
+  return {
+    state,
+    audio,
+    hasPlayed,
+    error,
+    recordingElapsedMs,
+    record,
+    stop,
+    play,
+    retry: clear,
+  };
 }

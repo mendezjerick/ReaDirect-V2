@@ -5,6 +5,8 @@ let audioContext: AudioContext | null = null;
 type AssessmentItemOrdinal = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 type AssessmentItemSpeechKey =
   `assessment-${"letters" | "rhymes" | "words"}-item-${AssessmentItemOrdinal}`;
+type AssessmentComprehensionSpeechKey =
+  `assessment-comprehension-${"lena" | "rosa"}-item-${1 | 2 | 3 | 4 | 5}`;
 
 export type ClaraSpeechKey =
   | "lesson-intro"
@@ -13,7 +15,12 @@ export type ClaraSpeechKey =
   | "assessment-rhymes"
   | "assessment-words"
   | "assessment-part-one-result"
-  | AssessmentItemSpeechKey;
+  | "assessment-story-choice"
+  | "assessment-passage"
+  | "assessment-part-two-result"
+  | "assessment-complete"
+  | AssessmentItemSpeechKey
+  | AssessmentComprehensionSpeechKey;
 
 export interface ClaraSpeechPlayback {
   finished: Promise<void>;

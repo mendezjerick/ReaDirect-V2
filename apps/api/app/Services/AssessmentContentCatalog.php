@@ -16,8 +16,18 @@ final class AssessmentContentCatalog
         ];
     }
 
+    /** @return array<string, list<array<string, string>>> */
+    public function assessmentSnapshot(): array
+    {
+        return [
+            ...$this->partOneSnapshot(),
+            'task-3a' => $this->read('task-3a-passages.csv', 'choice_order'),
+            'task-3b' => $this->read('task-3b-comprehension.csv'),
+        ];
+    }
+
     /** @return list<array<string, string>> */
-    private function read(string $filename): array
+    private function read(string $filename, string $orderColumn = 'sort_order'): array
     {
         $path = base_path("../../content/assessments/v1/shared/{$filename}");
         $stream = fopen($path, 'rb');
@@ -43,7 +53,7 @@ final class AssessmentContentCatalog
                 }
             }
 
-            usort($rows, fn (array $left, array $right): int => (int) $left['sort_order'] <=> (int) $right['sort_order']);
+            usort($rows, fn (array $left, array $right): int => (int) $left[$orderColumn] <=> (int) $right[$orderColumn]);
 
             return $rows;
         } finally {
