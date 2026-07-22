@@ -14,7 +14,7 @@ vi.mock("motion/react", async (importOriginal) => {
 
 import { LearnerDashboardPage } from "../src/features/learner-dashboard/LearnerDashboardPage";
 import { RouteTransitionProvider } from "../src/components/transitions/RouteTransitionProvider";
-import { createAppQueryClient } from "../src/app/AppProviders";
+import { createAppQueryClient } from "../src/app/queryClient";
 
 const claraSpeechMocks = vi.hoisted(() => ({
   prepare: vi.fn().mockResolvedValue(new Blob()),

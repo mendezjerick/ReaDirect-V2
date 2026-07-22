@@ -5,7 +5,7 @@ import {
   getLinkStartWaveProgresses,
   LINK_START_COVER_COMPLETE_MS,
   LINK_START_STREAK_COLOR_COUNT,
-} from "../src/components/transitions/LinkStartTransition";
+} from "../src/components/transitions/linkStartMath";
 
 describe("Link Start transition", () => {
   it("uses a smaller deterministic streak field on mobile", () => {

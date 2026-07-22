@@ -8,7 +8,7 @@ vi.mock("motion/react", async (importOriginal) => {
   return { ...motion, useReducedMotion: () => false };
 });
 
-import { createAppQueryClient } from "../src/app/AppProviders";
+import { createAppQueryClient } from "../src/app/queryClient";
 import { LINK_START_ROUTE_SWAP_MS } from "../src/components/transitions/LinkStartTransition";
 import {
   ROUTE_TRANSITION_PRESS_COMMIT_MS,

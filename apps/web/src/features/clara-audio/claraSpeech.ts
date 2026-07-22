@@ -1,5 +1,10 @@
 const speechRequests = new Map<string, Promise<Blob>>();
+const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1";
 let audioContext: AudioContext | null = null;
+
+type AssessmentItemOrdinal = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+type AssessmentItemSpeechKey =
+  `assessment-${"letters" | "rhymes" | "words"}-item-${AssessmentItemOrdinal}`;
 
 export type ClaraSpeechKey =
   | "lesson-intro"
@@ -7,7 +12,8 @@ export type ClaraSpeechKey =
   | "assessment-letters"
   | "assessment-rhymes"
   | "assessment-words"
-  | "assessment-part-one-result";
+  | "assessment-part-one-result"
+  | AssessmentItemSpeechKey;
 
 export interface ClaraSpeechPlayback {
   finished: Promise<void>;
@@ -50,7 +56,7 @@ export function prepareClaraSpeech(
   speechKey: ClaraSpeechKey,
   token: string,
 ): Promise<Blob> {
-  const requestKey = `${token}:${speechKey}`;
+  const requestKey = `${SPEECH_DELIVERY_VERSION}:${token}:${speechKey}`;
   const existingRequest = speechRequests.get(requestKey);
 
   if (existingRequest) {

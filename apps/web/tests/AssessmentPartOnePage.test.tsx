@@ -305,6 +305,12 @@ describe("AssessmentPartOnePage", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Skip" })).toBeEnabled(),
     );
+    await waitFor(() =>
+      expect(speechMocks.prepare).toHaveBeenCalledWith(
+        "assessment-letters-item-2",
+        "learner-token",
+      ),
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Skip" }));
 
@@ -323,7 +329,124 @@ describe("AssessmentPartOnePage", () => {
       ).toHaveAttribute("aria-label", "B b"),
     );
     expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Skip" })).toBeEnabled();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Skip" })).toBeEnabled(),
+    );
+    expect(document.querySelector(".clara-speech-loader")).toBeNull();
+    expect(
+      speechMocks.prepare.mock.calls.filter(
+        ([key]) => key === "assessment-letters-item-2",
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("shows the Clara voice loader when a fast Skip overtakes prefetch", async () => {
+    let finishPrefetch: ((speech: Blob) => void) | undefined;
+    let finishSkip: ((response: Response) => void) | undefined;
+    const pendingPrefetch = new Promise<Blob>((resolve) => {
+      finishPrefetch = resolve;
+    });
+    const pendingSkip = new Promise<Response>((resolve) => {
+      finishSkip = resolve;
+    });
+    const activeItem = {
+      run_id: 8,
+      assessment_type: "diagnostic",
+      stage: "task-1a",
+      orientation_ready: true,
+      progress: { current: 1, total: 10, completed: 0 },
+      item: {
+        item_key: "task1a-a",
+        display_text: "A a",
+        uppercase_form: "A",
+        lowercase_form: "a",
+      },
+      response_committed: false,
+      result: null,
+    };
+    const nextItem = {
+      ...activeItem,
+      progress: { current: 2, total: 10, completed: 1 },
+      item: {
+        item_key: "task1a-b",
+        display_text: "B b",
+        uppercase_form: "B",
+        lowercase_form: "b",
+      },
+    };
+
+    speechMocks.prepare.mockImplementation((key: string) =>
+      key === "assessment-letters-item-2"
+        ? pendingPrefetch
+        : Promise.resolve(new Blob(["wave"])),
+    );
+    speechMocks.play.mockResolvedValue({
+      finished: Promise.resolve(),
+      stop: vi.fn(),
+    });
+    window.sessionStorage.setItem(
+      "readirect.learner-session",
+      JSON.stringify(learnerSession),
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((input: string | URL | Request) =>
+        String(input).endsWith("/skip")
+          ? pendingSkip
+          : Promise.resolve(
+              new Response(JSON.stringify(activeItem), {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+              }),
+            ),
+      ),
+    );
+
+    render(
+      <MemoryRouter initialEntries={["/learner/assessment/part-one"]}>
+        <ThemeProvider>
+          <Routes>
+            <Route
+              path="/learner/assessment/part-one"
+              element={<AssessmentPartOnePage />}
+            />
+          </Routes>
+        </ThemeProvider>
+      </MemoryRouter>,
+    );
+
+    await screen.findByRole("heading", { name: "Letters" });
+    await waitFor(() => expect(live2dMocks.setState).toBeTypeOf("function"));
+    act(() => live2dMocks.setState?.("ready"));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Skip" })).toBeEnabled(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Skip" }));
+
+    expect(
+      await screen.findByRole("status", {
+        name: "Preparing Ma'am Clara's voice",
+      }),
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      finishPrefetch?.(new Blob(["next-wave"]));
+      finishSkip?.(
+        new Response(JSON.stringify(nextItem), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("status", {
+          name: "Preparing Ma'am Clara's voice",
+        }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it("advances rhyme choices immediately after Submit without showing Next", async () => {

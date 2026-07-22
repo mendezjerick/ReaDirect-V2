@@ -33,4 +33,31 @@ return [
             'reference' => 'result',
         ],
     ],
+    'assessment_item_cues' => [
+        'ordinals' => [
+            2 => 'second',
+            3 => 'third',
+            4 => 'fourth',
+            5 => 'fifth',
+            6 => 'sixth',
+            7 => 'seventh',
+            8 => 'eighth',
+            9 => 'ninth',
+            10 => 'tenth',
+        ],
+        'tasks' => [
+            'letters' => [
+                'text' => 'Now, try the %s letter.',
+                'reference' => 'instruction',
+            ],
+            'rhymes' => [
+                'text' => 'Now, check the %s pair.',
+                'reference' => 'question',
+            ],
+            'words' => [
+                'text' => 'Now, read the %s word.',
+                'reference' => 'instruction',
+            ],
+        ],
+    ],
 ];

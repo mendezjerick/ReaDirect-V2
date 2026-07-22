@@ -25,12 +25,18 @@ import {
   type AssessmentItem,
   type AssessmentState,
 } from "./assessmentApi";
+import {
+  getAssessmentSpeechKey,
+  getNextAssessmentSpeechKey,
+} from "./assessmentSpeech";
 import { useAudioRecorder } from "./useAudioRecorder";
 import "./assessment.css";
 
 type SaveState = "idle" | "processing" | "saved" | "error";
 type SaveAction = "submit" | "skip" | null;
 type GuideState = "preparing" | "speaking" | "ready" | "error";
+
+const SKIP_WARMUP_LOADER_DELAY_MS = 320;
 
 const stageCopy = {
   orientation: { eyebrow: "Before we begin", title: "Microphone check" },
@@ -39,14 +45,6 @@ const stageCopy = {
   "task-2b": { eyebrow: "Part 1", title: "Words" },
   "part-1-results": { eyebrow: "Milestone reached", title: "Part 1 Results" },
 } as const;
-
-const speechKeys: Record<AssessmentState["stage"], ClaraSpeechKey> = {
-  orientation: "assessment-orientation",
-  "task-1a": "assessment-letters",
-  "task-2a": "assessment-rhymes",
-  "task-2b": "assessment-words",
-  "part-1-results": "assessment-part-one-result",
-};
 
 function MicrophoneIcon() {
   return (
@@ -416,6 +414,13 @@ export function AssessmentPartOnePage() {
     key: ClaraSpeechKey;
     speech: Blob;
   } | null>(null);
+  const [prefetchedSpeechKey, setPrefetchedSpeechKey] =
+    useState<ClaraSpeechKey | null>(null);
+  const [showSkipWarmupLoader, setShowSkipWarmupLoader] = useState(false);
+  const prefetchedGuideRef = useRef<{
+    key: ClaraSpeechKey;
+    speech: Blob;
+  } | null>(null);
   const playbackRef = useRef<ClaraSpeechPlayback | null>(null);
   const submitCommit = useButtonCommit();
   const skipCommit = useButtonCommit();
@@ -437,13 +442,55 @@ export function AssessmentPartOnePage() {
       );
   }, [navigate, storedSession?.token]);
 
-  const speechKey = assessment ? speechKeys[assessment.stage] : null;
+  const speechKey = assessment
+    ? getAssessmentSpeechKey(
+        assessment.stage,
+        assessment.progress?.current,
+      )
+    : null;
+  const nextSpeechKey = assessment
+    ? getNextAssessmentSpeechKey(
+        assessment.stage,
+        assessment.progress?.current,
+        assessment.progress?.total,
+      )
+    : null;
+
+  const skipIsWaitingForSpeech =
+    saveState === "processing" &&
+    saveAction === "skip" &&
+    nextSpeechKey !== null &&
+    prefetchedSpeechKey !== nextSpeechKey;
+
+  useEffect(() => {
+    if (!skipIsWaitingForSpeech) {
+      setShowSkipWarmupLoader(false);
+      return;
+    }
+
+    const timeout = window.setTimeout(
+      () => setShowSkipWarmupLoader(true),
+      SKIP_WARMUP_LOADER_DELAY_MS,
+    );
+
+    return () => window.clearTimeout(timeout);
+  }, [skipIsWaitingForSpeech]);
+
   useEffect(() => {
     if (!speechKey || !storedSession?.token) return;
-    let active = true;
     setGuideState("preparing");
     setSpeechLevel(0);
-    setPreparedGuide(null);
+    const prefetchedGuide =
+      prefetchedGuideRef.current?.key === speechKey
+        ? prefetchedGuideRef.current
+        : null;
+    setPreparedGuide(prefetchedGuide);
+
+    if (prefetchedGuide) {
+      return;
+    }
+
+    let active = true;
     void prepareClaraSpeech(speechKey, storedSession.token)
       .then((speech) => {
         if (active) {
@@ -456,6 +503,30 @@ export function AssessmentPartOnePage() {
       active = false;
     };
   }, [speechKey, storedSession?.token]);
+
+  useEffect(() => {
+    if (
+      guideState !== "ready" ||
+      !nextSpeechKey ||
+      !storedSession?.token
+    ) {
+      return;
+    }
+
+    let active = true;
+    void prepareClaraSpeech(nextSpeechKey, storedSession.token)
+      .then((speech) => {
+        if (active) {
+          prefetchedGuideRef.current = { key: nextSpeechKey, speech };
+          setPrefetchedSpeechKey(nextSpeechKey);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, [guideState, nextSpeechKey, storedSession?.token]);
 
   useEffect(() => {
     if (!claraReady || !speechKey || preparedGuide?.key !== speechKey) {
@@ -512,7 +583,11 @@ export function AssessmentPartOnePage() {
     setSaveState("processing");
     try {
       const nextAssessment = await request;
-      if (assessment && nextAssessment.stage !== assessment.stage) {
+      if (
+        assessment &&
+        (nextAssessment.stage !== assessment.stage ||
+          nextAssessment.item?.item_key !== assessment.item?.item_key)
+      ) {
         playbackRef.current?.stop();
         setGuideState("preparing");
       }
@@ -660,7 +735,12 @@ export function AssessmentPartOnePage() {
       tabIndex={-1}
     >
       <ClaraSpeechWarmupLoader
-        active={guideState === "preparing" && preparedGuide?.key !== speechKey}
+        active={
+          (guideState === "preparing" &&
+            preparedGuide?.key !== speechKey &&
+            prefetchedGuideRef.current?.key !== speechKey) ||
+          showSkipWarmupLoader
+        }
         modelReady={claraReady}
       />
       <PointerTrail />

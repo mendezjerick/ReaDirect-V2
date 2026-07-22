@@ -9,8 +9,8 @@ import {
 import {
   ROUTE_TRANSITION_PRESS_COMMIT_MS,
   RouteTransitionProvider,
-  useRouteTransition,
 } from "../src/components/transitions/RouteTransitionProvider";
+import { useRouteTransition } from "../src/components/transitions/routeTransitionContext";
 
 vi.mock("motion/react", async (importOriginal) => {
   const motion = await importOriginal<typeof import("motion/react")>();

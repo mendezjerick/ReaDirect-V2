@@ -11,5 +11,6 @@ final class DatabaseSeeder extends Seeder
         $this->call(SystemAdministratorSeeder::class);
         $this->call(LetterEquivalenceSeeder::class);
         $this->call(PortalSystemLearnerSeeder::class);
+        $this->call(TtsSpeechCatalogSeeder::class);
     }
 }
