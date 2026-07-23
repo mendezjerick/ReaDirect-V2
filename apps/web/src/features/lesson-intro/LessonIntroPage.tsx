@@ -9,16 +9,18 @@ import {
   type ClaraSpeechPlayback,
 } from "../clara-audio/claraSpeech";
 import { ClaraSpeechWarmupLoader } from "../clara-audio/ClaraSpeechWarmupLoader";
+import { activitySpeechScopeForProgress } from "../clara-audio/activitySpeechReadiness";
+import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPreparation";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { ClaraIntroStage } from "../intro/ClaraIntroStage";
 import "./lesson-intro.css";
 
-type LessonIntroState = "preparing" | "speaking" | "ready" | "error";
+type LessonIntroSpeechState = "preparing" | "speaking" | "finished" | "error";
 
-const statusMessages: Record<LessonIntroState, string> = {
+const speechStatusMessages: Record<LessonIntroSpeechState, string> = {
   preparing: "Ma'am Clara is getting ready...",
   speaking: "Listen to Ma'am Clara.",
-  ready: "Ready!",
+  finished: "Ma'am Clara is preparing your activity...",
   error: "Ma'am Clara needs another try.",
 };
 
@@ -26,11 +28,24 @@ export function LessonIntroPage() {
   const navigate = useNavigate();
   const continueCommit = useButtonCommit();
   const session = loadLearnerSession();
-  const [state, setState] = useState<LessonIntroState>("preparing");
+  const activityScope = session
+    ? activitySpeechScopeForProgress(session.learner.progress)
+    : "signed-out";
+  const activityPreparation = useActivitySpeechPreparation(
+    session?.token,
+    activityScope,
+    Boolean(session?.token),
+  );
+  const [speechState, setSpeechState] =
+    useState<LessonIntroSpeechState>("preparing");
   const [speechLevel, setSpeechLevel] = useState(0);
   const [attempt, setAttempt] = useState(0);
   const [claraReady, setClaraReady] = useState(false);
   const [preparedSpeech, setPreparedSpeech] = useState<Blob | null>(null);
+  const nextRoute =
+    session?.learner.progress.stage === "required_lessons"
+      ? `/learner/lessons/${session.learner.progress.current_required_lesson_order ?? 1}`
+      : "/learner/assessment/part-one";
 
   useEffect(() => {
     if (!session?.token) {
@@ -40,7 +55,7 @@ export function LessonIntroPage() {
 
     let active = true;
     const prepare = async () => {
-      setState("preparing");
+      setSpeechState("preparing");
       setSpeechLevel(0);
       setPreparedSpeech(null);
 
@@ -52,7 +67,7 @@ export function LessonIntroPage() {
         }
       } catch {
         if (active) {
-          setState("error");
+          setSpeechState("error");
           setSpeechLevel(0);
         }
       }
@@ -90,16 +105,16 @@ export function LessonIntroPage() {
           return;
         }
 
-        setState("speaking");
+        setSpeechState("speaking");
         await playback.finished;
 
         if (active) {
-          setState("ready");
+          setSpeechState("finished");
           setSpeechLevel(0);
         }
       } catch {
         if (active) {
-          setState("error");
+          setSpeechState("error");
           setSpeechLevel(0);
         }
       }
@@ -113,17 +128,34 @@ export function LessonIntroPage() {
     };
   }, [claraReady, preparedSpeech]);
 
+  const ready =
+    speechState === "finished" && activityPreparation.status === "ready";
+  const hasError =
+    speechState === "error" || activityPreparation.status === "error";
+  const statusMessage = hasError
+    ? "Ma'am Clara needs another try."
+    : ready
+      ? "Ready!"
+      : speechState === "finished" && activityPreparation.status === "preparing"
+        ? "Ma'am Clara is preparing your activity..."
+        : speechStatusMessages[speechState];
+
+  const retry = () => {
+    activityPreparation.retry();
+    setAttempt((current) => current + 1);
+  };
+
   return (
     <>
       <ClaraSpeechWarmupLoader
-        active={state === "preparing" && !preparedSpeech}
+        active={activityPreparation.showRuntimeLoader}
         modelReady={claraReady}
       />
       <ClaraIntroStage
         ariaLabelledBy="lesson-intro-title"
         className="lesson-intro-page"
         emotion="happy"
-        speaking={state === "speaking"}
+        speaking={speechState === "speaking"}
         speechLevel={speechLevel}
         onClaraLoadStateChange={(loadState) =>
           setClaraReady(loadState === "ready")
@@ -135,27 +167,23 @@ export function LessonIntroPage() {
             Get ready to read
           </h1>
           <p className="lesson-intro-page__status" aria-live="polite">
-            {statusMessages[state]}
+            {statusMessage}
           </p>
           <BigButton
             className="intro-page__continue lesson-intro-page__continue"
-            variant={state === "ready" ? "primary" : "unavailable"}
+            variant={ready ? "primary" : "unavailable"}
             committing={continueCommit.committing}
-            disabled={state !== "ready"}
-            onClick={() =>
-              continueCommit.commit(() =>
-                navigate("/learner/assessment/part-one"),
-              )
-            }
+            disabled={!ready}
+            onClick={() => continueCommit.commit(() => navigate(nextRoute))}
           >
             Continue
           </BigButton>
-          {state === "error" ? (
+          {hasError ? (
             <BigButton
               className="lesson-intro-page__retry"
               variant="secondary"
               size="regular"
-              onClick={() => setAttempt((current) => current + 1)}
+              onClick={retry}
             >
               Try again
             </BigButton>

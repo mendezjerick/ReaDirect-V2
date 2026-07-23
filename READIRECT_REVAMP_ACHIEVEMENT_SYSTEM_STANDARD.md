@@ -389,15 +389,23 @@ become scrollable.
 
 ### Prototype Migration
 
-The current Learner Dashboard's local `achievementSlots` entries are temporary
-UI placeholders, not catalog contracts. The placeholder keys and criteria
-`first-steps`, `lesson-one`, `word-helper`, `steady-reader`, `game-starter`, and
-`final-reader` must be removed when the authoritative catalog integration lands.
-They must not be migrated into permanent account awards.
+The obsolete placeholder keys and criteria `first-steps`, `lesson-one`,
+`word-helper`, `steady-reader`, `game-starter`, and `final-reader` have been
+removed. The Learner Dashboard now renders the eight canonical Reading Journey
+identities in this standard and marks server-reported earned keys. Moving the
+remaining display metadata into the shared database catalog remains required
+before the gallery is considered fully integrated.
 
 The integrated gallery renders the eight Reading Journey records in this
 standard plus centrally approved game achievements returned by Laravel. It does
 not keep a second hard-coded frontend catalog.
+
+The current persistence increment grants `reading.ready_reader` when the
+Diagnostic Assessment is authoritatively finished and
+`reading.letter_leader` in the same transaction that completes Lesson 1 and
+unlocks Lesson 2. The `(learner_id, achievement_key)` uniqueness constraint
+makes repeated completion idempotent. `KW000` reset deletes its lesson runs,
+lesson audio, and awards as part of the approved portal-only reset exception.
 
 ## Data Contract
 

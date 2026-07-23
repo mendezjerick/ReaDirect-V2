@@ -742,3 +742,96 @@ because it is dry
 14. Mu must transcribe the spoken answer before expected-answer comparison.
 15. Hidden expected answers must never alter Mu's raw transcription.
 16. Display formatting must never automatically control ASR behavior.
+
+## Implemented Lesson 1 Runtime Contract
+
+Lesson 1 is one resumable route with three missions and five locked items per
+mission. A run snapshots fifteen unique targets from the versioned CSV. Missions
+2 and 3 use context-eligible targets, while `Q` and `X` remain Mission-1-only.
+
+The persistence boundary is:
+
+- `lesson_runs` owns the immutable snapshot, current mission, current item, and
+  completion state.
+- `lesson_responses` owns the current teaching state and final item-level
+  outcome. It stores academic-attempt count, technical-retry count, highest
+  scaffold, mastery status, diagnosis, review recommendation, and the latest
+  committed evidence.
+- `lesson_item_attempts` is the immutable attempt ledger. Each row identifies
+  an independent, guided, technical, echo, or skip attempt and preserves its
+  classification, optional academic-attempt number, scaffold level,
+  transcripts, audio reference, checksum, and service evidence.
+- `lesson_target_exposures` owns the learner, shared target scope, content
+  version, selection cycle, and consumed target key. A new cycle begins only
+  when the remaining unused pool cannot supply the required unique mission set.
+- Submit records evidence through the bounded teaching-state machine.
+  `UNCERTAIN`, `UNUSABLE_AUDIO`, and `SILENCE` create technical attempts and
+  never increase `academic_attempt_count`.
+- One clear incorrect independent attempt enters `GIVING_CLUE`. Confirming the
+  clue enters `GUIDED_RETRY`. A second clear incorrect academic attempt enters
+  `DEMONSTRATING`; confirming the demonstration enters `ECHO_RETRY`.
+- The post-demonstration echo is stored separately and never becomes
+  independent mastery.
+- Next advances only after the response owns a terminal approved outcome.
+- Skip stores `SKIPPED` and advances immediately; it is not a numeric zero.
+- Completion, Lesson 2 unlock, and `reading.letter_leader` award occur in one
+  database transaction.
+
+The current terminal outcome values are:
+
+```text
+INDEPENDENT_CORRECT
+SUPPORTED_CORRECT
+DEMONSTRATED
+NOT_YET_CORRECT
+UNSCORABLE_AUDIO
+SKIPPED
+```
+
+The server returns a `teaching` object on every active Lesson 1 state response.
+It includes the persisted state, counters, scaffold, diagnosis, outcome, and
+server-derived `can_record`, `can_continue_support`, and `can_advance`
+capabilities. Refresh and direct resume must use this object instead of
+reconstructing support state from browser timers.
+
+`POST /api/learners/lessons/lesson-1/{lessonRun}/continue-support` is the
+guarded transition from `GIVING_CLUE` to `GUIDED_RETRY` or from
+`DEMONSTRATING` to `ECHO_RETRY`. It cannot skip stages or reopen a terminal
+item.
+
+The bounded support contract is implemented end to end. Every response includes
+a server-authored `support` object with:
+
+```text
+sequence_key
+speech[]
+display_mode
+after_speech
+requires_speech_completion
+```
+
+`speech[]` preserves playback order and distinguishes published catalog lines
+from response-owned runtime feedback. `after_speech` may request recording,
+the guarded support continuation, advancement availability, or no action. The
+browser may execute that declared action only after the complete sequence.
+Browser code must never invent support transitions locally.
+
+Lesson 1 publishes three mission clues, one technical-retry line, twenty-six
+letter demonstrations, and five terminal outcome lines. Demonstration text
+uses the shared isolated-letter pronunciation map. The learner's committed
+final transcript remains the only dynamic token in the support sequence.
+
+The first item of each mission plays the complete mission instruction. Items
+two through five play mission-specific ordinal cues instead of repeating that
+instruction. The cue must identify the second, third, fourth, or fifth item and
+must remain published catalog speech.
+
+The learner UI must render through the same shared activity shell and exact
+four-panel composition as the assessments: mission header, large item,
+separate recorder, and Clara/action dock. Lessons must not create parallel
+page grids, panel measurements, dock measurements, or responsive breakpoints.
+Only the displayed lesson item and its mission-specific entrance animation may
+differ from the assessment composition. Submit receives 80 percent of the
+action height and Skip 20 percent; after submission, the action shows Clara's
+unavailable feedback/listening state. Next appears at full size only after
+Clara finishes speaking the feedback.

@@ -1,5 +1,116 @@
 <?php
 
+use App\Services\IsolatedLetterPronunciation;
+
+$assessmentPartOneSpeechKeys = [
+    'assessment-orientation',
+    'assessment-letters',
+    'assessment-rhymes',
+    'assessment-words',
+    'assessment-part-one-result',
+];
+
+foreach (['letters', 'rhymes', 'words'] as $task) {
+    foreach (range(2, 10) as $position) {
+        $assessmentPartOneSpeechKeys[] = "assessment-{$task}-item-{$position}";
+    }
+}
+
+$assessmentPartTwoSpeechKeys = [
+    'assessment-story-choice',
+    'assessment-passage',
+    ...array_map(
+        fn (int $position): string => "assessment-comprehension-lena-item-{$position}",
+        range(1, 5),
+    ),
+    ...array_map(
+        fn (int $position): string => "assessment-comprehension-rosa-item-{$position}",
+        range(1, 5),
+    ),
+    'assessment-part-two-result',
+    'assessment-complete',
+];
+
+$lessonOneSupportLines = [
+    'lesson-1-technical-retry' => [
+        'text' => 'I could not hear that clearly. Let us try once more.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-1/support/technical/lesson-1-technical-retry.wav',
+    ],
+    'lesson-1-clue-mission-1' => [
+        'text' => 'Look at the big letter and the small letter. They share one letter name.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-1/support/clues/lesson-1-clue-mission-1.wav',
+    ],
+    'lesson-1-clue-mission-2' => [
+        'text' => 'Look at the very first letter in the word. Say only that letter name.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-1/support/clues/lesson-1-clue-mission-2.wav',
+    ],
+    'lesson-1-clue-mission-3' => [
+        'text' => 'Look at the blank at the start. Say the letter that completes the word.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-1/support/clues/lesson-1-clue-mission-3.wav',
+    ],
+    'lesson-1-feedback-independent' => [
+        'text' => 'That is correct. You found it by yourself.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-1/support/feedback/lesson-1-feedback-independent.wav',
+    ],
+    'lesson-1-feedback-supported' => [
+        'text' => 'That is correct. The clue helped you find it!',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-1/support/feedback/lesson-1-feedback-supported.wav',
+    ],
+    'lesson-1-feedback-demonstrated' => [
+        'text' => 'Good echo. We will practice this letter again later.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-1/support/feedback/lesson-1-feedback-demonstrated.wav',
+    ],
+    'lesson-1-feedback-not-yet' => [
+        'text' => 'Not yet, and that is okay. We will practice this letter again.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-1/support/feedback/lesson-1-feedback-not-yet.wav',
+    ],
+    'lesson-1-feedback-unscorable' => [
+        'text' => 'I still could not hear a clear answer. We can try this letter again later.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-1/support/feedback/lesson-1-feedback-unscorable.wav',
+    ],
+];
+
+$lessonOneItemCueLines = [];
+$lessonOneItemOrdinals = [
+    2 => 'second',
+    3 => 'third',
+    4 => 'fourth',
+    5 => 'fifth',
+];
+$lessonOneMissionCueTemplates = [
+    'mission-1' => 'Now, try the %s letter.',
+    'mission-2' => 'Now, find the first letter in the %s word.',
+    'mission-3' => 'Now, complete the %s word.',
+];
+
+foreach ($lessonOneMissionCueTemplates as $missionKey => $template) {
+    foreach ($lessonOneItemOrdinals as $position => $ordinal) {
+        $speechKey = "lesson-1-{$missionKey}-item-{$position}";
+        $lessonOneItemCueLines[$speechKey] = [
+            'text' => sprintf($template, $ordinal),
+            'reference' => 'instruction',
+            'path' => "lessons/lesson-1/{$missionKey}/{$speechKey}.wav",
+        ];
+    }
+}
+
+foreach (IsolatedLetterPronunciation::all() as $letter => $spokenForm) {
+    $lessonOneSupportLines["lesson-1-letter-demo-{$letter}"] = [
+        'text' => "The letter name is {$spokenForm}. Listen: {$spokenForm}. Now you try.",
+        'reference' => 'instruction',
+        'path' => "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-{$letter}.wav",
+    ];
+}
+
 return [
     'asr_url' => env('ASR_SERVICE_URL', 'http://127.0.0.1:8001'),
     'connect_timeout_seconds' => (int) env('ASR_CONNECT_TIMEOUT_SECONDS', 3),
@@ -7,11 +118,79 @@ return [
     'tts_url' => env('TTS_SERVICE_URL', 'http://127.0.0.1:8002'),
     'tts_connect_timeout_seconds' => (int) env('TTS_CONNECT_TIMEOUT_SECONDS', 3),
     'tts_request_timeout_seconds' => (int) env('TTS_REQUEST_TIMEOUT_SECONDS', 300),
+    'tts_reference_profiles' => [
+        'introduce',
+        'instruction',
+        'question',
+        'result',
+    ],
+    'published_speech_groups' => [
+        'assessment-part-one-fixed' => $assessmentPartOneSpeechKeys,
+        'assessment-part-two-fixed' => $assessmentPartTwoSpeechKeys,
+        'lesson-1-fixed' => [
+            'lesson-1-mission-1',
+            'lesson-1-mission-2',
+            'lesson-1-mission-3',
+            'lesson-1-complete',
+            ...array_keys($lessonOneItemCueLines),
+            ...array_keys($lessonOneSupportLines),
+        ],
+    ],
+    'activity_speech_manifests' => [
+        'assessment-part-one' => [
+            'published_groups' => ['assessment-part-one-fixed'],
+            'runtime_profiles' => [],
+        ],
+        'assessment-part-two' => [
+            'published_groups' => ['assessment-part-two-fixed'],
+            'runtime_profiles' => [],
+        ],
+        'lesson-1' => [
+            'published_groups' => ['lesson-1-fixed'],
+            'runtime_profiles' => ['result'],
+        ],
+    ],
+    'portal_activity_map' => [
+        'assessment-orientation' => 'assessment-part-one',
+        'assessment-task-1a' => 'assessment-part-one',
+        'assessment-task-2a' => 'assessment-part-one',
+        'assessment-task-2b' => 'assessment-part-one',
+        'assessment-part-1-results' => 'assessment-part-one',
+        'assessment-story-selection' => 'assessment-part-two',
+        'assessment-task-3a' => 'assessment-part-two',
+        'assessment-task-3b' => 'assessment-part-two',
+        'assessment-part-2-results' => 'assessment-part-two',
+        'assessment-complete' => 'assessment-part-two',
+        'lesson-1-mission-1' => 'lesson-1',
+        'lesson-1-mission-2' => 'lesson-1',
+        'lesson-1-mission-3' => 'lesson-1',
+        'lesson-1-complete' => 'lesson-1',
+    ],
     'clara_lines' => [
         'lesson-intro' => [
             'text' => 'Hi! I am happy you are here. Let us get ready to read together!',
             'reference' => 'introduce',
             'path' => 'lesson-intro/lesson-intro.wav',
+        ],
+        'lesson-1-mission-1' => [
+            'text' => 'Look at the big letter and the small letter. Say their letter name.',
+            'reference' => 'instruction',
+            'path' => 'lessons/lesson-1/mission-1/lesson-1-mission-1.wav',
+        ],
+        'lesson-1-mission-2' => [
+            'text' => 'Find the first letter in the word. Say its letter name.',
+            'reference' => 'instruction',
+            'path' => 'lessons/lesson-1/mission-2/lesson-1-mission-2.wav',
+        ],
+        'lesson-1-mission-3' => [
+            'text' => 'Find the missing first letter. Say the letter that completes the word.',
+            'reference' => 'instruction',
+            'path' => 'lessons/lesson-1/mission-3/lesson-1-mission-3.wav',
+        ],
+        'lesson-1-complete' => [
+            'text' => 'Lesson one is complete. You are a Letter Leader!',
+            'reference' => 'result',
+            'path' => 'lessons/lesson-1/completion/lesson-1-complete.wav',
         ],
         'assessment-orientation' => [
             'text' => 'Let us check your microphone. Say ready, then listen to your recording.',
@@ -108,6 +287,8 @@ return [
             'reference' => 'result',
             'path' => 'completion/assessment-complete.wav',
         ],
+        ...$lessonOneItemCueLines,
+        ...$lessonOneSupportLines,
     ],
     'assessment_item_cues' => [
         'ordinals' => [

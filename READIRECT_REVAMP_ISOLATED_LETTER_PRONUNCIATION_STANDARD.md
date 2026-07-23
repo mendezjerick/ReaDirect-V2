@@ -167,6 +167,26 @@ Every voice set remains separate. The generator applies the hard `0.70`-second
 minimum and retries a shorter result automatically, up to 20 attempts by
 default.
 
+## Lesson 1 Runtime Feedback Contract
+
+Lesson 1 stores Mu's resolved canonical class in `lesson_responses.final_transcript`.
+The authenticated feedback route accepts only the response identifier. Laravel
+loads the owned response, maps the canonical class through this table, and sends
+the controlled `You said {spoken-form}.` template to VoxCPM2 with the `result`
+reference role. The browser never submits a replacement transcript or a raw
+letter-to-speech prompt.
+
+Examples:
+
+| Saved final transcript | Vox input |
+| --- | --- |
+| `A` | `You said ei.` |
+| `K` | `You said kei.` |
+| `U` | `You said you.` |
+
+`UNKNOWN`, `SILENCE`, empty, or non-A-Z outcomes must use controlled supportive
+fallback wording and must never be guessed into a letter.
+
 ## Related Sources Of Truth
 
 - `READIRECT_REVAMP_AUDIO_PREPROCESSING_AND_RECORDING_STANDARD.md`

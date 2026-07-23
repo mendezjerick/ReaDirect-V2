@@ -298,26 +298,53 @@ belongs in the audit manifests defined by the ASR Guide.
 
 Contains the standalone FastAPI voice-generation service and its generated-audio cache.
 
-The service owns one process-wide, lazily loaded VoxCPM2 runtime. Concurrent
-warm-up requests must share that runtime, generation must be serialized around
-the non-reentrant model, and a dynamic cache hit must still confirm that the
-runtime is resident. VoxCPM2 is used for controlled speech publication and
-future unpredictable final-transcript feedback; fixed learner-flow lines do not
-call it at runtime.
+The service owns one process-wide VoxCPM2 runtime and begins loading it in the
+background when FastAPI starts. Activity manifests request only the reference
+profiles their controlled dynamic speech can use. The service conditions and
+encodes each requested profile once per current reference fingerprint, runs a
+disposable generation probe, and retains the resulting Vox prompt cache in
+process memory. Concurrent preparation for one profile is single-flight,
+generation is serialized around the non-reentrant model, and a dynamic cache
+hit still confirms that the required profile is resident. VoxCPM2 is used for
+controlled speech publication and unpredictable final-transcript feedback;
+fixed learner-flow lines do not call it at runtime.
 
 Laravel is the authenticated browser-facing speech proxy. Published metadata
 belongs in `tts_voice_versions` and `tts_speech_lines`, while approved WAVs live
 under `apps/api/storage/app/private/tts/catalog/`. The current `clara-sh-v1`
 catalog contains Lesson Intro, every fixed Part 1 instruction and ordinal cue,
-all fixed Part 2 prompts and questions, and the assessment completion line. Its
-47 published rows are grouped under `sh/lesson-intro/`, `sh/part-1/`,
-`sh/part-2/`, and `sh/completion/` for human review. Laravel verifies the
-catalog status, file existence, and SHA-256 checksum before returning audio.
-Browser code must never send or receive private paths.
+all fixed Part 2 prompts and questions, the assessment completion line, and
+51 fixed Lesson 1 lines. Its 98 published rows are grouped under
+`sh/lesson-intro/`, `sh/part-1/`, `sh/part-2/`, `sh/completion/`, and
+`sh/lessons/` for human review. Laravel verifies the catalog status, file
+existence, and SHA-256 checksum before returning audio. Browser code must never
+send or receive private paths.
 
 Dashboard entry may begin a deduplicated Lesson Intro catalog request during
 the shared route transition. The destination reuses that same in-memory browser
 promise rather than issuing a duplicate file request.
+
+Shared destination speech preparation belongs under:
+
+```text
+apps/web/src/features/clara-audio/activitySpeechReadiness.ts
+apps/web/src/features/clara-audio/useActivitySpeechPreparation.ts
+```
+
+The first file owns the authenticated manifest/readiness contract and
+token-plus-destination single-flight cache. The second owns React lifecycle,
+retry invalidation, and runtime-loader visibility. Dashboard, Lesson Intro,
+assessment, lesson, refresh, and portal paths must compose these shared modules
+rather than create route-specific warm-up clients.
+
+`ActivitySpeechManifestService` resolves server-owned speech requirements from
+normal progression, active assessment stage, or active portal target.
+`ActivitySpeechPreparationService` validates the complete published group
+against one published voice version and verifies private WAV checksums before
+calling Vox for manifest-declared profiles. The authenticated
+`POST /api/learners/tts/activity-readiness` contract accepts no browser-selected
+activity or profile. Assessments therefore validate their published catalog
+without contacting Vox, while Lesson 1 currently prepares only `result`.
 
 Before VoxCPM2 receives a Clara reference, the TTS adapter creates a private
 conditioned working copy under `services/tts/storage/reference-cache/`. The
@@ -711,3 +738,51 @@ ReaDirect-V2/
 ```
 
 New top-level application or service folders must not be introduced without first updating this document.
+
+## Lesson Runtime Placement
+
+Lesson implementations remain inside the existing application boundaries:
+
+```text
+apps/api/app/Http/Controllers/LearnerLessonOneController.php
+apps/api/app/Models/LessonRun.php
+apps/api/app/Models/LessonResponse.php
+apps/api/app/Models/LessonItemAttempt.php
+apps/api/app/Services/LessonContentCatalog.php
+apps/api/app/Services/IsolatedLetterPronunciation.php
+apps/api/app/Services/LessonOneSupportPresentation.php
+apps/api/app/Services/LessonTeachingStateMachine.php
+apps/api/database/migrations/2026_07_23_000017_add_bounded_support_to_lesson_runtime.php
+apps/web/src/features/learner-activity/LearnerActivityShell.tsx
+apps/web/src/features/learner-activity/LearnerActivityResult.tsx
+apps/web/src/features/lesson/LessonOnePage.tsx
+apps/web/src/features/lesson/lessonApi.ts
+apps/web/src/features/lesson/lesson.css
+```
+
+Versioned authored lesson items remain under `content/lessons/`. Published
+Lesson 1 Clara WAV files remain private under the existing TTS catalog at
+`apps/api/storage/app/private/tts/catalog/sh/lessons/lesson-1/`. Future lessons
+must reuse the generic run, response, target-exposure, recorder, Clara, button,
+loader, and transition foundations rather than create parallel subsystems.
+
+Shared Clara teaching presentation belongs under:
+
+```text
+apps/web/src/features/intro/live2d/ClaraPresentation.ts
+apps/web/src/features/intro/live2d/ClaraExpressionController.ts
+apps/web/src/features/lesson/lessonClaraPresentation.ts
+```
+
+`ClaraPresentation.ts` owns the cross-page layered state and teaching-gaze
+priority. `ClaraExpressionController.ts` is the only runtime writer for the
+approved facial, cue, and celebration parameters.
+`lessonClaraPresentation.ts` maps Lesson 1 evidence and lifecycle states to
+that shared contract; future lessons must provide their own deterministic
+mapping while reusing the same Clara controller.
+
+`LessonOneSupportPresentation.php` owns the ordered learner-facing support
+contract. It maps persisted teaching state and the latest immutable attempt to
+published speech keys, optional response-owned feedback, display mode, and the
+post-speech action. React must consume this payload and must not reproduce that
+decision table.

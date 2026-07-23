@@ -6,6 +6,7 @@ import logging
 import os
 import threading
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
@@ -14,7 +15,7 @@ import soundfile as sf
 import torch
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 SERVICE_ROOT = Path(__file__).resolve().parent
 REPOSITORY_ROOT = SERVICE_ROOT.parents[1]
@@ -25,6 +26,12 @@ REFERENCE_ROOT = REPOSITORY_ROOT / "assets/audio/voice-references/sh"
 REFERENCE_TARGET_PEAK_DBFS = -6.0
 REFERENCE_TARGET_PEAK = 10 ** (REFERENCE_TARGET_PEAK_DBFS / 20)
 REFERENCE_CONDITIONING_VERSION = "mono-peak-minus-6db-v1"
+STARTUP_WARMUP_ENABLED = os.getenv("READIRECT_TTS_STARTUP_WARMUP", "1") not in {
+    "0",
+    "false",
+    "False",
+}
+PROFILE_PROBE_TEXT = "Ma'am Clara is ready to help."
 
 REFERENCE_FILES = {
     "introduce": REFERENCE_ROOT / "introduce.wav",
@@ -35,15 +42,38 @@ REFERENCE_FILES = {
 
 logger = logging.getLogger("readirect.tts")
 
+ReferenceProfile = Literal[
+    "introduce",
+    "instruction",
+    "question",
+    "result",
+]
+
 
 class SynthesisRequest(BaseModel):
     text: str = Field(min_length=1, max_length=500)
-    reference: Literal[
-        "introduce",
-        "instruction",
-        "question",
-        "result",
-    ]
+    reference: ReferenceProfile
+
+
+class WarmupRequest(BaseModel):
+    profiles: list[ReferenceProfile] = Field(default_factory=list)
+
+    @field_validator("profiles")
+    @classmethod
+    def profiles_must_be_unique(
+        cls,
+        profiles: list[ReferenceProfile],
+    ) -> list[ReferenceProfile]:
+        if len(profiles) != len(set(profiles)):
+            raise ValueError("profiles cannot contain duplicates")
+
+        return profiles
+
+
+@dataclass(frozen=True)
+class PreparedProfile:
+    fingerprint: str
+    prompt_cache: dict[str, Any]
 
 
 class VoxRuntime:
@@ -54,16 +84,28 @@ class VoxRuntime:
         self._device: str | None = None
         self._load_lock = threading.Lock()
         self._generation_lock = threading.Lock()
+        self._state_lock = threading.Lock()
+        self._model_warming = False
+        self._model_error: str | None = None
+        self._prepared_profiles: dict[str, PreparedProfile] = {}
+        self._profile_events: dict[str, threading.Event] = {}
+        self._profile_errors: dict[str, str] = {}
 
     @property
     def ready(self) -> bool:
-        return self._model is not None
+        return self.model_ready
+
+    @property
+    def model_ready(self) -> bool:
+        with self._state_lock:
+            return self._model is not None
 
     @property
     def device(self) -> str | None:
-        return self._device
+        with self._state_lock:
+            return self._device
 
-    def warmup(self) -> None:
+    def warmup_model(self) -> None:
         if self._model is not None:
             return
 
@@ -71,45 +113,225 @@ class VoxRuntime:
             if self._model is not None:
                 return
 
-            if not MODEL_PATH.is_dir():
-                raise FileNotFoundError(f"VoxCPM2 model is missing: {MODEL_PATH}")
+            with self._state_lock:
+                self._model_warming = True
+                self._model_error = None
 
-            from voxcpm import VoxCPM
+            try:
+                model, device = self._load_model()
+            except Exception as error:
+                with self._state_lock:
+                    self._model_error = str(error)
+                raise
+            else:
+                with self._state_lock:
+                    self._model = model
+                    self._device = device
+                logger.info("VoxCPM2 is ready on %s", device)
+            finally:
+                with self._state_lock:
+                    self._model_warming = False
 
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            logger.info("Loading VoxCPM2 on %s", device)
-            self._model = VoxCPM.from_pretrained(
-                str(MODEL_PATH),
-                local_files_only=True,
-                load_denoiser=False,
-                optimize=device == "cuda",
-                device=device,
-            )
-            self._device = device
-            logger.info("VoxCPM2 is ready on %s", device)
+    def warmup(self) -> None:
+        """Backward-compatible model-only warm-up."""
 
-    def synthesize(self, text: str, reference_path: Path, output_path: Path) -> None:
-        self.warmup()
+        self.warmup_model()
+
+    def prepare_profiles(self, profiles: list[ReferenceProfile]) -> None:
+        self.warmup_model()
+
+        for profile in profiles:
+            self._prepare_profile(profile)
+
+    def synthesize(
+        self,
+        text: str,
+        profile: ReferenceProfile,
+        output_path: Path,
+    ) -> None:
+        self.prepare_profiles([profile])
 
         with self._generation_lock:
             if output_path.is_file():
                 return
 
-            waveform = self._model.generate(
-                text=text,
-                reference_wav_path=str(reference_path),
-                cfg_value=2.0,
-                inference_timesteps=10,
-                normalize=True,
-                denoise=False,
+            prepared = self._prepared_profile(profile)
+            waveform = self._generate_with_prompt_cache(
+                text,
+                prepared.prompt_cache,
                 retry_badcase=True,
-                retry_badcase_max_times=3,
-                retry_badcase_ratio_threshold=6.0,
             )
             sample_rate = int(self._model.tts_model.sample_rate)
             temporary_path = output_path.with_suffix(".tmp.wav")
             sf.write(temporary_path, waveform, sample_rate, subtype="PCM_16")
             os.replace(temporary_path, output_path)
+
+    def state(self) -> dict[str, Any]:
+        stale_profiles: list[str] = []
+
+        with self._state_lock:
+            prepared_profiles = dict(self._prepared_profiles)
+
+        for profile, prepared in prepared_profiles.items():
+            reference_path = REFERENCE_FILES.get(profile)
+
+            try:
+                current_fingerprint = reference_fingerprint(reference_path)
+            except (FileNotFoundError, OSError):
+                stale_profiles.append(profile)
+                continue
+
+            if current_fingerprint != prepared.fingerprint:
+                stale_profiles.append(profile)
+
+        if stale_profiles:
+            with self._state_lock:
+                for profile in stale_profiles:
+                    self._prepared_profiles.pop(profile, None)
+
+        with self._state_lock:
+            profiles_ready = sorted(self._prepared_profiles)
+            profiles_warming = sorted(self._profile_events)
+
+            return {
+                "model_ready": self._model is not None,
+                "device": self._device,
+                "warming": self._model_warming or profiles_warming != [],
+                "profiles_ready": profiles_ready,
+                "profiles_warming": profiles_warming,
+                "profiles_failed": sorted(self._profile_errors),
+                "model_error": self._model_error,
+            }
+
+    def _load_model(self) -> tuple[Any, str]:
+        if not MODEL_PATH.is_dir():
+            raise FileNotFoundError(f"VoxCPM2 model is missing: {MODEL_PATH}")
+
+        from voxcpm import VoxCPM
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        logger.info("Loading VoxCPM2 on %s", device)
+        model = VoxCPM.from_pretrained(
+            str(MODEL_PATH),
+            local_files_only=True,
+            load_denoiser=False,
+            optimize=device == "cuda",
+            device=device,
+        )
+
+        return model, device
+
+    def _prepare_profile(self, profile: ReferenceProfile) -> None:
+        reference_path = REFERENCE_FILES[profile]
+        fingerprint = reference_fingerprint(reference_path)
+        owner = False
+
+        with self._state_lock:
+            prepared = self._prepared_profiles.get(profile)
+
+            if prepared is not None and prepared.fingerprint == fingerprint:
+                return
+
+            event = self._profile_events.get(profile)
+
+            if event is None:
+                event = threading.Event()
+                self._profile_events[profile] = event
+                self._profile_errors.pop(profile, None)
+                owner = True
+
+        if not owner:
+            event.wait()
+
+            with self._state_lock:
+                prepared = self._prepared_profiles.get(profile)
+                error = self._profile_errors.get(profile)
+
+            if prepared is not None and prepared.fingerprint == fingerprint:
+                return
+
+            raise RuntimeError(error or f"VoxCPM2 profile {profile} did not become ready.")
+
+        try:
+            conditioned_reference = condition_reference(reference_path)
+
+            with self._generation_lock:
+                prompt_cache = self._model.tts_model.build_prompt_cache(
+                    reference_wav_path=str(conditioned_reference),
+                )
+                self._generate_with_prompt_cache(
+                    PROFILE_PROBE_TEXT,
+                    prompt_cache,
+                    retry_badcase=True,
+                )
+
+            with self._state_lock:
+                self._prepared_profiles[profile] = PreparedProfile(
+                    fingerprint=fingerprint,
+                    prompt_cache=prompt_cache,
+                )
+                self._profile_errors.pop(profile, None)
+            logger.info("VoxCPM2 reference profile %s is ready", profile)
+        except Exception as error:
+            with self._state_lock:
+                self._prepared_profiles.pop(profile, None)
+                self._profile_errors[profile] = str(error)
+            raise
+        finally:
+            with self._state_lock:
+                completed_event = self._profile_events.pop(profile, event)
+                completed_event.set()
+
+    def _prepared_profile(self, profile: ReferenceProfile) -> PreparedProfile:
+        with self._state_lock:
+            prepared = self._prepared_profiles.get(profile)
+
+        if prepared is None:
+            raise RuntimeError(f"VoxCPM2 reference profile {profile} is not ready.")
+
+        return prepared
+
+    def _generate_with_prompt_cache(
+        self,
+        text: str,
+        prompt_cache: dict[str, Any],
+        *,
+        retry_badcase: bool,
+    ) -> np.ndarray:
+        normalized_text = text.replace("\n", " ").strip()
+
+        if self._model.text_normalizer is None:
+            from voxcpm.utils.text_normalize import TextNormalizer
+
+            self._model.text_normalizer = TextNormalizer()
+
+        normalized_text = self._model.text_normalizer.normalize(normalized_text)
+        result = self._model.tts_model.generate_with_prompt_cache(
+            target_text=normalized_text,
+            prompt_cache=prompt_cache,
+            min_len=2,
+            max_len=4096,
+            inference_timesteps=10,
+            cfg_value=2.0,
+            retry_badcase=retry_badcase,
+            retry_badcase_max_times=3 if retry_badcase else 0,
+            retry_badcase_ratio_threshold=6.0,
+        )
+        waveform = result[0]
+
+        if hasattr(waveform, "detach"):
+            waveform = waveform.detach()
+        if hasattr(waveform, "cpu"):
+            waveform = waveform.cpu()
+        if hasattr(waveform, "numpy"):
+            waveform = waveform.numpy()
+
+        audio = np.asarray(waveform, dtype=np.float32).squeeze()
+
+        if audio.size == 0 or not np.isfinite(audio).all():
+            raise RuntimeError("VoxCPM2 returned invalid audio.")
+
+        return audio
 
 
 runtime = VoxRuntime()
@@ -120,7 +342,15 @@ reference_conditioning_lock = threading.Lock()
 async def lifespan(_: FastAPI):
     CACHE_PATH.mkdir(parents=True, exist_ok=True)
     REFERENCE_CACHE_PATH.mkdir(parents=True, exist_ok=True)
+    startup_task: asyncio.Task[None] | None = None
+
+    if STARTUP_WARMUP_ENABLED:
+        startup_task = asyncio.create_task(warm_model_at_startup())
+
     yield
+
+    if startup_task is not None and startup_task.done():
+        startup_task.result()
 
 
 app = FastAPI(title="ReaDirect TTS", version="1.0.0", lifespan=lifespan)
@@ -156,6 +386,22 @@ def conditioned_reference_path(reference_path: Path) -> Path:
     )
     digest = hashlib.sha256(fingerprint.encode("utf-8")).hexdigest()[:16]
     return REFERENCE_CACHE_PATH / f"{reference_path.stem}-{digest}.wav"
+
+
+def reference_fingerprint(reference_path: Path | None) -> str:
+    if reference_path is None or not reference_path.is_file():
+        raise FileNotFoundError(f"Clara reference audio is missing: {reference_path}")
+
+    reference_stat = reference_path.stat()
+
+    return "|".join(
+        [
+            str(reference_path.resolve()),
+            str(reference_stat.st_size),
+            str(reference_stat.st_mtime_ns),
+            REFERENCE_CONDITIONING_VERSION,
+        ]
+    )
 
 
 def condition_reference(reference_path: Path) -> Path:
@@ -197,25 +443,42 @@ def condition_reference(reference_path: Path) -> Path:
     return output_path
 
 
+async def warm_model_at_startup() -> None:
+    try:
+        await asyncio.to_thread(runtime.warmup_model)
+    except Exception:
+        logger.exception("VoxCPM2 startup warm-up failed")
+
+
 @app.get("/health")
-async def health() -> dict[str, str | bool | None]:
+async def health() -> dict[str, Any]:
+    state = runtime.state()
+
     return {
         "service": "tts",
         "status": "ready",
-        "runtime_ready": runtime.ready,
-        "device": runtime.device,
+        "runtime_ready": state["model_ready"],
+        **state,
     }
 
 
 @app.post("/warmup")
-async def warmup() -> dict[str, str | bool | None]:
+async def warmup(request: WarmupRequest | None = None) -> dict[str, Any]:
+    requested_profiles = request.profiles if request is not None else []
+
     try:
-        await asyncio.to_thread(runtime.warmup)
-    except (FileNotFoundError, RuntimeError) as error:
+        await asyncio.to_thread(runtime.prepare_profiles, requested_profiles)
+    except (OSError, RuntimeError, ValueError) as error:
         logger.exception("VoxCPM2 warm-up failed")
         raise HTTPException(status_code=503, detail=str(error)) from error
 
-    return {"ready": True, "device": runtime.device}
+    state = runtime.state()
+
+    return {
+        "ready": all(profile in state["profiles_ready"] for profile in requested_profiles),
+        "device": state["device"],
+        "profiles_ready": state["profiles_ready"],
+    }
 
 
 @app.post("/synthesize")
@@ -233,21 +496,17 @@ async def synthesize(request: SynthesisRequest) -> FileResponse:
     was_cached = output_path.is_file()
 
     try:
-        conditioned_reference = await asyncio.to_thread(
-            condition_reference,
-            reference_path,
-        )
         # Warm-up is intentional even on a cache hit: this screen guarantees that
         # the live TTS runtime is resident before the learner enters an activity.
-        await asyncio.to_thread(runtime.warmup)
+        await asyncio.to_thread(runtime.prepare_profiles, [request.reference])
         if not was_cached:
             await asyncio.to_thread(
                 runtime.synthesize,
                 normalized_request.text,
-                conditioned_reference,
+                normalized_request.reference,
                 output_path,
             )
-    except (FileNotFoundError, RuntimeError, ValueError) as error:
+    except (OSError, RuntimeError, ValueError) as error:
         logger.exception("Clara speech synthesis failed")
         raise HTTPException(status_code=503, detail=str(error)) from error
 

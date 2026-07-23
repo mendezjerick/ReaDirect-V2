@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -21,9 +21,24 @@ const claraSpeechMocks = vi.hoisted(() => ({
   unlock: vi.fn(),
 }));
 
+const activitySpeechMocks = vi.hoisted(() => ({
+  prepare: vi.fn().mockResolvedValue({
+    activity: "assessment-part-one",
+    ready: true,
+  }),
+  clear: vi.fn(),
+}));
+
 vi.mock("../src/features/clara-audio/claraSpeech", () => ({
   prepareClaraSpeech: claraSpeechMocks.prepare,
   unlockClaraAudio: claraSpeechMocks.unlock,
+}));
+
+vi.mock("../src/features/clara-audio/activitySpeechReadiness", () => ({
+  activitySpeechScopeForProgress: (progress: { stage: string }) =>
+    progress.stage === "required_lessons" ? "lesson-1" : "assessment-part-one",
+  prepareActivitySpeech: activitySpeechMocks.prepare,
+  clearActivitySpeechPreparation: activitySpeechMocks.clear,
 }));
 
 const learnerSession = {
@@ -110,10 +125,10 @@ describe("LearnerDashboardPage", () => {
     expect(primaryAction).toHaveClass("learner-dashboard__primary-action");
     expect(gameAction).toHaveClass("learner-dashboard__games-action");
     expect(screen.getByText(/open your lessons/i)).toBeInTheDocument();
-    expect(screen.getAllByRole("listitem")).toHaveLength(6);
+    expect(screen.getAllByRole("listitem")).toHaveLength(8);
     expect(
       screen.getByRole("listitem", {
-        name: /first step: complete the diagnostic assessment/i,
+        name: /ready reader: complete the diagnostic assessment/i,
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("Welcome, Kristen!")).toBeInTheDocument();
@@ -128,7 +143,7 @@ describe("LearnerDashboardPage", () => {
     expect(screen.getByText("Lobby route")).toBeInTheDocument();
   });
 
-  it("prepares Clara and opens Lesson Intro from the primary action", () => {
+  it("prepares Clara and opens Lesson Intro from the primary action", async () => {
     renderDashboard();
 
     fireEvent.click(
@@ -139,6 +154,12 @@ describe("LearnerDashboardPage", () => {
     expect(claraSpeechMocks.prepare).toHaveBeenCalledWith(
       "lesson-intro",
       "learner-token",
+    );
+    await waitFor(() =>
+      expect(activitySpeechMocks.prepare).toHaveBeenCalledWith(
+        "learner-token",
+        "assessment-part-one",
+      ),
     );
     expect(screen.getByText("Lesson intro route")).toBeInTheDocument();
   });

@@ -298,6 +298,13 @@
   text-align: center;
 }
 
+.learner-dashboard__achievement-preview li[data-earned] {
+  border-color: var(--color-action-primary);
+  color: var(--color-text-on-action);
+  background: var(--color-action-primary);
+  box-shadow: 0 4px 0 var(--color-action-primary-depth);
+}
+
 .learner-dashboard__achievement-preview li > span {
   font-size: 1.35rem;
   line-height: 1;

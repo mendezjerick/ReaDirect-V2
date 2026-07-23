@@ -25,6 +25,18 @@ vi.mock("../src/features/clara-audio/claraSpeech", () => ({
   playClaraSpeech: speechMocks.play,
 }));
 
+vi.mock("../src/features/clara-audio/useActivitySpeechPreparation", () => ({
+  useActivitySpeechPreparation: () => ({
+    status: "ready",
+    manifest: null,
+    readiness: null,
+    error: "",
+    retry: vi.fn(),
+    runtimeRequired: false,
+    showRuntimeLoader: false,
+  }),
+}));
+
 vi.mock("../src/features/intro/live2d/ClaraLive2DCanvas", async () => {
   const { useEffect } = await import("react");
 

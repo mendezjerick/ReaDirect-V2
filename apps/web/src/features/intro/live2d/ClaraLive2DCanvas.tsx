@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 
 import { ClaraWebGLRenderer } from "./ClaraWebGLRenderer";
-import type { ClaraPresentationState } from "./ClaraExpressionController";
 import {
   getClaraInteractionTracker,
   type ClaraLookTarget,
 } from "./ClaraInteractionTracker";
+import type { ClaraPresentationState } from "./ClaraPresentation";
 import { acquireCubismFramework } from "./cubismFrameworkRuntime";
 
 type ClaraLoadState = "loading" | "ready" | "error";
@@ -24,7 +24,7 @@ export function ClaraLive2DCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<ClaraWebGLRenderer | null>(null);
   const presentationRef = useRef(presentation);
-  const { emotion, speaking, speechLevel } = presentation;
+  const { behavior, cue, emotion, speaking, speechLevel } = presentation;
 
   presentationRef.current = presentation;
 
@@ -147,10 +147,10 @@ export function ClaraLive2DCanvas({
     rendererRef.current?.render(
       0,
       false,
-      { emotion, speaking, speechLevel },
+      { behavior, cue, emotion, speaking, speechLevel },
       getClaraInteractionTracker().getTarget(),
     );
-  }, [emotion, speaking, speechLevel, reduceMotion]);
+  }, [behavior, cue, emotion, speaking, speechLevel, reduceMotion]);
 
   return (
     <canvas

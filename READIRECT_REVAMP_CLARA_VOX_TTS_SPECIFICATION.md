@@ -12,11 +12,12 @@ content scoring, and general interface composition are governed by their own
 standards.
 
 Implementation status: published catalog delivery is active for Lesson Intro,
-all 32 fixed Part 1 assessment lines, and all 14 fixed Part 2 and assessment
-completion lines. PostgreSQL holds one published `clara-sh-v1` voice version
-and 47 speech metadata rows; Laravel verifies and returns their private WAVs
-without calling VoxCPM2. Dynamic final-transcript feedback remains a future
-implementation.
+all 32 fixed Part 1 assessment lines, all 14 fixed Part 2 and assessment
+completion lines, and 51 fixed Lesson 1 lines. PostgreSQL holds one published
+`clara-sh-v1` voice version and 98 speech metadata rows; Laravel verifies and
+returns their private WAVs without calling VoxCPM2. Response-owned dynamic
+final-transcript feedback is active for Lesson 1 and is ordered by the
+server-authored support presentation.
 
 ## Approved Runtime Stack
 
@@ -34,6 +35,10 @@ implementation.
 | Service directory | `services/tts/` |
 | Service environment | `services/tts/.venv/` |
 | Local model cache | `services/tts/.cache/models/openbmb--VoxCPM2/` |
+
+Profile preparation uses the disposable sentence `Ma'am Clara is ready to
+help.` with Vox bad-case retry enabled. A one-word probe is prohibited because
+VoxCPM2 can fail before producing a latent sample for very short probes.
 
 Dependencies are locked by `services/tts/uv.lock`. ReaDirect must use its local
 TTS virtual environment and must not depend on globally installed Python
@@ -81,13 +86,18 @@ Dynamic speech is reserved for text that cannot be fully known before the
 learner responds. Its primary use is personalized lesson feedback, such as:
 
 ```text
-You said A.
+You said ei.
 You said huyaj.
 ```
 
 The variable portion must come from the saved final transcription. The raw Mu
 transcription, expected answer, or browser-submitted replacement text must
 never be used as a shortcut.
+
+For isolated-letter feedback, the saved final transcript remains the canonical
+letter, such as `A`. Laravel converts only the spoken rendering through
+`READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`, so Vox receives
+`You said ei.` while scoring and persistence continue to use `A`.
 
 ### Runtime ownership and request boundaries
 
@@ -331,10 +341,12 @@ working copy without overwriting the authored recording.
 
 ## VoxCPM2 Runtime Configuration
 
-ReaDirect owns one lazily loaded VoxCPM2 instance per TTS service process.
-Concurrent warm-up calls share the same instance through a load lock. Speech
-generation is serialized through a separate generation lock because the model
-is treated as non-reentrant.
+ReaDirect owns one process-wide VoxCPM2 instance per TTS service process. The
+service must begin preparing that instance when the TTS process starts rather
+than waiting for the first learner-owned dynamic speech request. Concurrent
+warm-up calls share the same instance through a load lock. Speech generation is
+serialized through a separate generation lock because the model is treated as
+non-reentrant.
 
 The approved load configuration is:
 
@@ -366,6 +378,244 @@ Changing the model, package version, reference conditioning, or synthesis
 settings is a versioned runtime change. Its generated-speech cache identity
 must also change so audio produced under old settings is not silently reused.
 
+## Runtime and Voice-Cloning Warm-Up Standard
+
+### Purpose
+
+Warm-up exists to remove cold model loading, reference encoding, and first-use
+generation work only from activities that can reach approved dynamic speech.
+It must not be treated as a universal lesson delay.
+
+The AI-teacher strategy defined by
+`READIRECT_REVAMP_AI_TEACHER_STANDARD.md` uses published and content-authored
+speech for every line that can be known before the learner responds. Those
+lines are fetched from the private speech catalog and do not require VoxCPM2
+runtime readiness. Content-authored speech is an authoring category but still
+uses the published delivery path during a learner session.
+
+Fetching, validating, prefetching, or playing a published WAV does not warm
+VoxCPM2 and must never be reported as live-runtime readiness. Mu and its
+Mu-backed Nu isolated-letter mode belong to ASR and do not have TTS reference
+profiles or a separate Vox warm-up requirement.
+
+The following states are separate:
+
+| State | Meaning |
+| --- | --- |
+| Service ready | FastAPI is accepting requests |
+| Model ready | VoxCPM2 is loaded on the selected device |
+| Reference profile ready | The conditioned reference has been encoded into an in-memory Vox prompt cache |
+| Generation path ready | A disposable inference has initialized the actual reference-cloning and audio-decoding path |
+| Published group ready | The required catalog metadata and private WAVs are available and valid |
+| Activity speech ready | Required published groups are ready and every runtime profile declared by the activity manifest is ready |
+
+`runtime_ready` must not become true merely because the FastAPI process is
+running or a published speech line was delivered. Activity speech readiness is
+resolved by Laravel from the destination activity manifest; it is not a global
+claim that every voice profile has been prepared.
+
+### Activity speech-profile manifest
+
+Every assessment or lesson must declare its speech requirements through a
+server-owned activity manifest.
+
+Example:
+
+```json
+{
+  "activity": "lesson-1",
+  "runtime_profiles": ["result"],
+  "published_groups": [
+    "lesson-1-instructions",
+    "technical-retries",
+    "letter-demonstrations"
+  ]
+}
+```
+
+Manifest rules:
+
+1. `published_groups` contains fixed general speech, approved scaffolds,
+   demonstrations, transitions, and other content-authored lines that the
+   activity may use.
+2. `runtime_profiles` contains only reference roles that a controlled dynamic
+   template can actually use in that activity.
+3. A manifest may declare an empty `runtime_profiles` array. That activity must
+   not wait for VoxCPM2 merely because it contains Clara speech.
+4. Assessments declare no runtime profiles. Assessment speech is fixed,
+   standardized, pre-generated, reviewed, and published.
+5. A lesson profile is declared only when the bounded feedback strategy can
+   reach text that was impossible to know before the learner response.
+6. The current Lesson 1 manifest may declare `result` while it uses controlled
+   final-transcript feedback. If that dynamic behavior is removed, its manifest
+   must remove `result` rather than retaining unnecessary warm-up.
+7. The browser must not add profiles, replace manifest groups, or decide that a
+   line requires dynamic generation.
+8. Manifest changes are version-controlled content/runtime changes and must be
+   tested with portal, direct-route, refresh, and normal-progression entry.
+
+Current implementation:
+
+- `apps/api/config/speech.php` owns the published groups, supported reference
+  profiles, activity manifests, and portal-target mapping.
+- `ActivitySpeechManifestService` validates every referenced group, speech key,
+  and runtime profile before returning a manifest.
+- Normal learner sessions resolve the manifest from server-authoritative
+  progression. Portal sessions resolve it from their active portal target.
+- `GET /api/learners/tts/activity-manifest` returns the resolved destination
+  manifest for the authenticated learner; it does not accept an activity,
+  group, profile, or speech key from the browser.
+- Part 1 and Part 2 currently declare no runtime profiles. Lesson 1 declares
+  only `result` while final-transcript feedback remains dynamic.
+- The TTS service begins model loading in the background, accepts requested
+  profiles through `/warmup`, builds one process-memory Vox prompt cache per
+  current reference fingerprint, and completes a disposable generation probe
+  before reporting the profile in `profiles_ready`.
+- Concurrent preparation for the same profile shares one in-flight task.
+  Dynamic synthesis reuses the prepared prompt cache rather than encoding the
+  reference again.
+- `ActivitySpeechPreparationService` validates the destination's complete
+  published group against one published voice version, including private-file
+  existence and SHA-256 integrity, before requesting any runtime work.
+- `POST /api/learners/tts/activity-readiness` resolves the authenticated
+  learner's destination on the server. It accepts no browser-selected activity,
+  group, speech key, or runtime profile.
+- Assessment readiness returns without contacting Vox. Lesson 1 requests only
+  its manifest-declared `result` profile. Published-catalog or Vox failures keep
+  the activity unavailable with a learner-safe response.
+- `apps/web/src/features/clara-audio/activitySpeechReadiness.ts` owns the
+  authenticated browser client and one-minute, token-and-destination keyed
+  single-flight request cache. Concurrent Dashboard, Lesson Intro, and
+  destination-page callers reuse the same manifest and readiness promises.
+- `useActivitySpeechPreparation.ts` owns the shared React lifecycle, retry
+  invalidation, and the distinction between ordinary published-catalog
+  validation and manifest-declared runtime warm-up.
+- Dashboard entry prepares the progression-owned destination opportunistically
+  without blocking navigation. Lesson Intro requires both its published line
+  to finish and destination readiness before enabling `Continue`.
+- Part 1, Part 2, and Lesson 1 repeat the readiness check on direct entry,
+  refresh, and portal entry. Lesson 1 displays the shared cube loader while its
+  declared runtime profile is pending; assessment catalog validation does not
+  falsely display a Vox runtime loader.
+- Completing Part 2 invalidates the prior browser readiness cache and begins
+  the now-progression-owned Lesson 1 preparation before returning to the
+  Dashboard.
+- A rejected browser readiness promise is removed from the single-flight cache,
+  and the shared retry action invalidates both manifest and readiness entries.
+  Neither published playback nor a prior failed request is treated as proof
+  that a runtime-required activity is ready.
+
+### Service-start warm-up
+
+When `start.ps1` launches the TTS service, the service must begin warm-up in the
+background. It prepares the process-wide model immediately. It prepares only
+explicitly configured startup profiles or profiles requested from an activity
+manifest; it must not eagerly prepare all four reference roles.
+
+For each requested profile it must:
+
+1. Load the local VoxCPM2 model onto CUDA when available, otherwise CPU.
+2. Produce or reuse the correctly conditioned private reference WAV.
+3. Encode the reference into a process-memory prompt cache.
+4. Run one disposable reference-conditioned generation with bad-case retries
+   disabled.
+5. Discard the disposable audio and mark the profile ready only after the full
+   generation path succeeds.
+
+The encoded prompt cache is process-local and is lost whenever the TTS process
+restarts. A conditioned WAV or generated-speech cache entry on disk does not
+replace process-memory prompt preparation.
+
+### Shared prompt-cache rules
+
+- `services/tts/main.py` must reuse one encoded prompt cache per reference
+  fingerprint, conditioning version, model version, device, and runtime dtype.
+- A dynamic cache miss must synthesize through the prepared prompt cache. It
+  must not encode the same reference WAV again for every learner response.
+- Concurrent requests for the same unprepared profile must share one
+  single-flight preparation task.
+- Reference preparation and speech generation must respect the existing model
+  and generation locks.
+- Editing a source reference, changing conditioning, changing the model, or
+  changing an incompatible runtime setting invalidates the matching in-memory
+  prompt cache.
+- Prompt-cache readiness must never be inferred from the presence of a
+  generated WAV.
+
+### Learner-flow warm-up layers
+
+Warm-up is service-owned and reinforced at multiple entry points. No single
+page is the sole authority.
+
+Normal progression flow:
+
+```text
+TTS service starts
+    -> process-wide model preparation begins
+    -> prior completion page resolves the next activity manifest
+    -> its published groups may be prefetched
+    -> its declared runtime profiles begin warming without blocking navigation
+    -> Dashboard repeats the same idempotent destination preparation
+    -> Lesson Intro plays its published introduction
+    -> Lesson Intro waits only for runtime profiles declared by the destination
+    -> destination activity performs a final manifest readiness check
+```
+
+Direct portal flow:
+
+```text
+System administrator launches an activity portal
+    -> portal remains a direct activity route
+    -> server resolves that activity's speech manifest
+    -> required published groups are validated
+    -> declared runtime profiles perform the same shared readiness check
+    -> ready: activity opens
+    -> runtime profile pending: the shared TTS warm-up loader remains
+```
+
+Rules:
+
+1. A completion page may prepare only the actual next progression-owned
+   activity and must not block its dashboard action.
+2. Dashboard preparation is destination-aware and idempotent. It returns
+   immediately when the destination manifest is already satisfied.
+3. Lesson Intro may play its published line only after Clara is ready, but
+   published playback alone is not Vox warm-up.
+4. Lesson Intro enables `Continue` after its published line finishes and every
+   runtime profile declared by the destination manifest is ready. When
+   `runtime_profiles` is empty, it must not add a Vox warm-up wait.
+5. Every activity that declares runtime profiles performs a mandatory final
+   readiness check. This protects portal entry, direct URLs, refreshes, and TTS
+   process restarts.
+6. Portals must not be redirected through Lesson Intro merely to warm Vox.
+7. Warm-up calls are idempotent, single-flight, and safe to repeat.
+8. The pulse loader for Clara-model loading retains higher visual priority. The
+   shared cube TTS loader appears only when Clara is ready but a manifest-
+   declared runtime profile is not.
+9. A published-group prefetch must not display the Vox warm-up loader. A
+   missing or invalid published asset is a content/deployment failure, not a
+   reason to generate an emergency replacement.
+10. Fixed assessment lines, finite lesson feedback, authored scaffolds, and
+    demonstrations remain published WAVs. Warm-up must not convert them back
+    into runtime synthesis.
+11. Warm-up may prepare a dynamic path in advance, but it must never generate
+    learner-specific text before a response has been committed.
+
+### Latency boundary
+
+Warm-up removes cold-start work; it does not make uncached generation
+instantaneous. A genuinely new dynamic line can still require several seconds.
+The bounded AI-teacher loop must therefore publish all finite encouragement,
+technical retries, clues, scaffold instructions, demonstrations, and
+completion language. Runtime synthesis is reserved for the smallest
+unpredictable portion, such as safely rendering a committed unexpected final
+transcription.
+
+Feedback design must not introduce a new blocking Vox generation after every
+incorrect answer. Finite feedback sets that require deterministic immediate
+playback are generated, reviewed, and published ahead of learner use. Warm-up
+must not be presented as a substitute for the hybrid delivery rule.
+
 ## Service API
 
 ### `GET /health`
@@ -377,29 +627,53 @@ Returns service availability and runtime state:
   "service": "tts",
   "status": "ready",
   "runtime_ready": false,
-  "device": null
+  "model_ready": false,
+  "device": null,
+  "warming": true,
+  "profiles_ready": [],
+  "profiles_warming": [],
+  "profiles_failed": [],
+  "model_error": null
 }
 ```
 
 `status: ready` means the FastAPI process is accepting requests.
-`runtime_ready: false` means the VoxCPM2 model has not yet been loaded. After a
-successful warm-up, `runtime_ready` becomes `true` and `device` reports `cuda`
-or `cpu`.
+`model_ready` reports only whether the process-wide model is resident.
+`runtime_ready` is retained as a compatibility alias for `model_ready`; it must
+not be used as activity readiness. `profiles_ready` lists reference roles whose
+conditioned audio, encoded prompt cache, and disposable generation probe have
+succeeded. `profiles_warming` and `profiles_failed` expose profile-level state,
+while `model_error` reports a startup model-load failure. The `device` field
+reports `cuda` or `cpu` after model loading.
 
 ### `POST /warmup`
 
-Loads the local VoxCPM2 model without synthesizing a line.
+Prepares the local VoxCPM2 model and only the requested reference profiles.
+A missing request body or an empty `profiles` list performs model-only warm-up.
+
+Example request:
+
+```json
+{
+  "profiles": ["result"]
+}
+```
 
 Successful response:
 
 ```json
 {
   "ready": true,
-  "device": "cuda"
+  "device": "cuda",
+  "profiles_ready": ["result"]
 }
 ```
 
-A missing model cache or runtime load failure returns HTTP `503`.
+Repeated requests for an already-ready profile return immediately. Concurrent
+requests for the same profile await the same preparation task. A missing model,
+reference, conditioning failure, prompt-encoding failure, or generation-probe
+failure returns HTTP `503`. Unknown or duplicate profile names fail request
+validation and never begin model work.
 
 ### `POST /synthesize`
 
@@ -521,11 +795,59 @@ TTS_REQUEST_TIMEOUT_SECONDS=300
 These Vox connection settings apply to controlled authoring and future dynamic
 speech generation. Published speech requests do not use them.
 
+### Laravel activity-readiness contract
+
+The authenticated learner-facing preparation endpoint is:
+
+```text
+POST /api/learners/tts/activity-readiness
+```
+
+It accepts no destination fields. Laravel resolves the activity from
+server-authoritative progression, the active assessment stage, or the active
+portal target. It then:
+
+1. Resolves and validates the activity speech manifest.
+2. Selects one current published voice version.
+3. Confirms that every required speech row is published.
+4. Confirms each private WAV exists and matches its recorded SHA-256 checksum.
+5. Skips Vox entirely when `runtime_profiles` is empty.
+6. Sends only manifest-declared profiles to the private Vox `/warmup` endpoint.
+7. Reports ready only when published speech and all requested profiles are
+   ready.
+
+Successful Lesson 1 response:
+
+```json
+{
+  "activity": "lesson-1",
+  "ready": true,
+  "published_ready": true,
+  "published_groups": ["lesson-1-fixed"],
+  "voice_version": "clara-sh-v1",
+  "unavailable_speech_keys": [],
+  "runtime_required": true,
+  "runtime_ready": true,
+  "runtime_profiles": ["result"],
+  "profiles_ready": ["result"],
+  "device": "cuda"
+}
+```
+
+Part 1 and Part 2 return `runtime_required: false`, an empty profile list, and
+do not make a Vox request. Missing, modified, unpublished, or mixed-version
+catalog content fails before runtime warm-up. A Vox failure or a response that
+omits a requested profile returns HTTP `503` and keeps `ready: false`.
+
 ### Required published speech keys
 
 | Speech key | Text | Reference role |
 | --- | --- | --- |
 | `lesson-intro` | Hi! I am happy you are here. Let us get ready to read together! | `introduce` |
+| `lesson-1-mission-1` | Look at the big letter and the small letter. Say their letter name. | `instruction` |
+| `lesson-1-mission-2` | Find the first letter in the word. Say its letter name. | `instruction` |
+| `lesson-1-mission-3` | Find the missing first letter. Say the letter that completes the word. | `instruction` |
+| `lesson-1-complete` | Lesson one is complete. You are a Letter Leader! | `result` |
 | `assessment-orientation` | Let us check your microphone. Say ready, then listen to your recording. | `instruction` |
 | `assessment-letters` | Say the letter you see. Listen to your voice before you submit. | `instruction` |
 | `assessment-rhymes` | Look at both words. Choose yes if they rhyme, or no if they do not. | `question` |
@@ -557,8 +879,43 @@ Items 2 through 10 use controlled ordinal words from `second` through `tenth`.
 Assessment cues must remain neutral. They must not disclose a score or imply
 that the preceding response was correct or incorrect.
 
-Every row in both tables above is finite and known in advance. All of them must
-be pre-generated and published; none qualifies for learner-session generation.
+### Required published Lesson 1 item cues
+
+The first item of each mission uses the full mission instruction. Positions 2
+through 5 use the following published ordinal templates:
+
+| Mission | Text template | Reference role |
+| --- | --- | --- |
+| Mission 1 | `Now, try the {ordinal} letter.` | `instruction` |
+| Mission 2 | `Now, find the first letter in the {ordinal} word.` | `instruction` |
+| Mission 3 | `Now, complete the {ordinal} word.` | `instruction` |
+
+The supported Lesson 1 ordinal words are `second`, `third`, `fourth`, and
+`fifth`. The server derives the key from the persisted mission and item index;
+the browser must not choose or construct progression independently.
+
+### Required published Lesson 1 support families
+
+The fixed Lesson 1 support catalog contains:
+
+- `lesson-1-technical-retry`
+- `lesson-1-clue-mission-1` through `lesson-1-clue-mission-3`
+- `lesson-1-letter-demo-A` through `lesson-1-letter-demo-Z`
+- `lesson-1-feedback-independent`
+- `lesson-1-feedback-supported`
+- `lesson-1-feedback-demonstrated`
+- `lesson-1-feedback-not-yet`
+- `lesson-1-feedback-unscorable`
+
+Letter demonstrations render their spoken letter name through the isolated
+letter pronunciation source of truth. The independent-success line is
+published with the exact text `That is correct. You found it by yourself.`;
+the period is intentional because the exclamation-mark rendering produced an
+unstable high-pitch candidate during review.
+
+Every fixed key and family above is finite and known in advance. All must be
+pre-generated, reviewed, and published; none qualifies for learner-session
+generation. Only response-owned final-transcript rendering remains dynamic.
 
 ## Published-Speech Generation Lifecycle
 
@@ -602,21 +959,34 @@ have been committed.
 
 ## Runtime Preparation and Prefetch
 
-Lesson Intro plays its published introduction WAV immediately while Laravel
-warms VoxCPM2 in parallel for later dynamic lesson feedback. When the
-destination can require dynamic speech, Continue remains unavailable until the
-published line has finished and the private Vox runtime reports ready. This
-preserves runtime readiness without delaying the introduction on synthesis.
+Before entering an activity, Laravel resolves its server-owned speech-profile
+manifest. Required published groups are validated or prefetched through the
+private catalog. Only the manifest's `runtime_profiles` are sent to VoxCPM2 for
+warm-up.
+
+Lesson Intro plays its published introduction WAV immediately while any
+declared runtime profiles warm in parallel. When the destination can require
+dynamic speech, Continue remains unavailable until the published line has
+finished and every declared profile reports ready. When the destination
+declares no runtime profiles, Continue depends on the published introduction
+and ordinary page readiness, not on VoxCPM2.
 
 Published assessment instructions and ordinal cues may be fetched one item
 ahead as ordinary private audio. This operation is file prefetching, not speech
 generation. It must not request every remaining cue or speculate across a
 score-dependent boundary.
 
-After a learner response is committed, its dynamic feedback request may begin.
-A dynamic cache hit can play immediately. A miss uses the shared
-voice-preparation state while Vox generates `You said {final_transcript}.` The
-learner must not be permitted to begin recording while that feedback is
+Published lesson scaffolds, demonstrations, and bounded feedback variants may
+also be prefetched for the current teaching state. Prefetch must follow the
+approved strategy and must not expose or prematurely play a later scaffold.
+
+After a learner response is committed, a dynamic feedback request may begin
+only if the controlled teaching strategy selects a template that contains
+unpredictable learner-owned text. A dynamic cache hit can play immediately. A
+miss uses the prepared profile while Vox generates the controlled rendering,
+such as `You said {final_transcript}.` Fixed acknowledgement, clue,
+demonstration, retry, and completion lines continue to use published speech.
+The learner must not be permitted to begin recording while any feedback is
 audible.
 
 The first request for a unique dynamic text is expected to be the slowest.
@@ -768,12 +1138,29 @@ Invoke-RestMethod http://127.0.0.1:8002/health
 
 ### Warm the runtime manually
 
+Model only:
+
 ```powershell
 Invoke-RestMethod -Method Post http://127.0.0.1:8002/warmup
 ```
 
-The first warm-up may take noticeably longer because it loads the local model
-onto the selected device.
+Model plus the current Lesson 1 runtime profile:
+
+```powershell
+$warmupRequest = @{
+    profiles = @('result')
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+    -Method Post `
+    -Uri http://127.0.0.1:8002/warmup `
+    -ContentType 'application/json' `
+    -Body $warmupRequest
+```
+
+The first model warm-up may take noticeably longer because it loads the local
+model onto the selected device. The first request for a profile then conditions
+and encodes its reference and runs one disposable generation probe.
 
 ### Generate a direct test WAV
 
@@ -889,15 +1276,21 @@ Then call `/warmup` and inspect the service log.
 
 ### A reference role is unavailable
 
-Confirm that all five approved WAV files exist under
+Confirm that all four approved WAV files exist under
 `assets/audio/voice-references/sh/` and that their names exactly match the
 reference map. Do not substitute a different voice recording automatically.
 
 ### First dynamic generation is slow
 
-Check `/health` for `runtime_ready` and `device`. A cold runtime must load the
-model before synthesis. CPU generation is expected to be slower than CUDA.
-Warm the service before entering latency-sensitive learner activities.
+Check `/health` for `runtime_ready`, `warming`, `profiles_ready`, and `device`.
+`runtime_ready: true` is insufficient when the activity's semantic reference
+role is absent from `profiles_ready`. Confirm that the activity requested the
+correct profile and that its mandatory readiness gate completed.
+
+If the model is resident but the profile is not ready, inspect timing for
+reference conditioning, prompt encoding, the disposable generation probe, and
+any bad-case retries separately. Do not describe a published WAV fetch as
+successful runtime warm-up. CPU generation is expected to be slower than CUDA.
 Published lines should not exhibit this delay because they stream approved
 files without invoking VoxCPM2.
 
@@ -933,13 +1326,37 @@ modifying the authored source recording at runtime.
 - [ ] Python 3.11 local environment installs from the locked project.
 - [ ] The approved `openbmb/VoxCPM2` snapshot exists locally.
 - [ ] `/health` responds on the configured TTS port.
-- [ ] `/warmup` returns `ready: true` and the expected device.
-- [ ] All five `sh` semantic reference WAV files exist.
+- [ ] Service-start warm-up begins without waiting for a learner response.
+- [ ] `/health` distinguishes service, model, profile, and generation-path
+      readiness.
+- [ ] `/warmup` returns `ready: true`, the expected device, and every requested
+      profile in `profiles_ready`.
+- [ ] Every activity has a server-owned speech-profile manifest.
+- [ ] Assessments declare no runtime profiles and never wait for VoxCPM2.
+- [ ] Published groups and runtime profiles remain separate readiness concerns.
+- [ ] Only manifest-declared runtime profiles are conditioned, prompt-encoded,
+      and generation-probed.
+- [ ] Lesson 1 declares `result` only while its controlled strategy can reach
+      dynamic final-transcript feedback.
+- [ ] Dynamic cache misses reuse the process-memory prompt cache instead of
+      re-encoding the reference WAV.
+- [ ] Concurrent warm-up calls for one profile share a single-flight task.
+- [ ] Completion and Dashboard preparation resolve the actual next activity
+      manifest opportunistically without blocking navigation.
+- [ ] Lesson Intro requires destination-profile readiness before enabling
+      `Continue` only when the destination declares runtime profiles.
+- [ ] Activities with empty `runtime_profiles` do not show a Vox warm-up wait.
+- [ ] Runtime-TTS activity pages enforce their manifest readiness gate for
+      portal, direct-route, refresh, and service-restart entry.
+- [ ] Portal routes remain direct and do not require Lesson Intro.
+- [ ] All four `sh` semantic reference WAV files exist.
 - [ ] References are downmixed to mono and only attenuated above `-6 dBFS`.
 - [ ] Runtime synthesis uses the approved VoxCPM2 parameters.
 - [ ] Concurrent generations are serialized.
 - [ ] PostgreSQL stores published speech metadata, not WAV binary bodies.
 - [ ] Every finite/general line is pre-generated, reviewed, and catalogued.
+- [ ] Finite AI-teacher clues, scaffold instructions, demonstrations, and
+      encouragement are pre-generated, reviewed, and catalogued.
 - [ ] Published speech streams without invoking VoxCPM2.
 - [ ] Dynamic speech uses the committed final transcription, never raw Mu text.
 - [ ] `SILENCE`, `UNKNOWN`, and empty outcomes use approved published fallbacks.

@@ -1,0 +1,125 @@
+/*
+ * Lesson pages inherit the complete assessment activity composition from
+ * assessment.css. Only lesson item motion/content and completion details live
+ * here so the two flows cannot drift into separate layouts.
+ */
+
+.lesson-item {
+  gap: clamp(0.4rem, 1.4vh, 0.7rem);
+  text-align: center;
+}
+
+.lesson-item > small {
+  color: var(--color-text-secondary);
+  font-size: var(--font-support);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.lesson-letter-pair {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.18em, 3vw, 0.32em);
+  font-family: var(--font-reading-family);
+  font-size: clamp(3.5rem, 19vw, 6.25rem);
+  line-height: 0.9;
+}
+
+.lesson-letter-pair strong,
+.lesson-word span {
+  display: grid;
+  border: 2px solid var(--color-border-soft);
+  border-radius: var(--radius-notice);
+  padding: 0.08em 0.16em;
+  background: var(--color-surface-panel);
+  box-shadow: 0 5px 0 var(--color-frame-depth);
+}
+
+.lesson-word {
+  font-family: var(--font-reading-family);
+  font-size: clamp(3.15rem, 16vw, 5.25rem);
+  line-height: 1;
+}
+
+.lesson-word span {
+  display: inline-grid;
+  color: var(--color-action-primary);
+}
+
+.lesson-missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em;
+  font-family: var(--font-reading-family);
+  font-size: clamp(2.8rem, 13vw, 5.5rem);
+  line-height: 1;
+}
+
+.lesson-item[data-support-mode="clue"] .lesson-letter-pair strong,
+.lesson-item[data-support-mode="clue"] .lesson-word span,
+.lesson-item[data-support-mode="clue"] .lesson-missing,
+.lesson-item[data-support-mode="demonstration"] .lesson-letter-pair strong,
+.lesson-item[data-support-mode="demonstration"] .lesson-word span,
+.lesson-item[data-support-mode="demonstration"] .lesson-missing {
+  animation: lesson-support-focus 0.9s ease-in-out infinite alternate;
+}
+
+.lesson-item[data-support-mode="technical_retry"] {
+  animation: lesson-technical-retry 0.42s ease-out;
+}
+
+@keyframes lesson-support-focus {
+  from {
+    filter: saturate(1);
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    filter: saturate(1.12);
+    transform: translateY(-0.04em) scale(1.04);
+  }
+}
+
+@keyframes lesson-technical-retry {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  35% {
+    transform: translateX(-0.18rem);
+  }
+
+  70% {
+    transform: translateX(0.18rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lesson-item[data-support-mode] {
+    animation: none;
+  }
+
+  .lesson-item[data-support-mode] .lesson-letter-pair strong,
+  .lesson-item[data-support-mode] .lesson-word span,
+  .lesson-item[data-support-mode] .lesson-missing {
+    animation: none;
+  }
+}
+
+.lesson-error {
+  position: fixed;
+  top: max(0.5rem, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 70;
+  width: min(90vw, 32rem);
+  margin: 0;
+  border: 2px solid var(--color-danger);
+  border-radius: var(--radius-notice);
+  padding: 0.55rem 0.75rem;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  transform: translateX(-50%);
+  text-align: center;
+}

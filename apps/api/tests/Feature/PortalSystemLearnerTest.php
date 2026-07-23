@@ -8,6 +8,8 @@ use App\Models\Learner;
 use App\Models\LearnerPortalRun;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
+use App\Models\LessonResponse;
+use App\Models\LessonRun;
 use App\Models\StaffUser;
 use App\Services\LearnerCodeGenerator;
 use Database\Seeders\PortalSystemLearnerSeeder;
@@ -73,7 +75,7 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('learner.analytics_excluded', true)
             ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
             ->assertJsonPath('portal_launch.available', true)
-            ->assertJsonCount(10, 'portal_launch.targets');
+            ->assertJsonCount(14, 'portal_launch.targets');
     }
 
     public function test_kw000_can_use_normal_case_insensitive_learner_login(): void
@@ -242,6 +244,34 @@ final class PortalSystemLearnerTest extends TestCase
             'staff_user_id' => $systemAdministrator->id,
             'action_key' => 'portal_system_learner.portal_launched',
         ]);
+    }
+
+    public function test_system_admin_can_launch_each_lesson_one_checkpoint(): void
+    {
+        (new PortalSystemLearnerSeeder)->run();
+        $learner = Learner::query()->where('learner_code', 'KW000')->firstOrFail();
+        $systemAdministrator = $this->createSystemAdministrator();
+        $targets = [
+            'lesson-1-mission-1' => ['mission-1', 'active', 0],
+            'lesson-1-mission-2' => ['mission-2', 'active', 5],
+            'lesson-1-mission-3' => ['mission-3', 'active', 10],
+            'lesson-1-complete' => ['mission-3', 'completed', 15],
+        ];
+
+        foreach ($targets as $targetKey => [$mission, $status, $responseCount]) {
+            $launch = $this->postJson(
+                "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
+                ['target_key' => $targetKey],
+            )->assertOk()->assertJsonPath('launch.target_key', $targetKey);
+
+            $run = LessonRun::query()->where('learner_id', $learner->id)->latest('id')->firstOrFail();
+            $this->assertSame($mission, $run->mission_key);
+            $this->assertSame($status, $run->status);
+            $this->assertSame($responseCount, LessonResponse::query()->where('lesson_run_id', $run->id)->count());
+            $this->withToken($launch->json('launch.learner_session.token'))
+                ->get("/api/learners/lessons/lesson-1/{$run->id}")
+                ->assertOk()->assertJsonPath('mission.key', $mission)->assertJsonPath('status', $status);
+        }
     }
 
     private function createSystemAdministrator(): StaffUser

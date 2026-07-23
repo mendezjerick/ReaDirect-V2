@@ -157,6 +157,10 @@ const portalTargetKeySchema = z.enum([
   "assessment-task-3b",
   "assessment-part-2-results",
   "assessment-complete",
+  "lesson-1-mission-1",
+  "lesson-1-mission-2",
+  "lesson-1-mission-3",
+  "lesson-1-complete",
 ]);
 
 const portalTargetSchema = z.object({
@@ -208,6 +212,7 @@ const portalLearnerSessionSchema = z.object({
       stage: z.string(),
       current_required_lesson_order: z.number().int().positive().nullable(),
     }),
+    achievement_keys: z.array(z.string()).default([]),
   }),
   session: z.object({ expires_at: z.string() }),
 });
@@ -216,11 +221,7 @@ const portalLaunchResponseSchema = portalSystemLearnerSchema.extend({
   message: z.string(),
   launch: z.object({
     target_key: portalTargetKeySchema,
-    route: z.enum([
-      "/learner/assessment/part-one",
-      "/learner/assessment/part-two",
-      "/learner/assessment/complete",
-    ]),
+    route: z.string().startsWith("/learner/"),
     learner_session: portalLearnerSessionSchema,
   }),
 });

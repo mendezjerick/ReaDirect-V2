@@ -15,6 +15,11 @@ abstract class TestCase extends BaseTestCase
 
         Schema::dropIfExists('assessment_responses');
         Schema::dropIfExists('assessment_runs');
+        Schema::dropIfExists('learner_achievements');
+        Schema::dropIfExists('lesson_item_attempts');
+        Schema::dropIfExists('lesson_responses');
+        Schema::dropIfExists('lesson_runs');
+        Schema::dropIfExists('lesson_target_exposures');
         Schema::dropIfExists('tts_speech_lines');
         Schema::dropIfExists('tts_voice_versions');
         Schema::dropIfExists('speech_sandbox_attempts');
@@ -242,6 +247,86 @@ abstract class TestCase extends BaseTestCase
             $table->json('evidence')->nullable();
             $table->timestamps();
             $table->unique(['assessment_run_id', 'task_key', 'item_key']);
+        });
+
+        Schema::create('lesson_runs', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('learner_id')->constrained()->cascadeOnDelete();
+            $table->string('lesson_key', 48);
+            $table->string('content_version', 24)->default('v1');
+            $table->string('status', 24)->default('active');
+            $table->string('mission_key', 32)->default('mission-1');
+            $table->unsignedTinyInteger('current_item_index')->default(0);
+            $table->json('content_snapshot');
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('lesson_target_exposures', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('learner_id')->constrained()->cascadeOnDelete();
+            $table->string('scope_key', 100);
+            $table->string('content_version', 24);
+            $table->unsignedInteger('cycle');
+            $table->string('target_key', 80);
+            $table->timestamp('encountered_at');
+            $table->timestamps();
+            $table->unique(['learner_id', 'scope_key', 'content_version', 'cycle', 'target_key'], 'lesson_target_exposure_unique');
+        });
+
+        Schema::create('lesson_responses', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('lesson_run_id')->constrained()->cascadeOnDelete();
+            $table->string('mission_key', 32);
+            $table->string('item_key', 80);
+            $table->unsignedTinyInteger('item_order');
+            $table->string('response_type', 24);
+            $table->text('raw_transcript')->nullable();
+            $table->text('final_transcript')->nullable();
+            $table->string('decision', 32);
+            $table->string('teaching_state', 32)->default('LISTENING');
+            $table->string('outcome', 32)->nullable();
+            $table->unsignedTinyInteger('academic_attempt_count')->default(0);
+            $table->unsignedTinyInteger('technical_retry_count')->default(0);
+            $table->string('highest_scaffold_used', 32)->default('none');
+            $table->boolean('independent_mastery')->default(false);
+            $table->string('diagnosis_key', 80)->nullable();
+            $table->boolean('review_recommended')->default(false);
+            $table->timestamp('demonstration_given_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->string('audio_path', 500)->nullable();
+            $table->char('audio_sha256', 64)->nullable();
+            $table->json('evidence')->nullable();
+            $table->timestamps();
+            $table->unique(['lesson_run_id', 'mission_key', 'item_key']);
+        });
+
+        Schema::create('lesson_item_attempts', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('lesson_response_id')->constrained()->cascadeOnDelete();
+            $table->unsignedTinyInteger('attempt_sequence');
+            $table->string('attempt_kind', 24);
+            $table->unsignedTinyInteger('academic_attempt_number')->nullable();
+            $table->string('scaffold_level', 32)->default('none');
+            $table->string('audio_classification', 32);
+            $table->text('raw_transcript')->nullable();
+            $table->text('final_transcript')->nullable();
+            $table->string('decision', 32);
+            $table->string('audio_path', 500)->nullable();
+            $table->char('audio_sha256', 64)->nullable();
+            $table->json('evidence')->nullable();
+            $table->timestamps();
+            $table->unique(['lesson_response_id', 'attempt_sequence']);
+        });
+
+        Schema::create('learner_achievements', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('learner_id')->constrained()->cascadeOnDelete();
+            $table->string('achievement_key', 80);
+            $table->timestamp('awarded_at');
+            $table->json('evidence')->nullable();
+            $table->timestamps();
+            $table->unique(['learner_id', 'achievement_key']);
         });
     }
 }

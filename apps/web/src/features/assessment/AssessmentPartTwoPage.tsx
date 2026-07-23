@@ -11,6 +11,11 @@ import {
   type ClaraSpeechPlayback,
 } from "../clara-audio/claraSpeech";
 import { ClaraSpeechWarmupLoader } from "../clara-audio/ClaraSpeechWarmupLoader";
+import {
+  clearActivitySpeechPreparation,
+  prepareActivitySpeech,
+} from "../clara-audio/activitySpeechReadiness";
+import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPreparation";
 import { ClaraStage } from "../intro/ClaraStage";
 import { PointerTrail } from "../intro/PointerTrail";
 import { VectorCursor } from "../intro/VectorCursor";
@@ -89,7 +94,11 @@ function StorySelection({
   const reduceMotion = useReducedMotion();
 
   return (
-    <div className="assessment-story-choice" role="radiogroup" aria-label="Story choices">
+    <div
+      className="assessment-story-choice"
+      role="radiogroup"
+      aria-label="Story choices"
+    >
       {state.story_choices.map((story, index) => (
         <motion.button
           key={story.story_key}
@@ -98,7 +107,9 @@ function StorySelection({
           aria-checked={selected === story.story_key}
           data-selected={selected === story.story_key || undefined}
           disabled={unavailable}
-          initial={reduceMotion ? false : { opacity: 0, x: index === 0 ? -18 : 18 }}
+          initial={
+            reduceMotion ? false : { opacity: 0, x: index === 0 ? -18 : 18 }
+          }
           animate={{ opacity: 1, x: 0 }}
           transition={{
             duration: reduceMotion ? 0 : 0.28,
@@ -108,7 +119,9 @@ function StorySelection({
         >
           <span>Story {index + 1}</span>
           <strong>{story.title}</strong>
-          <small>{selected === story.story_key ? "Selected" : "Tap to choose"}</small>
+          <small>
+            {selected === story.story_key ? "Selected" : "Tap to choose"}
+          </small>
         </motion.button>
       ))}
     </div>
@@ -189,7 +202,9 @@ function PartTwoResult({ state }: { state: AssessmentPartTwoState }) {
         </div>
       </div>
       <div className="assessment-result__particles" aria-hidden="true">
-        {Array.from({ length: 12 }, (_, index) => <i key={index} />)}
+        {Array.from({ length: 12 }, (_, index) => (
+          <i key={index} />
+        ))}
       </div>
     </motion.section>
   );
@@ -206,11 +221,15 @@ function AssessmentCompletion({ state }: { state: AssessmentPartTwoState }) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.34 }}
     >
-      <span className="assessment-completion__seal" aria-hidden="true">✓</span>
+      <span className="assessment-completion__seal" aria-hidden="true">
+        ✓
+      </span>
       <h2>{state.completion.title}</h2>
       <p>{state.completion.message}</p>
       <div className="assessment-result__particles" aria-hidden="true">
-        {Array.from({ length: 12 }, (_, index) => <i key={index} />)}
+        {Array.from({ length: 12 }, (_, index) => (
+          <i key={index} />
+        ))}
       </div>
     </motion.section>
   );
@@ -220,17 +239,29 @@ export function AssessmentPartTwoPage() {
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
   const session = loadLearnerSession();
+  const activityPreparation = useActivitySpeechPreparation(
+    session?.token,
+    "assessment-part-two",
+    Boolean(session?.token),
+  );
   const [state, setState] = useState<AssessmentPartTwoState | null>(null);
   const [loadingError, setLoadingError] = useState("");
   const [guideState, setGuideState] = useState<GuideState>("preparing");
   const [speechLevel, setSpeechLevel] = useState(0);
   const [claraReady, setClaraReady] = useState(false);
-  const [preparedGuide, setPreparedGuide] = useState<{ key: ClaraSpeechKey; speech: Blob } | null>(null);
+  const [preparedGuide, setPreparedGuide] = useState<{
+    key: ClaraSpeechKey;
+    speech: Blob;
+  } | null>(null);
   const [selectedStory, setSelectedStory] = useState<string | null>(null);
-  const [selectedChoice, setSelectedChoice] = useState<ComprehensionChoice | null>(null);
+  const [selectedChoice, setSelectedChoice] =
+    useState<ComprehensionChoice | null>(null);
   const [saveAction, setSaveAction] = useState<SaveAction>(null);
   const [showSkipLoader, setShowSkipLoader] = useState(false);
-  const prefetchedGuideRef = useRef<{ key: ClaraSpeechKey; speech: Blob } | null>(null);
+  const prefetchedGuideRef = useRef<{
+    key: ClaraSpeechKey;
+    speech: Blob;
+  } | null>(null);
   const playbackRef = useRef<ClaraSpeechPlayback | null>(null);
   const submitCommit = useButtonCommit();
   const skipCommit = useButtonCommit();
@@ -243,7 +274,9 @@ export function AssessmentPartTwoPage() {
     void getPartTwo(session.token)
       .then(setState)
       .catch((error: unknown) =>
-        setLoadingError(error instanceof Error ? error.message : "Part 2 could not open."),
+        setLoadingError(
+          error instanceof Error ? error.message : "Part 2 could not open.",
+        ),
       );
   }, [navigate, session?.token]);
 
@@ -251,12 +284,14 @@ export function AssessmentPartTwoPage() {
   const nextSpeechKey = state ? getNextPartTwoSpeechKey(state) : null;
 
   useEffect(() => {
-    if (!speechKey || !session?.token) return;
+    if (!speechKey || !session?.token || activityPreparation.status !== "ready")
+      return;
     setGuideState("preparing");
     setSpeechLevel(0);
-    const prefetched = prefetchedGuideRef.current?.key === speechKey
-      ? prefetchedGuideRef.current
-      : null;
+    const prefetched =
+      prefetchedGuideRef.current?.key === speechKey
+        ? prefetchedGuideRef.current
+        : null;
     setPreparedGuide(prefetched);
     if (prefetched) return;
 
@@ -264,24 +299,44 @@ export function AssessmentPartTwoPage() {
     void prepareClaraSpeech(speechKey, session.token)
       .then((speech) => active && setPreparedGuide({ key: speechKey, speech }))
       .catch(() => active && setGuideState("error"));
-    return () => { active = false; };
-  }, [session?.token, speechKey]);
+    return () => {
+      active = false;
+    };
+  }, [activityPreparation.status, session?.token, speechKey]);
 
   useEffect(() => {
-    if (guideState !== "ready" || !nextSpeechKey || !session?.token) return;
+    if (
+      activityPreparation.status !== "ready" ||
+      guideState !== "ready" ||
+      !nextSpeechKey ||
+      !session?.token
+    )
+      return;
     let active = true;
     void prepareClaraSpeech(nextSpeechKey, session.token)
       .then((speech) => {
         if (active) prefetchedGuideRef.current = { key: nextSpeechKey, speech };
       })
       .catch(() => undefined);
-    return () => { active = false; };
-  }, [guideState, nextSpeechKey, session?.token]);
+    return () => {
+      active = false;
+    };
+  }, [activityPreparation.status, guideState, nextSpeechKey, session?.token]);
 
   useEffect(() => {
-    if (!claraReady || !speechKey || preparedGuide?.key !== speechKey) return;
+    if (
+      activityPreparation.status !== "ready" ||
+      !claraReady ||
+      !speechKey ||
+      preparedGuide?.key !== speechKey
+    )
+      return;
     let active = true;
-    void playClaraSpeech(preparedGuide.speech, (level) => active && setSpeechLevel(level), { modelState: "ready" })
+    void playClaraSpeech(
+      preparedGuide.speech,
+      (level) => active && setSpeechLevel(level),
+      { modelState: "ready" },
+    )
       .then(async (playback) => {
         if (!active) return playback.stop();
         playbackRef.current = playback;
@@ -299,7 +354,7 @@ export function AssessmentPartTwoPage() {
       playbackRef.current?.stop();
       playbackRef.current = null;
     };
-  }, [claraReady, preparedGuide, speechKey]);
+  }, [activityPreparation.status, claraReady, preparedGuide, speechKey]);
 
   const resetKey = useMemo(
     () => `${state?.stage ?? "loading"}:${state?.item?.item_key ?? "none"}`,
@@ -313,15 +368,25 @@ export function AssessmentPartTwoPage() {
   }, [resetKey]);
 
   useEffect(() => {
-    if (saveAction !== "skip" || !nextSpeechKey || prefetchedGuideRef.current?.key === nextSpeechKey) {
+    if (
+      saveAction !== "skip" ||
+      !nextSpeechKey ||
+      prefetchedGuideRef.current?.key === nextSpeechKey
+    ) {
       setShowSkipLoader(false);
       return;
     }
-    const timeout = window.setTimeout(() => setShowSkipLoader(true), SKIP_WARMUP_LOADER_DELAY_MS);
+    const timeout = window.setTimeout(
+      () => setShowSkipLoader(true),
+      SKIP_WARMUP_LOADER_DELAY_MS,
+    );
     return () => window.clearTimeout(timeout);
   }, [nextSpeechKey, saveAction]);
 
-  const save = async (request: Promise<AssessmentPartTwoState>, action: Exclude<SaveAction, null>) => {
+  const save = async (
+    request: Promise<AssessmentPartTwoState>,
+    action: Exclude<SaveAction, null>,
+  ) => {
     setSaveAction(action);
     try {
       const next = await request;
@@ -329,24 +394,45 @@ export function AssessmentPartTwoPage() {
       setGuideState("preparing");
       setState(next);
     } catch (error) {
-      setLoadingError(error instanceof Error ? error.message : "That answer could not be saved.");
+      setLoadingError(
+        error instanceof Error
+          ? error.message
+          : "That answer could not be saved.",
+      );
     } finally {
       setSaveAction(null);
     }
   };
 
   if (!state) {
+    const preparationError =
+      activityPreparation.status === "error" ? activityPreparation.error : "";
+
     return (
       <main className="assessment-page learner-flow-page learner-typography-page assessment-page--loading">
-        <p>{loadingError || "Opening Part 2..."}</p>
-        {loadingError ? (
-          <BigButton size="regular" onClick={() => navigate("/learner/dashboard")}>Back to dashboard</BigButton>
+        <p role={loadingError || preparationError ? "alert" : undefined}>
+          {loadingError || preparationError || "Opening Part 2..."}
+        </p>
+        {loadingError || preparationError ? (
+          <BigButton
+            size="regular"
+            onClick={
+              preparationError
+                ? activityPreparation.retry
+                : () => navigate("/learner/dashboard")
+            }
+          >
+            {preparationError ? "Try again" : "Back to dashboard"}
+          </BigButton>
         ) : null}
       </main>
     );
   }
 
-  const unavailable = guideState !== "ready" || saveAction !== null;
+  const unavailable =
+    activityPreparation.status !== "ready" ||
+    guideState !== "ready" ||
+    saveAction !== null;
   const isPassage = state.stage === "task-3a";
   const isComprehension = state.stage === "task-3b";
   const isResult = state.stage === "part-2-results";
@@ -355,32 +441,68 @@ export function AssessmentPartTwoPage() {
     0,
     60 - Math.floor(recorder.recordingElapsedMs / 1000),
   );
-  const canSubmit = state.stage === "story-selection"
-    ? selectedStory !== null
-    : isPassage
-      ? recorder.audio !== null && recorder.state !== "recording" && recorder.state !== "playing"
-      : isComprehension
-        ? selectedChoice !== null
-        : isResult || isCompletion;
+  const canSubmit =
+    state.stage === "story-selection"
+      ? selectedStory !== null
+      : isPassage
+        ? recorder.audio !== null &&
+          recorder.state !== "recording" &&
+          recorder.state !== "playing"
+        : isComprehension
+          ? selectedChoice !== null
+          : isResult || isCompletion;
   const canSkip = isPassage || isComprehension;
-  const skipUnavailable = unavailable || recorder.state === "recording" || recorder.state === "playing";
+  const skipUnavailable =
+    unavailable ||
+    recorder.state === "recording" ||
+    recorder.state === "playing";
   const copy = stageCopy[state.stage];
-  const emotion = isResult || isCompletion ? "happy" : state.stage === "story-selection" || isComprehension ? "thinking" : "default";
+  const emotion =
+    isResult || isCompletion
+      ? "happy"
+      : state.stage === "story-selection" || isComprehension
+        ? "thinking"
+        : "default";
 
   const submitCurrent = () => {
     if (!session?.token || !canSubmit) return;
     if (state.stage === "story-selection" && selectedStory) {
-      void save(selectAssessmentStory(session.token, state.run_id, selectedStory), "submit");
+      void save(
+        selectAssessmentStory(session.token, state.run_id, selectedStory),
+        "submit",
+      );
     } else if (isPassage && state.item && recorder.audio) {
-      void save(submitAssessmentPassage(session.token, state.run_id, state.item.item_key, recorder.audio), "submit");
+      void save(
+        submitAssessmentPassage(
+          session.token,
+          state.run_id,
+          state.item.item_key,
+          recorder.audio,
+        ),
+        "submit",
+      );
     } else if (isComprehension && state.item && selectedChoice) {
-      void save(submitAssessmentComprehension(session.token, state.run_id, state.item.item_key, selectedChoice), "submit");
+      void save(
+        submitAssessmentComprehension(
+          session.token,
+          state.run_id,
+          state.item.item_key,
+          selectedChoice,
+        ),
+        "submit",
+      );
     } else if (isResult) {
       void save(continuePartTwoResult(session.token, state.run_id), "continue");
     } else if (isCompletion) {
       setSaveAction("finish");
       void finishAssessment(session.token, state.run_id)
-        .then(({ next_route }) => navigate(next_route))
+        .then(({ next_route }) => {
+          clearActivitySpeechPreparation(session.token);
+          void prepareActivitySpeech(session.token, "lesson-1").catch(
+            () => undefined,
+          );
+          navigate(next_route);
+        })
         .catch(() => {
           setSaveAction(null);
           setLoadingError("The assessment could not finish yet.");
@@ -391,7 +513,10 @@ export function AssessmentPartTwoPage() {
   const skipCurrent = () => {
     if (!session?.token || !state.item) return;
     recorder.retry();
-    void save(skipPartTwoItem(session.token, state.run_id, state.item.item_key), "skip");
+    void save(
+      skipPartTwoItem(session.token, state.run_id, state.item.item_key),
+      "skip",
+    );
   };
 
   return (
@@ -401,21 +526,35 @@ export function AssessmentPartTwoPage() {
       tabIndex={-1}
     >
       <ClaraSpeechWarmupLoader
-        active={(guideState === "preparing" && preparedGuide?.key !== speechKey) || showSkipLoader}
+        active={
+          activityPreparation.showRuntimeLoader ||
+          (guideState === "preparing" && preparedGuide?.key !== speechKey) ||
+          showSkipLoader
+        }
         modelReady={claraReady}
       />
       <PointerTrail />
       <VectorCursor />
       <header className="assessment-header">
-        <div><p>{copy.eyebrow}</p><h1>{copy.title}</h1></div>
+        <div>
+          <p>{copy.eyebrow}</p>
+          <h1>{copy.title}</h1>
+        </div>
         <ProgressRail state={state} />
       </header>
 
-      <section className={`assessment-item-panel${isResult || isCompletion ? " assessment-item-panel--result" : ""}`}>
+      <section
+        className={`assessment-item-panel${isResult || isCompletion ? " assessment-item-panel--result" : ""}`}
+      >
         <section className="assessment-stage" aria-live="polite">
           <AnimatePresence mode="wait">
             {state.stage === "story-selection" ? (
-              <StorySelection state={state} selected={selectedStory} unavailable={unavailable} onSelect={setSelectedStory} />
+              <StorySelection
+                state={state}
+                selected={selectedStory}
+                unavailable={unavailable}
+                onSelect={setSelectedStory}
+              />
             ) : isPassage ? (
               <PassageItem state={state} remainingSeconds={remainingSeconds} />
             ) : isComprehension ? (
@@ -430,7 +569,10 @@ export function AssessmentPartTwoPage() {
       </section>
 
       {isPassage || isComprehension ? (
-        <section className="assessment-recorder-panel" aria-label={isPassage ? "Voice recorder" : "Answer choices"}>
+        <section
+          className="assessment-recorder-panel"
+          aria-label={isPassage ? "Voice recorder" : "Answer choices"}
+        >
           {isPassage ? (
             <AssessmentRecorder
               recorder={recorder}
@@ -463,21 +605,41 @@ export function AssessmentPartTwoPage() {
             emotion={emotion}
             speaking={guideState === "speaking"}
             speechLevel={speechLevel}
-            onLoadStateChange={(loadState) => setClaraReady(loadState === "ready")}
+            onLoadStateChange={(loadState) =>
+              setClaraReady(loadState === "ready")
+            }
           />
         </div>
-        <div className="assessment-action-slot" data-assessment-action-split={canSkip || undefined}>
-          <motion.div className="assessment-action-primary" layout={!reduceMotion}>
+        <div
+          className="assessment-action-slot"
+          data-assessment-action-split={canSkip || undefined}
+        >
+          <motion.div
+            className="assessment-action-primary"
+            layout={!reduceMotion}
+          >
             <BigButton
-              variant={canSubmit && !unavailable ? "primary-vertical" : "unavailable-vertical"}
-              leadingIcon={<AssessmentDockActionIcon kind={isResult || isCompletion ? "next" : "submit"} />}
+              variant={
+                canSubmit && !unavailable
+                  ? "primary-vertical"
+                  : "unavailable-vertical"
+              }
+              leadingIcon={
+                <AssessmentDockActionIcon
+                  kind={isResult || isCompletion ? "next" : "submit"}
+                />
+              }
               disabled={!canSubmit || unavailable}
               busy={saveAction !== null && saveAction !== "skip"}
               busyLabel={isCompletion ? "Finishing" : "Saving"}
               committing={submitCommit.committing}
               onClick={() => submitCommit.commit(submitCurrent)}
             >
-              {isResult ? "Continue" : isCompletion ? "My reading path" : "Submit"}
+              {isResult
+                ? "Continue"
+                : isCompletion
+                  ? "My reading path"
+                  : "Submit"}
             </BigButton>
           </motion.div>
           {canSkip ? (
@@ -495,7 +657,23 @@ export function AssessmentPartTwoPage() {
         </div>
       </footer>
 
-      {loadingError ? <p className="assessment-save-error" role="alert">{loadingError}</p> : null}
+      {activityPreparation.status === "error" ? (
+        <div className="assessment-save-error" role="alert">
+          <p>{activityPreparation.error}</p>
+          <BigButton
+            variant="secondary"
+            size="regular"
+            onClick={activityPreparation.retry}
+          >
+            Try again
+          </BigButton>
+        </div>
+      ) : null}
+      {loadingError ? (
+        <p className="assessment-save-error" role="alert">
+          {loadingError}
+        </p>
+      ) : null}
     </main>
   );
 }

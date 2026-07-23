@@ -13,8 +13,10 @@ import { motion, useReducedMotion } from "motion/react";
 
 import type {
   ClaraEmotion,
+  ClaraPresentationCue,
   ClaraPresentationState,
-} from "./live2d/ClaraExpressionController";
+  ClaraTeachingBehavior,
+} from "./live2d/ClaraPresentation";
 
 const ClaraLive2DCanvas = lazy(() =>
   import("./live2d/ClaraLive2DCanvas").then((module) => ({
@@ -26,6 +28,8 @@ const CLARA_RUNTIME_MODEL_PATH = "/assets/live2d/clara/CherryGoth.model3.json";
 
 interface ClaraStageProps {
   emotion?: ClaraEmotion;
+  behavior?: ClaraTeachingBehavior;
+  cue?: ClaraPresentationCue;
   speaking?: boolean;
   speechLevel?: number;
   onLoadStateChange?: (state: ClaraStageLoadState) => void;
@@ -36,6 +40,8 @@ type ClaraStageVisualState = ClaraStageLoadState | "revealing";
 
 export function ClaraStage({
   emotion = "default",
+  behavior = "neutral",
+  cue = "none",
   speaking = false,
   speechLevel,
   onLoadStateChange,
@@ -48,6 +54,8 @@ export function ClaraStage({
   const [loaderOrigin, setLoaderOrigin] = useState({ x: 0, y: 0 });
   const presentation: ClaraPresentationState = {
     emotion,
+    behavior,
+    cue,
     speaking,
     speechLevel,
   };
@@ -137,6 +145,8 @@ export function ClaraStage({
         data-live2d-model={CLARA_RUNTIME_MODEL_PATH}
         data-live2d-state={loadState}
         data-clara-emotion={emotion}
+        data-clara-behavior={behavior}
+        data-clara-cue={cue}
         data-clara-speaking={speaking}
       >
         <div className="clara-stage__viewport">

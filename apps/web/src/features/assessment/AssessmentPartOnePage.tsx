@@ -11,9 +11,9 @@ import {
   type ClaraSpeechPlayback,
 } from "../clara-audio/claraSpeech";
 import { ClaraSpeechWarmupLoader } from "../clara-audio/ClaraSpeechWarmupLoader";
-import { ClaraStage } from "../intro/ClaraStage";
-import { PointerTrail } from "../intro/PointerTrail";
-import { VectorCursor } from "../intro/VectorCursor";
+import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPreparation";
+import { LearnerActivityResult } from "../learner-activity/LearnerActivityResult";
+import { LearnerActivityShell } from "../learner-activity/LearnerActivityShell";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 
 import {
@@ -236,62 +236,26 @@ function ActiveAssessmentItem({
 
 function ResultView({ state }: { state: AssessmentState }) {
   const result = state.result;
-  const reduceMotion = useReducedMotion();
   if (!result) return null;
 
   return (
-    <motion.section
-      className="assessment-result"
-      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: reduceMotion ? 0 : 0.32 }}
-    >
-      <div
-        className="assessment-result__segments"
-        aria-label="Part 1 task scores"
-      >
-        {result.segments.map((segment, index) => (
-          <motion.div
-            key={segment.task}
-            initial={reduceMotion ? false : { opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: reduceMotion ? 0 : 0.22 + index * 0.1 }}
-          >
-            <span>{segment.task}</span>
-            <strong>{segment.score}/10</strong>
-            <small>
-              {segment.status === "automatic"
-                ? "Automatic"
-                : segment.status === "not_administered"
-                  ? "Not given"
-                  : "Complete"}
-            </small>
-          </motion.div>
-        ))}
-      </div>
-      <motion.div
-        className="assessment-result__score"
-        initial={reduceMotion ? false : { opacity: 0, scale: 0.94 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: reduceMotion ? 0 : 0.55, duration: 0.35 }}
-      >
-        <strong>{result.score}</strong>
-        <span>/ {result.maximum}</span>
-      </motion.div>
-      <motion.p
-        className="assessment-result__level"
-        initial={reduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: reduceMotion ? 0 : 0.9 }}
-      >
-        {result.level}
-      </motion.p>
-      <div className="assessment-result__particles" aria-hidden="true">
-        {Array.from({ length: 8 }, (_, index) => (
-          <i key={index} />
-        ))}
-      </div>
-    </motion.section>
+    <LearnerActivityResult
+      ariaLabel="Part 1 task scores"
+      segments={result.segments.map((segment) => ({
+        key: segment.task,
+        label: segment.task,
+        value: `${segment.score}/10`,
+        status:
+          segment.status === "automatic"
+            ? "Automatic"
+            : segment.status === "not_administered"
+              ? "Not given"
+              : "Complete",
+      }))}
+      score={result.score}
+      maximum={result.maximum}
+      level={result.level}
+    />
   );
 }
 
@@ -299,6 +263,11 @@ export function AssessmentPartOnePage() {
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
   const storedSession = loadLearnerSession();
+  const activityPreparation = useActivitySpeechPreparation(
+    storedSession?.token,
+    "assessment-part-one",
+    Boolean(storedSession?.token),
+  );
   const [assessment, setAssessment] = useState<AssessmentState | null>(null);
   const [loadingError, setLoadingError] = useState("");
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -340,10 +309,7 @@ export function AssessmentPartOnePage() {
   }, [navigate, storedSession?.token]);
 
   const speechKey = assessment
-    ? getAssessmentSpeechKey(
-        assessment.stage,
-        assessment.progress?.current,
-      )
+    ? getAssessmentSpeechKey(assessment.stage, assessment.progress?.current)
     : null;
   const nextSpeechKey = assessment
     ? getNextAssessmentSpeechKey(
@@ -374,7 +340,12 @@ export function AssessmentPartOnePage() {
   }, [skipIsWaitingForSpeech]);
 
   useEffect(() => {
-    if (!speechKey || !storedSession?.token) return;
+    if (
+      !speechKey ||
+      !storedSession?.token ||
+      activityPreparation.status !== "ready"
+    )
+      return;
     setGuideState("preparing");
     setSpeechLevel(0);
     const prefetchedGuide =
@@ -399,10 +370,11 @@ export function AssessmentPartOnePage() {
     return () => {
       active = false;
     };
-  }, [speechKey, storedSession?.token]);
+  }, [activityPreparation.status, speechKey, storedSession?.token]);
 
   useEffect(() => {
     if (
+      activityPreparation.status !== "ready" ||
       guideState !== "ready" ||
       !nextSpeechKey ||
       !storedSession?.token
@@ -423,10 +395,20 @@ export function AssessmentPartOnePage() {
     return () => {
       active = false;
     };
-  }, [guideState, nextSpeechKey, storedSession?.token]);
+  }, [
+    activityPreparation.status,
+    guideState,
+    nextSpeechKey,
+    storedSession?.token,
+  ]);
 
   useEffect(() => {
-    if (!claraReady || !speechKey || preparedGuide?.key !== speechKey) {
+    if (
+      activityPreparation.status !== "ready" ||
+      !claraReady ||
+      !speechKey ||
+      preparedGuide?.key !== speechKey
+    ) {
       return;
     }
 
@@ -457,7 +439,7 @@ export function AssessmentPartOnePage() {
       playbackRef.current?.stop();
       playbackRef.current = null;
     };
-  }, [claraReady, preparedGuide, speechKey]);
+  }, [activityPreparation.status, claraReady, preparedGuide, speechKey]);
 
   const resetKey = useMemo(
     () =>
@@ -549,15 +531,24 @@ export function AssessmentPartOnePage() {
   };
 
   if (!assessment) {
+    const preparationError =
+      activityPreparation.status === "error" ? activityPreparation.error : "";
+
     return (
       <main className="assessment-page learner-flow-page learner-typography-page assessment-page--loading">
-        <p>{loadingError || "Opening Part 1..."}</p>
-        {loadingError ? (
+        <p role={loadingError || preparationError ? "alert" : undefined}>
+          {loadingError || preparationError || "Opening Part 1..."}
+        </p>
+        {loadingError || preparationError ? (
           <BigButton
             size="regular"
-            onClick={() => navigate("/learner/dashboard")}
+            onClick={
+              preparationError
+                ? activityPreparation.retry
+                : () => navigate("/learner/dashboard")
+            }
           >
-            Back to dashboard
+            {preparationError ? "Try again" : "Back to dashboard"}
           </BigButton>
         ) : null}
       </main>
@@ -572,7 +563,10 @@ export function AssessmentPartOnePage() {
       ? assessment.orientation_ready
       : assessment.response_committed;
   const controlsUnavailable =
-    guideState !== "ready" || saveState === "processing" || committed;
+    activityPreparation.status !== "ready" ||
+    guideState !== "ready" ||
+    saveState === "processing" ||
+    committed;
   const canSubmitAudio = Boolean(recorder.audio && recorder.hasPlayed);
   const canSkip = !isResult && assessment.stage !== "orientation" && !committed;
   const skipUnavailable =
@@ -588,10 +582,10 @@ export function AssessmentPartOnePage() {
   const primaryAction = isResult ? (
     <BigButton
       variant={
-        guideState === "ready" ? "primary-vertical" : "unavailable-vertical"
+        !controlsUnavailable ? "primary-vertical" : "unavailable-vertical"
       }
       leadingIcon={<DockActionIcon kind="next" />}
-      disabled={guideState !== "ready"}
+      disabled={controlsUnavailable}
       busy={saveState === "processing"}
       busyLabel="Opening"
       committing={resultCommit.committing}
@@ -636,34 +630,39 @@ export function AssessmentPartOnePage() {
   );
 
   return (
-    <main
-      className="assessment-page learner-flow-page learner-typography-page"
-      data-route-focus
-      tabIndex={-1}
-    >
-      <ClaraSpeechWarmupLoader
-        active={
-          (guideState === "preparing" &&
-            preparedGuide?.key !== speechKey &&
-            prefetchedGuideRef.current?.key !== speechKey) ||
-          showSkipWarmupLoader
-        }
-        modelReady={claraReady}
-      />
-      <PointerTrail />
-      <VectorCursor />
-      <header className="assessment-header">
-        <div>
-          <p>{copy.eyebrow}</p>
-          <h1>{copy.title}</h1>
-        </div>
-        <ProgressRail state={assessment} />
-      </header>
-
-      <section
-        className={`assessment-item-panel${isResult ? " assessment-item-panel--result" : ""}`}
-      >
-        <section className="assessment-stage" aria-live="polite">
+    <LearnerActivityShell
+      overlay={
+        <>
+          <ClaraSpeechWarmupLoader
+            active={
+              activityPreparation.showRuntimeLoader ||
+              (guideState === "preparing" &&
+                preparedGuide?.key !== speechKey &&
+                prefetchedGuideRef.current?.key !== speechKey) ||
+              showSkipWarmupLoader
+            }
+            modelReady={claraReady}
+          />
+          {activityPreparation.status === "error" ? (
+            <div className="lesson-error" role="alert">
+              <p>{activityPreparation.error}</p>
+              <BigButton
+                variant="secondary"
+                size="regular"
+                onClick={activityPreparation.retry}
+              >
+                Try again
+              </BigButton>
+            </div>
+          ) : null}
+        </>
+      }
+      eyebrow={copy.eyebrow}
+      title={copy.title}
+      headerAside={<ProgressRail state={assessment} />}
+      itemPanelClassName={isResult ? "assessment-item-panel--result" : ""}
+      itemContent={
+        <>
           {isResult ? (
             <ResultView state={assessment} />
           ) : (
@@ -673,15 +672,12 @@ export function AssessmentPartOnePage() {
               processing={saveState === "processing"}
             />
           )}
-        </section>
-      </section>
-
-      {!isResult ? (
-        <section
-          className="assessment-recorder-panel"
-          aria-label={isRhyme ? "Answer choices" : "Voice recorder"}
-        >
-          {isRhyme ? (
+        </>
+      }
+      recorderAriaLabel={isRhyme ? "Answer choices" : "Voice recorder"}
+      recorderContent={
+        !isResult ? (
+          isRhyme ? (
             <div className="assessment-rhyme__choices">
               {(["yes", "no"] as const).map((value) => (
                 <button
@@ -702,65 +698,30 @@ export function AssessmentPartOnePage() {
               committed={committed}
               onAudioAction={() => playbackRef.current?.stop()}
             />
-          )}
-        </section>
-      ) : null}
-
-      <footer className="assessment-action-dock">
-        <div className="assessment-clara">
-          <ClaraStage
-            emotion={emotion}
-            speaking={guideState === "speaking"}
-            speechLevel={speechLevel}
-            onLoadStateChange={(loadState) =>
-              setClaraReady(loadState === "ready")
-            }
-          />
-        </div>
-
-        <div
-          className="assessment-action-slot"
-          data-assessment-action-split={canSkip || undefined}
-        >
-          <motion.div
-            className="assessment-action-primary"
-            layout={!reduceMotion}
-            transition={{ duration: reduceMotion ? 0 : 0.26, ease: "easeOut" }}
+          )
+        ) : undefined
+      }
+      primaryActionKey={primaryActionKey}
+      primaryAction={primaryAction}
+      secondaryAction={
+        canSkip ? (
+          <BigButton
+            variant="skip-vertical"
+            disabled={skipUnavailable}
+            busy={saveState === "processing" && saveAction === "skip"}
+            busyLabel="Skipping"
+            committing={skipCommit.committing}
+            onClick={() => skipCommit.commit(skipCurrentItem)}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={primaryActionKey}
-                className="assessment-action-transition"
-                initial={
-                  reduceMotion ? false : { opacity: 0, scale: 0.94, y: 8 }
-                }
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={
-                  reduceMotion ? undefined : { opacity: 0, scale: 0.97, y: -6 }
-                }
-                transition={{
-                  duration: reduceMotion ? 0 : 0.2,
-                  ease: "easeOut",
-                }}
-              >
-                {primaryAction}
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-          {canSkip ? (
-            <BigButton
-              variant="skip-vertical"
-              disabled={skipUnavailable}
-              busy={saveState === "processing" && saveAction === "skip"}
-              busyLabel="Skipping"
-              committing={skipCommit.committing}
-              onClick={() => skipCommit.commit(skipCurrentItem)}
-            >
-              Skip
-            </BigButton>
-          ) : null}
-        </div>
-      </footer>
-    </main>
+            Skip
+          </BigButton>
+        ) : undefined
+      }
+      claraEmotion={emotion}
+      claraSpeaking={guideState === "speaking"}
+      claraSpeechLevel={speechLevel}
+      onClaraReadyChange={setClaraReady}
+      reduceMotion={Boolean(reduceMotion)}
+    />
   );
 }
