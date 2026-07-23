@@ -10,38 +10,57 @@ import {
   unlockClaraAudio,
 } from "../clara-audio/claraSpeech";
 import {
+  activitySpeechScopeForProgress,
+  prepareActivitySpeech,
+} from "../clara-audio/activitySpeechReadiness";
+import {
   clearLearnerSession,
   getLearnerSession,
   loadLearnerSession,
   logoutLearner,
+  saveLearnerSession,
 } from "../learner-auth/learnerApi";
 import "./learner-dashboard.css";
 
 const achievementSlots = [
   {
-    key: "first-steps",
-    name: "First Step",
+    key: "reading.ready_reader",
+    name: "Ready Reader",
     criteria: "Complete the Diagnostic Assessment",
   },
   {
-    key: "lesson-one",
-    name: "Lesson One",
-    criteria: "Complete your first lesson",
-  },
-  { key: "word-helper", name: "Word Helper", criteria: "Practice ten words" },
-  {
-    key: "steady-reader",
-    name: "Steady Reader",
-    criteria: "Complete three lessons",
+    key: "reading.letter_leader",
+    name: "Letter Leader",
+    criteria: "Complete Lesson 1: Letters",
   },
   {
-    key: "game-starter",
-    name: "Game Starter",
-    criteria: "Finish your first game session",
+    key: "reading.word_wizard",
+    name: "Word Wizard",
+    criteria: "Complete Lesson 2: Words",
   },
   {
-    key: "final-reader",
-    name: "Final Reader",
+    key: "reading.phrase_pro",
+    name: "Phrase Pro",
+    criteria: "Complete Lesson 3: Phrases",
+  },
+  {
+    key: "reading.sentence_star",
+    name: "Sentence Star",
+    criteria: "Complete Lesson 4: Sentences",
+  },
+  {
+    key: "reading.passage_explorer",
+    name: "Passage Explorer",
+    criteria: "Complete Lesson 5: Short Passage",
+  },
+  {
+    key: "reading.question_detective",
+    name: "Question Detective",
+    criteria: "Complete Lesson 6: Comprehension",
+  },
+  {
+    key: "reading.readirect_champion",
+    name: "ReaDirect Champion",
     criteria: "Complete the Final Assessment",
   },
 ] as const;
@@ -96,12 +115,38 @@ export function LearnerDashboardPage() {
     },
   });
   const learner = sessionQuery.data?.learner;
+  const isLessonFlow = learner?.progress.stage === "required_lessons";
+  const currentLesson = learner?.progress.current_required_lesson_order ?? 1;
+  const activitySpeechScope = learner
+    ? activitySpeechScopeForProgress(learner.progress)
+    : null;
+  const earnedAchievements = new Set(learner?.achievement_keys ?? []);
 
   useEffect(() => {
     if (sessionQuery.isError) {
       clearLearnerSession();
     }
   }, [sessionQuery.isError]);
+
+  useEffect(() => {
+    if (storedSession?.token && sessionQuery.data) {
+      saveLearnerSession({ token: storedSession.token, ...sessionQuery.data });
+    }
+  }, [sessionQuery.data, storedSession?.token]);
+
+  useEffect(() => {
+    if (
+      !storedSession?.token ||
+      !activitySpeechScope ||
+      sessionQuery.isFetching
+    ) {
+      return;
+    }
+
+    void prepareActivitySpeech(storedSession.token, activitySpeechScope).catch(
+      () => undefined,
+    );
+  }, [activitySpeechScope, sessionQuery.isFetching, storedSession?.token]);
 
   const openGames = () => {
     gamesCommit.commit(() => navigate("/learner/games"));
@@ -112,6 +157,12 @@ export function LearnerDashboardPage() {
 
     if (storedSession?.token) {
       void prepareClaraSpeech("lesson-intro", storedSession.token);
+      if (activitySpeechScope) {
+        void prepareActivitySpeech(
+          storedSession.token,
+          activitySpeechScope,
+        ).catch(() => undefined);
+      }
     }
 
     readingCommit.commit(() => navigate("/learner/lesson-intro"));
@@ -204,16 +255,30 @@ export function LearnerDashboardPage() {
           </div>
           <div className="learner-dashboard__primary-copy">
             <p className="learner-dashboard__next-label">Your next step</p>
-            <h2>Find your reading starting point.</h2>
-            <p>Complete this once to open your lessons.</p>
+            <h2>
+              {isLessonFlow
+                ? `Continue Lesson ${currentLesson}.`
+                : "Find your reading starting point."}
+            </h2>
+            <p>
+              {isLessonFlow
+                ? "Your exact place is saved and ready."
+                : "Complete this once to open your lessons."}
+            </p>
           </div>
           <BigButton
             className="learner-dashboard__primary-action"
-            aria-label="Start Diagnostic Assessment"
+            aria-label={
+              isLessonFlow
+                ? `Continue Lesson ${currentLesson}`
+                : "Start Diagnostic Assessment"
+            }
             committing={readingCommit.committing}
             onClick={openNextReadingActivity}
           >
-            Start Diagnostic
+            {isLessonFlow
+              ? `Continue Lesson ${currentLesson}`
+              : "Start Diagnostic"}
           </BigButton>
           <p className="learner-dashboard__notice" aria-live="polite">
             {readingCommit.committing ? "Getting Ma'am Clara ready..." : ""}
@@ -262,7 +327,7 @@ export function LearnerDashboardPage() {
                 <h2>Achievements</h2>
               </div>
               <span className="learner-dashboard__achievement-count">
-                0/{achievementSlots.length}
+                {earnedAchievements.size}/{achievementSlots.length}
               </span>
             </div>
 
@@ -273,6 +338,9 @@ export function LearnerDashboardPage() {
               {achievementSlots.map((achievement) => (
                 <li
                   key={achievement.key}
+                  data-earned={
+                    earnedAchievements.has(achievement.key) || undefined
+                  }
                   aria-label={`${achievement.name}: ${achievement.criteria}`}
                 >
                   <span

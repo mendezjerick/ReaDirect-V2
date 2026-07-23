@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssessmentResponse;
 use App\Models\AssessmentRun;
+use App\Models\LearnerAchievement;
 use App\Models\LearnerProgressState;
 use App\Services\LearnerAssessmentAsr;
 use App\Services\LearnerSessionResolver;
@@ -284,6 +285,10 @@ final class LearnerAssessmentPartTwoController extends Controller
                 'status' => AssessmentRun::STATUS_COMPLETED,
                 'assessment_completed_at' => $completedAt,
             ])->save();
+            LearnerAchievement::query()->firstOrCreate(
+                ['learner_id' => $run->learner_id, 'achievement_key' => 'reading.ready_reader'],
+                ['awarded_at' => $completedAt, 'evidence' => ['assessment_run_id' => $run->id]],
+            );
         });
 
         return response()->json([

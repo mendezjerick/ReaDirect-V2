@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
 
 import { ClaraStage, type ClaraStageLoadState } from "./ClaraStage";
-import type { ClaraEmotion } from "./live2d/ClaraExpressionController";
+import type {
+  ClaraEmotion,
+  ClaraPresentationCue,
+  ClaraTeachingBehavior,
+} from "./live2d/ClaraPresentation";
 import { PointerTrail } from "./PointerTrail";
 import { VectorCursor } from "./VectorCursor";
 
@@ -9,6 +13,8 @@ interface ClaraIntroStageProps {
   ariaLabelledBy: string;
   children: ReactNode;
   emotion?: ClaraEmotion;
+  behavior?: ClaraTeachingBehavior;
+  cue?: ClaraPresentationCue;
   overlay?: ReactNode;
   speaking?: boolean;
   speechLevel?: number;
@@ -25,6 +31,8 @@ export function ClaraIntroStage({
   ariaLabelledBy,
   children,
   emotion = "default",
+  behavior = "neutral",
+  cue = "none",
   overlay,
   speaking = false,
   speechLevel,
@@ -54,6 +62,8 @@ export function ClaraIntroStage({
         <div className="intro-page__brand">{children}</div>
         <ClaraStage
           emotion={emotion}
+          behavior={behavior}
+          cue={cue}
           speaking={speaking}
           speechLevel={speechLevel}
           onLoadStateChange={onClaraLoadStateChange}

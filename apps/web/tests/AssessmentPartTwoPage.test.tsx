@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -11,13 +17,32 @@ const speechMocks = vi.hoisted(() => ({
 
 const live2dMocks = vi.hoisted(() => ({
   setState: undefined as
-    | ((state: "loading" | "ready" | "error") => void)
-    | undefined,
+    ((state: "loading" | "ready" | "error") => void) | undefined,
 }));
 
 vi.mock("../src/features/clara-audio/claraSpeech", () => ({
   prepareClaraSpeech: speechMocks.prepare,
   playClaraSpeech: speechMocks.play,
+}));
+
+vi.mock("../src/features/clara-audio/activitySpeechReadiness", () => ({
+  clearActivitySpeechPreparation: vi.fn(),
+  prepareActivitySpeech: vi.fn().mockResolvedValue({
+    activity: "lesson-1",
+    ready: true,
+  }),
+}));
+
+vi.mock("../src/features/clara-audio/useActivitySpeechPreparation", () => ({
+  useActivitySpeechPreparation: () => ({
+    status: "ready",
+    manifest: null,
+    readiness: null,
+    error: "",
+    retry: vi.fn(),
+    runtimeRequired: false,
+    showRuntimeLoader: false,
+  }),
 }));
 
 vi.mock("../src/features/intro/live2d/ClaraLive2DCanvas", async () => {

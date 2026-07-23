@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { clearActivitySpeechPreparation } from "../clara-audio/activitySpeechReadiness";
+
 const learnerProgressSchema = z.object({
   stage: z.string(),
   current_required_lesson_order: z.number().int().positive().nullable(),
@@ -15,6 +17,7 @@ const learnerAccountSchema = z.object({
   grade_level: z.number().int().min(1).max(6).nullable(),
   section: z.string().nullable(),
   progress: learnerProgressSchema,
+  achievement_keys: z.array(z.string()).default([]),
 });
 
 const learnerSessionSchema = z.object({
@@ -83,6 +86,12 @@ export function loadLearnerSession(): StoredLearnerSession | null {
 }
 
 export function clearLearnerSession(): void {
+  const session = loadLearnerSession();
+
+  if (session) {
+    clearActivitySpeechPreparation(session.token);
+  }
+
   window.sessionStorage.removeItem(learnerSessionStorageKey);
 }
 

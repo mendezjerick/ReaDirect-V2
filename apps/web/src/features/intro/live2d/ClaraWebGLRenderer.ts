@@ -19,10 +19,13 @@ import { readCssColor, type RgbaColor } from "./readCssColor";
 import {
   ClaraExpressionController,
   normalizeClaraEyeOpenness,
-  type ClaraPresentationState,
 } from "./ClaraExpressionController";
 import type { ClaraLookTarget } from "./ClaraInteractionTracker";
 import { ClaraLookController } from "./ClaraLookController";
+import {
+  resolveClaraPresentationLookTarget,
+  type ClaraPresentationState,
+} from "./ClaraPresentation";
 
 const MODEL_DIRECTORY = "/assets/live2d/clara/";
 const MODEL_MANIFEST = "CherryGoth.model3.json";
@@ -595,12 +598,18 @@ export class ClaraWebGLRenderer extends CubismUserModel {
 
     this.applyParameterOverrides();
     this.expressionController?.apply(
-      presentation.emotion,
+      presentation,
       this.resolveMouthOpenLevel(deltaTimeSeconds, animateModel, presentation),
+      deltaTimeSeconds,
+      animateModel,
     );
 
     this._model.saveParameters();
-    this.lookController?.apply(lookTarget, deltaTimeSeconds, animateModel);
+    this.lookController?.apply(
+      resolveClaraPresentationLookTarget(presentation, lookTarget),
+      deltaTimeSeconds,
+      animateModel,
+    );
     this._model.update();
     this.applyDrawableVisibilityOverrides();
 

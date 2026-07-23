@@ -1,5 +1,5 @@
 const speechRequests = new Map<string, Promise<Blob>>();
-const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1";
+const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260723-2";
 let audioContext: AudioContext | null = null;
 
 type AssessmentItemOrdinal = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
@@ -7,9 +7,53 @@ type AssessmentItemSpeechKey =
   `assessment-${"letters" | "rhymes" | "words"}-item-${AssessmentItemOrdinal}`;
 type AssessmentComprehensionSpeechKey =
   `assessment-comprehension-${"lena" | "rosa"}-item-${1 | 2 | 3 | 4 | 5}`;
+type UppercaseLetter =
+  | "A"
+  | "B"
+  | "C"
+  | "D"
+  | "E"
+  | "F"
+  | "G"
+  | "H"
+  | "I"
+  | "J"
+  | "K"
+  | "L"
+  | "M"
+  | "N"
+  | "O"
+  | "P"
+  | "Q"
+  | "R"
+  | "S"
+  | "T"
+  | "U"
+  | "V"
+  | "W"
+  | "X"
+  | "Y"
+  | "Z";
+type LessonOneDemonstrationSpeechKey =
+  `lesson-1-letter-demo-${UppercaseLetter}`;
+type LessonOneItemSpeechKey =
+  `lesson-1-${"mission-1" | "mission-2" | "mission-3"}-item-${2 | 3 | 4 | 5}`;
 
 export type ClaraSpeechKey =
   | "lesson-intro"
+  | "lesson-1-mission-1"
+  | "lesson-1-mission-2"
+  | "lesson-1-mission-3"
+  | "lesson-1-complete"
+  | "lesson-1-technical-retry"
+  | "lesson-1-clue-mission-1"
+  | "lesson-1-clue-mission-2"
+  | "lesson-1-clue-mission-3"
+  | "lesson-1-feedback-independent"
+  | "lesson-1-feedback-supported"
+  | "lesson-1-feedback-demonstrated"
+  | "lesson-1-feedback-not-yet"
+  | "lesson-1-feedback-unscorable"
   | "assessment-orientation"
   | "assessment-letters"
   | "assessment-rhymes"
@@ -20,7 +64,9 @@ export type ClaraSpeechKey =
   | "assessment-part-two-result"
   | "assessment-complete"
   | AssessmentItemSpeechKey
-  | AssessmentComprehensionSpeechKey;
+  | AssessmentComprehensionSpeechKey
+  | LessonOneDemonstrationSpeechKey
+  | LessonOneItemSpeechKey;
 
 export interface ClaraSpeechPlayback {
   finished: Promise<void>;

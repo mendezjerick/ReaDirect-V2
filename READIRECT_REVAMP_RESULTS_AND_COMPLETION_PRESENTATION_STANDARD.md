@@ -302,8 +302,8 @@ READY
   reaction.
 - Speaking remains an independent overlay and follows the actual TTS playback
   envelope.
-- Use the semantic `result` voice reference for score/profile explanation and
-  `praise` for lesson completion and the Reading Journey Finale.
+- Use the semantic `result` voice reference for score/profile explanation,
+  lesson completion, and the Reading Journey Finale.
 - Clara's line is short and supportive. It does not read every number, tile, or
   achievement criterion aloud unless accessibility settings request it.
 - Tapping Clara may replay the settled result line after initial playback.

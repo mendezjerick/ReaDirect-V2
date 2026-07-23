@@ -469,6 +469,8 @@ Core implementation files:
 
 ```text
 apps/web/src/features/intro/live2d/ClaraWebGLRenderer.ts
+apps/web/src/features/intro/live2d/ClaraPresentation.ts
+apps/web/src/features/intro/live2d/ClaraExpressionController.ts
 apps/web/src/features/intro/live2d/ClaraInteractionTracker.ts
 apps/web/src/features/intro/live2d/ClaraLookController.ts
 ```
@@ -564,7 +566,7 @@ internal parameter rotations only. Body response must read as a slight sway
 inside the fixed passport frame; it must never translate Clara toward the
 pointer.
 
-## Dynamic Expressions and Speaking
+## Layered Teaching Presentation and Speaking
 
 Clara has one base emotion at a time:
 
@@ -572,31 +574,98 @@ Clara has one base emotion at a time:
 type ClaraEmotion = "default" | "happy" | "thinking" | "confused";
 ```
 
-The approved states are constructed directly from compiled model parameters:
+The approved base states are constructed directly from compiled model
+parameters:
 
-| State      | Required parameter behavior                                      |
-| ---------- | ---------------------------------------------------------------- |
-| `default`  | Restore every controlled expression parameter to model defaults  |
-| `happy`    | Close both eyes, enable both eye smiles, use smiling mouth form  |
-| `thinking` | Close both eyes, keep eye smiles and mouth form at defaults      |
-| `confused` | Keep the default face and set the question-mark `Param24` to `1` |
+| State | Required parameter behavior |
+| --- | --- |
+| `default` | Restore every controlled expression parameter to model defaults |
+| `happy` | Close both eyes, enable both eye smiles, and use smiling mouth form |
+| `thinking` | Close both eyes while keeping eye smiles and mouth form at defaults |
+| `confused` | Use questioning brows, a gentle head tilt, and question-mark artwork |
+
+Base emotion is only the first layer. The complete state is:
+
+```text
+base emotion
+    + teaching behavior
+    + optional approved cue
+    + speaking overlay
+```
+
+The approved teaching behavior values are:
+
+```ts
+type ClaraTeachingBehavior =
+  | "neutral"
+  | "listening"
+  | "encouraging"
+  | "gentle_correction"
+  | "demonstrating"
+  | "celebrating";
+```
+
+| Teaching behavior | Runtime presentation |
+| --- | --- |
+| `neutral` | No teaching-specific override |
+| `listening` | Open attentive face, closed mouth, and subtly raised brows |
+| `encouraging` | Soft smile, raised brows, and a small cheek response |
+| `gentle_correction` | Calm mouth and concerned but non-negative brows |
+| `demonstrating` | Attentive face with teaching gaze directed toward the item |
+| `celebrating` | Closed-eye smile with optional blush and restrained bounce |
+
+Approved optional cues are `none`, `question_mark`, and `blush`. The question
+mark is reserved for genuine confusion. Blush is reserved for positive
+celebration. `Param20` (sad), `Param21` (angry), and `Param23` (dizzy) are not
+part of the controlled parameter contract and must never react to learner
+evidence.
 
 Controlled expression parameters:
 
-| Parameter         | Exported range | Runtime responsibility                  |
-| ----------------- | -------------: | --------------------------------------- |
-| `ParamEyeLOpen`   |      `0`–`1.2` | Left eye closing                        |
-| `ParamEyeROpen`   |      `0`–`1.2` | Right eye closing                       |
-| `ParamEyeLSmile`  |        `0`–`1` | Left closed-eye smile                   |
-| `ParamEyeRSmile`  |        `0`–`1` | Right closed-eye smile                  |
-| `ParamMouthForm`  |       `-1`–`1` | Default or smiling mouth shape          |
-| `ParamMouthOpenY` |        `0`–`1` | Speaking overlay only                   |
-| `Param24`         |        `0`–`1` | Compiled confused/question-mark artwork |
+| Parameter group | Parameters | Runtime responsibility |
+| --- | --- | --- |
+| Eyes | `ParamEyeLOpen`, `ParamEyeROpen`, `ParamEyeLSmile`, `ParamEyeRSmile` | Attentive, happy, and thinking eye states |
+| Brows | `ParamBrowLY`, `ParamBrowRY`, `ParamBrowLAngle`, `ParamBrowRAngle`, `ParamBrowLForm`, `ParamBrowRForm` | Encouragement, attention, and gentle correction |
+| Mouth | `ParamMouthForm`, `ParamMouthOpenY` | Expression mouth form plus independent speaking |
+| Cheek | `ParamCheek` | Restrained positive response |
+| Head | `ParamAngleZ` | Small questioning tilt only |
+| Bounce | `Param4`, `Param6` | Positive celebration motion only |
+| Cues | `Param22`, `Param24` | Blush and question-mark artwork |
 
 The runtime implementation is
-`apps/web/src/features/intro/live2d/ClaraExpressionController.ts`. It must read
-the model's own minimum, default, and maximum values rather than duplicating
-those numeric bounds throughout the frontend.
+`apps/web/src/features/intro/live2d/ClaraPresentation.ts` plus
+`ClaraExpressionController.ts`. The controller must read the model's own
+minimum, default, and maximum values rather than duplicating numeric bounds
+throughout the frontend. Facial transitions ease between targets.
+Reduced-motion mode applies the communicative face immediately and removes
+celebration bounce.
+
+`ClaraModelTeachingParameterContract.test.ts` verifies that every controlled
+teaching parameter remains present in Clara's exported display metadata and
+that sad, angry, and dizzy remain excluded. The runtime constructor performs
+the final required-parameter validation against the loaded compiled model.
+
+### Teaching Gaze Priority
+
+Pointer and touch tracking remain the default global gaze source. While the
+active behavior is `demonstrating`, the shared presentation controller
+temporarily supplies a fixed gaze toward the lesson item. The fixed crop,
+canvas, scale, and CSS position never move. When demonstration ends, the
+existing look controller smoothly resumes the current pointer or touch target.
+
+Under reduced motion, teaching gaze still changes the eyes and head because it
+communicates instructional focus; continuous bounce and physics remain off.
+
+Lesson 1 currently maps presentation deterministically:
+
+| Lesson state | Clara presentation |
+| --- | --- |
+| Mission guidance | `default + demonstrating` |
+| Waiting for learner response | `default + listening` |
+| ASR processing | `thinking + neutral` |
+| Correct committed response | `default + encouraging` |
+| Needs-support committed response | `default + gentle_correction` |
+| Lesson completion | `happy + celebrating + blush` |
 
 ### Eye Catchlight Visibility
 
@@ -616,8 +685,9 @@ This prevents catchlights from floating over closed eyelids in `happy`,
 ### Speaking Is an Independent Overlay
 
 Speaking is not a base emotion. It controls only `ParamMouthOpenY`, after the
-base emotion has selected its eye state and `ParamMouthForm`. This allows Clara
-to speak while remaining happy, thinking, confused, or default.
+base emotion and teaching behavior have selected their facial state. This
+allows Clara to speak while retaining her current base emotion, teaching
+behavior, and approved cue.
 
 `ClaraStage` accepts:
 
@@ -899,6 +969,13 @@ A Ma'am Clara implementation is compliant only when:
       ordinary taps do not move Clara.
 - [ ] Default, happy, thinking, and confused remain mutually exclusive base
       emotions.
+- [ ] Teaching behavior and approved cues layer over the base emotion instead
+      of replacing it.
+- [ ] Demonstration gaze temporarily overrides pointer tracking and releases
+      control smoothly afterward.
+- [ ] Sad, angry, and dizzy never react to learner evidence.
+- [ ] Reduced motion preserves communicative facial states without celebration
+      bounce.
 - [ ] Speaking changes only mouth opening and can layer over every base emotion.
 - [ ] The UI calls her Ma'am Clara.
 - [ ] No page implements a separate Clara pointer tracker or changes the

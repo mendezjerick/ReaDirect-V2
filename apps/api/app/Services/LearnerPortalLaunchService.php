@@ -5,8 +5,11 @@ namespace App\Services;
 use App\Models\AssessmentResponse;
 use App\Models\AssessmentRun;
 use App\Models\Learner;
+use App\Models\LearnerAchievement;
 use App\Models\LearnerPortalRun;
 use App\Models\LearnerSession;
+use App\Models\LessonResponse;
+use App\Models\LessonRun;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
 use Illuminate\Support\Facades\DB;
@@ -20,8 +23,11 @@ final class LearnerPortalLaunchService
 
     public const COMPLETION_ROUTE = '/learner/assessment/complete';
 
+    public const LESSON_ONE_ROUTE = '/learner/lessons/1';
+
     public function __construct(
         private readonly AssessmentContentCatalog $contentCatalog,
+        private readonly LessonContentCatalog $lessonContentCatalog,
         private readonly LearnerProgressResetService $resetService,
     ) {}
 
@@ -89,6 +95,30 @@ final class LearnerPortalLaunchService
                 'description' => 'Open the final Diagnostic completion celebration.',
                 'task' => 'Completion',
             ],
+            [
+                'key' => 'lesson-1-mission-1',
+                'label' => 'Lesson 1 · Letter pairs',
+                'description' => 'Open Lesson 1 at its first uppercase and lowercase pair.',
+                'task' => 'Lesson 1',
+            ],
+            [
+                'key' => 'lesson-1-mission-2',
+                'label' => 'Lesson 1 · First letters',
+                'description' => 'Open the highlighted-first-letter mission with Mission 1 persisted.',
+                'task' => 'Lesson 1',
+            ],
+            [
+                'key' => 'lesson-1-mission-3',
+                'label' => 'Lesson 1 · Missing letters',
+                'description' => 'Open the missing-first-letter mission with earlier work persisted.',
+                'task' => 'Lesson 1',
+            ],
+            [
+                'key' => 'lesson-1-complete',
+                'label' => 'Lesson 1 Complete',
+                'description' => 'Open the Letter Leader completion presentation.',
+                'task' => 'Completion',
+            ],
         ];
     }
 
@@ -105,9 +135,21 @@ final class LearnerPortalLaunchService
     {
         return DB::transaction(function () use ($learner, $actor, $targetKey): array {
             $learner = $this->resetService->reset($learner, $actor);
-            $snapshot = $this->contentCatalog->assessmentSnapshot();
-            $run = $this->createAssessmentRun($learner, $snapshot, $targetKey);
-            $this->seedPrerequisites($run, $targetKey);
+            $isLessonTarget = str_starts_with($targetKey, 'lesson-1-');
+            if ($isLessonTarget) {
+                $run = $this->createLessonRun($learner, $targetKey);
+                $this->seedLessonPrerequisites($run, $targetKey);
+                $learner->progressState()->updateOrCreate([], [
+                    'stage' => 'required_lessons',
+                    'current_required_lesson_order' => $targetKey === 'lesson-1-complete' ? 2 : 1,
+                    'diagnostic_completed_at' => now(),
+                    'last_confirmed_at' => now(),
+                ]);
+            } else {
+                $snapshot = $this->contentCatalog->assessmentSnapshot();
+                $run = $this->createAssessmentRun($learner, $snapshot, $targetKey);
+                $this->seedPrerequisites($run, $targetKey);
+            }
 
             $expiresAt = now()->addHour();
             LearnerPortalRun::query()->create([
@@ -136,7 +178,7 @@ final class LearnerPortalLaunchService
                     'learner_id' => $learner->id,
                     'learner_code' => $learner->learner_code,
                     'target_key' => $targetKey,
-                    'assessment_run_id' => $run->id,
+                    ($isLessonTarget ? 'lesson_run_id' : 'assessment_run_id') => $run->id,
                 ],
             ]);
 
@@ -144,7 +186,7 @@ final class LearnerPortalLaunchService
                 'learner' => $learner->fresh(),
                 'token' => $plainToken,
                 'target_key' => $targetKey,
-                'route' => $this->routeFor($targetKey),
+                'route' => $this->routeFor($targetKey).($isLessonTarget ? '?run='.$run->id : ''),
                 'expires_at' => $expiresAt->toIso8601String(),
             ];
         });
@@ -337,8 +379,66 @@ final class LearnerPortalLaunchService
         }
     }
 
+    private function createLessonRun(Learner $learner, string $targetKey): LessonRun
+    {
+        $mission = match ($targetKey) {
+            'lesson-1-mission-1' => 'mission-1',
+            'lesson-1-mission-2' => 'mission-2',
+            'lesson-1-mission-3', 'lesson-1-complete' => 'mission-3',
+        };
+
+        return LessonRun::query()->create([
+            'learner_id' => $learner->id,
+            'lesson_key' => 'required-lesson-1',
+            'content_version' => 'v1',
+            'status' => $targetKey === 'lesson-1-complete' ? LessonRun::STATUS_COMPLETED : LessonRun::STATUS_ACTIVE,
+            'mission_key' => $mission,
+            'current_item_index' => 0,
+            'content_snapshot' => $this->lessonContentCatalog->lessonOneSnapshot($learner->id),
+            'completed_at' => $targetKey === 'lesson-1-complete' ? now() : null,
+        ]);
+    }
+
+    private function seedLessonPrerequisites(LessonRun $run, string $targetKey): void
+    {
+        $missions = match ($targetKey) {
+            'lesson-1-mission-1' => [],
+            'lesson-1-mission-2' => ['mission-1'],
+            'lesson-1-mission-3' => ['mission-1', 'mission-2'],
+            'lesson-1-complete' => ['mission-1', 'mission-2', 'mission-3'],
+        };
+
+        foreach ($missions as $mission) {
+            foreach ($run->content_snapshot[$mission] as $index => $item) {
+                LessonResponse::query()->create([
+                    'lesson_run_id' => $run->id,
+                    'mission_key' => $mission,
+                    'item_key' => $item['content_id'],
+                    'item_order' => $index + 1,
+                    'response_type' => 'portal_prerequisite',
+                    'final_transcript' => $item['spoken_target'],
+                    'decision' => 'CORRECT',
+                    'evidence' => [
+                        'portal_prerequisite' => true,
+                        'portal_target_key' => $targetKey,
+                    ],
+                ]);
+            }
+        }
+
+        if ($targetKey === 'lesson-1-complete') {
+            LearnerAchievement::query()->firstOrCreate(
+                ['learner_id' => $run->learner_id, 'achievement_key' => 'reading.letter_leader'],
+                ['awarded_at' => now(), 'evidence' => ['portal_prerequisite' => true, 'lesson_run_id' => $run->id]],
+            );
+        }
+    }
+
     private function routeFor(string $targetKey): string
     {
+        if (str_starts_with($targetKey, 'lesson-1-')) {
+            return self::LESSON_ONE_ROUTE;
+        }
         if ($targetKey === 'assessment-complete') {
             return self::COMPLETION_ROUTE;
         }

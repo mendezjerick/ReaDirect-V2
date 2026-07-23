@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Learner;
+use App\Models\LearnerAchievement;
 use App\Models\LearnerPortalRun;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
@@ -126,7 +127,7 @@ final class SystemAdminPortalController extends Controller
             ],
             'portal_launch' => [
                 'available' => true,
-                'reason' => 'Diagnostic Assessment checkpoints are ready through Part 2 and completion. Lesson checkpoints remain unavailable until their persisted workflow exists.',
+                'reason' => 'Diagnostic Assessment and Lesson 1 checkpoints are ready for persisted workflow testing.',
                 'targets' => LearnerPortalLaunchService::targets(),
             ],
         ];
@@ -158,6 +159,11 @@ final class SystemAdminPortalController extends Controller
                     'stage' => $progress->stage,
                     'current_required_lesson_order' => $progress->current_required_lesson_order,
                 ],
+                'achievement_keys' => LearnerAchievement::query()
+                    ->where('learner_id', $learner->id)
+                    ->orderBy('awarded_at')
+                    ->pluck('achievement_key')
+                    ->all(),
             ],
             'session' => ['expires_at' => $expiresAt],
         ];

@@ -1,27 +1,40 @@
 import type { CubismModel } from "@cubism-framework/model/cubismmodel";
 
-export const CLARA_EMOTIONS = [
-  "default",
-  "happy",
-  "thinking",
-  "confused",
-] as const;
+import type {
+  ClaraPresentationCue,
+  ClaraPresentationState,
+  ClaraTeachingBehavior,
+} from "./ClaraPresentation";
 
-export type ClaraEmotion = (typeof CLARA_EMOTIONS)[number];
-
-export interface ClaraPresentationState {
-  emotion: ClaraEmotion;
-  speaking: boolean;
-  speechLevel?: number;
-}
+export {
+  CLARA_EMOTIONS,
+  CLARA_PRESENTATION_CUES,
+  CLARA_TEACHING_BEHAVIORS,
+  DEFAULT_CLARA_PRESENTATION,
+  type ClaraEmotion,
+  type ClaraPresentationCue,
+  type ClaraPresentationState,
+  type ClaraTeachingBehavior,
+} from "./ClaraPresentation";
 
 type ControlledParameterId =
   | "ParamEyeLOpen"
   | "ParamEyeROpen"
   | "ParamEyeLSmile"
   | "ParamEyeRSmile"
+  | "ParamBrowLY"
+  | "ParamBrowRY"
+  | "ParamBrowLAngle"
+  | "ParamBrowRAngle"
+  | "ParamBrowLForm"
+  | "ParamBrowRForm"
   | "ParamMouthForm"
   | "ParamMouthOpenY"
+  | "ParamCheek"
+  | "ParamAngleZ"
+  | "Param4"
+  | "Param6"
+  | "Param22"
   | "Param24";
 
 interface ResolvedParameter {
@@ -31,18 +44,46 @@ interface ResolvedParameter {
   maximum: number;
 }
 
-const CONTROLLED_PARAMETER_IDS = [
+export const CLARA_TEACHING_PARAMETER_IDS = [
   "ParamEyeLOpen",
   "ParamEyeROpen",
   "ParamEyeLSmile",
   "ParamEyeRSmile",
+  "ParamBrowLY",
+  "ParamBrowRY",
+  "ParamBrowLAngle",
+  "ParamBrowRAngle",
+  "ParamBrowLForm",
+  "ParamBrowRForm",
   "ParamMouthForm",
   "ParamMouthOpenY",
+  "ParamCheek",
+  "ParamAngleZ",
+  "Param4",
+  "Param6",
+  "Param22",
   "Param24",
 ] as const satisfies readonly ControlledParameterId[];
 
+const EXPRESSION_RESPONSE_PER_SECOND = 9;
+const CELEBRATION_BOUNCE_RADIANS_PER_SECOND = 7;
+
 function clampUnitInterval(value: number) {
   return Math.min(1, Math.max(0, value));
+}
+
+function clampSignedUnit(value: number) {
+  return Math.min(1, Math.max(-1, value));
+}
+
+function smoothTowards(
+  current: number,
+  target: number,
+  responsePerSecond: number,
+  deltaTimeSeconds: number,
+) {
+  const blend = 1 - Math.exp(-responsePerSecond * deltaTimeSeconds);
+  return current + (target - current) * blend;
 }
 
 export function normalizeClaraEyeOpenness(
@@ -62,11 +103,14 @@ export function normalizeClaraEyeOpenness(
 export class ClaraExpressionController {
   private readonly model: CubismModel;
   private readonly parameters: Record<ControlledParameterId, ResolvedParameter>;
+  private readonly currentValues = new Map<ControlledParameterId, number>();
+  private activeBehavior: ClaraTeachingBehavior = "neutral";
+  private behaviorElapsedSeconds = 0;
 
   public constructor(model: CubismModel) {
     this.model = model;
     this.parameters = Object.fromEntries(
-      CONTROLLED_PARAMETER_IDS.map((parameterId) => [
+      CLARA_TEACHING_PARAMETER_IDS.map((parameterId) => [
         parameterId,
         this.resolveRequiredParameter(parameterId),
       ]),
@@ -100,60 +144,157 @@ export class ClaraExpressionController {
     );
   }
 
-  private resetControlledParameters() {
-    for (const parameterId of CONTROLLED_PARAMETER_IDS) {
-      this.setParameter(parameterId, this.parameters[parameterId].defaultValue);
+  private normalizedValue(parameterId: ControlledParameterId, value: number) {
+    const parameter = this.parameters[parameterId];
+    const normalized = clampSignedUnit(value);
+    const availableRange =
+      normalized >= 0
+        ? parameter.maximum - parameter.defaultValue
+        : parameter.defaultValue - parameter.minimum;
+
+    return parameter.defaultValue + normalized * Math.max(0, availableRange);
+  }
+
+  private setNormalizedTarget(
+    targets: Map<ControlledParameterId, number>,
+    parameterId: ControlledParameterId,
+    value: number,
+  ) {
+    targets.set(parameterId, this.normalizedValue(parameterId, value));
+  }
+
+  private applyHappyFace(targets: Map<ControlledParameterId, number>) {
+    this.setNormalizedTarget(targets, "ParamEyeLOpen", -1);
+    this.setNormalizedTarget(targets, "ParamEyeROpen", -1);
+    this.setNormalizedTarget(targets, "ParamEyeLSmile", 1);
+    this.setNormalizedTarget(targets, "ParamEyeRSmile", 1);
+    this.setNormalizedTarget(targets, "ParamMouthForm", 1);
+  }
+
+  private applyBehavior(
+    targets: Map<ControlledParameterId, number>,
+    behavior: ClaraTeachingBehavior,
+    animateModel: boolean,
+  ) {
+    switch (behavior) {
+      case "neutral":
+        break;
+      case "listening":
+        this.setNormalizedTarget(targets, "ParamBrowLY", 0.12);
+        this.setNormalizedTarget(targets, "ParamBrowRY", 0.12);
+        break;
+      case "encouraging":
+        this.setNormalizedTarget(targets, "ParamMouthForm", 0.55);
+        this.setNormalizedTarget(targets, "ParamBrowLY", 0.22);
+        this.setNormalizedTarget(targets, "ParamBrowRY", 0.22);
+        this.setNormalizedTarget(targets, "ParamCheek", 0.12);
+        break;
+      case "gentle_correction":
+        this.setNormalizedTarget(targets, "ParamBrowLY", 0.16);
+        this.setNormalizedTarget(targets, "ParamBrowRY", 0.16);
+        this.setNormalizedTarget(targets, "ParamBrowLForm", 0.18);
+        this.setNormalizedTarget(targets, "ParamBrowRForm", 0.18);
+        this.setNormalizedTarget(targets, "ParamMouthForm", -0.06);
+        break;
+      case "demonstrating":
+        this.setNormalizedTarget(targets, "ParamBrowLY", 0.12);
+        this.setNormalizedTarget(targets, "ParamBrowRY", 0.12);
+        break;
+      case "celebrating": {
+        this.applyHappyFace(targets);
+        if (animateModel) {
+          const bounce =
+            Math.sin(
+              this.behaviorElapsedSeconds *
+                CELEBRATION_BOUNCE_RADIANS_PER_SECOND,
+            ) * 0.14;
+          this.setNormalizedTarget(targets, "Param4", bounce);
+          this.setNormalizedTarget(targets, "Param6", bounce * 0.65);
+        }
+        break;
+      }
     }
   }
 
-  public apply(emotion: ClaraEmotion, mouthOpenLevel: number) {
-    this.resetControlledParameters();
+  private applyCue(
+    targets: Map<ControlledParameterId, number>,
+    cue: ClaraPresentationCue,
+  ) {
+    if (cue === "question_mark") {
+      this.setNormalizedTarget(targets, "Param24", 1);
+    } else if (cue === "blush") {
+      this.setNormalizedTarget(targets, "Param22", 1);
+    }
+  }
 
-    switch (emotion) {
+  public apply(
+    presentation: ClaraPresentationState,
+    mouthOpenLevel: number,
+    deltaTimeSeconds: number,
+    animateModel: boolean,
+  ) {
+    if (presentation.behavior !== this.activeBehavior) {
+      this.activeBehavior = presentation.behavior;
+      this.behaviorElapsedSeconds = 0;
+    } else if (animateModel) {
+      this.behaviorElapsedSeconds += deltaTimeSeconds;
+    }
+
+    const targets = new Map<ControlledParameterId, number>(
+      CLARA_TEACHING_PARAMETER_IDS.map((parameterId) => [
+        parameterId,
+        this.parameters[parameterId].defaultValue,
+      ]),
+    );
+
+    switch (presentation.emotion) {
       case "default":
         break;
       case "happy":
-        this.setParameter(
-          "ParamEyeLOpen",
-          this.parameters.ParamEyeLOpen.minimum,
-        );
-        this.setParameter(
-          "ParamEyeROpen",
-          this.parameters.ParamEyeROpen.minimum,
-        );
-        this.setParameter(
-          "ParamEyeLSmile",
-          this.parameters.ParamEyeLSmile.maximum,
-        );
-        this.setParameter(
-          "ParamEyeRSmile",
-          this.parameters.ParamEyeRSmile.maximum,
-        );
-        this.setParameter(
-          "ParamMouthForm",
-          this.parameters.ParamMouthForm.maximum,
-        );
+        this.applyHappyFace(targets);
         break;
       case "thinking":
-        this.setParameter(
-          "ParamEyeLOpen",
-          this.parameters.ParamEyeLOpen.minimum,
-        );
-        this.setParameter(
-          "ParamEyeROpen",
-          this.parameters.ParamEyeROpen.minimum,
-        );
+        this.setNormalizedTarget(targets, "ParamEyeLOpen", -1);
+        this.setNormalizedTarget(targets, "ParamEyeROpen", -1);
         break;
       case "confused":
-        this.setParameter("Param24", this.parameters.Param24.maximum);
+        this.setNormalizedTarget(targets, "Param24", 1);
+        this.setNormalizedTarget(targets, "ParamBrowLAngle", 0.32);
+        this.setNormalizedTarget(targets, "ParamBrowRAngle", -0.32);
+        this.setNormalizedTarget(targets, "ParamAngleZ", 0.12);
         break;
     }
+
+    this.applyBehavior(targets, presentation.behavior, animateModel);
+    this.applyCue(targets, presentation.cue);
 
     const mouthParameter = this.parameters.ParamMouthOpenY;
     const normalizedMouthOpen = clampUnitInterval(mouthOpenLevel);
     const mouthOpenValue =
       mouthParameter.minimum +
       (mouthParameter.maximum - mouthParameter.minimum) * normalizedMouthOpen;
-    this.setParameter("ParamMouthOpenY", mouthOpenValue);
+
+    for (const parameterId of CLARA_TEACHING_PARAMETER_IDS) {
+      const target =
+        parameterId === "ParamMouthOpenY"
+          ? mouthOpenValue
+          : (targets.get(parameterId) ??
+            this.parameters[parameterId].defaultValue);
+      const current =
+        this.currentValues.get(parameterId) ??
+        this.parameters[parameterId].defaultValue;
+      const value =
+        !animateModel || parameterId === "ParamMouthOpenY"
+          ? target
+          : smoothTowards(
+              current,
+              target,
+              EXPRESSION_RESPONSE_PER_SECOND,
+              deltaTimeSeconds,
+            );
+
+      this.currentValues.set(parameterId, value);
+      this.setParameter(parameterId, value);
+    }
   }
 }

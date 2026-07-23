@@ -56,7 +56,7 @@ final class LearnerTtsTest extends TestCase
         $token = $this->createLearnerSession();
         $definitions = $this->speechDefinitions();
 
-        $this->assertCount(47, $definitions);
+        $this->assertCount(98, $definitions);
         foreach ($definitions as $speechKey => $definition) {
             $audio = "RIFF-published-{$speechKey}";
             $this->publishSpeech(

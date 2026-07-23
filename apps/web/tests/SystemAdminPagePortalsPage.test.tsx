@@ -237,6 +237,7 @@ describe("SystemAdminPagePortalsPage", () => {
             full_name: "Kristen Rhine Wright",
             first_name: "Kristen",
             account_purpose: "portal_system",
+            achievement_keys: [],
             school: null,
             grade_level: null,
             section: null,

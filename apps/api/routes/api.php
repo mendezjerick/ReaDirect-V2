@@ -3,6 +3,7 @@
 use App\Http\Controllers\LearnerAssessmentPartOneController;
 use App\Http\Controllers\LearnerAssessmentPartTwoController;
 use App\Http\Controllers\LearnerAuthController;
+use App\Http\Controllers\LearnerLessonOneController;
 use App\Http\Controllers\LearnerTtsController;
 use App\Http\Controllers\SchoolAdministratorController;
 use App\Http\Controllers\SchoolAdminTeacherController;
@@ -50,7 +51,16 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/login', [LearnerAuthController::class, 'store']);
     Route::get('/session', [LearnerAuthController::class, 'show']);
     Route::post('/logout', [LearnerAuthController::class, 'destroy']);
+    Route::get('/tts/activity-manifest', [LearnerTtsController::class, 'activityManifest']);
+    Route::post('/tts/activity-readiness', [LearnerTtsController::class, 'activityReadiness']);
     Route::post('/tts/speech/{speechKey}', [LearnerTtsController::class, 'speech']);
+    Route::post('/tts/lesson-feedback/{lessonResponse}', [LearnerTtsController::class, 'lessonFeedback']);
+    Route::post('/lessons/lesson-1/start', [LearnerLessonOneController::class, 'start']);
+    Route::get('/lessons/lesson-1/{lessonRun}', [LearnerLessonOneController::class, 'show']);
+    Route::post('/lessons/lesson-1/{lessonRun}/submit', [LearnerLessonOneController::class, 'submit']);
+    Route::post('/lessons/lesson-1/{lessonRun}/continue-support', [LearnerLessonOneController::class, 'continueSupport']);
+    Route::post('/lessons/lesson-1/{lessonRun}/skip', [LearnerLessonOneController::class, 'skip']);
+    Route::post('/lessons/lesson-1/{lessonRun}/advance', [LearnerLessonOneController::class, 'advance']);
     Route::post('/assessments/part-one/start', [LearnerAssessmentPartOneController::class, 'start']);
     Route::get('/assessments/part-one/{assessmentRun}', [LearnerAssessmentPartOneController::class, 'show']);
     Route::post('/assessments/part-one/{assessmentRun}/orientation', [LearnerAssessmentPartOneController::class, 'submitOrientation']);

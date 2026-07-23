@@ -1,12 +1,44 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
 
 const speechMocks = vi.hoisted(() => ({
   prepare: vi.fn(),
   play: vi.fn(),
+}));
+
+const activityPreparationMocks = vi.hoisted(() => ({
+  hook: vi.fn(),
+  retry: vi.fn(),
+  state: {
+    status: "ready",
+    manifest: {
+      activity: "assessment-part-one",
+      published_groups: ["assessment-part-one-fixed"],
+      published_speech_keys: [],
+      runtime_profiles: [],
+      requires_runtime: false,
+    },
+    readiness: null,
+    error: "",
+    runtimeRequired: false,
+    showRuntimeLoader: false,
+  } as {
+    status: "idle" | "preparing" | "ready" | "error";
+    manifest: {
+      activity: string;
+      published_groups: string[];
+      published_speech_keys: string[];
+      runtime_profiles: string[];
+      requires_runtime: boolean;
+    } | null;
+    readiness: null;
+    error: string;
+    runtimeRequired: boolean;
+    showRuntimeLoader: boolean;
+  },
 }));
 
 const live2dMocks = vi.hoisted(() => ({
@@ -17,6 +49,10 @@ const live2dMocks = vi.hoisted(() => ({
 vi.mock("../src/features/clara-audio/claraSpeech", () => ({
   prepareClaraSpeech: speechMocks.prepare,
   playClaraSpeech: speechMocks.play,
+}));
+
+vi.mock("../src/features/clara-audio/useActivitySpeechPreparation", () => ({
+  useActivitySpeechPreparation: activityPreparationMocks.hook,
 }));
 
 vi.mock("../src/features/intro/live2d/ClaraLive2DCanvas", async () => {
@@ -89,6 +125,27 @@ function renderLessonIntro() {
 }
 
 describe("LessonIntroPage", () => {
+  beforeEach(() => {
+    activityPreparationMocks.state = {
+      status: "ready",
+      manifest: {
+        activity: "assessment-part-one",
+        published_groups: ["assessment-part-one-fixed"],
+        published_speech_keys: [],
+        runtime_profiles: [],
+        requires_runtime: false,
+      },
+      readiness: null,
+      error: "",
+      runtimeRequired: false,
+      showRuntimeLoader: false,
+    };
+    activityPreparationMocks.hook.mockImplementation(() => ({
+      ...activityPreparationMocks.state,
+      retry: activityPreparationMocks.retry,
+    }));
+  });
+
   afterEach(() => {
     window.sessionStorage.clear();
     live2dMocks.setState = undefined;
@@ -142,6 +199,19 @@ describe("LessonIntroPage", () => {
   });
 
   it("shows the centered TTS loader only after the model loader is gone", async () => {
+    activityPreparationMocks.state = {
+      ...activityPreparationMocks.state,
+      status: "preparing",
+      manifest: {
+        activity: "lesson-1",
+        published_groups: ["lesson-1-fixed"],
+        published_speech_keys: ["lesson-1-mission-1"],
+        runtime_profiles: ["result"],
+        requires_runtime: true,
+      },
+      runtimeRequired: true,
+      showRuntimeLoader: true,
+    };
     let finishPreparing: ((speech: Blob) => void) | undefined;
     const prepared = new Promise<Blob>((resolve) => {
       finishPreparing = resolve;
@@ -169,6 +239,11 @@ describe("LessonIntroPage", () => {
       }),
     ).toBeInTheDocument();
 
+    activityPreparationMocks.state = {
+      ...activityPreparationMocks.state,
+      status: "ready",
+      showRuntimeLoader: false,
+    };
     await act(async () => finishPreparing?.(new Blob(["wave"])));
 
     await waitFor(() =>
