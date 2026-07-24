@@ -1,5 +1,5 @@
 const speechRequests = new Map<string, Promise<Blob>>();
-const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260723-2";
+const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260724-6";
 let audioContext: AudioContext | null = null;
 
 type AssessmentItemOrdinal = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
@@ -40,6 +40,19 @@ type LessonOneItemSpeechKey =
   `lesson-1-${"mission-1" | "mission-2" | "mission-3"}-item-${2 | 3 | 4 | 5}`;
 
 export type ClaraSpeechKey =
+  | "learn-with-clara-lesson-1-greeting-morning"
+  | "learn-with-clara-lesson-1-greeting-afternoon"
+  | "learn-with-clara-lesson-1-greeting-evening"
+  | "learn-with-clara-lesson-1-pair-a"
+  | "learn-with-clara-lesson-1-pair-b"
+  | "learn-with-clara-lesson-1-pair-c"
+  | "learn-with-clara-lesson-1-pair-d"
+  | "learn-with-clara-lesson-1-pair-e"
+  | "learn-with-clara-lesson-1-story-name-opening"
+  | "learn-with-clara-lesson-1-story-name-detail"
+  | "learn-with-clara-lesson-1-story-name-close"
+  | "learn-with-clara-lesson-1-story-name-return"
+  | "learn-with-clara-lesson-1-chapter-1-complete"
   | "lesson-intro"
   | "lesson-1-mission-1"
   | "lesson-1-mission-2"

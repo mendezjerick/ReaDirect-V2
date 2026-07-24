@@ -79,6 +79,77 @@ $lessonOneSupportLines = [
     ],
 ];
 
+$learnWithClaraLessonOneGreetingLines = [
+    'learn-with-clara-lesson-1-greeting-morning' => [
+        'text' => 'Good morning! I am happy you are here. I have a little story for you today.',
+        'reference' => 'introduce',
+        'path' => 'learn-with-clara/lesson-1/greetings/morning.wav',
+    ],
+    'learn-with-clara-lesson-1-greeting-afternoon' => [
+        'text' => 'Good afternoon! I am glad you are here. Let us learn and share a little story.',
+        'reference' => 'introduce',
+        'path' => 'learn-with-clara/lesson-1/greetings/afternoon.wav',
+    ],
+    'learn-with-clara-lesson-1-greeting-evening' => [
+        'text' => 'Good evening! Let us slow down and enjoy a little story together.',
+        'reference' => 'introduce',
+        'path' => 'learn-with-clara/lesson-1/greetings/evening.wav',
+    ],
+];
+
+$learnWithClaraLessonOneChapterOneLines = [
+    'learn-with-clara-lesson-1-pair-a' => [
+        'text' => 'Meet the big and small shapes for ei. Their letter name is ei.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/items/pair-a.wav',
+    ],
+    'learn-with-clara-lesson-1-pair-b' => [
+        'text' => 'Meet the big and small shapes for bee. Their letter name is bee.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/items/pair-b.wav',
+    ],
+    'learn-with-clara-lesson-1-pair-c' => [
+        'text' => 'Meet the big and small shapes for see. Their letter name is see.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/items/pair-c.wav',
+    ],
+    'learn-with-clara-lesson-1-pair-d' => [
+        'text' => 'Meet the big and small shapes for dee. Their letter name is dee.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/items/pair-d.wav',
+    ],
+    'learn-with-clara-lesson-1-pair-e' => [
+        'text' => 'Meet the big and small shapes for ee. Their letter name is ee.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/items/pair-e.wav',
+    ],
+    'learn-with-clara-lesson-1-story-name-opening' => [
+        'text' => 'When I first learned to write Clara, I made the C so big that it nearly filled the page. I felt proud, until I saw the tiny space left for the other letters.',
+        'reference' => 'introduce',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/story/name-opening.wav',
+    ],
+    'learn-with-clara-lesson-1-story-name-detail' => [
+        'text' => 'I squeezed the other letters into the corner. They became smaller and smaller, like little ants running from the giant C. I laughed at my funny name.',
+        'reference' => 'introduce',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/story/name-detail.wav',
+    ],
+    'learn-with-clara-lesson-1-story-name-close' => [
+        'text' => 'My teacher gave me a fresh page. This time, I gave every letter enough room. I kept the funny first page because mistakes can become good stories.',
+        'reference' => 'introduce',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/story/name-close.wav',
+    ],
+    'learn-with-clara-lesson-1-story-name-return' => [
+        'text' => 'That was a funny memory. Now, let us go back to our letters.',
+        'reference' => 'introduce',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/story/name-return.wav',
+    ],
+    'learn-with-clara-lesson-1-chapter-1-complete' => [
+        'text' => 'That was our first little letter class. Thank you for listening with me!',
+        'reference' => 'result',
+        'path' => 'learn-with-clara/lesson-1/chapter-1/completion/chapter-1-complete.wav',
+    ],
+];
+
 $lessonOneItemCueLines = [];
 $lessonOneItemOrdinals = [
     2 => 'second',
@@ -135,6 +206,10 @@ return [
             ...array_keys($lessonOneItemCueLines),
             ...array_keys($lessonOneSupportLines),
         ],
+        'learn-with-clara-lesson-1-fixed' => [
+            ...array_keys($learnWithClaraLessonOneGreetingLines),
+            ...array_keys($learnWithClaraLessonOneChapterOneLines),
+        ],
     ],
     'activity_speech_manifests' => [
         'assessment-part-one' => [
@@ -148,6 +223,10 @@ return [
         'lesson-1' => [
             'published_groups' => ['lesson-1-fixed'],
             'runtime_profiles' => ['result'],
+        ],
+        'learn-with-clara-lesson-1' => [
+            'published_groups' => ['learn-with-clara-lesson-1-fixed'],
+            'runtime_profiles' => [],
         ],
     ],
     'portal_activity_map' => [
@@ -167,6 +246,8 @@ return [
         'lesson-1-complete' => 'lesson-1',
     ],
     'clara_lines' => [
+        ...$learnWithClaraLessonOneGreetingLines,
+        ...$learnWithClaraLessonOneChapterOneLines,
         'lesson-intro' => [
             'text' => 'Hi! I am happy you are here. Let us get ready to read together!',
             'reference' => 'introduce',

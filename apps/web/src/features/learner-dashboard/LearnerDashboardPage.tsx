@@ -93,10 +93,20 @@ function TrophyIcon() {
   );
 }
 
+function ClaraStoryIcon() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M8 11h24c4 0 7 3 7 7v11c0 4-3 7-7 7H20l-8 6v-6H8c-4 0-7-3-7-7V18c0-4 3-7 7-7Z" />
+      <path d="M12 20h16M12 27h11M35 6v8M31 10h8" />
+    </svg>
+  );
+}
+
 export function LearnerDashboardPage() {
   const navigate = useNavigate();
   const readingCommit = useButtonCommit();
   const gamesCommit = useButtonCommit();
+  const learnWithClaraCommit = useButtonCommit();
   const logoutCommit = useButtonCommit();
   const storedSession = loadLearnerSession();
   const sessionQuery = useQuery({
@@ -150,6 +160,17 @@ export function LearnerDashboardPage() {
 
   const openGames = () => {
     gamesCommit.commit(() => navigate("/learner/games"));
+  };
+
+  const openLearnWithClara = () => {
+    if (!storedSession?.token) {
+      return;
+    }
+
+    unlockClaraAudio();
+    learnWithClaraCommit.commit(() =>
+      navigate("/learner/learn-with-clara/lesson-1"),
+    );
   };
 
   const openNextReadingActivity = () => {
@@ -314,7 +335,36 @@ export function LearnerDashboardPage() {
           </Surface>
 
           <Surface
-            className="learner-dashboard__utility-card learner-dashboard__entrance"
+            className="learner-dashboard__utility-card learner-dashboard__clara-card learner-dashboard__entrance"
+            kind="panel"
+            padding="normal"
+          >
+            <div className="learner-dashboard__utility-heading">
+              <span className="learner-dashboard__utility-icon">
+                <ClaraStoryIcon />
+              </span>
+              <div>
+                <p className="learner-dashboard__eyebrow">
+                  Listen and spend time together
+                </p>
+                <h2>Learn with Ma&apos;am Clara</h2>
+              </div>
+            </div>
+            <p>Ma&apos;am Clara has letters and little stories to share.</p>
+            <BigButton
+              className="learner-dashboard__clara-action"
+              aria-label="Learn with Ma'am Clara"
+              variant="secondary"
+              size="regular"
+              committing={learnWithClaraCommit.committing}
+              onClick={openLearnWithClara}
+            >
+              Start Class
+            </BigButton>
+          </Surface>
+
+          <Surface
+            className="learner-dashboard__utility-card learner-dashboard__achievement-card learner-dashboard__entrance"
             kind="panel"
             padding="normal"
           >
