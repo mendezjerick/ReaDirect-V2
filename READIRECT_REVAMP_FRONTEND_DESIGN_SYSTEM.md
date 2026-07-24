@@ -445,6 +445,10 @@ Recommended fluid values:
 - Keep text left-aligned unless a short prompt is intentionally centered.
 - Never place important text directly over a detailed illustration.
 - Do not justify passages.
+- Lesson 5's fixed 50-word continuous passage is the only authored-reading
+  fitting exception: measure its real text area and fit Lexend from `16px` to
+  `23px`. Keep its recorder row protected; never flatten the recorder, paginate
+  the passage, or add an internal scrollbar to make the composition fit.
 
 ## Design Tokens
 

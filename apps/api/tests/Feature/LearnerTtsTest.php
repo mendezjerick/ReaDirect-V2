@@ -58,7 +58,7 @@ final class LearnerTtsTest extends TestCase
         $token = $this->createLearnerSession();
         $definitions = $this->speechDefinitions();
 
-        $this->assertCount(196, $definitions);
+        $this->assertCount(205, $definitions);
         foreach ($definitions as $speechKey => $definition) {
             $this->assertStringNotContainsString(
                 '!',

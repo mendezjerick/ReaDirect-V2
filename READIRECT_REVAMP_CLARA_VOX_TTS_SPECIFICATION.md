@@ -14,15 +14,17 @@ standards.
 Implementation status: published catalog delivery is active for Lesson Intro,
 all 32 fixed Part 1 assessment lines, all 14 fixed Part 2 and assessment
 completion lines, 51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, 33 fixed
-Lesson 3 lines, 33 fixed Lesson 4 lines, and 13
+Lesson 3 lines, 33 fixed Lesson 4 lines, 9 fixed Lesson 5 lines, and 13
 published `Learn with Ma'am Clara` lines. PostgreSQL holds one published
-`clara-sh-v1` voice version and 196 speech metadata rows; Laravel verifies and
+`clara-sh-v1` voice version and 205 speech metadata rows; Laravel verifies and
 returns their private WAVs without calling VoxCPM2. Response-owned dynamic
 final-transcript feedback is active for Lessons 1 through 4. Lesson 2 also
 uses a response-owned target-word demonstration. Lesson 3 instead uses one of
 20 finite published phrase demonstrations selected from the locked run
 snapshot, and Lesson 4 uses the corresponding finite set of 20 sentence
-demonstrations. All are ordered by the server-authored support presentation.
+demonstrations. Lesson 5 instead uses one of six finite passage-review
+responses selected from committed accuracy evidence. All are ordered by the
+server-authored support presentation.
 
 ## Approved Runtime Stack
 
@@ -522,6 +524,9 @@ Current implementation:
 - Lesson 4 follows the same published-demonstration contract and declares only
   `result`. Its instruction, four ordinal cues, support, completion, and all
   20 approved sentence demonstrations are fixed catalog speech.
+- Lesson 5 declares no runtime profile. Its instruction, technical recovery,
+  completion, and six possible passage-review responses are fixed catalog
+  speech. It does not speak the transcript or demonstrate the passage.
 - `Learn with Ma'am Clara` Lesson 1 declares the published-only
   `learn-with-clara-lesson-1-fixed` group and no runtime profiles. Its current
   Chapter 1 catalog contains three time-aware greetings, five letter-pair
@@ -1052,6 +1057,27 @@ line, completion line, four ordinal cues, seven support lines, and 20
 demonstrations total 33 published Lesson 4 lines. Only response-owned
 final-transcript or targeted alignment feedback uses runtime synthesis and the
 `result` profile.
+
+### Required published Lesson 5 speech
+
+Lesson 5 has one single-item passage mission. The locked item uses the full
+mission instruction.
+
+Its fixed review family is:
+
+- `lesson-5-technical-retry`
+- `lesson-5-performance-excellent`
+- `lesson-5-performance-strong`
+- `lesson-5-performance-growing`
+- `lesson-5-performance-beginning`
+- `lesson-5-performance-skipped`
+- `lesson-5-performance-unavailable`
+
+The mission line, completion line, one technical-retry line, and six review
+responses total nine published Lesson 5 lines. Accuracy selects the performance
+line; speed does not affect the band. The selected line plays on Passage Review
+and must finish before `Next` becomes available. Lesson 5 has no dynamic
+feedback request or runtime Vox warm-up.
 
 ## Published-Speech Generation Lifecycle
 

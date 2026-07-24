@@ -31,6 +31,8 @@ final class LearnerPortalLaunchService
 
     public const LESSON_FOUR_ROUTE = '/learner/lessons/4';
 
+    public const LESSON_FIVE_ROUTE = '/learner/lessons/5';
+
     public function __construct(
         private readonly AssessmentContentCatalog $contentCatalog,
         private readonly LessonContentCatalog $lessonContentCatalog,
@@ -165,6 +167,24 @@ final class LearnerPortalLaunchService
                 'key' => 'lesson-4-complete',
                 'label' => 'Lesson 4 Complete',
                 'description' => 'Open the Sentence Star completion presentation.',
+                'task' => 'Completion',
+            ],
+            [
+                'key' => 'lesson-5-mission-1',
+                'label' => 'Lesson 5 · Read a passage',
+                'description' => 'Open passage reading with Lessons 1 through 4 persisted.',
+                'task' => 'Lesson 5',
+            ],
+            [
+                'key' => 'lesson-5-review',
+                'label' => 'Lesson 5 · Passage result',
+                'description' => 'Open the dedicated passage reading result before lesson completion.',
+                'task' => 'Lesson 5',
+            ],
+            [
+                'key' => 'lesson-5-complete',
+                'label' => 'Lesson 5 Complete',
+                'description' => 'Open the Passage Explorer completion presentation.',
                 'task' => 'Completion',
             ],
         ];
@@ -466,6 +486,21 @@ final class LearnerPortalLaunchService
         string $targetKey,
     ): LessonRun {
         $this->createCompletedDiagnosticPrerequisite($learner, $targetKey);
+
+        if (str_starts_with($targetKey, 'lesson-5-')) {
+            $lessonOneRun = $this->createLessonOneRun($learner, 'lesson-1-complete');
+            $this->seedLessonOnePrerequisites($lessonOneRun, 'lesson-1-complete', $targetKey);
+            $lessonTwoRun = $this->createLessonTwoRun($learner, 'lesson-2-complete');
+            $this->seedLessonTwoPrerequisites($lessonTwoRun, 'lesson-2-complete', $targetKey);
+            $lessonThreeRun = $this->createLessonThreeRun($learner, 'lesson-3-complete');
+            $this->seedLessonThreePrerequisites($lessonThreeRun, 'lesson-3-complete', $targetKey);
+            $lessonFourRun = $this->createLessonFourRun($learner, 'lesson-4-complete');
+            $this->seedLessonFourPrerequisites($lessonFourRun, 'lesson-4-complete');
+            $run = $this->createLessonFiveRun($learner, $targetKey);
+            $this->seedLessonFivePrerequisites($run, $targetKey);
+
+            return $run;
+        }
 
         if (str_starts_with($targetKey, 'lesson-4-')) {
             $lessonOneRun = $this->createLessonOneRun($learner, 'lesson-1-complete');
@@ -832,9 +867,106 @@ final class LearnerPortalLaunchService
         );
     }
 
+    private function createLessonFiveRun(
+        Learner $learner,
+        string $targetKey,
+    ): LessonRun {
+        $status = match ($targetKey) {
+            'lesson-5-review' => LessonRun::STATUS_REVIEW,
+            'lesson-5-complete' => LessonRun::STATUS_COMPLETED,
+            default => LessonRun::STATUS_ACTIVE,
+        };
+
+        return LessonRun::query()->create([
+            'learner_id' => $learner->id,
+            'lesson_key' => 'required-lesson-5',
+            'content_version' => 'v1',
+            'status' => $status,
+            'mission_key' => 'mission-1',
+            'current_item_index' => $status === LessonRun::STATUS_ACTIVE ? 0 : 1,
+            'content_snapshot' => $this->lessonContentCatalog
+                ->lessonFiveSnapshot($learner->id),
+            'completed_at' => $status === LessonRun::STATUS_COMPLETED ? now() : null,
+        ]);
+    }
+
+    private function seedLessonFivePrerequisites(
+        LessonRun $run,
+        string $targetKey,
+    ): void {
+        if ($targetKey === 'lesson-5-mission-1') {
+            return;
+        }
+
+        $item = $run->content_snapshot['mission-1'][0];
+        $spokenWords = preg_split(
+            '/\s+/u',
+            trim((string) $item['spoken_target']),
+            flags: PREG_SPLIT_NO_EMPTY,
+        ) ?: [];
+        $differences = array_map(
+            fn (string $word): array => [
+                'expected' => $word,
+                'recognized' => $word,
+                'status' => 'match',
+            ],
+            $spokenWords,
+        );
+
+        LessonResponse::query()->create([
+            'lesson_run_id' => $run->id,
+            'mission_key' => 'mission-1',
+            'item_key' => $item['content_id'],
+            'item_order' => 1,
+            'response_type' => 'portal_prerequisite',
+            'raw_transcript' => $item['spoken_target'],
+            'final_transcript' => $item['spoken_target'],
+            'decision' => 'CORRECT',
+            'teaching_state' => LessonTeachingStateMachine::STATE_ADVANCING,
+            'outcome' => LessonTeachingStateMachine::OUTCOME_INDEPENDENT_CORRECT,
+            'academic_attempt_count' => 1,
+            'highest_scaffold_used' => LessonTeachingStateMachine::SCAFFOLD_NONE,
+            'independent_mastery' => true,
+            'completed_at' => now(),
+            'evidence' => [
+                'portal_prerequisite' => true,
+                'portal_target_key' => $targetKey,
+                'equivalence_resolution' => [
+                    'expected_word_count' => count($spokenWords),
+                    'recognized_word_count' => count($spokenWords),
+                    'differences' => $differences,
+                ],
+                'scoring' => [
+                    'reading_accuracy_percent' => 100,
+                    'reading_seconds' => 30.0,
+                    'words_per_minute' => 100,
+                    'correct_words_per_minute' => 100,
+                ],
+            ],
+        ]);
+
+        if ($targetKey === 'lesson-5-complete') {
+            LearnerAchievement::query()->firstOrCreate(
+                [
+                    'learner_id' => $run->learner_id,
+                    'achievement_key' => 'reading.passage_explorer',
+                ],
+                [
+                    'awarded_at' => now(),
+                    'evidence' => [
+                        'portal_prerequisite' => true,
+                        'lesson_run_id' => $run->id,
+                    ],
+                ],
+            );
+        }
+    }
+
     private function lessonOrderFor(string $targetKey): int
     {
         return match (true) {
+            $targetKey === 'lesson-5-complete' => 6,
+            str_starts_with($targetKey, 'lesson-5-') => 5,
             $targetKey === 'lesson-4-complete' => 5,
             str_starts_with($targetKey, 'lesson-4-') => 4,
             $targetKey === 'lesson-3-complete' => 4,
@@ -848,6 +980,9 @@ final class LearnerPortalLaunchService
 
     private function routeFor(string $targetKey): string
     {
+        if (str_starts_with($targetKey, 'lesson-5-')) {
+            return self::LESSON_FIVE_ROUTE;
+        }
         if (str_starts_with($targetKey, 'lesson-4-')) {
             return self::LESSON_FOUR_ROUTE;
         }

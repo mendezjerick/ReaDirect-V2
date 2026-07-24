@@ -42,6 +42,7 @@ const lessonSupportSchema = z.object({
   ),
   display_mode: z.enum([
     "completion",
+    "review",
     "instruction",
     "clue",
     "demonstration",
@@ -253,6 +254,64 @@ const lessonFourStateSchema = z.object({
 
 export type LessonFourState = z.infer<typeof lessonFourStateSchema>;
 
+const passageReviewSchema = z.object({
+  title: z.string(),
+  skipped: z.boolean(),
+  review_available: z.boolean(),
+  performance_band: z.enum([
+    "excellent",
+    "strong",
+    "growing",
+    "beginning",
+    "skipped",
+    "unavailable",
+  ]),
+  reading_accuracy_percent: z.number().int().min(0).max(100).nullable(),
+  reading_seconds: z.number().nonnegative().nullable(),
+  words_per_minute: z.number().int().nonnegative().nullable(),
+  correct_words_per_minute: z.number().int().nonnegative().nullable(),
+  words: z.array(
+    z.object({
+      text: z.string(),
+      status: z.enum(["correct", "missed", "replaced", "unscored"]),
+      heard: z.string().nullable(),
+    }),
+  ),
+  extra_words: z.array(z.string()),
+});
+
+const lessonFiveStateSchema = z.object({
+  run_id: z.number().int().positive(),
+  lesson_key: z.literal("required-lesson-5"),
+  content_version: z.string(),
+  status: z.enum(["active", "review", "completed"]),
+  mission: z.object({
+    key: z.literal("mission-1"),
+    number: z.literal(1),
+    total: z.literal(1),
+    title: z.string(),
+  }),
+  progress: z.object({ current: z.literal(1), total: z.literal(1) }),
+  item: z
+    .object({
+      item_key: z.string(),
+      presentation: z.literal("display_passage"),
+      title: z.string(),
+      display_text: z.string(),
+      authored_pages: z.array(z.string()).min(1),
+      time_limit_seconds: z.literal(60),
+    })
+    .nullable(),
+  response: lessonResponseSchema,
+  teaching: lessonTeachingSchema,
+  support: lessonSupportSchema,
+  practice_tries: lessonPracticeTriesSchema,
+  passage_review: passageReviewSchema.nullable(),
+  completion: lessonCompletionSchema,
+});
+
+export type LessonFiveState = z.infer<typeof lessonFiveStateSchema>;
+
 const headers = (token: string): HeadersInit => ({
   Accept: "application/json",
   Authorization: `Bearer ${token}`,
@@ -316,6 +375,21 @@ async function parseLessonFour(response: Response): Promise<LessonFourState> {
     );
   }
   return lessonFourStateSchema.parse(await response.json());
+}
+
+async function parseLessonFive(response: Response): Promise<LessonFiveState> {
+  if (!response.ok) {
+    const data: unknown = await response.json().catch(() => null);
+    throw new Error(
+      typeof data === "object" &&
+        data &&
+        "message" in data &&
+        typeof data.message === "string"
+        ? data.message
+        : "That lesson action could not be saved.",
+    );
+  }
+  return lessonFiveStateSchema.parse(await response.json());
 }
 
 export async function startLessonOne(token: string) {
@@ -631,6 +705,87 @@ export async function continueLessonFourSupport(
 export async function advanceLessonFourItem(token: string, runId: number) {
   return parseLessonFour(
     await fetch(`/api/learners/lessons/lesson-4/${runId}/advance`, {
+      method: "POST",
+      headers: headers(token),
+    }),
+  );
+}
+
+export async function startLessonFive(token: string) {
+  return parseLessonFive(
+    await fetch("/api/learners/lessons/lesson-5/start", {
+      method: "POST",
+      headers: headers(token),
+    }),
+  );
+}
+
+export async function getLessonFive(token: string, runId: number) {
+  return parseLessonFive(
+    await fetch(`/api/learners/lessons/lesson-5/${runId}`, {
+      headers: headers(token),
+    }),
+  );
+}
+
+export async function submitLessonFiveItem(
+  token: string,
+  runId: number,
+  itemKey: string,
+  audio: Blob,
+) {
+  const body = new FormData();
+  body.append("item_key", itemKey);
+  body.append("audio", audio, `${itemKey}.webm`);
+  return parseLessonFive(
+    await fetch(`/api/learners/lessons/lesson-5/${runId}/submit`, {
+      method: "POST",
+      headers: headers(token),
+      body,
+    }),
+  );
+}
+
+export async function skipLessonFiveItem(
+  token: string,
+  runId: number,
+  itemKey: string,
+) {
+  return parseLessonFive(
+    await fetch(`/api/learners/lessons/lesson-5/${runId}/skip`, {
+      method: "POST",
+      headers: { ...headers(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ item_key: itemKey }),
+    }),
+  );
+}
+
+export async function continueLessonFiveSupport(
+  token: string,
+  runId: number,
+  itemKey: string,
+) {
+  return parseLessonFive(
+    await fetch(`/api/learners/lessons/lesson-5/${runId}/continue-support`, {
+      method: "POST",
+      headers: { ...headers(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ item_key: itemKey }),
+    }),
+  );
+}
+
+export async function advanceLessonFiveItem(token: string, runId: number) {
+  return parseLessonFive(
+    await fetch(`/api/learners/lessons/lesson-5/${runId}/advance`, {
+      method: "POST",
+      headers: headers(token),
+    }),
+  );
+}
+
+export async function continueLessonFiveReview(token: string, runId: number) {
+  return parseLessonFive(
+    await fetch(`/api/learners/lessons/lesson-5/${runId}/continue-review`, {
       method: "POST",
       headers: headers(token),
     }),

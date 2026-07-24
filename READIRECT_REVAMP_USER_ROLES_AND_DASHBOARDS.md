@@ -161,13 +161,14 @@ System Administrator page portal and ASR review tools:
   These records are marked as portal-created evidence, remain exclusive to
   `KW000`, and are excluded from all analytics. They must never be created for a
   standard Learner.
-- Lesson 1 through Lesson 4 Page Portals are active because all four lessons
+- Lesson 1 through Lesson 5 Page Portals are active because all five lessons
   now own
   real persisted runs, responses, progression, achievements, and reload
   routes. Lesson 1 exposes each of its three mission starts and its completed
   result. Lesson 2 exposes both mission starts and its completed result.
   Lesson 3 exposes its phrase mission and completed result. Lesson 4 exposes
-  its sentence mission and completed result.
+  its sentence mission and completed result. Lesson 5 exposes passage reading,
+  the dedicated passage result, and its completed result.
 - Opening a lesson portal first creates Kristen's persisted completed
   Diagnostic run and Ready Reader award. A Lesson 2 portal then creates a
   persisted completed Lesson 1 run and Letter Leader award before the selected
@@ -180,10 +181,14 @@ System Administrator page portal and ASR review tools:
 - A Lesson 4 portal additionally persists completed Lesson 3 and Phrase Pro.
   Its completion destination persists all five sentence responses, advances
   the required lesson order to 5, and grants Sentence Star.
+- A Lesson 5 portal additionally persists completed Lesson 4 and Sentence
+  Star. It exposes the active passage, dedicated passage result, and completion
+  destinations. Completion advances required lesson order to 6 and grants
+  Passage Explorer.
 - Portal prerequisite responses use the same lesson tables and teaching-state
   fields but are explicitly marked `portal_prerequisite`; they do not fabricate
   learner audio or ASR attempts.
-- Lesson destinations beyond Lesson 4 remain unavailable until their real save
+- Lesson destinations beyond Lesson 5 remain unavailable until their real save
   and progression workflows are implemented.
 - IsoLetter Sandbox is the direct Nu testing page for isolated-letter audio.
   Nu is Mu's letter mode. The page shows the expected letter, raw and normalized

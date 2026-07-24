@@ -1064,6 +1064,60 @@ through 3 prerequisites with their achievements, and navigate using the real
 Lesson 4 run ID. Completion advances the portal learner to required lesson
 order 5 without fabricating audio or ASR attempt rows.
 
+## Implemented Lesson 5 Runtime
+
+Lesson 5 is one single-item Short Passage mission backed by the five approved
+50-word rows in `content/lessons/v1/lesson-5-passages.csv`.
+
+- `POST /api/learners/lessons/lesson-5/start` creates or resumes one active
+  `required-lesson-5` run; `GET /api/learners/lessons/lesson-5/{lessonRun}`
+  restores that exact owned snapshot.
+- Start is permitted only at required lesson order 5. One unused passage is
+  selected and locked under `required.lesson-5.passage-targets`. Refresh and
+  resume never replace it.
+- The passage is one academic item and Version 1 renders its complete 50-word
+  text as one continuous page. `authored_pages[0]` is the only displayed page;
+  the learner must not paginate or scroll while recording.
+- On mobile, the passage panel takes the flexible grid row and measures its
+  available text area. Lexend may fit between `16px` and `23px`; the recorder
+  owns a protected minimum row so its circle and fake shadow cannot be
+  compressed by passage length.
+- Recording is capped at 60 seconds and submitted to Mu with
+  `task_type=passage`. Laravel owns normalization, equivalence resolution,
+  word alignment, score evidence, and reading-speed calculation.
+- One clear submitted recording is the final academic attempt. Lesson 5 does
+  not enter the clue, demonstration, echo, or academic retry loop used by
+  shorter reading units. Playback and Retry remain available before Submit.
+- A genuinely silent, unusable, or uncertain recording may receive the shared
+  technical-audio recovery. This is not an academic passage retry.
+- A clear submission enters the persisted `review` state immediately. There is
+  no separate feedback step or learner-operated Next action between recording
+  and review.
+- The dedicated passage result displays the full story, authoritative
+  correct/missed/replaced words, accuracy, and speed. Clara speaks one fixed
+  response selected from the server-owned accuracy band while this result is
+  visible.
+- `Next` calls the explicit `continue-review` endpoint. Only then does Laravel
+  complete the run, advance required lesson order to 6, grant
+  `reading.passage_explorer`, and return the shared Lesson Complete result.
+- A skipped passage produces a neutral passage result with no fabricated word
+  alignment or reading speed.
+
+Lesson 5 owns nine fixed published Clara lines: one instruction, one completion,
+one technical-retry line, and six passage-review responses (`excellent`,
+`strong`, `growing`, `beginning`, `skipped`, and `unavailable`). It has no
+runtime Vox profile, passage demonstration, or final-transcript speech. `Next`
+on the review remains unavailable until its selected Clara line finishes.
+
+### Lesson 5 Page Portal Checkpoints
+
+- `lesson-5-mission-1` opens the locked passage-reading item.
+- `lesson-5-review` opens the dedicated passage result.
+- `lesson-5-complete` opens the Passage Explorer completion result.
+
+All destinations reset `KW000`, persist the Diagnostic and Lessons 1 through 4
+prerequisites with their achievements, and use the real Lesson 5 run ID.
+
 ## Optional Learn with Ma'am Clara Boundary
 
 `Learn with Ma'am Clara` is an always-available listening companion class, not

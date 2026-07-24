@@ -198,6 +198,44 @@ $lessonFourSupportLines = [
     ],
 ];
 
+$lessonFiveSupportLines = [
+    'lesson-5-technical-retry' => [
+        'text' => 'I could not hear the passage clearly. Let us try it once more.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-5/support/technical/lesson-5-technical-retry.wav',
+    ],
+    'lesson-5-performance-excellent' => [
+        'text' => 'You read the passage very clearly. You kept the words together from beginning to end.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-5/review/lesson-5-performance-excellent.wav',
+    ],
+    'lesson-5-performance-strong' => [
+        'text' => 'You did good work reading that passage. A few words need more practice.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-5/review/lesson-5-performance-strong.wav',
+    ],
+    'lesson-5-performance-growing' => [
+        'text' => 'You stayed with the passage and kept reading. Let us practice the words that were difficult.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-5/review/lesson-5-performance-growing.wav',
+    ],
+    'lesson-5-performance-beginning' => [
+        'text' => 'Thank you for finishing the passage. Reading a whole story takes courage, and we can practice it again.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-5/review/lesson-5-performance-beginning.wav',
+    ],
+    'lesson-5-performance-skipped' => [
+        'text' => 'That is okay. We can return to this passage another time.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-5/review/lesson-5-performance-skipped.wav',
+    ],
+    'lesson-5-performance-unavailable' => [
+        'text' => 'I could not hear enough of the passage to show a reading result. We can try it again another time.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-5/review/lesson-5-performance-unavailable.wav',
+    ],
+];
+
 $learnWithClaraLessonOneGreetingLines = [
     'learn-with-clara-lesson-1-greeting-morning' => [
         'text' => 'Good morning. I am happy you are here. I have a little story for you today.',
@@ -447,6 +485,11 @@ return [
             ...array_keys($lessonFourSupportLines),
             ...array_keys($lessonFourDemonstrationLines),
         ],
+        'lesson-5-fixed' => [
+            'lesson-5-mission-1',
+            'lesson-5-complete',
+            ...array_keys($lessonFiveSupportLines),
+        ],
         'learn-with-clara-lesson-1-fixed' => [
             ...array_keys($learnWithClaraLessonOneGreetingLines),
             ...array_keys($learnWithClaraLessonOneChapterOneLines),
@@ -477,6 +520,10 @@ return [
             'published_groups' => ['lesson-4-fixed'],
             'runtime_profiles' => ['result'],
         ],
+        'lesson-5' => [
+            'published_groups' => ['lesson-5-fixed'],
+            'runtime_profiles' => [],
+        ],
         'learn-with-clara-lesson-1' => [
             'published_groups' => ['learn-with-clara-lesson-1-fixed'],
             'runtime_profiles' => [],
@@ -504,6 +551,9 @@ return [
         'lesson-3-complete' => 'lesson-3',
         'lesson-4-mission-1' => 'lesson-4',
         'lesson-4-complete' => 'lesson-4',
+        'lesson-5-mission-1' => 'lesson-5',
+        'lesson-5-review' => 'lesson-5',
+        'lesson-5-complete' => 'lesson-5',
     ],
     'clara_lines' => [
         ...$learnWithClaraLessonOneGreetingLines,
@@ -567,6 +617,16 @@ return [
             'text' => 'Lesson four is complete. You are a Sentence Star.',
             'reference' => 'result',
             'path' => 'lessons/lesson-4/completion/lesson-4-complete.wav',
+        ],
+        'lesson-5-mission-1' => [
+            'text' => 'Read the passage from beginning to end. Take your time and say every word.',
+            'reference' => 'instruction',
+            'path' => 'lessons/lesson-5/mission-1/lesson-5-mission-1.wav',
+        ],
+        'lesson-5-complete' => [
+            'text' => 'Lesson five is complete. You are a Passage Explorer.',
+            'reference' => 'result',
+            'path' => 'lessons/lesson-5/completion/lesson-5-complete.wav',
         ],
         'assessment-orientation' => [
             'text' => 'Let us check your microphone. Say ready, then listen to your recording.',
@@ -673,6 +733,7 @@ return [
         ...$lessonFourItemCueLines,
         ...$lessonFourSupportLines,
         ...$lessonFourDemonstrationLines,
+        ...$lessonFiveSupportLines,
     ],
     'assessment_item_cues' => [
         'ordinals' => [

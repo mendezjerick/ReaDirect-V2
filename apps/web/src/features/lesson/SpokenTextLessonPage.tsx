@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
@@ -19,10 +19,12 @@ import {
 import { useAudioRecorder } from "../assessment/useAudioRecorder";
 import { LearnerActivityResult } from "../learner-activity/LearnerActivityResult";
 import { LearnerActivityShell } from "../learner-activity/LearnerActivityShell";
+import { PassageReadingResult } from "../learner-activity/PassageReadingResult";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import {
   prepareLessonDemonstration,
   prepareLessonFeedback,
+  type LessonFiveState,
   type LessonFourState,
   type LessonThreeState,
 } from "./lessonApi";
@@ -32,7 +34,8 @@ import { LessonPracticeTriesToggle } from "./LessonPracticeTriesToggle";
 import "../assessment/assessment.css";
 import "./lesson.css";
 
-export type SpokenTextLessonState = LessonThreeState | LessonFourState;
+export type SpokenTextLessonState =
+  LessonThreeState | LessonFourState | LessonFiveState;
 
 type SpokenTextLessonApi = {
   start: (token: string) => Promise<SpokenTextLessonState>;
@@ -54,26 +57,135 @@ type SpokenTextLessonApi = {
     itemKey: string,
   ) => Promise<SpokenTextLessonState>;
   advance: (token: string, runId: number) => Promise<SpokenTextLessonState>;
+  continueReview?: (
+    token: string,
+    runId: number,
+  ) => Promise<SpokenTextLessonState>;
 };
 
 type SpokenTextLessonPageProps = {
-  lessonNumber: 3 | 4;
-  activityKey: "lesson-3" | "lesson-4";
+  lessonNumber: 3 | 4 | 5;
+  activityKey: "lesson-3" | "lesson-4" | "lesson-5";
   missionTitle: string;
   itemInstruction: string;
   resultFallback: string;
   api: SpokenTextLessonApi;
 };
 
+const LESSON_FIVE_PASSAGE_MIN_FONT_PX = 16;
+const LESSON_FIVE_PASSAGE_MAX_FONT_PX = 23;
+
+function LessonFivePassage({
+  title,
+  passage,
+  remainingSeconds,
+}: {
+  title: string;
+  passage: string;
+  remainingSeconds: number;
+}) {
+  const passageRef = useRef<HTMLElement>(null);
+  const textRef = useRef<HTMLParagraphElement>(null);
+  const [fontSize, setFontSize] = useState(LESSON_FIVE_PASSAGE_MAX_FONT_PX);
+
+  useLayoutEffect(() => {
+    const passageElement = passageRef.current;
+    const textElement = textRef.current;
+
+    if (!passageElement || !textElement) return;
+
+    let animationFrame = 0;
+    let disposed = false;
+
+    const fitPassage = () => {
+      animationFrame = 0;
+      if (disposed || textElement.clientHeight <= 0) return;
+
+      let lowerBound = LESSON_FIVE_PASSAGE_MIN_FONT_PX;
+      let upperBound = LESSON_FIVE_PASSAGE_MAX_FONT_PX;
+      let fittedSize = lowerBound;
+
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const candidate = (lowerBound + upperBound) / 2;
+        textElement.style.fontSize = `${candidate}px`;
+
+        const fits =
+          textElement.scrollHeight <= textElement.clientHeight + 1 &&
+          textElement.scrollWidth <= textElement.clientWidth + 1;
+
+        if (fits) {
+          fittedSize = candidate;
+          lowerBound = candidate;
+        } else {
+          upperBound = candidate;
+        }
+      }
+
+      textElement.style.fontSize = "";
+      setFontSize(Math.floor(fittedSize * 10) / 10);
+    };
+
+    const scheduleFit = () => {
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(fitPassage);
+    };
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(scheduleFit);
+
+    resizeObserver?.observe(passageElement);
+    window.addEventListener("resize", scheduleFit);
+    void document.fonts?.ready.then(scheduleFit);
+    scheduleFit();
+
+    return () => {
+      disposed = true;
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", scheduleFit);
+      textElement.style.fontSize = "";
+    };
+  }, [passage]);
+
+  return (
+    <article
+      ref={passageRef}
+      className="assessment-passage lesson-five-passage"
+    >
+      <div className="assessment-passage__heading">
+        <span>{title}</span>
+        <strong>{remainingSeconds}s</strong>
+      </div>
+      <p ref={textRef} style={{ fontSize: `${fontSize}px` }}>
+        {passage}
+      </p>
+    </article>
+  );
+}
+
 function SpokenTextItem({
   state,
   lessonNumber,
+  remainingSeconds,
 }: {
   state: SpokenTextLessonState;
-  lessonNumber: 3 | 4;
+  lessonNumber: 3 | 4 | 5;
+  remainingSeconds: number;
 }) {
   const item = state.item;
   if (!item) return null;
+
+  if (item.presentation === "display_passage") {
+    return (
+      <LessonFivePassage
+        title={item.title}
+        passage={item.authored_pages[0]}
+        remainingSeconds={remainingSeconds}
+      />
+    );
+  }
 
   const words = item.display_text.trim().split(/\s+/);
 
@@ -135,7 +247,10 @@ export function SpokenTextLessonPage({
     lesson?.teaching.state ?? "loading",
     lesson?.response?.attempt_count ?? 0,
   ].join(":");
-  const recorder = useAudioRecorder(recorderResetKey);
+  const recorder = useAudioRecorder(
+    recorderResetKey,
+    lessonNumber === 5 ? { maximumDurationMs: 60_000 } : undefined,
+  );
   const supportKeyRef = useRef<string | null>(null);
   const playbackRef = useRef<ClaraSpeechPlayback | null>(null);
   const submitCommit = useButtonCommit();
@@ -316,6 +431,23 @@ export function SpokenTextLessonPage({
     }
   };
 
+  const continueReview = async () => {
+    if (!session?.token || !lesson || !api.continueReview) return;
+    setBusy(true);
+    setError("");
+    try {
+      setLesson(await api.continueReview(session.token, lesson.run_id));
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "The lesson result could not open.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (!lesson) {
     const preparationError =
       activityPreparation.status === "error" ? activityPreparation.error : "";
@@ -341,6 +473,10 @@ export function SpokenTextLessonPage({
     !claraReady ||
     (activityPreparation.status !== "ready" && lesson.status !== "completed");
   const canSubmit = Boolean(recorder.audio && recorder.hasPlayed);
+  const remainingSeconds = Math.max(
+    0,
+    60 - Math.floor(recorder.recordingElapsedMs / 1000),
+  );
   const claraPresentation = resolveLessonClaraPresentation({
     completed: lesson.status === "completed",
     processing: busy,
@@ -349,6 +485,70 @@ export function SpokenTextLessonPage({
     teachingState: lesson.teaching.state,
     outcome: lesson.teaching.outcome,
   });
+
+  if (lesson.status === "review" && lesson.passage_review) {
+    const reviewSpeechComplete =
+      feedbackComplete &&
+      supportKeyRef.current === lesson.support.sequence_key &&
+      !guideBusy &&
+      !speaking;
+    const reviewIsStrong = ["excellent", "strong"].includes(
+      lesson.passage_review.performance_band,
+    );
+
+    return (
+      <LearnerActivityShell
+        overlay={
+          <>
+            <ClaraSpeechWarmupLoader
+              active={
+                activityPreparation.showRuntimeLoader || busy || guideBusy
+              }
+              modelReady={claraReady}
+            />
+            {error ? (
+              <p className="lesson-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+          </>
+        }
+        eyebrow="Story review"
+        title="Your Passage"
+        itemPanelClassName="assessment-item-panel--result"
+        itemContent={
+          <PassageReadingResult
+            review={lesson.passage_review}
+            accuracyPercent={lesson.passage_review.reading_accuracy_percent}
+          />
+        }
+        primaryActionKey="passage-review-next"
+        primaryAction={
+          <BigButton
+            variant={
+              controlsUnavailable || !reviewSpeechComplete
+                ? "unavailable-vertical"
+                : "primary-vertical"
+            }
+            leadingIcon={<DockActionIcon kind="next" />}
+            disabled={controlsUnavailable || !reviewSpeechComplete}
+            busy={busy}
+            committing={nextCommit.committing}
+            onClick={() => nextCommit.commit(() => void continueReview())}
+          >
+            Next
+          </BigButton>
+        }
+        claraEmotion={reviewIsStrong ? "happy" : "default"}
+        claraBehavior={reviewIsStrong ? "celebrating" : "encouraging"}
+        claraCue="none"
+        claraSpeaking={speaking}
+        claraSpeechLevel={speechLevel}
+        onClaraReadyChange={setClaraReady}
+        reduceMotion={Boolean(reduceMotion)}
+      />
+    );
+  }
 
   if (lesson.status === "completed") {
     return (
@@ -458,6 +658,7 @@ export function SpokenTextLessonPage({
 
   return (
     <LearnerActivityShell
+      className={lessonNumber === 5 ? "lesson-five-page" : undefined}
       overlay={
         <>
           <ClaraSpeechWarmupLoader
@@ -495,7 +696,7 @@ export function SpokenTextLessonPage({
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={itemKey}
-            className={`assessment-item lesson-item lesson-${lessonNumber === 4 ? "four" : "three"}-item`}
+            className={`assessment-item lesson-item lesson-${lessonNumber === 5 ? "five" : lessonNumber === 4 ? "four" : "three"}-item`}
             data-presentation={lesson.item?.presentation}
             data-support-mode={lesson.support.display_mode}
             initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.96 }}
@@ -504,9 +705,16 @@ export function SpokenTextLessonPage({
             transition={{ duration: reduceMotion ? 0 : 0.28, ease: "easeOut" }}
           >
             <small>{itemInstruction}</small>
-            <SpokenTextItem state={lesson} lessonNumber={lessonNumber} />
+            <SpokenTextItem
+              state={lesson}
+              lessonNumber={lessonNumber}
+              remainingSeconds={remainingSeconds}
+            />
           </motion.div>
         </AnimatePresence>
+      }
+      itemPanelClassName={
+        lessonNumber === 5 ? "lesson-five-passage-panel" : undefined
       }
       itemPanelAccessory={
         <LessonPracticeTriesToggle

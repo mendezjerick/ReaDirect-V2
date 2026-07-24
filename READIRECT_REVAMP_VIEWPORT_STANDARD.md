@@ -213,6 +213,17 @@ steps instead.
 
 Long content must be divided into smaller steps.
 
+Lesson 5 short-passage reading is a deliberate continuous-reading exception:
+
+- Keep its approved 50-word passage on one non-scrolling page.
+- Fit only the authored Lexend passage text between `16px` and `23px`, using
+  the measured available text area after font loading and viewport changes.
+- Give the recorder a protected minimum grid row. Its circular silhouette,
+  touch target, and fake-shadow depth must never be compressed or clipped to
+  make room for the passage.
+- This exception does not authorize shrinking instructions, navigation, or
+  controls, and does not apply to arbitrary long content.
+
 ## Scrolling
 
 Short learner activities should fit within one mobile viewport whenever practical.

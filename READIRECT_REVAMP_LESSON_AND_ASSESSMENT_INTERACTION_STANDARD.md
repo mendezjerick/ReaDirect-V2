@@ -733,9 +733,30 @@ The children are playing.
 
 - This is the only required mission in Lesson 5.
 - The learner reads one authored short passage item at a time.
-- A passage that cannot fit at the required reading size uses authored pages.
-- Page turns do not create separate mission results.
-- The font must never be reduced merely to avoid pagination.
+- The complete 50-word passage remains visible as one continuous reading item.
+  Lesson 5 must not split it into authored pages, add page-turn controls, or
+  make the learner scroll while recording.
+- The passage panel owns the flexible viewport space. Its Lexend text is
+  measured against the available panel height and fitted only within the
+  approved Lesson 5 range of `16px` to `23px`.
+- The recorder panel owns a protected minimum row. A longer passage may reduce
+  its own type size within that range, but it must never compress, crop, or
+  flatten the circular recorder.
+- Recording is capped at 60 seconds.
+- Playback and Retry remain available before Submit, but one clear submitted
+  recording is the final academic passage attempt.
+- Do not run clue, demonstration, echo, or academic retry states for Lesson 5.
+- A clear submission opens the dedicated passage result directly before the
+  ordinary Lesson Complete result.
+- The passage result reuses the assessment passage-review component and shows
+  the complete text, authoritative word markings, accuracy, and speed.
+- `Next` commits the review boundary. Passage Explorer and lesson progression
+  are not granted until this continuation succeeds.
+- Clara speaks one published accuracy-band response while the passage result is
+  visible. Keep `Next` unavailable until she finishes.
+- Reading speed is supporting evidence only and must not lower Clara's response
+  band.
+- A skip opens a neutral passage result without invented timing or alignment.
 
 Example:
 
@@ -992,7 +1013,7 @@ punctuation quizzes into this mission.
 
 ### Lesson 5, Mission 1 — Short-passage interaction
 
-Single-page example:
+Continuous single-page example:
 
 ```text
 ┌────────────────────────────────┐
@@ -1004,25 +1025,15 @@ Single-page example:
 └────────────────────────────────┘
 ```
 
-Paged example for a longer authored passage:
-
-```text
-┌────────────────────────────────┐
-│ Lena has a small plant.        │
-│ She waters it every morning.   │
-│                                │
-│ ‹ Previous     1 of 2    Next ›│
-└────────────────────────────────┘
-```
-
 Interaction:
 
-- Page turns use a short solid page-slide or replacement transition.
-- The passage font remains at the approved reading size.
-- Page controls change only the visual page; they do not create separate
-  mission results.
-- Recording may continue across authored lesson pages when the item is defined
-  as one passage target.
+- Keep all authored words in their original order inside one passage card.
+- Refit the passage after viewport changes and after the authored reading font
+  finishes loading. The fitting calculation must use the actual available text
+  area rather than a passage-length guess.
+- Keep the circular recorder and its fake-shadow depth fully inside a protected
+  recorder panel at every supported portrait viewport.
+- Never add passage pagination or an internal scrollbar to solve this layout.
 - The current line may receive a learner-selected focus rail, but the system
   must not auto-advance or reveal correctness from unconfirmed live ASR.
 - After result processing, post-reading feedback may identify confirmed
@@ -1700,7 +1711,7 @@ Do not:
 - Treat a technical failure as a learner skip.
 - Reveal assessment item correctness before the appropriate result page.
 - Add assessment hints through animation, audio, emphasis, or replay behavior.
-- Shrink passage typography to avoid authored pages.
+- Shrink passage typography below its approved range to avoid authored pages.
 - Animate displayed text continuously while the learner reads or records.
 - Duplicate the same recorder or navigation logic independently across lessons
   and assessments.

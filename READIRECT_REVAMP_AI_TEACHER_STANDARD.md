@@ -932,14 +932,21 @@ Current implementation:
   because the locked word varies by run. Laravel reads the hidden target from
   the immutable snapshot; the browser never supplies demonstration text.
 - Lesson 3 phrase and Lesson 4 sentence demonstrations are finite published
-  speech. All 20 possible targets in each Version 1 catalog are generated,
+  speech. All 20 phrase targets and 20 sentence targets are generated,
   reviewed, cataloged, and addressed by the locked content ID. Only
   response-dependent final-transcript and alignment feedback remains runtime
   speech in these activities.
 - `TranscriptAlignmentService` implements reusable word-level Levenshtein
-  alignment for Lesson 3 phrases and Lesson 4 sentences. Both store the
+  alignment for Lesson 3 phrases, Lesson 4 sentences, and Lesson 5 passages.
+  All store the
   complete result inside immutable attempt evidence and current response
   evidence. The response diagnosis key is the alignment category.
+- Lesson 5 is the deliberate long-reading exception. One clear submitted
+  passage recording commits its academic attempt and opens passage review
+  immediately. Clara performs no clue, demonstration, echo, transcript recital,
+  or academic retry. The review selects one finite published response from the
+  authoritative accuracy band; reading speed remains non-punitive supporting
+  evidence.
 - Technical, silent, unusable, and uncertain recordings never receive word
   alignment correction. Alignment runs only for clear academic evidence after
   the equivalence resolver commits the final transcript.

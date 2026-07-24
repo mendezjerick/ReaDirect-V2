@@ -93,7 +93,10 @@ abstract class LearnerSpokenTextLessonController extends Controller
             $activeRun = LessonRun::query()
                 ->where('learner_id', $session->learner_id)
                 ->where('lesson_key', $this->lessonKey())
-                ->where('status', LessonRun::STATUS_ACTIVE)
+                ->whereIn('status', [
+                    LessonRun::STATUS_ACTIVE,
+                    LessonRun::STATUS_REVIEW,
+                ])
                 ->latest('id')
                 ->first();
 
@@ -139,7 +142,7 @@ abstract class LearnerSpokenTextLessonController extends Controller
         /** @var UploadedFile $audio */
         $audio = $validated['audio'];
         try {
-            $evidence = $this->asr->phrase($audio, $item['spoken_target']);
+            $evidence = $this->transcribe($audio, $item);
         } catch (RuntimeException $error) {
             return response()->json(['message' => $error->getMessage()], 503);
         }
@@ -151,6 +154,7 @@ abstract class LearnerSpokenTextLessonController extends Controller
             $item['content_id'],
         );
         $evidence['equivalence_resolution'] = $resolution;
+        $evidence = $this->enrichEvidence($evidence, $resolution);
         $recognized = trim((string) (
             $evidence['basic_normalized_transcript'] ?? $raw
         ));
@@ -216,7 +220,7 @@ abstract class LearnerSpokenTextLessonController extends Controller
             $state = $this->stateForResponse($response);
 
             try {
-                $nextState = $this->teaching->recordEvidence(
+                $nextState = $this->recordEvidenceState(
                     $state,
                     $classification,
                     $diagnosisKey,
@@ -268,6 +272,11 @@ abstract class LearnerSpokenTextLessonController extends Controller
                 ],
                 ...$this->stateAttributes($nextState, $response),
             ])->save();
+
+            if ($this->autoAdvanceTerminalSubmission()
+                && $this->teaching->canAdvance($nextState)) {
+                $this->advanceRun($lockedRun);
+            }
         });
 
         return response()->json($this->serialize($run->fresh()));
@@ -390,6 +399,26 @@ abstract class LearnerSpokenTextLessonController extends Controller
         return response()->json($this->serialize($run->fresh()));
     }
 
+    public function continueReview(
+        Request $request,
+        LessonRun $lessonRun,
+    ): JsonResponse {
+        $run = $this->ownedRun($request, $lessonRun);
+
+        DB::transaction(function () use ($run): void {
+            $run = LessonRun::query()->lockForUpdate()->findOrFail($run->id);
+            abort_unless(
+                $this->requiresReview()
+                    && $run->status === LessonRun::STATUS_REVIEW,
+                409,
+                'This lesson review is not ready to continue.',
+            );
+            $this->completeRun($run);
+        });
+
+        return response()->json($this->serialize($run->fresh()));
+    }
+
     private function ownedRun(Request $request, LessonRun $run): LessonRun
     {
         $session = $this->sessions->resolve($request);
@@ -452,6 +481,17 @@ abstract class LearnerSpokenTextLessonController extends Controller
             return;
         }
 
+        if ($this->requiresReview()) {
+            $run->forceFill(['status' => LessonRun::STATUS_REVIEW])->save();
+
+            return;
+        }
+
+        $this->completeRun($run);
+    }
+
+    private function completeRun(LessonRun $run): void
+    {
         $run->forceFill([
             'status' => LessonRun::STATUS_COMPLETED,
             'completed_at' => now(),
@@ -593,7 +633,7 @@ abstract class LearnerSpokenTextLessonController extends Controller
      * @param  array<string, string>  $item
      * @return array<string, int|string>
      */
-    private function itemPayload(LessonRun $run, array $item): array
+    protected function itemPayload(LessonRun $run, array $item): array
     {
         return [
             'item_key' => $item['content_id'],
@@ -603,12 +643,12 @@ abstract class LearnerSpokenTextLessonController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function serialize(LessonRun $run): array
+    protected function serialize(LessonRun $run): array
     {
         $item = $this->currentItem($run);
         $response = $item ? $this->currentResponse($run, $item) : null;
         $missionNumber = 1;
-        $teaching = $run->status === LessonRun::STATUS_COMPLETED
+        $teaching = $run->status !== LessonRun::STATUS_ACTIVE
             ? [
                 ...$this->teaching->initial(),
                 'teaching_state' => LessonTeachingStateMachine::STATE_ADVANCING,
@@ -635,8 +675,11 @@ abstract class LearnerSpokenTextLessonController extends Controller
                 'title' => $this->missionTitle(),
             ],
             'progress' => [
-                'current' => $run->current_item_index + 1,
-                'total' => 5,
+                'current' => min(
+                    $run->current_item_index + 1,
+                    $this->itemTotal($run),
+                ),
+                'total' => $this->itemTotal($run),
             ],
             'item' => $item ? $this->itemPayload($run, $item) : null,
             'response' => $response ? [
@@ -668,8 +711,66 @@ abstract class LearnerSpokenTextLessonController extends Controller
             ],
             'support' => $support,
             'practice_tries' => $this->practiceTries->forRun($run),
+            'passage_review' => $this->passageReview($run),
             'completion' => $this->completion($run),
         ];
+    }
+
+    /** @param array<string, string> $item
+     * @return array<string, mixed>
+     */
+    protected function transcribe(UploadedFile $audio, array $item): array
+    {
+        return $this->asr->phrase($audio, $item['spoken_target']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $evidence
+     * @param  array<string, mixed>  $resolution
+     * @return array<string, mixed>
+     */
+    protected function enrichEvidence(
+        array $evidence,
+        array $resolution,
+    ): array {
+        return $evidence;
+    }
+
+    protected function requiresReview(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @param  array<string, mixed>  $state
+     * @return array<string, mixed>
+     */
+    protected function recordEvidenceState(
+        array $state,
+        string $classification,
+        ?string $diagnosisKey,
+    ): array {
+        return $this->teaching->recordEvidence(
+            $state,
+            $classification,
+            $diagnosisKey,
+        );
+    }
+
+    protected function autoAdvanceTerminalSubmission(): bool
+    {
+        return false;
+    }
+
+    /** @return array<string, mixed>|null */
+    protected function passageReview(LessonRun $run): ?array
+    {
+        return null;
+    }
+
+    protected function itemTotal(LessonRun $run): int
+    {
+        return max(1, count($run->content_snapshot[$run->mission_key] ?? []));
     }
 
     /** @return array<string, mixed>|null */
@@ -709,7 +810,7 @@ abstract class LearnerSpokenTextLessonController extends Controller
         ];
     }
 
-    private function masteryScore(iterable $responses): int
+    protected function masteryScore(iterable $responses): int
     {
         return collect($responses)->filter(
             fn (LessonResponse $response): bool => $response->independent_mastery
