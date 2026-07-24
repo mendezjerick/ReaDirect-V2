@@ -10,6 +10,15 @@ from starlette.testclient import TestClient
 import main
 
 
+def test_synthesis_text_replaces_exclamation_marks_with_periods() -> None:
+    request = main.SynthesisRequest(
+        text="Good work!! Let us read!",
+        reference="result",
+    )
+
+    assert request.text == "Good work. Let us read."
+
+
 class FakeTextNormalizer:
     def normalize(self, text: str) -> str:
         return text
@@ -193,7 +202,7 @@ def test_synthesis_uses_the_prepared_semantic_profile_and_returns_wav(
     assert model.tts_model.generate_count == 2
     assert model.tts_model.generated_texts == [
         main.PROFILE_PROBE_TEXT,
-        "Hello, reader!",
+        "Hello, reader.",
     ]
     assert reference.name == "introduce.wav"
 

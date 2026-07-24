@@ -58,7 +58,7 @@ $lessonOneSupportLines = [
         'path' => 'lessons/lesson-1/support/feedback/lesson-1-feedback-independent.wav',
     ],
     'lesson-1-feedback-supported' => [
-        'text' => 'That is correct. The clue helped you find it!',
+        'text' => 'That is correct. The clue helped you find it.',
         'reference' => 'result',
         'path' => 'lessons/lesson-1/support/feedback/lesson-1-feedback-supported.wav',
     ],
@@ -79,19 +79,62 @@ $lessonOneSupportLines = [
     ],
 ];
 
+$lessonTwoSupportLines = [
+    'lesson-2-technical-retry' => [
+        'text' => 'I could not hear that clearly. Let us try the word once more.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-2/support/technical/lesson-2-technical-retry.wav',
+    ],
+    'lesson-2-clue-mission-1' => [
+        'text' => 'Look at each letter from left to right. Blend the sounds, then say the whole word.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-2/support/clues/lesson-2-clue-mission-1.wav',
+    ],
+    'lesson-2-clue-mission-2' => [
+        'text' => 'Look at the highlighted word in the sentence. Say only that word.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-2/support/clues/lesson-2-clue-mission-2.wav',
+    ],
+    'lesson-2-feedback-independent' => [
+        'text' => 'That is correct. You read the word by yourself.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-2/support/feedback/lesson-2-feedback-independent.wav',
+    ],
+    'lesson-2-feedback-supported' => [
+        'text' => 'That is correct. The clue helped you read the word.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-2/support/feedback/lesson-2-feedback-supported.wav',
+    ],
+    'lesson-2-feedback-demonstrated' => [
+        'text' => 'Good echo. We will practice this word again later.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-2/support/feedback/lesson-2-feedback-demonstrated.wav',
+    ],
+    'lesson-2-feedback-not-yet' => [
+        'text' => 'Not yet, and that is okay. We will practice this word again.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-2/support/feedback/lesson-2-feedback-not-yet.wav',
+    ],
+    'lesson-2-feedback-unscorable' => [
+        'text' => 'I still could not hear a clear answer. We can try this word again later.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-2/support/feedback/lesson-2-feedback-unscorable.wav',
+    ],
+];
+
 $learnWithClaraLessonOneGreetingLines = [
     'learn-with-clara-lesson-1-greeting-morning' => [
-        'text' => 'Good morning! I am happy you are here. I have a little story for you today.',
+        'text' => 'Good morning. I am happy you are here. I have a little story for you today.',
         'reference' => 'introduce',
         'path' => 'learn-with-clara/lesson-1/greetings/morning.wav',
     ],
     'learn-with-clara-lesson-1-greeting-afternoon' => [
-        'text' => 'Good afternoon! I am glad you are here. Let us learn and share a little story.',
+        'text' => 'Good afternoon. I am glad you are here. Let us learn and share a little story.',
         'reference' => 'introduce',
         'path' => 'learn-with-clara/lesson-1/greetings/afternoon.wav',
     ],
     'learn-with-clara-lesson-1-greeting-evening' => [
-        'text' => 'Good evening! Let us slow down and enjoy a little story together.',
+        'text' => 'Good evening. Let us slow down and enjoy a little story together.',
         'reference' => 'introduce',
         'path' => 'learn-with-clara/lesson-1/greetings/evening.wav',
     ],
@@ -144,7 +187,7 @@ $learnWithClaraLessonOneChapterOneLines = [
         'path' => 'learn-with-clara/lesson-1/chapter-1/story/name-return.wav',
     ],
     'learn-with-clara-lesson-1-chapter-1-complete' => [
-        'text' => 'That was our first little letter class. Thank you for listening with me!',
+        'text' => 'That was our first little letter class. Thank you for listening with me.',
         'reference' => 'result',
         'path' => 'learn-with-clara/lesson-1/chapter-1/completion/chapter-1-complete.wav',
     ],
@@ -170,6 +213,23 @@ foreach ($lessonOneMissionCueTemplates as $missionKey => $template) {
             'text' => sprintf($template, $ordinal),
             'reference' => 'instruction',
             'path' => "lessons/lesson-1/{$missionKey}/{$speechKey}.wav",
+        ];
+    }
+}
+
+$lessonTwoItemCueLines = [];
+$lessonTwoMissionCueTemplates = [
+    'mission-1' => 'Now, read the %s word.',
+    'mission-2' => 'Now, find and read the %s highlighted word.',
+];
+
+foreach ($lessonTwoMissionCueTemplates as $missionKey => $template) {
+    foreach ($lessonOneItemOrdinals as $position => $ordinal) {
+        $speechKey = "lesson-2-{$missionKey}-item-{$position}";
+        $lessonTwoItemCueLines[$speechKey] = [
+            'text' => sprintf($template, $ordinal),
+            'reference' => 'instruction',
+            'path' => "lessons/lesson-2/{$missionKey}/{$speechKey}.wav",
         ];
     }
 }
@@ -206,6 +266,13 @@ return [
             ...array_keys($lessonOneItemCueLines),
             ...array_keys($lessonOneSupportLines),
         ],
+        'lesson-2-fixed' => [
+            'lesson-2-mission-1',
+            'lesson-2-mission-2',
+            'lesson-2-complete',
+            ...array_keys($lessonTwoItemCueLines),
+            ...array_keys($lessonTwoSupportLines),
+        ],
         'learn-with-clara-lesson-1-fixed' => [
             ...array_keys($learnWithClaraLessonOneGreetingLines),
             ...array_keys($learnWithClaraLessonOneChapterOneLines),
@@ -223,6 +290,10 @@ return [
         'lesson-1' => [
             'published_groups' => ['lesson-1-fixed'],
             'runtime_profiles' => ['result'],
+        ],
+        'lesson-2' => [
+            'published_groups' => ['lesson-2-fixed'],
+            'runtime_profiles' => ['result', 'instruction'],
         ],
         'learn-with-clara-lesson-1' => [
             'published_groups' => ['learn-with-clara-lesson-1-fixed'],
@@ -244,12 +315,15 @@ return [
         'lesson-1-mission-2' => 'lesson-1',
         'lesson-1-mission-3' => 'lesson-1',
         'lesson-1-complete' => 'lesson-1',
+        'lesson-2-mission-1' => 'lesson-2',
+        'lesson-2-mission-2' => 'lesson-2',
+        'lesson-2-complete' => 'lesson-2',
     ],
     'clara_lines' => [
         ...$learnWithClaraLessonOneGreetingLines,
         ...$learnWithClaraLessonOneChapterOneLines,
         'lesson-intro' => [
-            'text' => 'Hi! I am happy you are here. Let us get ready to read together!',
+            'text' => 'Hi. I am happy you are here. Let us get ready to read together.',
             'reference' => 'introduce',
             'path' => 'lesson-intro/lesson-intro.wav',
         ],
@@ -269,9 +343,24 @@ return [
             'path' => 'lessons/lesson-1/mission-3/lesson-1-mission-3.wav',
         ],
         'lesson-1-complete' => [
-            'text' => 'Lesson one is complete. You are a Letter Leader!',
+            'text' => 'Lesson one is complete. You are a Letter Leader.',
             'reference' => 'result',
             'path' => 'lessons/lesson-1/completion/lesson-1-complete.wav',
+        ],
+        'lesson-2-mission-1' => [
+            'text' => 'Read the word you see. Say the whole word.',
+            'reference' => 'instruction',
+            'path' => 'lessons/lesson-2/mission-1/lesson-2-mission-1.wav',
+        ],
+        'lesson-2-mission-2' => [
+            'text' => 'Look at the sentence. Find the highlighted word, then say that word.',
+            'reference' => 'instruction',
+            'path' => 'lessons/lesson-2/mission-2/lesson-2-mission-2.wav',
+        ],
+        'lesson-2-complete' => [
+            'text' => 'Lesson two is complete. You are a Word Wizard.',
+            'reference' => 'result',
+            'path' => 'lessons/lesson-2/completion/lesson-2-complete.wav',
         ],
         'assessment-orientation' => [
             'text' => 'Let us check your microphone. Say ready, then listen to your recording.',
@@ -294,7 +383,7 @@ return [
             'path' => 'part-1/task-2b/assessment-words.wav',
         ],
         'assessment-part-one-result' => [
-            'text' => 'Part one is complete. You worked hard, and I am proud of you!',
+            'text' => 'Part one is complete. You worked hard, and I am proud of you.',
             'reference' => 'result',
             'path' => 'part-1/results/assessment-part-one-result.wav',
         ],
@@ -364,12 +453,14 @@ return [
             'path' => 'part-2/results/assessment-part-two-result.wav',
         ],
         'assessment-complete' => [
-            'text' => 'Assessment complete! Your first lesson is ready.',
+            'text' => 'Assessment complete. Your first lesson is ready.',
             'reference' => 'result',
             'path' => 'completion/assessment-complete.wav',
         ],
         ...$lessonOneItemCueLines,
         ...$lessonOneSupportLines,
+        ...$lessonTwoItemCueLines,
+        ...$lessonTwoSupportLines,
     ],
     'assessment_item_cues' => [
         'ordinals' => [

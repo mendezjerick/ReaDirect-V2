@@ -139,29 +139,30 @@ describe("ClaraExpressionController", () => {
     expect(value("ParamMouthOpenY")).toBeCloseTo(0.4);
   });
 
-  it("adds blush and restrained bounce only for animated celebration", () => {
+  it("keeps blush disabled while retaining the animated celebration", () => {
     const { controller, value } = createController();
 
     controller.apply(
-      presentation({ emotion: "happy", behavior: "celebrating", cue: "blush" }),
+      presentation({ emotion: "happy", behavior: "celebrating" }),
       0,
       0.25,
       true,
     );
     controller.apply(
-      presentation({ emotion: "happy", behavior: "celebrating", cue: "blush" }),
+      presentation({ emotion: "happy", behavior: "celebrating" }),
       0,
       0.25,
       true,
     );
 
-    expect(value("Param22")).toBeGreaterThan(0);
+    expect(value("Param22")).toBe(0);
+    expect(value("ParamCheek")).toBe(0);
     expect(value("ParamEyeLSmile")).toBeGreaterThan(0);
     expect(Math.abs(value("Param4"))).toBeGreaterThan(0);
     expect(Math.abs(value("Param6"))).toBeGreaterThan(0);
 
     controller.apply(
-      presentation({ emotion: "happy", behavior: "celebrating", cue: "blush" }),
+      presentation({ emotion: "happy", behavior: "celebrating" }),
       0,
       0,
       false,

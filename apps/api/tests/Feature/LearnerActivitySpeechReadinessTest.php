@@ -73,6 +73,34 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
             && $request->data() === ['profiles' => ['result']]);
     }
 
+    public function test_lesson_two_validates_catalog_then_warms_result_and_instruction_profiles(): void
+    {
+        $this->publishActivity('lesson-2');
+        [, $token] = $this->learnerSession('required_lessons', 2);
+        Http::fake([
+            '*/warmup' => Http::response([
+                'ready' => true,
+                'device' => 'cuda',
+                'profiles_ready' => ['result', 'instruction'],
+            ]),
+        ]);
+
+        $this->withToken($token)
+            ->postJson('/api/learners/tts/activity-readiness')
+            ->assertOk()
+            ->assertJsonPath('activity', 'lesson-2')
+            ->assertJsonPath('ready', true)
+            ->assertJsonPath('published_ready', true)
+            ->assertJsonPath('runtime_profiles.0', 'result')
+            ->assertJsonPath('runtime_profiles.1', 'instruction')
+            ->assertJsonPath('profiles_ready.0', 'result')
+            ->assertJsonPath('profiles_ready.1', 'instruction');
+
+        Http::assertSent(fn ($request): bool => $request->data() === [
+            'profiles' => ['result', 'instruction'],
+        ]);
+    }
+
     public function test_browser_payload_cannot_replace_the_server_resolved_activity(): void
     {
         $this->publishActivity('assessment-part-one');

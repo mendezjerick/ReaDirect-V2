@@ -35,6 +35,52 @@
   box-shadow: 0 5px 0 var(--color-frame-depth);
 }
 
+.lesson-two-word {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(88%, 28rem);
+  border: 2px solid var(--color-border-soft);
+  border-radius: var(--radius-panel);
+  padding: clamp(0.65rem, 2.4vh, 1.15rem) clamp(0.8rem, 5vw, 1.5rem);
+  color: var(--color-text-primary);
+  background: var(--color-surface-panel);
+  box-shadow: 0 7px 0 var(--color-frame-depth);
+  font-family: var(--font-reading-family);
+  font-size: clamp(3.35rem, 17vw, 6.2rem);
+  line-height: 0.92;
+}
+
+.lesson-two-word span {
+  display: inline-block;
+}
+
+.lesson-two-sentence {
+  width: min(92%, 34rem);
+  color: var(--color-text-primary);
+  font-family: var(--font-reading-family);
+  font-size: clamp(1.75rem, 7.7vw, 3.15rem);
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.lesson-two-sentence mark {
+  display: inline-block;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  padding: 0.02em 0.14em 0.06em;
+  color: var(--color-text-on-action);
+  background: var(--color-action-primary);
+  box-shadow: 0 0.12em 0 var(--color-action-primary-depth);
+}
+
+.lesson-two-item[data-support-mode="clue"] .lesson-two-word,
+.lesson-two-item[data-support-mode="demonstration"] .lesson-two-word,
+.lesson-two-item[data-support-mode="clue"] .lesson-two-sentence mark,
+.lesson-two-item[data-support-mode="demonstration"] .lesson-two-sentence mark {
+  animation: lesson-support-focus 0.9s ease-in-out infinite alternate;
+}
+
 .lesson-word {
   font-family: var(--font-reading-family);
   font-size: clamp(3.15rem, 16vw, 5.25rem);

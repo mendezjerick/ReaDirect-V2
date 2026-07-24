@@ -342,7 +342,7 @@ The frontend currently loads:
 | `Icon.png`                           | Legacy supplied icon              | Preserved, not used              |
 | `stills/clara-default.png`           | Retired crop-regression artifact  | Preserved, not used              |
 | `Angry.exp3.json`                    | Angry expression                  | Available, outside approved set  |
-| `Blush.exp3.json`                    | Blush expression                  | Available, outside approved set  |
+| `Blush.exp3.json`                    | Legacy blush source               | Retained as source; runtime use prohibited |
 | `Dizzy.exp3.json`                    | Dizzy expression                  | Available, outside approved set  |
 | `Huh.exp3.json`                      | Confused/questioning reference    | Runtime uses `Param24` directly  |
 | `Sad.exp3.json`                      | Sad expression                    | Available, outside approved set  |
@@ -612,11 +612,12 @@ type ClaraTeachingBehavior =
 | `encouraging` | Soft smile, raised brows, and a small cheek response |
 | `gentle_correction` | Calm mouth and concerned but non-negative brows |
 | `demonstrating` | Attentive face with teaching gaze directed toward the item |
-| `celebrating` | Closed-eye smile with optional blush and restrained bounce |
+| `celebrating` | Closed-eye smile with restrained bounce |
 
-Approved optional cues are `none`, `question_mark`, and `blush`. The question
-mark is reserved for genuine confusion. Blush is reserved for positive
-celebration. `Param20` (sad), `Param21` (angry), and `Param23` (dizzy) are not
+Approved optional cues are `none` and `question_mark`. The question mark is
+reserved for genuine confusion. Blush is prohibited across every expression
+and teaching behavior; `Param22` and `ParamCheek` must remain at their neutral
+values. `Param20` (sad), `Param21` (angry), and `Param23` (dizzy) are not
 part of the controlled parameter contract and must never react to learner
 evidence.
 
@@ -630,7 +631,7 @@ Controlled expression parameters:
 | Cheek | `ParamCheek` | Restrained positive response |
 | Head | `ParamAngleZ` | Small questioning tilt only |
 | Bounce | `Param4`, `Param6` | Positive celebration motion only |
-| Cues | `Param22`, `Param24` | Blush and question-mark artwork |
+| Cues | `Param22`, `Param24` | Blush forced neutral; question-mark artwork controlled |
 
 The runtime implementation is
 `apps/web/src/features/intro/live2d/ClaraPresentation.ts` plus
@@ -665,7 +666,7 @@ Lesson 1 currently maps presentation deterministically:
 | ASR processing | `thinking + neutral` |
 | Correct committed response | `default + encouraging` |
 | Needs-support committed response | `default + gentle_correction` |
-| Lesson completion | `happy + celebrating + blush` |
+| Lesson completion | `happy + celebrating` |
 
 ### Eye Catchlight Visibility
 

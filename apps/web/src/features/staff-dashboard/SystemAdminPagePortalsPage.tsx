@@ -274,7 +274,7 @@ export function SystemAdminPagePortalsPage() {
               </div>
               <span>
                 {portalQuery.data?.portal_launch.available
-                  ? "Part 1 ready"
+                  ? "Workflow ready"
                   : "Preparing"}
               </span>
             </header>
@@ -338,9 +338,9 @@ export function SystemAdminPagePortalsPage() {
             ) : null}
 
             <p className="staff-portal-note">
-              Each launch resets Kristen, creates persisted prerequisite Part 1
-              records, and opens the chosen checkpoint. Lesson destinations
-              remain unavailable until their real save workflow exists.
+              Each launch resets Kristen, creates the persisted prerequisite
+              assessment and lesson records, and opens the chosen checkpoint.
+              Portal data stays excluded from learner analytics.
             </p>
           </Surface>
         </div>

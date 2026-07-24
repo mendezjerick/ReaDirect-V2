@@ -161,8 +161,21 @@ System Administrator page portal and ASR review tools:
   These records are marked as portal-created evidence, remain exclusive to
   `KW000`, and are excluded from all analytics. They must never be created for a
   standard Learner.
-- Lesson Page Portals remain disabled until the corresponding lesson save and
-  progression records are implemented.
+- Lesson 1 and Lesson 2 Page Portals are active because both lessons now own
+  real persisted runs, responses, progression, achievements, and reload
+  routes. Lesson 1 exposes each of its three mission starts and its completed
+  result. Lesson 2 exposes both mission starts and its completed result.
+- Opening a lesson portal first creates Kristen's persisted completed
+  Diagnostic run and Ready Reader award. A Lesson 2 portal then creates a
+  persisted completed Lesson 1 run and Letter Leader award before the selected
+  Lesson 2 checkpoint. Mission 2 includes five persisted Mission 1 responses.
+  The completed destination includes all ten Lesson 2 responses, advances the
+  required lesson order to 3, and grants Word Wizard.
+- Portal prerequisite responses use the same lesson tables and teaching-state
+  fields but are explicitly marked `portal_prerequisite`; they do not fabricate
+  learner audio or ASR attempts.
+- Lesson destinations beyond Lesson 2 remain unavailable until their real save
+  and progression workflows are implemented.
 - IsoLetter Sandbox is the direct Nu testing page for isolated-letter audio.
   Nu is Mu's letter mode. The page shows the expected letter, raw and normalized
   Mu transcript, resolved A-Z/`SILENCE`/`UNKNOWN` class, matched alias, mapping

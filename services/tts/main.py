@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import logging
 import os
+import re
 import threading
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -53,6 +54,16 @@ ReferenceProfile = Literal[
 class SynthesisRequest(BaseModel):
     text: str = Field(min_length=1, max_length=500)
     reference: ReferenceProfile
+
+    @field_validator("text")
+    @classmethod
+    def text_must_use_stable_vox_punctuation(cls, text: str) -> str:
+        normalized = re.sub(r"!+", ".", text).strip()
+
+        if not normalized:
+            raise ValueError("text cannot be empty")
+
+        return normalized
 
 
 class WarmupRequest(BaseModel):

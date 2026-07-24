@@ -45,7 +45,7 @@ All current files are 48 kHz, mono, PCM 16-bit WAVs.
 | File | Approved line |
 | --- | --- |
 | `results/assessment-part-two-result.wav` | Part two is complete. You finished reading and understanding the story. |
-| `../completion/assessment-complete.wav` | Assessment complete! Your first lesson is ready. |
+| `../completion/assessment-complete.wav` | Assessment complete. Your first lesson is ready. |
 
 The completion WAV is intentionally stored in the sibling `completion/`
 folder because it is shared by both the high branch after Part 2 and the low

@@ -75,7 +75,7 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('learner.analytics_excluded', true)
             ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
             ->assertJsonPath('portal_launch.available', true)
-            ->assertJsonCount(14, 'portal_launch.targets');
+            ->assertJsonCount(17, 'portal_launch.targets');
     }
 
     public function test_kw000_can_use_normal_case_insensitive_learner_login(): void
@@ -271,6 +271,84 @@ final class PortalSystemLearnerTest extends TestCase
             $this->withToken($launch->json('launch.learner_session.token'))
                 ->get("/api/learners/lessons/lesson-1/{$run->id}")
                 ->assertOk()->assertJsonPath('mission.key', $mission)->assertJsonPath('status', $status);
+        }
+    }
+
+    public function test_system_admin_can_launch_each_lesson_two_checkpoint(): void
+    {
+        (new PortalSystemLearnerSeeder)->run();
+        $learner = Learner::query()->where('learner_code', 'KW000')->firstOrFail();
+        $systemAdministrator = $this->createSystemAdministrator();
+        $targets = [
+            'lesson-2-mission-1' => ['mission-1', 'active', 0, 2],
+            'lesson-2-mission-2' => ['mission-2', 'active', 5, 2],
+            'lesson-2-complete' => ['mission-2', 'completed', 10, 3],
+        ];
+
+        foreach ($targets as $targetKey => [$mission, $status, $responseCount, $lessonOrder]) {
+            $launch = $this->postJson(
+                "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
+                ['target_key' => $targetKey],
+            )
+                ->assertOk()
+                ->assertJsonPath('launch.target_key', $targetKey)
+                ->assertJsonPath('launch.route', fn (string $route): bool => str_starts_with(
+                    $route,
+                    '/learner/lessons/2?run=',
+                ))
+                ->assertJsonPath(
+                    'launch.learner_session.learner.progress.current_required_lesson_order',
+                    $lessonOrder,
+                );
+
+            $lessonOneRun = LessonRun::query()
+                ->where('learner_id', $learner->id)
+                ->where('lesson_key', 'required-lesson-1')
+                ->firstOrFail();
+            $run = LessonRun::query()
+                ->where('learner_id', $learner->id)
+                ->where('lesson_key', 'required-lesson-2')
+                ->firstOrFail();
+
+            $this->assertSame('completed', $lessonOneRun->status);
+            $this->assertDatabaseHas('assessment_runs', [
+                'learner_id' => $learner->id,
+                'assessment_type' => 'diagnostic',
+                'status' => 'completed',
+                'stage' => 'assessment-complete',
+            ]);
+            $this->assertDatabaseHas('learner_achievements', [
+                'learner_id' => $learner->id,
+                'achievement_key' => 'reading.ready_reader',
+            ]);
+            $this->assertSame(15, LessonResponse::query()
+                ->where('lesson_run_id', $lessonOneRun->id)
+                ->count());
+            $this->assertSame($mission, $run->mission_key);
+            $this->assertSame($status, $run->status);
+            $this->assertSame($responseCount, LessonResponse::query()
+                ->where('lesson_run_id', $run->id)
+                ->count());
+            $this->assertDatabaseHas('learner_achievements', [
+                'learner_id' => $learner->id,
+                'achievement_key' => 'reading.letter_leader',
+            ]);
+            if ($status === 'completed') {
+                $this->assertDatabaseHas('learner_achievements', [
+                    'learner_id' => $learner->id,
+                    'achievement_key' => 'reading.word_wizard',
+                ]);
+            }
+
+            $this->withToken($launch->json('launch.learner_session.token'))
+                ->get("/api/learners/lessons/lesson-2/{$run->id}")
+                ->assertOk()
+                ->assertJsonPath('mission.key', $mission)
+                ->assertJsonPath('status', $status)
+                ->assertJsonPath(
+                    'completion.achievement_key',
+                    $status === 'completed' ? 'reading.word_wizard' : null,
+                );
         }
     }
 

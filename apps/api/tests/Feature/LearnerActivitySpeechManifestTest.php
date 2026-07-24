@@ -43,6 +43,21 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonCount(51, 'published_speech_keys');
     }
 
+    public function test_lesson_two_resolves_published_words_and_both_runtime_profiles(): void
+    {
+        $token = $this->learnerSession('required_lessons', 2);
+
+        $this->withToken($token)
+            ->getJson('/api/learners/tts/activity-manifest')
+            ->assertOk()
+            ->assertJsonPath('activity', 'lesson-2')
+            ->assertJsonPath('published_groups.0', 'lesson-2-fixed')
+            ->assertJsonPath('runtime_profiles.0', 'result')
+            ->assertJsonPath('runtime_profiles.1', 'instruction')
+            ->assertJsonPath('requires_runtime', true)
+            ->assertJsonCount(19, 'published_speech_keys');
+    }
+
     public function test_learn_with_clara_lesson_one_is_published_only(): void
     {
         $manifest = app(ActivitySpeechManifestService::class)
@@ -109,7 +124,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
 
     public function test_unsupported_progress_does_not_silently_fall_back_to_another_manifest(): void
     {
-        $token = $this->learnerSession('required_lessons', 2);
+        $token = $this->learnerSession('required_lessons', 7);
 
         $this->withToken($token)
             ->getJson('/api/learners/tts/activity-manifest')

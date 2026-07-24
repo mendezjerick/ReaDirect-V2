@@ -30,11 +30,11 @@ const LessonIntroPage = lazy(() =>
 );
 
 const LearnWithClaraLessonOnePage = lazy(() =>
-  import(
-    "./features/learn-with-clara/LearnWithClaraLessonOnePage"
-  ).then((module) => ({
-    default: module.LearnWithClaraLessonOnePage,
-  })),
+  import("./features/learn-with-clara/LearnWithClaraLessonOnePage").then(
+    (module) => ({
+      default: module.LearnWithClaraLessonOnePage,
+    }),
+  ),
 );
 
 const AssessmentPartOnePage = lazy(() =>
@@ -52,6 +52,12 @@ const AssessmentPartTwoPage = lazy(() =>
 const LessonOnePage = lazy(() =>
   import("./features/lesson/LessonOnePage").then((module) => ({
     default: module.LessonOnePage,
+  })),
+);
+
+const LessonTwoPage = lazy(() =>
+  import("./features/lesson/LessonTwoPage").then((module) => ({
+    default: module.LessonTwoPage,
   })),
 );
 
@@ -184,6 +190,7 @@ export function App() {
               element={<AssessmentPartTwoPage />}
             />
             <Route path="/learner/lessons/1" element={<LessonOnePage />} />
+            <Route path="/learner/lessons/2" element={<LessonTwoPage />} />
             <Route path="/learner/games" element={<GameLobbyPage />} />
             <Route
               path="/learner/games/game-one"

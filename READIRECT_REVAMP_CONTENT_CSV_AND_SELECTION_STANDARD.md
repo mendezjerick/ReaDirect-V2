@@ -444,6 +444,26 @@ pronunciation_review: approved
 Syllable guides are authored manually. The system must not publish a generated
 syllable split without human review.
 
+### CVC `a/o/u` Scoring Equivalence
+
+Active Mu content retains its exact authored spelling and pronunciation
+metadata. At scoring time only, a regular three-letter CVC token whose middle
+letter is `a`, `o`, or `u` accepts the other two middle-vowel realizations when
+its first and final consonants remain identical.
+
+```text
+C1 a C2
+C1 o C2
+C1 u C2
+```
+
+These three forms share one expected-aware scoring family. This applies to
+isolated words and matching tokens embedded in phrases, sentences, passages,
+and spoken comprehension answers. It never rewrites CSV content, displayed
+text, Mu's raw transcript, or the canonical final transcript. Middle `e` and
+`i`, different consonant frames, and irregular spellings remain outside the
+family.
+
 ## Consonant Cluster, Digraph, And Multigraph Rule
 
 ### Definitions

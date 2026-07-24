@@ -526,6 +526,12 @@
   gap: 0.4rem;
 }
 
+.assessment-result__segments--centered-pair {
+  width: min(100%, 15rem);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-content: center;
+}
+
 .assessment-result__segments > div {
   display: grid;
   min-width: 0;
