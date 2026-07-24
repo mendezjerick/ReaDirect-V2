@@ -578,3 +578,185 @@
   transform: translateX(-50%);
   text-align: center;
 }
+
+.assessment-comprehension-choices button[data-choice-state="wrong"] {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  box-shadow: 0 3px 0 var(--color-danger);
+  opacity: 0.72;
+}
+
+.assessment-comprehension-choices button[data-choice-state="correct"] {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  box-shadow: 0 4px 0 var(--color-success);
+}
+
+.lesson-six-item {
+  display: grid;
+  width: min(100%, 38rem);
+  place-items: center;
+  gap: clamp(0.65rem, 2vh, 1.1rem);
+  text-align: center;
+}
+
+.lesson-six-item__question-kind {
+  border: 2px solid var(--color-action-primary);
+  border-radius: var(--radius-pill);
+  padding: 0.3rem 0.75rem;
+  color: var(--color-text-on-action);
+  background: var(--color-action-primary);
+  box-shadow: 0 3px 0 var(--color-action-primary-depth);
+  font-size: var(--font-support);
+  text-transform: uppercase;
+}
+
+.lesson-six-item p,
+.lesson-six-item h2 {
+  margin: 0;
+}
+
+.lesson-six-item p {
+  width: 100%;
+  border: 2px solid var(--color-border-soft);
+  border-radius: var(--radius-panel);
+  padding: clamp(0.8rem, 2.3vh, 1.25rem);
+  color: var(--color-text-primary);
+  background: var(--color-surface-panel);
+  box-shadow: 0 5px 0 var(--color-frame-depth);
+  font-family: var(--font-reading-family);
+  font-size: clamp(1.35rem, 5.8vw, 2.35rem);
+  line-height: 1.35;
+}
+
+.lesson-six-item mark {
+  border-radius: var(--radius-small);
+  padding-inline: 0.12em;
+  color: var(--color-text-primary);
+  background: var(--color-warning-soft);
+  box-shadow: inset 0 -0.16em 0 var(--color-accent-sun);
+}
+
+.lesson-six-item h2 {
+  color: var(--color-text-primary);
+  font-family: var(--font-reading-family);
+  font-size: clamp(1.5rem, 6.4vw, 2.5rem);
+  line-height: 1.25;
+}
+
+.lesson-six-item[data-support-level="targeted_clue"]
+  .lesson-six-item__question-kind,
+.lesson-six-item[data-support-level="guided_display"] mark,
+.lesson-six-item[data-support-level="demonstration"] mark {
+  animation: lesson-support-focus 0.9s ease-in-out infinite alternate;
+}
+
+.lesson-six-completion {
+  display: grid;
+  width: min(100%, 38rem);
+  place-items: center;
+  gap: clamp(0.55rem, 1.8vh, 0.9rem);
+  text-align: center;
+}
+
+.lesson-six-completion__badge {
+  display: grid;
+  width: clamp(4.25rem, 17vw, 6.25rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 3px solid var(--color-action-primary-depth);
+  border-radius: 50%;
+  color: var(--color-text-on-action);
+  background: var(--color-action-primary);
+  box-shadow: 0 7px 0 var(--color-action-primary-depth);
+  font-size: clamp(2.2rem, 9vw, 3.5rem);
+}
+
+.lesson-six-completion h2,
+.lesson-six-completion p {
+  margin: 0;
+}
+
+.lesson-six-completion h2 {
+  font-size: clamp(1.55rem, 6vw, 2.6rem);
+}
+
+.lesson-six-completion p {
+  color: var(--color-text-secondary);
+  font-family: var(--font-reading-family);
+  font-size: var(--font-body-large);
+}
+
+.lesson-six-completion__path {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(0.25rem, 1.4vw, 0.55rem);
+}
+
+.lesson-six-completion__path span {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-notice);
+  padding: 0.4rem 0.1rem;
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  box-shadow: 0 3px 0 var(--color-frame-depth);
+}
+
+.lesson-six-completion__path strong {
+  font-size: clamp(1.05rem, 4vw, 1.45rem);
+}
+
+.lesson-six-completion__path small {
+  font-size: clamp(0.48rem, 1.8vw, 0.68rem);
+}
+
+.lesson-six-completion__achievement {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-panel);
+  padding: 0.55rem 0.8rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface-notice);
+  box-shadow: 0 4px 0 var(--color-frame-depth);
+}
+
+.lesson-six-completion__achievement > span {
+  display: grid;
+  width: 2.6rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-text-on-action);
+  background: var(--color-action-primary);
+  font-size: 1.4rem;
+}
+
+.lesson-six-completion__achievement div {
+  display: grid;
+  justify-items: start;
+}
+
+.lesson-six-completion__achievement small {
+  color: var(--color-text-secondary);
+  font-size: var(--font-support);
+  text-transform: uppercase;
+}
+
+@media (max-width: 47.999rem) {
+  .lesson-six-page .assessment-item-panel:not(.assessment-item-panel--result) {
+    min-height: clamp(12.5rem, 27svh, 15rem);
+  }
+
+  .lesson-six-page .assessment-recorder-panel {
+    width: 94%;
+    min-height: clamp(10.5rem, 22svh, 13rem);
+  }
+}

@@ -58,7 +58,7 @@ final class LearnerTtsTest extends TestCase
         $token = $this->createLearnerSession();
         $definitions = $this->speechDefinitions();
 
-        $this->assertCount(205, $definitions);
+        $this->assertCount(252, $definitions);
         foreach ($definitions as $speechKey => $definition) {
             $this->assertStringNotContainsString(
                 '!',
@@ -182,6 +182,60 @@ final class LearnerTtsTest extends TestCase
             ->assertServiceUnavailable();
 
         Http::assertNothingSent();
+    }
+
+    public function test_lesson_six_item_lines_match_the_authoritative_csv(): void
+    {
+        $path = dirname(__DIR__, 4)
+            .'/content/lessons/v1/lesson-6-comprehension.csv';
+        $handle = fopen($path, 'rb');
+        $header = fgetcsv($handle);
+        $expectedKeys = [];
+
+        while (($values = fgetcsv($handle)) !== false) {
+            $row = array_combine($header, $values);
+            $slug = str_replace(
+                'lesson-v1-comprehension-',
+                '',
+                $row['content_id'],
+            );
+            $expected = [
+                "lesson-6-question-{$slug}" => $row['question_audio_text'],
+                "lesson-6-guided-{$slug}" => trim(
+                    "{$row['guided_clue']} {$row['question_audio_text']}",
+                ),
+                "lesson-6-demo-{$slug}" => $row['demonstration_text'],
+                "lesson-6-correct-{$slug}" => $row[
+                    'correct_feedback_text'
+                ],
+            ];
+
+            foreach ($expected as $speechKey => $text) {
+                $expectedKeys[] = $speechKey;
+                $this->assertSame(
+                    $text,
+                    config("speech.clara_lines.{$speechKey}.text"),
+                    "Lesson 6 speech is misaligned for {$speechKey}.",
+                );
+            }
+        }
+        fclose($handle);
+
+        $configuredItemKeys = collect(config('speech.clara_lines'))
+            ->keys()
+            ->filter(
+                fn (string $key): bool => preg_match(
+                    '/^lesson-6-(question|guided|demo|correct)-/',
+                    $key,
+                ) === 1,
+            )
+            ->values()
+            ->all();
+
+        $this->assertSame(
+            collect($expectedKeys)->sort()->values()->all(),
+            collect($configuredItemKeys)->sort()->values()->all(),
+        );
     }
 
     /** @return array<string, array{text: string, reference: string, path?: string}> */

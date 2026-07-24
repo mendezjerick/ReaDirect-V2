@@ -447,6 +447,10 @@ prohibited unless a future validated acoustic subsystem supports it.
 
 Comprehension diagnosis must use author-supplied answer roles.
 
+Required Lesson 6 uses authored four-choice comprehension. It does not infer
+meaning from free speech or call Mu. The learner's committed selected choice is
+compared with the server-owned correct choice key.
+
 Approved role mapping:
 
 | Question family | Expected answer role |
@@ -475,6 +479,19 @@ Clara may say:
 The sentence may highlight `Rosa` only at the stronger scaffold level defined
 by the authored item. The system must not invent semantic roles from arbitrary
 text when the content record does not define them.
+
+Lesson 6 choice support escalates in this exact order:
+
+1. `targeted_clue`: remind the learner what the current 5W family asks for
+   without highlighting the answer.
+2. `guided_display`: highlight only the authored evidence span and direct the
+   learner to inspect it.
+3. `demonstration`: highlight the authored correct choice and explain its
+   connection to the sentence.
+
+Each committed wrong choice is disabled for that item. The learner must still
+select and submit the demonstrated correct choice. Assessment Task 3B shares
+the base choice grid only and must never receive these teaching states.
 
 ## Content Authoring Requirements
 

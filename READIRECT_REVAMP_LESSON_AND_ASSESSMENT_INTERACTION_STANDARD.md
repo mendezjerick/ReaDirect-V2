@@ -766,7 +766,7 @@ Lena has a small plant. She waters it every morning. The plant grows beside her 
 
 ### Lesson 6 — Comprehension
 
-#### Mission 1 — Five-question spoken comprehension
+#### Mission 1 — Five-question choice comprehension
 
 This is the only required mission in Lesson 6.
 
@@ -784,14 +784,14 @@ Each question uses a different simple sentence. The required per-item flow is:
 
 ```text
 One sentence is displayed
-    -> learner reads the sentence when required by the lesson item
-    -> Ma'am Clara asks one question through audio
+    -> Ma'am Clara asks one question through published audio
     -> the sentence remains visible
-    -> the answer is not displayed
-    -> learner records a spoken answer
-    -> learner reviews and submits
-    -> Mu transcribes the answer
-    -> accepted-answer comparison runs
+    -> four authored choices are displayed
+    -> learner selects one choice
+    -> learner explicitly submits
+    -> Laravel compares the selected choice key
+    -> correct answers enter feedback and Next
+    -> wrong answers remain on the item and activate Clara support
 ```
 
 Example:
@@ -799,18 +799,30 @@ Example:
 ```text
 Displayed sentence: Lena waters the plant.
 Clara audio: Who waters the plant?
-Expected answer: Lena
+Correct choice: Lena
 ```
 
 A short question-type token such as `WHO?` may be displayed. Clara's complete
 spoken question must not be duplicated as a permanent dialogue box.
 
-The hidden expected answer and accepted variants remain server-owned scoring
-data. Natural variants such as `Lena`, `It is Lena`, and `Lena does` may be
-accepted when the lesson item defines them.
+The hidden correct choice key, evidence span, answer role, and support text
+remain server-owned authored data. Lesson 6 has no learner recording, Mu
+request, transcript, pronunciation equivalence, or runtime-generated answer
+feedback.
 
 After a committed correct result, the relevant answer portion of the sentence
 may be highlighted as feedback. It must not be highlighted before submission.
+
+Wrong choices do not finalize the lesson item. Clara escalates deterministically:
+
+1. First wrong choice: a question-family reminder with no answer reveal.
+2. Second wrong choice: the authored evidence span is highlighted.
+3. Third wrong choice: the correct choice and evidence are demonstrated.
+
+Every committed wrong choice is disabled for the remainder of that item. The
+learner still selects and submits the correct choice after demonstration. The
+terminal outcome records whether the item was completed independently, with
+support, after demonstration, or by Skip.
 
 ## Explicit Lesson Interaction Examples
 
@@ -1039,12 +1051,12 @@ Interaction:
 - After result processing, post-reading feedback may identify confirmed
   transcript alignment without adding fluency or timing scores.
 
-### Lesson 6, Mission 1 — Five-question comprehension interaction
+### Lesson 6, Mission 1 — Five-question choice comprehension interaction
 
 This mission contains five sentence-and-answer items. Each item uses a different
 sentence and one question type.
 
-| Item | Token | Displayed sentence | Clara's audio question | Hidden expected answer examples |
+| Item | Token | Displayed sentence | Clara's audio question | Authored correct choice |
 |---:|---|---|---|---|
 | 1 | `WHO?` | Lena waters the plant. | Who waters the plant? | Lena |
 | 2 | `WHAT?` | Marco carries a red bag. | What does Marco carry? | a red bag; red bag; bag |
@@ -1060,8 +1072,8 @@ Ready screen example:
 │                                │
 │     Lena waters the plant.     │
 │                                │
-│              ◯                 │
-│            RECORD              │
+│ [A] Lena        [B] Rosa       │
+│ [C] Mia         [D] Ben        │
 │                                │
 │ Clara       Submit       Skip  │
 └────────────────────────────────┘
@@ -1073,12 +1085,20 @@ Interaction:
 2. The short question-type token appears.
 3. Clara asks the complete question through audio.
 4. The question is not duplicated as a permanent dialogue paragraph.
-5. The sentence remains visible while the learner records the answer.
-6. The answer is reviewed and explicitly submitted.
-7. Mu transcribes before hidden accepted-answer comparison.
-8. Before submission, no word is emphasized in a way that reveals the answer.
+5. Four authored choices use the shared assessment comprehension grid.
+6. The learner selects one choice and explicitly submits it.
+7. Laravel compares only the server-owned choice key; Lesson 6 never calls Mu.
+8. Before the first submission, no word or choice is emphasized in a way that
+   reveals the answer.
 9. After committed correct lesson feedback, the answer-bearing part may be
    raised or highlighted.
+10. A wrong choice remains practice evidence, is disabled, and activates
+    authored Clara support without advancing the item.
+11. First support reminds the learner what the 5W family asks for. Second
+    support highlights the authored evidence span. Third support demonstrates
+    the correct choice.
+12. Even after demonstration, the learner must select and submit the correct
+    choice. Skip remains available and resolves the item without a false score.
 
 Post-result example:
 
@@ -1086,9 +1106,8 @@ Post-result example:
 [Lena] waters the plant.
 ```
 
-Incorrect or uncertain feedback must not reveal the expected answer unless a
-separate reviewed teaching rule explicitly authorizes that support after the
-scored result.
+The assessment remains neutral and must not inherit these lesson-only feedback
+states. Only the base four-choice component is shared.
 
 ## Lesson Motivation Without Images
 
@@ -1211,7 +1230,8 @@ It must not imply that the score selected a lesson route.
 
 ### Task 3B — Comprehension Check
 
-Assessment Task 3B is distinct from Lesson 6 spoken comprehension.
+Assessment Task 3B is a fixed evaluation and remains distinct from the
+supported four-choice comprehension practice in Lesson 6.
 
 - Preserve five questions.
 - Load only the five questions linked to the confirmed story. The shared CSV

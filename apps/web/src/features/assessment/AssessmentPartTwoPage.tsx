@@ -20,6 +20,7 @@ import { ClaraStage } from "../intro/ClaraStage";
 import { PassageReadingResult } from "../learner-activity/PassageReadingResult";
 import { PointerTrail } from "../intro/PointerTrail";
 import { VectorCursor } from "../intro/VectorCursor";
+import { ComprehensionChoiceGrid } from "../learner-activity/ComprehensionChoiceGrid";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 
 import {
@@ -618,20 +619,14 @@ export function AssessmentPartTwoPage() {
               onAudioAction={() => playbackRef.current?.stop()}
             />
           ) : state.item?.kind === "comprehension" ? (
-            <div className="assessment-comprehension-choices">
-              {state.item.choices.map((choice) => (
-                <button
-                  key={choice.key}
-                  type="button"
-                  data-selected={selectedChoice === choice.key || undefined}
-                  disabled={unavailable}
-                  onClick={() => setSelectedChoice(choice.key)}
-                >
-                  <span>{choice.key.toUpperCase()}</span>
-                  <strong>{choice.text}</strong>
-                </button>
-              ))}
-            </div>
+            <ComprehensionChoiceGrid
+              choices={state.item.choices}
+              selectedChoice={selectedChoice}
+              unavailable={unavailable}
+              onSelect={(choice) =>
+                setSelectedChoice(choice as ComprehensionChoice)
+              }
+            />
           ) : null}
         </section>
       ) : null}

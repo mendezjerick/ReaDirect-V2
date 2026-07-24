@@ -479,6 +479,26 @@ mission tiles stamp into place
 Repeating a completed lesson still shows its completion page but does not replay
 an already acknowledged achievement as newly earned.
 
+### Required Lessons Complete Variant
+
+Lesson 6 completion uses a specialized variant of the shared Lesson Complete
+page because it also marks completion of the six-lesson sequence.
+
+Required settled content:
+
+- Hero message: `You finished all six reading lessons.`.
+- Six fixed lesson tiles in canonical order. The first five are already settled;
+  the sixth stamps into place last.
+- Ma'am Clara in `happy + speaking` for one short published praise line.
+- The shared `Question Detective` achievement presentation when newly earned.
+- A clear confirmation that the Final Assessment is now ready.
+- Primary action: `Back to my reading path`.
+
+The completion transaction must atomically complete Lesson 6, grant
+`reading.question_detective`, and change progression to the Final Assessment
+stage before this page renders. This page is not the Reading Journey Finale and
+must not present ReaDirect Champion or an eight-of-eight collection.
+
 ## Assessment Complete Contract
 
 The Diagnostic completion page confirms:

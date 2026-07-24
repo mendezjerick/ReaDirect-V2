@@ -107,6 +107,53 @@ final class LessonContentCatalog
         );
     }
 
+    /** @return array<string, list<array<string, string>>> */
+    public function lessonSixSnapshot(int $learnerId): array
+    {
+        $rows = $this->readComprehension();
+        $scope = 'required.lesson-6.comprehension-targets';
+        [$cycle, $used] = $this->exposureState($learnerId, $scope);
+        $questionTypes = ['who', 'what', 'where', 'when', 'why'];
+
+        $select = function (array $pool) use ($questionTypes): array {
+            $selection = [];
+            foreach ($questionTypes as $questionType) {
+                $candidates = array_values(array_filter(
+                    $pool,
+                    fn (array $row): bool => $row['question_type'] === $questionType,
+                ));
+                shuffle($candidates);
+                if ($candidates === []) {
+                    return [];
+                }
+                $selection[] = $candidates[0];
+            }
+
+            return $selection;
+        };
+
+        $available = array_values(array_filter(
+            $rows,
+            fn (array $row): bool => ! in_array($row['target_key'], $used, true),
+        ));
+        $selection = $select($available);
+
+        if (count($selection) !== 5) {
+            $cycle++;
+            $selection = $select($rows);
+        }
+
+        if (count($selection) !== 5) {
+            throw new RuntimeException(
+                'Lesson 6 requires one active item for every 5W question family.',
+            );
+        }
+
+        $this->recordExposures($learnerId, $scope, $cycle, $selection);
+
+        return ['mission-1' => $selection];
+    }
+
     /**
      * @param  list<array<string, string>>  $rows
      * @return array<string, list<array<string, string>>>
@@ -182,6 +229,15 @@ final class LessonContentCatalog
         return $this->readActiveRows(
             '../../content/lessons/v1/lesson-5-passages.csv',
             'Lesson 5',
+        );
+    }
+
+    /** @return list<array<string, string>> */
+    private function readComprehension(): array
+    {
+        return $this->readActiveRows(
+            '../../content/lessons/v1/lesson-6-comprehension.csv',
+            'Lesson 6',
         );
     }
 

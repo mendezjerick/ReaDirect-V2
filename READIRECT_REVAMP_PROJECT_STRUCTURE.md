@@ -363,11 +363,12 @@ apps/api/database/seeders/CvcVowelEquivalenceSeeder.php
 The catalog derives deduplicated global-token `a/o/u` middle-vowel
 substitutions from the active Mu content registry. The seeder persists each
 token pair once, and the resolver applies it word-by-word to isolated words,
-phrases, sentences, passages, and spoken comprehension answers while preserving
-raw ASR evidence. The seed remains idempotent across content revisions.
+phrases, sentences, and passages while preserving raw ASR evidence. Lesson 6
+choice comprehension never enters this resolver. The seed remains idempotent
+across content revisions.
 
 System Administrator Page Portals currently resolve persisted Diagnostic and
-Lesson 1 through Lesson 5 checkpoints through
+Lesson 1 through Lesson 6 checkpoints through
 `LearnerPortalLaunchService`. Lesson destinations create Kristen's completed
 Diagnostic prerequisite and Ready Reader first. Lesson 2 destinations also
 create her completed Lesson 1 prerequisite and Letter Leader before the
@@ -378,6 +379,9 @@ Lesson 3 and Phrase Pro before creating the selected `required-lesson-4` run,
 then navigate to the matching versioned lesson route. Lesson 5 destinations
 additionally persist completed Lesson 4 and Sentence Star before opening the
 passage item, dedicated passage review, or Passage Explorer completion state.
+Lesson 6 destinations additionally persist completed Lesson 5 and Passage
+Explorer before opening the selected comprehension support checkpoint or the
+all-lessons completion state.
 The learner page reloads that exact snapshot through the normal lesson API.
 Portal-only prerequisites remain in normal
 assessment and lesson tables with explicit evidence and no fabricated audio.

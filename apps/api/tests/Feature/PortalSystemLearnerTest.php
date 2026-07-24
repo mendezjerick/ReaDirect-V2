@@ -75,7 +75,7 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('learner.analytics_excluded', true)
             ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
             ->assertJsonPath('portal_launch.available', true)
-            ->assertJsonCount(24, 'portal_launch.targets');
+            ->assertJsonCount(29, 'portal_launch.targets');
     }
 
     public function test_kw000_can_use_normal_case_insensitive_learner_login(): void
@@ -534,6 +534,72 @@ final class PortalSystemLearnerTest extends TestCase
                 $state
                     ->assertJsonPath('passage_review.review_available', true)
                     ->assertJsonPath('passage_review.reading_accuracy_percent', 100);
+            }
+        }
+    }
+
+    public function test_system_admin_can_launch_each_lesson_six_checkpoint(): void
+    {
+        (new PortalSystemLearnerSeeder)->run();
+        $learner = Learner::query()->where('learner_code', 'KW000')->firstOrFail();
+        $systemAdministrator = $this->createSystemAdministrator();
+        $targets = [
+            'lesson-6-mission-1' => ['active', 0, null],
+            'lesson-6-targeted-clue' => ['active', 1, 'targeted_clue'],
+            'lesson-6-guided' => ['active', 1, 'guided_display'],
+            'lesson-6-demonstration' => ['active', 1, 'demonstration'],
+            'lesson-6-complete' => ['completed', 5, null],
+        ];
+
+        foreach ($targets as $targetKey => [$status, $responseCount, $support]) {
+            $launch = $this->postJson(
+                "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
+                ['target_key' => $targetKey],
+            )
+                ->assertOk()
+                ->assertJsonPath(
+                    'launch.route',
+                    fn (string $route): bool => str_starts_with(
+                        $route,
+                        '/learner/lessons/6?run=',
+                    ),
+                )
+                ->assertJsonPath(
+                    'launch.learner_session.learner.progress.current_required_lesson_order',
+                    6,
+                );
+
+            $run = LessonRun::query()
+                ->where('learner_id', $learner->id)
+                ->where('lesson_key', 'required-lesson-6')
+                ->firstOrFail();
+            $this->assertSame($status, $run->status);
+            $this->assertSame(
+                $responseCount,
+                LessonResponse::query()
+                    ->where('lesson_run_id', $run->id)
+                    ->count(),
+            );
+
+            $state = $this->withToken(
+                $launch->json('launch.learner_session.token'),
+            )
+                ->get("/api/learners/lessons/lesson-6/{$run->id}")
+                ->assertOk()
+                ->assertJsonPath('status', $status);
+
+            if ($support !== null) {
+                $state->assertJsonPath(
+                    'response.assistance_level',
+                    $support,
+                );
+            } elseif ($status === 'completed') {
+                $state
+                    ->assertJsonPath(
+                        'completion.achievement_name',
+                        'Question Detective',
+                    )
+                    ->assertJsonCount(6, 'completion.lessons');
             }
         }
     }

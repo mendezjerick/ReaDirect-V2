@@ -1079,6 +1079,19 @@ line; speed does not affect the band. The selected line plays on Passage Review
 and must finish before `Next` becomes available. Lesson 5 has no dynamic
 feedback request or runtime Vox warm-up.
 
+### Required published Lesson 6 speech
+
+Lesson 6 is fully published choice comprehension. Its catalog contains the
+mission instruction, five position-aware question families for every active
+content variant, five question-family reminders, authored guided clues,
+authored demonstrations, authored correct-feedback lines, and the all-lessons
+completion line.
+
+Every Lesson 6 line is known from the locked content snapshot. Lesson 6 has no
+runtime Vox profile, no learner-transcript speech, and no TTS warm-up. Wrong
+choices select a published support key deterministically from the server-owned
+attempt and scaffold state.
+
 ## Published-Speech Generation Lifecycle
 
 Published audio uses VoxCPM2 during development or controlled content
