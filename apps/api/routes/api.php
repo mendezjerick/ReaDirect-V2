@@ -5,6 +5,7 @@ use App\Http\Controllers\LearnerAssessmentPartTwoController;
 use App\Http\Controllers\LearnerAuthController;
 use App\Http\Controllers\LearnerClaraListeningController;
 use App\Http\Controllers\LearnerLessonOneController;
+use App\Http\Controllers\LearnerLessonTwoController;
 use App\Http\Controllers\LearnerTtsController;
 use App\Http\Controllers\SchoolAdministratorController;
 use App\Http\Controllers\SchoolAdminTeacherController;
@@ -56,6 +57,7 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/tts/activity-readiness', [LearnerTtsController::class, 'activityReadiness']);
     Route::post('/tts/speech/{speechKey}', [LearnerTtsController::class, 'speech']);
     Route::post('/tts/lesson-feedback/{lessonResponse}', [LearnerTtsController::class, 'lessonFeedback']);
+    Route::post('/tts/lesson-demonstration/{lessonResponse}', [LearnerTtsController::class, 'lessonDemonstration']);
     Route::post('/learn-with-clara/lesson-1/start', [LearnerClaraListeningController::class, 'start']);
     Route::post('/learn-with-clara/lesson-1/advance', [LearnerClaraListeningController::class, 'advance']);
     Route::post('/learn-with-clara/lesson-1/restart', [LearnerClaraListeningController::class, 'restart']);
@@ -65,6 +67,12 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/lessons/lesson-1/{lessonRun}/continue-support', [LearnerLessonOneController::class, 'continueSupport']);
     Route::post('/lessons/lesson-1/{lessonRun}/skip', [LearnerLessonOneController::class, 'skip']);
     Route::post('/lessons/lesson-1/{lessonRun}/advance', [LearnerLessonOneController::class, 'advance']);
+    Route::post('/lessons/lesson-2/start', [LearnerLessonTwoController::class, 'start']);
+    Route::get('/lessons/lesson-2/{lessonRun}', [LearnerLessonTwoController::class, 'show']);
+    Route::post('/lessons/lesson-2/{lessonRun}/submit', [LearnerLessonTwoController::class, 'submit']);
+    Route::post('/lessons/lesson-2/{lessonRun}/continue-support', [LearnerLessonTwoController::class, 'continueSupport']);
+    Route::post('/lessons/lesson-2/{lessonRun}/skip', [LearnerLessonTwoController::class, 'skip']);
+    Route::post('/lessons/lesson-2/{lessonRun}/advance', [LearnerLessonTwoController::class, 'advance']);
     Route::post('/assessments/part-one/start', [LearnerAssessmentPartOneController::class, 'start']);
     Route::get('/assessments/part-one/{assessmentRun}', [LearnerAssessmentPartOneController::class, 'show']);
     Route::post('/assessments/part-one/{assessmentRun}/orientation', [LearnerAssessmentPartOneController::class, 'submitOrientation']);

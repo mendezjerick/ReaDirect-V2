@@ -19,7 +19,6 @@ export const CLARA_TEACHING_BEHAVIORS = [
 export const CLARA_PRESENTATION_CUES = [
   "none",
   "question_mark",
-  "blush",
 ] as const;
 
 export type ClaraEmotion = (typeof CLARA_EMOTIONS)[number];

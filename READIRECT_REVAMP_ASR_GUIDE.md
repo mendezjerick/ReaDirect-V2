@@ -488,8 +488,9 @@ General-content fixture rules use these constraints:
 - A `token_alias` must contain two different normalized single-word values and
   must never be global.
 - Duplicate observations across the four voices reuse one rule.
-- If the recognized token is another valid standalone curriculum target, the
-  rule is retained but disabled for administrator review.
+- A known-correct substitution remains active even when the recognized token
+  is another standalone curriculum target. Expected-item scope prevents that
+  evidence from changing an unrelated item.
 - Insertions and omissions remain recorded differences. They do not
   automatically become equivalences.
 - Phrases, sentences, and passages must not create unrestricted global word
@@ -497,11 +498,10 @@ General-content fixture rules use these constraints:
 
 The current baseline contains 464 recorded submissions: 116 from each voice.
 Mu returned 403 raw exact matches and 61 mismatching transcripts. The
-mismatches produced 32 unique item-scoped token rules; one is disabled for
-administrator review because its recognized token is another valid curriculum
-target. Seven insertion or omission differences remain evidence-only.
+mismatches produced 32 unique active item-scoped token rules. Seven insertion
+or omission differences remain evidence-only.
 
-The audit version is `four-voice-item-token-v2`. The raw confusion matrix also
+The audit version is `four-voice-item-token-v3`. The raw confusion matrix also
 accepts the original `two-voice-item-token-v1` attempt records so the first 232
 observations remain part of the same evidence history rather than being
 duplicated.
@@ -515,6 +515,41 @@ services\asr\.venv\Scripts\python.exe services\asr\scripts\audit-content-fixture
 Its checkpoint and evidence summary live in
 `services/asr/fixtures/content/fixture-equivalence-audit.json`. Re-running the
 command skips completed audio hashes rather than producing duplicate attempts.
+
+### Philippine-English CVC Middle-Vowel Family
+
+For authored regular CVC tokens, ReaDirect intentionally treats the short
+middle vowels spelled `a`, `o`, and `u` as one inclusive scoring family when
+the first and final consonants are identical:
+
+```text
+cat <-> cot <-> cut
+cap <-> cop <-> cup
+hat <-> hot <-> hut
+```
+
+This is a scoring policy for Philippine-English learner speech and Mu
+false-negative tolerance. It does not declare the words semantically
+interchangeable. The rule is reciprocal, but every generated `token_alias`
+remains attached to an authored runtime item key so the active expected item
+continues to control the canonical final transcript.
+
+Hard boundaries:
+
+- Only ASCII tokens matching a regular `CVC` frame qualify.
+- Both outside letters must be consonants and must match exactly.
+- Only the middle family `{a, o, u}` is interchangeable.
+- `e` and `i` remain distinct from each other and from `{a, o, u}`.
+- Irregular three-letter spellings do not qualify merely because their text has
+  three characters.
+
+`CvcVowelEquivalenceCatalog` scans every active Mu target exposed by
+`SpeechContentCatalog`, including tokens inside phrases, sentences, passages,
+and Lesson 6 spoken answers. `CvcVowelEquivalenceSeeder` currently produces
+208 deterministic item-aware aliases across the Version 1 corpus. Re-running
+the seeder is idempotent, disables stale system-generated aliases, and
+reactivates known-correct fixture rules that were disabled only because their
+recognized token was another curriculum target.
 
 ### Raw Confusion Matrix
 

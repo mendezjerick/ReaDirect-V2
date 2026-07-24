@@ -13,10 +13,12 @@ standards.
 
 Implementation status: published catalog delivery is active for Lesson Intro,
 all 32 fixed Part 1 assessment lines, all 14 fixed Part 2 and assessment
-completion lines, and 51 fixed Lesson 1 lines. PostgreSQL holds one published
-`clara-sh-v1` voice version and 98 speech metadata rows; Laravel verifies and
+completion lines, 51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, and 13
+published `Learn with Ma'am Clara` lines. PostgreSQL holds one published
+`clara-sh-v1` voice version and 130 speech metadata rows; Laravel verifies and
 returns their private WAVs without calling VoxCPM2. Response-owned dynamic
-final-transcript feedback is active for Lesson 1 and is ordered by the
+final-transcript feedback is active for Lessons 1 and 2. Lesson 2 also uses a
+response-owned target-word demonstration. Both are ordered by the
 server-authored support presentation.
 
 ## Approved Runtime Stack
@@ -48,6 +50,20 @@ An NVIDIA GPU is preferred for responsive generation. The adapter automatically
 uses CUDA when PyTorch reports it as available and otherwise falls back to CPU.
 CPU execution is supported by the code but can make first-time and uncached
 generation substantially slower.
+
+## Stable Punctuation Rule
+
+Exclamation marks are prohibited in every line synthesized for Ma'am Clara.
+This applies equally to published lines, runtime feedback, demonstrations,
+greetings, results, and future speech features. Use a period for an affirmative
+or celebratory sentence and a question mark only for a genuine question.
+
+The canonical speech catalog must contain no `!` characters. Its seeder and
+generation script reject noncompliant published text. The Vox service also
+converts any exclamation-mark run reaching the synthesis boundary into one
+period, which protects dynamic lines containing unexpected punctuation from a
+saved transcript. This boundary normalization is a safeguard, not permission
+to author exclamation marks.
 
 ## Hybrid Delivery Model
 
@@ -98,6 +114,14 @@ For isolated-letter feedback, the saved final transcript remains the canonical
 letter, such as `A`. Laravel converts only the spoken rendering through
 `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`, so Vox receives
 `You said ei.` while scoring and persistence continue to use `A`.
+
+For Lesson 2 word feedback, Laravel speaks the committed final resolved
+transcript through `You said {final_transcript}.`. Accepted equivalences
+therefore speak the canonical target; an incorrect but usable response speaks
+what Mu and the equivalence resolver committed. Lesson 2 demonstration text
+uses the server-owned hidden target from the immutable run snapshot:
+`The word is {target}. Listen: {target}. Now you try.`. The browser cannot
+supply either substitution.
 
 ### Runtime ownership and request boundaries
 
@@ -467,6 +491,9 @@ Current implementation:
   group, profile, or speech key from the browser.
 - Part 1 and Part 2 currently declare no runtime profiles. Lesson 1 declares
   only `result` while final-transcript feedback remains dynamic.
+- Lesson 2 declares `result` for final-transcript feedback and `instruction`
+  for target-word demonstrations. Lesson Intro must prepare both before its
+  Continue action becomes available.
 - `Learn with Ma'am Clara` Lesson 1 declares the published-only
   `learn-with-clara-lesson-1-fixed` group and no runtime profiles. Its current
   Chapter 1 catalog contains three time-aware greetings, five letter-pair
@@ -852,20 +879,23 @@ omits a requested profile returns HTTP `503` and keeps `ready: false`.
 
 | Speech key | Text | Reference role |
 | --- | --- | --- |
-| `lesson-intro` | Hi! I am happy you are here. Let us get ready to read together! | `introduce` |
+| `lesson-intro` | Hi. I am happy you are here. Let us get ready to read together. | `introduce` |
 | `lesson-1-mission-1` | Look at the big letter and the small letter. Say their letter name. | `instruction` |
 | `lesson-1-mission-2` | Find the first letter in the word. Say its letter name. | `instruction` |
 | `lesson-1-mission-3` | Find the missing first letter. Say the letter that completes the word. | `instruction` |
-| `lesson-1-complete` | Lesson one is complete. You are a Letter Leader! | `result` |
+| `lesson-1-complete` | Lesson one is complete. You are a Letter Leader. | `result` |
+| `lesson-2-mission-1` | Read the word you see. Say the whole word. | `instruction` |
+| `lesson-2-mission-2` | Look at the sentence. Find the highlighted word, then say that word. | `instruction` |
+| `lesson-2-complete` | Lesson two is complete. You are a Word Wizard. | `result` |
 | `assessment-orientation` | Let us check your microphone. Say ready, then listen to your recording. | `instruction` |
 | `assessment-letters` | Say the letter you see. Listen to your voice before you submit. | `instruction` |
 | `assessment-rhymes` | Look at both words. Choose yes if they rhyme, or no if they do not. | `question` |
 | `assessment-words` | Read the word you see. Listen to your voice before you submit. | `instruction` |
-| `assessment-part-one-result` | Part one is complete. You worked hard, and I am proud of you! | `result` |
+| `assessment-part-one-result` | Part one is complete. You worked hard, and I am proud of you. | `result` |
 | `assessment-story-choice` | Choose the story you want to read. You can pick Lena at the Park or Rosa in the Garden. | `question` |
 | `assessment-passage` | Read the story aloud. You have one minute. You can submit when you finish. | `instruction` |
 | `assessment-part-two-result` | Part two is complete. You finished reading and understanding the story. | `result` |
-| `assessment-complete` | Assessment complete! Your first lesson is ready. | `result` |
+| `assessment-complete` | Assessment complete. Your first lesson is ready. | `result` |
 
 Task 3B has ten additional published keys, five for each selectable story:
 `assessment-comprehension-lena-item-1` through `-5` and
@@ -925,6 +955,30 @@ unstable high-pitch candidate during review.
 Every fixed key and family above is finite and known in advance. All must be
 pre-generated, reviewed, and published; none qualifies for learner-session
 generation. Only response-owned final-transcript rendering remains dynamic.
+
+### Required published Lesson 2 speech
+
+The first item of each Lesson 2 mission uses its full instruction. Positions 2
+through 5 use the following published ordinal templates:
+
+| Mission | Text template | Reference role |
+| --- | --- | --- |
+| Mission 1 | `Now, read the {ordinal} word.` | `instruction` |
+| Mission 2 | `Now, find and read the {ordinal} highlighted word.` | `instruction` |
+
+The fixed Lesson 2 support catalog contains:
+
+- `lesson-2-technical-retry`
+- `lesson-2-clue-mission-1` and `lesson-2-clue-mission-2`
+- `lesson-2-feedback-independent`
+- `lesson-2-feedback-supported`
+- `lesson-2-feedback-demonstrated`
+- `lesson-2-feedback-not-yet`
+- `lesson-2-feedback-unscorable`
+
+The 3 mission/completion lines, 8 ordinal cues, and 8 fixed support lines total
+19 published Lesson 2 lines. The target-word demonstration is deliberately not
+one of them because its selected target is run-specific.
 
 ## Published-Speech Generation Lifecycle
 
@@ -1213,7 +1267,10 @@ requiring production pages to know reference paths.
    approved reference role, and voice version. Configuration or seed data may
    supply the authoring definition, but the published database row is the
    runtime authority.
-2. Generate a candidate WAV through the controlled publication tool.
+2. Generate a candidate WAV through the controlled publication tool. For
+   configured prefix families, run
+   `php scripts/generate-published-tts-lines.php <prefix> --force` from
+   `apps/api/`. The current Lesson 2 family uses the prefix `lesson-2-`.
 3. Run automated audio validation and complete human listening review.
 4. Copy the approved WAV to the private catalog storage disk and record its
    checksum and duration.

@@ -56,7 +56,7 @@ describe("Lesson 1 Clara presentation", () => {
     ).toEqual({
       emotion: "happy",
       behavior: "celebrating",
-      cue: "blush",
+      cue: "none",
     });
   });
 

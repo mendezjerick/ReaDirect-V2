@@ -34,12 +34,12 @@ This standard does not replace:
 Where those documents define stricter content, assessment, speech, viewport,
 or model rules, the stricter rule wins.
 
-Implementation status: Lesson 1 implements Phase 1 bounded support and the
-approved layered Clara presentation. It persists technical, independent,
-guided, demonstration, echo, terminal, and skip evidence; delivers authored
-support in server-controlled order; and restores the exact state after
-refresh. Phase 2 deterministic recurring-difficulty diagnosis and Phase 3
-skill-evidence review scheduling remain future work.
+Implementation status: Lessons 1 and 2 implement Phase 1 bounded support and
+the approved layered Clara presentation. They persist technical, independent,
+guided, demonstration, echo, terminal, and skip evidence; deliver authored
+support in server-controlled order; and restore the exact state after refresh.
+Phase 2 deterministic recurring-difficulty diagnosis and Phase 3 skill-evidence
+review scheduling remain future work.
 
 ## Core Principle
 
@@ -842,7 +842,8 @@ Available compiled controls include:
 - Cheek and cheek-puff controls
 - Head and body angles
 - Breathing, bounce, and hair movement
-- Sad, angry, blush, dizzy, and question-mark toggles
+- Sad, angry, blush, dizzy, and question-mark parameters exist in the source
+  model, but blush is forced neutral and is not an approved runtime cue
 
 The current approved runtime base emotions remain:
 
@@ -863,14 +864,14 @@ Current implementation:
   teaching parameter. Runtime initialization fails clearly if the compiled
   model does not contain a required parameter.
 - Sad, angry, and dizzy toggles are excluded from the controller.
-- Lesson 1 deterministically uses demonstrating, listening, thinking,
+- Lessons 1 and 2 deterministically use demonstrating, listening, thinking,
   encouraging, gentle-correction, and celebrating presentation states.
 - Demonstration gaze temporarily overrides cursor tracking and then returns
   control to the shared interaction tracker.
 - Reduced motion preserves the communicative facial state and teaching gaze
   while removing celebration bounce.
 
-### Current Lesson 1 bounded-support implementation
+### Current Lesson 1 and Lesson 2 bounded-support implementation
 
 - `lesson_responses` is the persisted item-level teaching state and final
   outcome record.
@@ -886,13 +887,17 @@ Current implementation:
   remain distinct from independent mastery.
 - The API serializes server-derived recording, support-continuation, and
   advancement capabilities so refresh restores the exact state.
-- `LessonOneSupportPresentation` serializes one stable `sequence_key`, an
-  ordered published-or-runtime speech sequence, a display mode, and the only
-  action permitted after speech completion.
-- Mission-specific clues, A-Z letter demonstrations, technical retry language,
-  and terminal outcome feedback are finite published catalog content.
-- Only the committed learner transcript uses response-owned runtime feedback;
-  it plays before the relevant fixed clue or outcome line.
+- `LessonOneSupportPresentation` and `LessonTwoSupportPresentation` each
+  serialize one stable `sequence_key`, an ordered published-or-runtime speech
+  sequence, a display mode, and the only action permitted after speech
+  completion.
+- Mission-specific clues, technical retry language, terminal outcome feedback,
+  and Lesson 1 A-Z demonstrations are finite published catalog content.
+- The committed learner transcript uses response-owned runtime feedback; it
+  plays before the relevant fixed clue or outcome line.
+- Lesson 2 target-word demonstrations are also response-owned runtime speech
+  because the locked word varies by run. Laravel reads the hidden target from
+  the immutable snapshot; the browser never supplies demonstration text.
 - The browser confirms clue or demonstration playback before it requests the
   guarded `continue-support` transition. It never advances teaching state from
   a timer or locally inferred result.
@@ -913,7 +918,7 @@ Current implementation:
 | `encouraging` | Soft smile, raised brows, and a gentle nod |
 | `gentle_correction` | Calm mouth, concerned brows, and no negative reaction |
 | `demonstrating` | Eyes and head orient toward the highlighted item |
-| `celebrating` | Happy face, optional blush, and controlled bounce |
+| `celebrating` | Happy face and controlled bounce |
 
 Speaking remains an independent mouth overlay and is not a base emotion.
 
@@ -934,7 +939,7 @@ Examples:
 encouraging + speaking
 thinking + analyzing
 neutral + listening
-happy + blush + celebration bounce
+happy + celebration bounce
 gentle_correction + speaking
 ```
 
@@ -949,7 +954,7 @@ Priority rules:
    communicative face.
 7. Angry and sad must never respond to a learner's incorrect answer.
 8. Dizzy must not represent ASR uncertainty or learner difficulty.
-9. Blush is reserved for positive celebration.
+9. Blush is prohibited across all Clara expressions and behaviors.
 10. The question mark is reserved for genuine questioning or confusion, not
     punishment.
 

@@ -1,5 +1,5 @@
 {
-  "audit_version": "four-voice-item-token-v2",
+  "audit_version": "four-voice-item-token-v3",
   "fixture_sets": [
     "millie2",
     "millie2-plus",
@@ -4683,8 +4683,8 @@
           "rule_id": 117,
           "expected": "mat",
           "recognized": "map",
-          "is_active": false,
-          "requires_review": true,
+          "is_active": true,
+          "requires_review": false,
           "created": true
         }
       ],
@@ -7159,7 +7159,7 @@
     "raw_exact_attempts": 403,
     "mismatch_attempts": 61,
     "unique_token_rules": 32,
-    "inactive_review_rules": 1,
+    "inactive_review_rules": 0,
     "structural_differences": 7
   }
 }

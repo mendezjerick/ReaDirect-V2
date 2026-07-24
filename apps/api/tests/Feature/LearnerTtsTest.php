@@ -25,7 +25,7 @@ final class LearnerTtsTest extends TestCase
         $audio = 'RIFF-published-lesson-intro';
         $this->publishSpeech(
             'lesson-intro',
-            'Hi! I am happy you are here. Let us get ready to read together!',
+            'Hi. I am happy you are here. Let us get ready to read together.',
             'introduce',
             $audio,
         );
@@ -56,8 +56,13 @@ final class LearnerTtsTest extends TestCase
         $token = $this->createLearnerSession();
         $definitions = $this->speechDefinitions();
 
-        $this->assertCount(111, $definitions);
+        $this->assertCount(130, $definitions);
         foreach ($definitions as $speechKey => $definition) {
+            $this->assertStringNotContainsString(
+                '!',
+                $definition['text'],
+                "Clara speech cannot use exclamation marks: {$speechKey}",
+            );
             $audio = "RIFF-published-{$speechKey}";
             $this->publishSpeech(
                 $speechKey,

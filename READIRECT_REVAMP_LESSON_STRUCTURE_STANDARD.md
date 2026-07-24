@@ -826,6 +826,108 @@ two through five play mission-specific ordinal cues instead of repeating that
 instruction. The cue must identify the second, third, fourth, or fifth item and
 must remain published catalog speech.
 
+The learner UI must render through the same shared activity shell and exact
+four-panel composition as the assessments: mission header, large item,
+separate recorder, and Clara/action dock. Lessons must not create parallel
+page grids, panel measurements, dock measurements, or responsive breakpoints.
+Only the displayed lesson item and its mission-specific entrance animation may
+differ from the assessment composition. Submit receives 80 percent of the
+action height and Skip 20 percent; after submission, the action shows Clara's
+unavailable feedback/listening state. Next appears at full size only after
+Clara finishes speaking the feedback.
+
+## Implemented Lesson 2 Runtime and Teaching Engine
+
+Slice 1 establishes Lesson 2's server-owned start and resume boundary:
+
+- `POST /api/learners/lessons/lesson-2/start` creates or resumes the learner's
+  single active `required-lesson-2` run.
+- `GET /api/learners/lessons/lesson-2/{lessonRun}` reloads the exact saved run
+  for its authenticated owner.
+- Start is allowed only while Lesson 2 is the learner's current required
+  lesson.
+- A run locks ten unique active word targets from the Version 1 CSV: five for
+  Display Word and five different targets for Highlighted Sentence Word.
+- The immutable snapshot and current position reuse `lesson_runs`.
+- Selection history reuses `lesson_target_exposures` under
+  `required.lesson-2.word-targets`.
+- A new selection cycle begins only when fewer than ten eligible unused words
+  remain.
+- The learner payload exposes presentation fields but never exposes the hidden
+  `spoken_target`.
+
+Slice 2 extends that same run with the authoritative response and teaching
+engine:
+
+- `POST /api/learners/lessons/lesson-2/{lessonRun}/submit` sends isolated word
+  audio to Mu with `task_type=word`.
+- Raw Mu text remains immutable evidence. The existing speech equivalence
+  resolver commits the final resolved transcript used for the lesson decision.
+  An accepted exact or equivalent match commits the canonical target word;
+  other usable speech commits the normalized recognized text.
+- Audio-quality failures, silence, and a conflicting conditional-noise pass
+  are technical evidence. They never consume an academic attempt.
+- The shared bounded teaching state machine controls independent attempt,
+  targeted clue, guided retry, demonstration, echo retry, and terminal review.
+- Every recording creates an immutable `lesson_item_attempts` row while
+  `lesson_responses` stores the latest authoritative item state.
+- `POST .../continue-support` moves only a pending clue or demonstration to
+  its corresponding retry state.
+- `POST .../skip` records `SKIPPED`, never numeric zero, and immediately moves
+  to the next item.
+- `POST .../advance` is accepted only after the current teaching state is
+  terminal.
+- Completing Mission 1 moves to Mission 2 without replacing the locked
+  content snapshot.
+- Completing Mission 2 atomically completes the run, advances
+  `current_required_lesson_order` to 3, and grants
+  `reading.word_wizard` (`Word Wizard`).
+- The completion payload reports real independent-mastery totals for both
+  missions and the shared results composition.
+- Shared results center a bounded two-card segment row when an activity has
+  exactly two missions. Three-segment activities retain the standard
+  three-column grid.
+
+Lesson 2 now consumes the shared assessment-style activity shell at
+`/learner/lessons/2`. It reuses the mission header, item panel, recorder panel,
+Clara/action dock, vertical Submit/Next button, Skip button, loaders, and shared
+results composition. Only its word presentations differ:
+
+- Mission 1 animates the letters of one large lowercase word into a vector
+  container.
+- Mission 2 displays one readable sentence and raises the selected word in a
+  primary-color vector highlight.
+
+The server-owned support presentation sequences 19 fixed published lines,
+runtime `You said {final_transcript}.` feedback, and runtime target-word
+demonstration. Fixed speech includes two mission instructions, eight ordinal
+cues, two clues, one technical retry, five terminal outcomes, and completion.
+Lesson Intro validates this catalog and warms `result` plus `instruction`;
+Continue remains unavailable until both profiles are ready. TTS playback still
+waits for Clara's model-ready signal. After Lesson 3 is unlocked, reopening the
+Lesson 2 route returns the learner's completed run and shared result rather
+than creating a duplicate. Its fixed completion line may replay after Clara is
+ready without warming the next lesson's dynamic profiles.
+
+### Lesson 2 Page Portal Checkpoints
+
+System Administrator Page Portals expose three Lesson 2 inspection targets:
+
+- `lesson-2-mission-1` opens the first Display Word item.
+- `lesson-2-mission-2` persists all five Mission 1 responses, then opens the
+  first Highlighted Sentence Word item.
+- `lesson-2-complete` persists all ten Lesson 2 responses and opens the shared
+  Word Wizard result.
+
+Every launch uses the dedicated analytics-excluded learner `KW000`, resets her
+existing progress first, and creates a completed Diagnostic prerequisite plus
+Ready Reader. It then creates a completed Lesson 1 prerequisite run and Letter
+Leader before the selected Lesson 2 run. The active portal route includes the
+real Lesson 2 run ID, so refresh calls the normal authenticated show endpoint
+and cannot select a new snapshot. Completed portal state advances the required
+lesson order to 3 and persists Word Wizard. Portal prerequisites are
+identifiable in response evidence and never invent audio or ASR attempt rows.
+
 ## Optional Learn with Ma'am Clara Boundary
 
 `Learn with Ma'am Clara` is an always-available listening companion class, not
@@ -838,13 +940,3 @@ assessment scores, mastery evidence, achievements, or teacher analytics.
 Chapter 1 uses five short big-and-small-letter moments and authored published
 speech only. It has no recorder, ASR submission, academic attempt, or runtime
 TTS fallback.
-
-The learner UI must render through the same shared activity shell and exact
-four-panel composition as the assessments: mission header, large item,
-separate recorder, and Clara/action dock. Lessons must not create parallel
-page grids, panel measurements, dock measurements, or responsive breakpoints.
-Only the displayed lesson item and its mission-specific entrance animation may
-differ from the assessment composition. Submit receives 80 percent of the
-action height and Skip 20 percent; after submission, the action shows Clara's
-unavailable feedback/listening state. Next appears at full size only after
-Clara finishes speaking the feedback.

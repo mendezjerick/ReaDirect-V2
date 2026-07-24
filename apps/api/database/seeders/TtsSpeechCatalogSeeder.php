@@ -15,7 +15,7 @@ final class TtsSpeechCatalogSeeder extends Seeder
 
     private const VOICE_KEY = 'clara-sh-v1';
 
-    private const EXPECTED_LINE_COUNT = 111;
+    private const EXPECTED_LINE_COUNT = 130;
 
     public function run(): void
     {
@@ -26,6 +26,13 @@ final class TtsSpeechCatalogSeeder extends Seeder
                 self::EXPECTED_LINE_COUNT,
                 count($definitions),
             ));
+        }
+        foreach ($definitions as $speechKey => $definition) {
+            if (str_contains($definition['text'], '!')) {
+                throw new RuntimeException(
+                    "Published TTS text cannot contain exclamation marks: {$speechKey}",
+                );
+            }
         }
 
         DB::transaction(function () use ($definitions): void {

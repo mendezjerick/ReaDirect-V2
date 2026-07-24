@@ -164,6 +164,11 @@ final class ActivitySpeechManifestService
             return 'lesson-1';
         }
 
+        if ($stage === 'required_lessons'
+            && (int) $progress?->current_required_lesson_order === 2) {
+            return 'lesson-2';
+        }
+
         throw new DomainException(
             "No activity speech destination is available for learner stage {$stage}.",
         );

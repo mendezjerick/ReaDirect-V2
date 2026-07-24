@@ -32,7 +32,17 @@ export function LearnerActivityResult({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.32 }}
     >
-      <div className="assessment-result__segments" aria-label={ariaLabel}>
+      <div
+        className={[
+          "assessment-result__segments",
+          segments.length === 2
+            ? "assessment-result__segments--centered-pair"
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-label={ariaLabel}
+      >
         {segments.map((segment, index) => (
           <motion.div
             key={segment.key}

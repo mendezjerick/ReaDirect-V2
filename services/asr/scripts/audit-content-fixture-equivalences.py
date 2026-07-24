@@ -15,14 +15,17 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_FIXTURE_ROOT = REPOSITORY_ROOT / "services" / "asr" / "fixtures" / "content"
 DEFAULT_AUDIT_PATH = DEFAULT_FIXTURE_ROOT / "fixture-equivalence-audit.json"
 FIXTURE_SETS = ("millie2", "millie2-plus", "jz", "shai")
-AUDIT_VERSION = "four-voice-item-token-v2"
-LEGACY_AUDIT_VERSIONS = {"two-voice-item-token-v1"}
+AUDIT_VERSION = "four-voice-item-token-v3"
+LEGACY_AUDIT_VERSIONS = {
+    "two-voice-item-token-v1",
+    "four-voice-item-token-v2",
+}
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Submit both correct content-fixture variants to Mu and author item-scoped "
+            "Submit four correct content-fixture variants to Mu and author item-scoped "
             "token equivalences for every observed substitution."
         )
     )
@@ -98,18 +101,6 @@ def request_with_retries(
     raise last_error
 
 
-def competing_targets(manifests: dict[str, dict[str, Any]]) -> set[str]:
-    targets: set[str] = set()
-    for manifest in manifests.values():
-        for record in manifest["fixtures"].values():
-            if record.get("fixture_type") not in {"word", "comprehension-answer"}:
-                continue
-            value = normalize(str(record.get("expected_text", "")))
-            if value and " " not in value:
-                targets.add(value)
-    return targets
-
-
 def create_token_rule(
     client: httpx.Client,
     api_prefix: str,
@@ -118,10 +109,8 @@ def create_token_rule(
     expected: str,
     recognized: str,
     attempt_id: int,
-    valid_targets: set[str],
     request_attempts: int,
 ) -> dict[str, Any]:
-    unsafe_competing_target = recognized in valid_targets and recognized != expected
     response = request_with_retries(
         client,
         "POST",
@@ -143,22 +132,12 @@ def create_token_rule(
     ).json()
     rule = response["rule"]
 
-    if unsafe_competing_target and response.get("created") is True:
-        request_with_retries(
-            client,
-            "PATCH",
-            f"{api_prefix}/equivalence-rules/{rule['id']}",
-            request_attempts,
-            json={"is_active": False},
-        )
-        rule["is_active"] = False
-
     return {
         "rule_id": int(rule["id"]),
         "expected": expected,
         "recognized": recognized,
         "is_active": bool(rule["is_active"]),
-        "requires_review": unsafe_competing_target,
+        "requires_review": False,
         "created": bool(response.get("created")),
     }
 
@@ -170,7 +149,6 @@ def audit_fixture(
     content_id: str,
     fixture_root: Path,
     record: dict[str, Any],
-    valid_targets: set[str],
     request_attempts: int,
 ) -> dict[str, Any]:
     audio_path = fixture_root / fixture_set / record["output_relative_path"]
@@ -220,7 +198,6 @@ def audit_fixture(
                     expected,
                     recognized,
                     attempt_id,
-                    valid_targets,
                     request_attempts,
                 )
             )
@@ -288,7 +265,6 @@ def main() -> None:
         raise RuntimeError("The fixture variants do not contain identical content IDs.")
 
     audit = load_or_create_audit(audit_path)
-    valid_targets = competing_targets(manifests)
     planned = sum(len(manifest["fixtures"]) for manifest in manifests.values())
     api_prefix = f"{args.api_url.rstrip('/')}/api/staff/system-admin/{args.staff_user_id}"
 
@@ -319,7 +295,6 @@ def main() -> None:
                         content_id,
                         fixture_root,
                         record,
-                        valid_targets,
                         args.request_attempts,
                     )
                 except Exception as error:

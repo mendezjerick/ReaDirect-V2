@@ -187,7 +187,6 @@ export class ClaraExpressionController {
         this.setNormalizedTarget(targets, "ParamMouthForm", 0.55);
         this.setNormalizedTarget(targets, "ParamBrowLY", 0.22);
         this.setNormalizedTarget(targets, "ParamBrowRY", 0.22);
-        this.setNormalizedTarget(targets, "ParamCheek", 0.12);
         break;
       case "gentle_correction":
         this.setNormalizedTarget(targets, "ParamBrowLY", 0.16);
@@ -222,8 +221,6 @@ export class ClaraExpressionController {
   ) {
     if (cue === "question_mark") {
       this.setNormalizedTarget(targets, "Param24", 1);
-    } else if (cue === "blush") {
-      this.setNormalizedTarget(targets, "Param22", 1);
     }
   }
 

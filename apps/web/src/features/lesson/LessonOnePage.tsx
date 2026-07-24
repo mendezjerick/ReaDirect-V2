@@ -31,6 +31,7 @@ import {
   type LessonState,
 } from "./lessonApi";
 import { resolveLessonClaraPresentation } from "./lessonClaraPresentation";
+import { LessonProgressRail } from "./LessonProgressRail";
 import "../assessment/assessment.css";
 import "./lesson.css";
 
@@ -39,43 +40,6 @@ const missionTitles = {
   "mission-2": "Find the first letter",
   "mission-3": "Complete the word",
 } as const;
-
-function LessonProgressRail({ state }: { state: LessonState }) {
-  const reduceMotion = useReducedMotion();
-
-  return (
-    <div
-      className="assessment-progress"
-      aria-label={`Item ${state.progress.current} of ${state.progress.total}`}
-    >
-      <span>
-        Item {state.progress.current}/{state.progress.total}
-      </span>
-      <div className="assessment-progress__rail" aria-hidden="true">
-        {Array.from({ length: state.progress.total }, (_, index) => {
-          const complete = index < state.progress.current - 1;
-
-          return (
-            <motion.i
-              key={index}
-              data-complete={complete || undefined}
-              initial={false}
-              animate={
-                reduceMotion
-                  ? undefined
-                  : {
-                      y: complete ? -2 : 0,
-                      scaleY: complete ? 1 : 0.82,
-                    }
-              }
-              transition={{ duration: 0.22, ease: "easeOut" }}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 function LessonItem({ state }: { state: LessonState }) {
   const item = state.item;
@@ -177,7 +141,7 @@ export function LessonOnePage() {
       !session?.token ||
       !lesson ||
       !claraReady ||
-      activityPreparation.status !== "ready"
+      (activityPreparation.status !== "ready" && lesson.status !== "completed")
     )
       return;
 
@@ -249,12 +213,7 @@ export function LessonOnePage() {
       playbackRef.current?.stop();
       playbackRef.current = null;
     };
-  }, [
-    activityPreparation.status,
-    claraReady,
-    lesson,
-    session?.token,
-  ]);
+  }, [activityPreparation.status, claraReady, lesson, session?.token]);
 
   const submit = async () => {
     if (!session?.token || !lesson?.item || !recorder.audio) return;
@@ -343,7 +302,7 @@ export function LessonOnePage() {
     guideBusy ||
     speaking ||
     !claraReady ||
-    activityPreparation.status !== "ready";
+    (activityPreparation.status !== "ready" && lesson.status !== "completed");
   const canSubmit = Boolean(recorder.audio && recorder.hasPlayed);
   const claraPresentation = resolveLessonClaraPresentation({
     completed: lesson.status === "completed",
@@ -395,7 +354,7 @@ export function LessonOnePage() {
         }
         claraEmotion="happy"
         claraBehavior="celebrating"
-        claraCue="blush"
+        claraCue="none"
         claraSpeaking={speaking}
         claraSpeechLevel={speechLevel}
         onClaraReadyChange={setClaraReady}
@@ -489,7 +448,12 @@ export function LessonOnePage() {
       }
       eyebrow={`Lesson 1 - Mission ${lesson.mission.number}`}
       title={missionTitles[lesson.mission.key]}
-      headerAside={<LessonProgressRail state={lesson} />}
+      headerAside={
+        <LessonProgressRail
+          current={lesson.progress.current}
+          total={lesson.progress.total}
+        />
+      }
       itemContent={
         <AnimatePresence mode="wait" initial={false}>
           <motion.div

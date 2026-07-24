@@ -31,7 +31,7 @@ export function resolveLessonClaraPresentation({
     return {
       emotion: "happy",
       behavior: "celebrating",
-      cue: "blush",
+      cue: "none",
     };
   }
 
