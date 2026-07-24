@@ -3,6 +3,7 @@
 use App\Http\Controllers\LearnerAssessmentPartOneController;
 use App\Http\Controllers\LearnerAssessmentPartTwoController;
 use App\Http\Controllers\LearnerAuthController;
+use App\Http\Controllers\LearnerClaraListeningController;
 use App\Http\Controllers\LearnerLessonOneController;
 use App\Http\Controllers\LearnerTtsController;
 use App\Http\Controllers\SchoolAdministratorController;
@@ -55,6 +56,9 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/tts/activity-readiness', [LearnerTtsController::class, 'activityReadiness']);
     Route::post('/tts/speech/{speechKey}', [LearnerTtsController::class, 'speech']);
     Route::post('/tts/lesson-feedback/{lessonResponse}', [LearnerTtsController::class, 'lessonFeedback']);
+    Route::post('/learn-with-clara/lesson-1/start', [LearnerClaraListeningController::class, 'start']);
+    Route::post('/learn-with-clara/lesson-1/advance', [LearnerClaraListeningController::class, 'advance']);
+    Route::post('/learn-with-clara/lesson-1/restart', [LearnerClaraListeningController::class, 'restart']);
     Route::post('/lessons/lesson-1/start', [LearnerLessonOneController::class, 'start']);
     Route::get('/lessons/lesson-1/{lessonRun}', [LearnerLessonOneController::class, 'show']);
     Route::post('/lessons/lesson-1/{lessonRun}/submit', [LearnerLessonOneController::class, 'submit']);

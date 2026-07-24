@@ -60,15 +60,26 @@ const learnerSession = {
   session: { expires_at: "2026-07-20T12:00:00+00:00" },
 };
 
-function renderDashboard() {
+function renderDashboard(stage = "before_diagnostic") {
+  const activeSession = {
+    ...learnerSession,
+    learner: {
+      ...learnerSession.learner,
+      progress: {
+        stage,
+        current_required_lesson_order: stage === "required_lessons" ? 1 : null,
+      },
+    },
+  };
+
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify(learnerSession),
+    JSON.stringify(activeSession),
   );
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue(
-      new Response(JSON.stringify(learnerSession), {
+      new Response(JSON.stringify(activeSession), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       }),
@@ -86,6 +97,10 @@ function renderDashboard() {
               element={<LearnerDashboardPage />}
             />
             <Route path="/learner/games" element={<div>Lobby route</div>} />
+            <Route
+              path="/learner/learn-with-clara/lesson-1"
+              element={<div>Learn with Clara route</div>}
+            />
             <Route
               path="/learner/lesson-intro"
               element={<div>Lesson intro route</div>}
@@ -133,6 +148,38 @@ describe("LearnerDashboardPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Welcome, Kristen!")).toBeInTheDocument();
     expect(screen.getByText("KW000")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /learn with ma'am clara/i }),
+    ).toBeEnabled();
+  });
+
+  it("places Learn with Ma'am Clara after Games and before Achievements", () => {
+    renderDashboard();
+
+    const headings = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((heading) => heading.textContent);
+
+    expect(headings.indexOf("Games")).toBeLessThan(
+      headings.indexOf("Learn with Ma'am Clara"),
+    );
+    expect(headings.indexOf("Learn with Ma'am Clara")).toBeLessThan(
+      headings.indexOf("Achievements"),
+    );
+  });
+
+  it("opens Learn with Ma'am Clara before the diagnostic", () => {
+    renderDashboard("before_diagnostic");
+
+    const action = screen.getByRole("button", {
+      name: /learn with ma'am clara/i,
+    });
+    expect(action).toBeEnabled();
+
+    fireEvent.click(action);
+
+    expect(claraSpeechMocks.unlock).toHaveBeenCalledOnce();
+    expect(screen.getByText("Learn with Clara route")).toBeInTheDocument();
   });
 
   it("opens the game lobby from the secondary game action", () => {

@@ -15,6 +15,7 @@ abstract class TestCase extends BaseTestCase
 
         Schema::dropIfExists('assessment_responses');
         Schema::dropIfExists('assessment_runs');
+        Schema::dropIfExists('learner_clara_listening_sessions');
         Schema::dropIfExists('learner_achievements');
         Schema::dropIfExists('lesson_item_attempts');
         Schema::dropIfExists('lesson_responses');
@@ -198,6 +199,21 @@ abstract class TestCase extends BaseTestCase
             $table->timestamp('ended_at')->nullable();
             $table->timestamp('expires_at');
             $table->timestamps();
+        });
+
+        Schema::create('learner_clara_listening_sessions', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('learner_id')->constrained()->cascadeOnDelete();
+            $table->string('lesson_key', 48)->default('lesson-1');
+            $table->string('chapter_key', 48)->default('chapter-1');
+            $table->string('scene_key', 80)->default('chapter-1-item-a');
+            $table->string('story_branch', 32)->nullable();
+            $table->json('heard_story_keys')->nullable();
+            $table->unsignedInteger('visit_count')->default(1);
+            $table->string('status', 32)->default('active');
+            $table->timestamp('chapter_completed_at')->nullable();
+            $table->timestamps();
+            $table->unique(['learner_id', 'lesson_key']);
         });
 
         Schema::create('assessment_runs', function (Blueprint $table): void {

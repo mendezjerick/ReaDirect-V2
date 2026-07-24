@@ -467,6 +467,15 @@ Current implementation:
   group, profile, or speech key from the browser.
 - Part 1 and Part 2 currently declare no runtime profiles. Lesson 1 declares
   only `result` while final-transcript feedback remains dynamic.
+- `Learn with Ma'am Clara` Lesson 1 declares the published-only
+  `learn-with-clara-lesson-1-fixed` group and no runtime profiles. Its current
+  Chapter 1 catalog contains three time-aware greetings, five letter-pair
+  teaching lines, three authored story lines, one return-to-letters bridge,
+  and one completion line.
+- The companion class may prefetch its server-declared possible-next speech
+  keys, but every fetched file must still pass catalog publication and
+  integrity validation. A missing companion-class line fails closed and must
+  never fall through to runtime synthesis.
 - The TTS service begins model loading in the background, accepts requested
   profiles through `/warmup`, builds one process-memory Vox prompt cache per
   current reference fingerprint, and completes a disposable generation probe

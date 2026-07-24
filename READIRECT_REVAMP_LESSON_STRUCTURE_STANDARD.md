@@ -826,6 +826,19 @@ two through five play mission-specific ordinal cues instead of repeating that
 instruction. The cue must identify the second, third, fourth, or fifth item and
 must remain published catalog speech.
 
+## Optional Learn with Ma'am Clara Boundary
+
+`Learn with Ma'am Clara` is an always-available listening companion class, not
+a required lesson or assessment. Any authenticated learner may open it before
+or after the Diagnostic Assessment.
+
+Its checkpoints, story choices, visit count, and completion state are stored
+separately from required lesson runs. They must never change lesson unlocks,
+assessment scores, mastery evidence, achievements, or teacher analytics.
+Chapter 1 uses five short big-and-small-letter moments and authored published
+speech only. It has no recorder, ASR submission, academic attempt, or runtime
+TTS fallback.
+
 The learner UI must render through the same shared activity shell and exact
 four-panel composition as the assessments: mission header, large item,
 separate recorder, and Clara/action dock. Lessons must not create parallel

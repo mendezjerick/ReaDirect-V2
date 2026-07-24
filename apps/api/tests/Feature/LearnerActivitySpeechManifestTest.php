@@ -43,6 +43,21 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonCount(51, 'published_speech_keys');
     }
 
+    public function test_learn_with_clara_lesson_one_is_published_only(): void
+    {
+        $manifest = app(ActivitySpeechManifestService::class)
+            ->forActivity('learn-with-clara-lesson-1');
+
+        $this->assertSame('learn-with-clara-lesson-1', $manifest['activity']);
+        $this->assertSame(
+            ['learn-with-clara-lesson-1-fixed'],
+            $manifest['published_groups'],
+        );
+        $this->assertCount(13, $manifest['published_speech_keys']);
+        $this->assertSame([], $manifest['runtime_profiles']);
+        $this->assertFalse($manifest['requires_runtime']);
+    }
+
     public function test_active_part_two_run_overrides_the_baseline_progress_stage(): void
     {
         [$learner, $token] = $this->learnerSessionRecord('before_diagnostic');

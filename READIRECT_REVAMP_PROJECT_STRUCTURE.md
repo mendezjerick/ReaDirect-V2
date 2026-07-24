@@ -786,3 +786,25 @@ contract. It maps persisted teaching state and the latest immutable attempt to
 published speech keys, optional response-owned feedback, display mode, and the
 post-speech action. React must consume this payload and must not reproduce that
 decision table.
+
+## Learn with Ma'am Clara Placement
+
+The optional listening companion class remains inside the existing Laravel and
+learner-web application boundaries:
+
+```text
+apps/api/app/Http/Controllers/LearnerClaraListeningController.php
+apps/api/app/Models/LearnerClaraListeningSession.php
+apps/api/app/Services/LearnWithClaraLessonOneFlow.php
+apps/api/database/migrations/2026_07_23_000018_create_learner_clara_listening_sessions_table.php
+apps/web/src/features/learn-with-clara/LearnWithClaraLessonOnePage.tsx
+apps/web/src/features/learn-with-clara/LearnWithClaraStoryVignette.tsx
+apps/web/src/features/learn-with-clara/learnWithClaraApi.ts
+apps/web/src/features/learn-with-clara/learnWithClaraGreeting.ts
+apps/web/src/features/learn-with-clara/learn-with-clara.css
+```
+
+Published companion-class audio remains under
+`apps/api/storage/app/private/tts/catalog/sh/learn-with-clara/`. Its listening
+checkpoint table is intentionally separate from academic lesson runs,
+assessment attempts, mastery records, and progression.
