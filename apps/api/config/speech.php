@@ -122,6 +122,44 @@ $lessonTwoSupportLines = [
     ],
 ];
 
+$lessonThreeSupportLines = [
+    'lesson-3-technical-retry' => [
+        'text' => 'I could not hear that clearly. Let us try the phrase once more.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-3/support/technical/lesson-3-technical-retry.wav',
+    ],
+    'lesson-3-clue-mission-1' => [
+        'text' => 'Read one word at a time from left to right. Then say the whole phrase.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-3/support/clues/lesson-3-clue-mission-1.wav',
+    ],
+    'lesson-3-feedback-independent' => [
+        'text' => 'That is correct. You read the phrase by yourself.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-3/support/feedback/lesson-3-feedback-independent.wav',
+    ],
+    'lesson-3-feedback-supported' => [
+        'text' => 'That is correct. The clue helped you read the phrase.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-3/support/feedback/lesson-3-feedback-supported.wav',
+    ],
+    'lesson-3-feedback-demonstrated' => [
+        'text' => 'That is correct. You read the whole phrase with me.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-3/support/feedback/lesson-3-feedback-demonstrated.wav',
+    ],
+    'lesson-3-feedback-not-yet' => [
+        'text' => 'Not yet, and that is okay. We will practice this phrase again.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-3/support/feedback/lesson-3-feedback-not-yet.wav',
+    ],
+    'lesson-3-feedback-unscorable' => [
+        'text' => 'I still could not hear a clear answer. We can try this phrase again later.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-3/support/feedback/lesson-3-feedback-unscorable.wav',
+    ],
+];
+
 $learnWithClaraLessonOneGreetingLines = [
     'learn-with-clara-lesson-1-greeting-morning' => [
         'text' => 'Good morning. I am happy you are here. I have a little story for you today.',
@@ -234,6 +272,48 @@ foreach ($lessonTwoMissionCueTemplates as $missionKey => $template) {
     }
 }
 
+$lessonThreeItemCueLines = [];
+foreach ($lessonOneItemOrdinals as $position => $ordinal) {
+    $speechKey = "lesson-3-mission-1-item-{$position}";
+    $lessonThreeItemCueLines[$speechKey] = [
+        'text' => "Now, read the {$ordinal} phrase.",
+        'reference' => 'instruction',
+        'path' => "lessons/lesson-3/mission-1/{$speechKey}.wav",
+    ];
+}
+
+$lessonThreeDemonstrationLines = [];
+$lessonThreePhrases = [
+    'big-bag' => 'big bag',
+    'big-dog' => 'big dog',
+    'fat-cat' => 'fat cat',
+    'fat-pig' => 'fat pig',
+    'hot-pan' => 'hot pan',
+    'red-cap' => 'red cap',
+    'red-cup' => 'red cup',
+    'wet-dog' => 'wet dog',
+    'tan-bag' => 'tan bag',
+    'sad-man' => 'sad man',
+    'fun-run' => 'fun run',
+    'cat-on-a-mat' => 'cat on a mat',
+    'dog-on-a-log' => 'dog on a log',
+    'fan-on-a-mat' => 'fan on a mat',
+    'ham-in-a-pan' => 'ham in a pan',
+    'hat-on-a-peg' => 'hat on a peg',
+    'hen-in-a-pen' => 'hen in a pen',
+    'kid-in-bed' => 'kid in bed',
+    'pig-in-mud' => 'pig in mud',
+    'wet-rag' => 'wet rag',
+];
+foreach ($lessonThreePhrases as $phraseKey => $phrase) {
+    $speechKey = "lesson-3-demo-{$phraseKey}";
+    $lessonThreeDemonstrationLines[$speechKey] = [
+        'text' => "Listen: {$phrase}. Now say the whole phrase.",
+        'reference' => 'instruction',
+        'path' => "lessons/lesson-3/support/demonstrations/{$speechKey}.wav",
+    ];
+}
+
 foreach (IsolatedLetterPronunciation::all() as $letter => $spokenForm) {
     $lessonOneSupportLines["lesson-1-letter-demo-{$letter}"] = [
         'text' => "The letter name is {$spokenForm}. Listen: {$spokenForm}. Now you try.",
@@ -273,6 +353,13 @@ return [
             ...array_keys($lessonTwoItemCueLines),
             ...array_keys($lessonTwoSupportLines),
         ],
+        'lesson-3-fixed' => [
+            'lesson-3-mission-1',
+            'lesson-3-complete',
+            ...array_keys($lessonThreeItemCueLines),
+            ...array_keys($lessonThreeSupportLines),
+            ...array_keys($lessonThreeDemonstrationLines),
+        ],
         'learn-with-clara-lesson-1-fixed' => [
             ...array_keys($learnWithClaraLessonOneGreetingLines),
             ...array_keys($learnWithClaraLessonOneChapterOneLines),
@@ -294,6 +381,10 @@ return [
         'lesson-2' => [
             'published_groups' => ['lesson-2-fixed'],
             'runtime_profiles' => ['result', 'instruction'],
+        ],
+        'lesson-3' => [
+            'published_groups' => ['lesson-3-fixed'],
+            'runtime_profiles' => ['result'],
         ],
         'learn-with-clara-lesson-1' => [
             'published_groups' => ['learn-with-clara-lesson-1-fixed'],
@@ -318,6 +409,8 @@ return [
         'lesson-2-mission-1' => 'lesson-2',
         'lesson-2-mission-2' => 'lesson-2',
         'lesson-2-complete' => 'lesson-2',
+        'lesson-3-mission-1' => 'lesson-3',
+        'lesson-3-complete' => 'lesson-3',
     ],
     'clara_lines' => [
         ...$learnWithClaraLessonOneGreetingLines,
@@ -361,6 +454,16 @@ return [
             'text' => 'Lesson two is complete. You are a Word Wizard.',
             'reference' => 'result',
             'path' => 'lessons/lesson-2/completion/lesson-2-complete.wav',
+        ],
+        'lesson-3-mission-1' => [
+            'text' => 'Read the phrase you see. Say all the words together.',
+            'reference' => 'instruction',
+            'path' => 'lessons/lesson-3/mission-1/lesson-3-mission-1.wav',
+        ],
+        'lesson-3-complete' => [
+            'text' => 'Lesson three is complete. You are a Phrase Pro.',
+            'reference' => 'result',
+            'path' => 'lessons/lesson-3/completion/lesson-3-complete.wav',
         ],
         'assessment-orientation' => [
             'text' => 'Let us check your microphone. Say ready, then listen to your recording.',
@@ -461,6 +564,9 @@ return [
         ...$lessonOneSupportLines,
         ...$lessonTwoItemCueLines,
         ...$lessonTwoSupportLines,
+        ...$lessonThreeItemCueLines,
+        ...$lessonThreeSupportLines,
+        ...$lessonThreeDemonstrationLines,
     ],
     'assessment_item_cues' => [
         'ordinals' => [

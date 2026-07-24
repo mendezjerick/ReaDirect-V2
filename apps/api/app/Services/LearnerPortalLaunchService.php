@@ -27,6 +27,8 @@ final class LearnerPortalLaunchService
 
     public const LESSON_TWO_ROUTE = '/learner/lessons/2';
 
+    public const LESSON_THREE_ROUTE = '/learner/lessons/3';
+
     public function __construct(
         private readonly AssessmentContentCatalog $contentCatalog,
         private readonly LessonContentCatalog $lessonContentCatalog,
@@ -137,6 +139,18 @@ final class LearnerPortalLaunchService
                 'key' => 'lesson-2-complete',
                 'label' => 'Lesson 2 Complete',
                 'description' => 'Open the Word Wizard completion presentation.',
+                'task' => 'Completion',
+            ],
+            [
+                'key' => 'lesson-3-mission-1',
+                'label' => 'Lesson 3 · Read phrases',
+                'description' => 'Open the phrase-reading mission with Lessons 1 and 2 persisted.',
+                'task' => 'Lesson 3',
+            ],
+            [
+                'key' => 'lesson-3-complete',
+                'label' => 'Lesson 3 Complete',
+                'description' => 'Open the Phrase Pro completion presentation.',
                 'task' => 'Completion',
             ],
         ];
@@ -404,6 +418,31 @@ final class LearnerPortalLaunchService
     ): LessonRun {
         $this->createCompletedDiagnosticPrerequisite($learner, $targetKey);
 
+        if (str_starts_with($targetKey, 'lesson-3-')) {
+            $lessonOneRun = $this->createLessonOneRun(
+                $learner,
+                'lesson-1-complete',
+            );
+            $this->seedLessonOnePrerequisites(
+                $lessonOneRun,
+                'lesson-1-complete',
+                $targetKey,
+            );
+            $lessonTwoRun = $this->createLessonTwoRun(
+                $learner,
+                'lesson-2-complete',
+            );
+            $this->seedLessonTwoPrerequisites(
+                $lessonTwoRun,
+                'lesson-2-complete',
+                $targetKey,
+            );
+            $run = $this->createLessonThreeRun($learner, $targetKey);
+            $this->seedLessonThreePrerequisites($run, $targetKey);
+
+            return $run;
+        }
+
         if (str_starts_with($targetKey, 'lesson-2-')) {
             $lessonOneRun = $this->createLessonOneRun(
                 $learner,
@@ -549,6 +588,7 @@ final class LearnerPortalLaunchService
     private function seedLessonTwoPrerequisites(
         LessonRun $run,
         string $targetKey,
+        ?string $portalTargetKey = null,
     ): void {
         $missions = match ($targetKey) {
             'lesson-2-mission-1' => [],
@@ -574,7 +614,7 @@ final class LearnerPortalLaunchService
                     'completed_at' => now(),
                     'evidence' => [
                         'portal_prerequisite' => true,
-                        'portal_target_key' => $targetKey,
+                        'portal_target_key' => $portalTargetKey ?? $targetKey,
                     ],
                 ]);
             }
@@ -597,9 +637,77 @@ final class LearnerPortalLaunchService
         }
     }
 
+    private function createLessonThreeRun(
+        Learner $learner,
+        string $targetKey,
+    ): LessonRun {
+        $completed = $targetKey === 'lesson-3-complete';
+
+        return LessonRun::query()->create([
+            'learner_id' => $learner->id,
+            'lesson_key' => 'required-lesson-3',
+            'content_version' => 'v1',
+            'status' => $completed
+                ? LessonRun::STATUS_COMPLETED
+                : LessonRun::STATUS_ACTIVE,
+            'mission_key' => 'mission-1',
+            'current_item_index' => $completed ? 4 : 0,
+            'content_snapshot' => $this->lessonContentCatalog
+                ->lessonThreeSnapshot($learner->id),
+            'completed_at' => $completed ? now() : null,
+        ]);
+    }
+
+    private function seedLessonThreePrerequisites(
+        LessonRun $run,
+        string $targetKey,
+    ): void {
+        if ($targetKey !== 'lesson-3-complete') {
+            return;
+        }
+
+        foreach ($run->content_snapshot['mission-1'] as $index => $item) {
+            LessonResponse::query()->create([
+                'lesson_run_id' => $run->id,
+                'mission_key' => 'mission-1',
+                'item_key' => $item['content_id'],
+                'item_order' => $index + 1,
+                'response_type' => 'portal_prerequisite',
+                'final_transcript' => $item['spoken_target'],
+                'decision' => 'CORRECT',
+                'teaching_state' => LessonTeachingStateMachine::STATE_ADVANCING,
+                'outcome' => LessonTeachingStateMachine::OUTCOME_INDEPENDENT_CORRECT,
+                'academic_attempt_count' => 1,
+                'highest_scaffold_used' => LessonTeachingStateMachine::SCAFFOLD_NONE,
+                'independent_mastery' => true,
+                'completed_at' => now(),
+                'evidence' => [
+                    'portal_prerequisite' => true,
+                    'portal_target_key' => $targetKey,
+                ],
+            ]);
+        }
+
+        LearnerAchievement::query()->firstOrCreate(
+            [
+                'learner_id' => $run->learner_id,
+                'achievement_key' => 'reading.phrase_pro',
+            ],
+            [
+                'awarded_at' => now(),
+                'evidence' => [
+                    'portal_prerequisite' => true,
+                    'lesson_run_id' => $run->id,
+                ],
+            ],
+        );
+    }
+
     private function lessonOrderFor(string $targetKey): int
     {
         return match (true) {
+            $targetKey === 'lesson-3-complete' => 4,
+            str_starts_with($targetKey, 'lesson-3-') => 3,
             $targetKey === 'lesson-2-complete' => 3,
             str_starts_with($targetKey, 'lesson-2-'),
             $targetKey === 'lesson-1-complete' => 2,
@@ -609,6 +717,9 @@ final class LearnerPortalLaunchService
 
     private function routeFor(string $targetKey): string
     {
+        if (str_starts_with($targetKey, 'lesson-3-')) {
+            return self::LESSON_THREE_ROUTE;
+        }
         if (str_starts_with($targetKey, 'lesson-2-')) {
             return self::LESSON_TWO_ROUTE;
         }

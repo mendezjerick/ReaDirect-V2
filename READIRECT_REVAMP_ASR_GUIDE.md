@@ -530,9 +530,9 @@ hat <-> hot <-> hut
 
 This is a scoring policy for Philippine-English learner speech and Mu
 false-negative tolerance. It does not declare the words semantically
-interchangeable. The rule is reciprocal, but every generated `token_alias`
-remains attached to an authored runtime item key so the active expected item
-continues to control the canonical final transcript.
+interchangeable. The rule is reciprocal and stored as a global token alias,
+while the active expected item continues to control the canonical final
+transcript.
 
 Hard boundaries:
 
@@ -546,8 +546,11 @@ Hard boundaries:
 `CvcVowelEquivalenceCatalog` scans every active Mu target exposed by
 `SpeechContentCatalog`, including tokens inside phrases, sentences, passages,
 and Lesson 6 spoken answers. `CvcVowelEquivalenceSeeder` currently produces
-208 deterministic item-aware aliases across the Version 1 corpus. Re-running
-the seeder is idempotent, disables stale system-generated aliases, and
+86 deduplicated global-token aliases across the Version 1 corpus. The resolver
+uses word-level Levenshtein alignment and checks each substituted token, so two
+or more qualifying vowel-family substitutions can pass inside one longer
+target. Re-running the seeder is idempotent, disables stale system-generated
+aliases, and
 reactivates known-correct fixture rules that were disabled only because their
 recognized token was another curriculum target.
 

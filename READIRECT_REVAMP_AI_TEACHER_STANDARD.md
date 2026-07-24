@@ -34,7 +34,7 @@ This standard does not replace:
 Where those documents define stricter content, assessment, speech, viewport,
 or model rules, the stricter rule wins.
 
-Implementation status: Lessons 1 and 2 implement Phase 1 bounded support and
+Implementation status: Lessons 1, 2, and 3 implement Phase 1 bounded support and
 the approved layered Clara presentation. They persist technical, independent,
 guided, demonstration, echo, terminal, and skip evidence; deliver authored
 support in server-controlled order; and restore the exact state after refresh.
@@ -370,16 +370,48 @@ Supported deterministic alignment observations may include:
 
 ```text
 exact_match
-word_omission
-word_insertion
-word_substitution
-word_order_difference
-multiple_differences
+missing_word
+extra_word
+replaced_word
+words_out_of_order
+multiple_word_differences
 uncertain
 ```
 
-When one omission is clear, Clara may isolate a short authored segment and
-then request the complete sentence.
+Starting with Lesson 3, clear phrase and sentence evidence must pass through
+deterministic word-level Levenshtein alignment after final-transcript
+resolution. The alignment must preserve expected and actual token positions,
+edit distance, normalized similarity, the full edit list, and one primary
+operation. A single adjacent token transposition is recorded separately from
+two substitutions.
+
+Clara addresses only one useful difference per attempt:
+
+- `missing_word`: `You missed the word {expected}.`
+- `extra_word`: `I heard an extra word, {actual}.`
+- `replaced_word`: `I heard {actual} instead of {expected}.`
+- `words_out_of_order`: identify the two words that changed places.
+- `multiple_word_differences`: describe only the first actionable operation,
+  then use the existing whole-phrase clue.
+
+Character-level Levenshtein distance may be retained inside a word
+substitution as supporting evidence. It must not be described as a phoneme or
+articulation diagnosis.
+
+Example:
+
+```text
+Expected:  cat on a mat
+Final:     on a mat
+Diagnosis: missing_word
+Target:    cat
+```
+
+Clara says:
+
+> You missed the word cat.
+
+The existing clue and full-phrase retry follow this targeted line.
 
 Example:
 
@@ -864,14 +896,14 @@ Current implementation:
   teaching parameter. Runtime initialization fails clearly if the compiled
   model does not contain a required parameter.
 - Sad, angry, and dizzy toggles are excluded from the controller.
-- Lessons 1 and 2 deterministically use demonstrating, listening, thinking,
+- Lessons 1, 2, and 3 deterministically use demonstrating, listening, thinking,
   encouraging, gentle-correction, and celebrating presentation states.
 - Demonstration gaze temporarily overrides cursor tracking and then returns
   control to the shared interaction tracker.
 - Reduced motion preserves the communicative facial state and teaching gaze
   while removing celebration bounce.
 
-### Current Lesson 1 and Lesson 2 bounded-support implementation
+### Current Lesson 1 through Lesson 3 bounded-support implementation
 
 - `lesson_responses` is the persisted item-level teaching state and final
   outcome record.
@@ -887,7 +919,8 @@ Current implementation:
   remain distinct from independent mastery.
 - The API serializes server-derived recording, support-continuation, and
   advancement capabilities so refresh restores the exact state.
-- `LessonOneSupportPresentation` and `LessonTwoSupportPresentation` each
+- `LessonOneSupportPresentation`, `LessonTwoSupportPresentation`, and
+  `LessonThreeSupportPresentation` each
   serialize one stable `sequence_key`, an ordered published-or-runtime speech
   sequence, a display mode, and the only action permitted after speech
   completion.
@@ -895,9 +928,21 @@ Current implementation:
   and Lesson 1 A-Z demonstrations are finite published catalog content.
 - The committed learner transcript uses response-owned runtime feedback; it
   plays before the relevant fixed clue or outcome line.
-- Lesson 2 target-word demonstrations are also response-owned runtime speech
+- Lesson 2 target-word demonstrations are response-owned runtime speech
   because the locked word varies by run. Laravel reads the hidden target from
   the immutable snapshot; the browser never supplies demonstration text.
+- Lesson 3 phrase demonstrations are finite published speech. All 20 possible
+  phrase targets are known in Version 1, so each demonstration is generated,
+  reviewed, cataloged, and addressed by the locked content ID. Only
+  response-dependent final-transcript and alignment feedback remains runtime
+  speech in Lesson 3.
+- `TranscriptAlignmentService` implements reusable word-level Levenshtein
+  alignment for Lesson 3 and later phrase or sentence activities. Lesson 3
+  stores its complete result inside immutable attempt evidence and current
+  response evidence. The response diagnosis key is the alignment category.
+- Technical, silent, unusable, and uncertain recordings never receive word
+  alignment correction. Alignment runs only for clear academic evidence after
+  the equivalence resolver commits the final transcript.
 - The browser confirms clue or demonstration playback before it requests the
   guarded `continue-support` transition. It never advances teaching state from
   a timer or locally inferred result.

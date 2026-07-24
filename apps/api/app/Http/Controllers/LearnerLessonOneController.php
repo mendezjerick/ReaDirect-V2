@@ -10,6 +10,7 @@ use App\Services\LearnerAssessmentAsr;
 use App\Services\LearnerSessionResolver;
 use App\Services\LessonContentCatalog;
 use App\Services\LessonOneSupportPresentation;
+use App\Services\LessonPracticeTryService;
 use App\Services\LessonTeachingStateMachine;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -29,6 +30,7 @@ final class LearnerLessonOneController extends Controller
         private readonly LearnerAssessmentAsr $asr,
         private readonly LessonTeachingStateMachine $teaching,
         private readonly LessonOneSupportPresentation $supportPresentation,
+        private readonly LessonPracticeTryService $practiceTries,
     ) {}
 
     public function start(Request $request): JsonResponse
@@ -507,6 +509,7 @@ final class LearnerLessonOneController extends Controller
                 'can_advance' => $this->teaching->canAdvance($teaching),
             ],
             'support' => $support,
+            'practice_tries' => $this->practiceTries->forRun($run),
             'completion' => $completion,
         ];
     }

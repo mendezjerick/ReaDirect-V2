@@ -114,6 +114,23 @@ const lessonCompletionSchema = z
   })
   .nullable();
 
+const lessonPracticeTriesSchema = z.object({
+  count: z.number().int().nonnegative(),
+  entries: z.array(
+    z.object({
+      attempt_id: z.number().int().positive(),
+      mission_key: z.string(),
+      mission_number: z.number().int().positive(),
+      item_key: z.string(),
+      item_order: z.number().int().positive(),
+      attempt_number: z.number().int().positive(),
+      final_transcript: z.string(),
+    }),
+  ),
+});
+
+export type LessonPracticeTries = z.infer<typeof lessonPracticeTriesSchema>;
+
 const lessonStateSchema = z.object({
   run_id: z.number().int().positive(),
   lesson_key: z.string(),
@@ -137,6 +154,7 @@ const lessonStateSchema = z.object({
   response: lessonResponseSchema,
   teaching: lessonTeachingSchema,
   support: lessonSupportSchema,
+  practice_tries: lessonPracticeTriesSchema,
   completion: lessonCompletionSchema,
 });
 
@@ -173,10 +191,39 @@ const lessonTwoStateSchema = z.object({
   response: lessonResponseSchema,
   teaching: lessonTeachingSchema,
   support: lessonSupportSchema,
+  practice_tries: lessonPracticeTriesSchema,
   completion: lessonCompletionSchema,
 });
 
 export type LessonTwoState = z.infer<typeof lessonTwoStateSchema>;
+
+const lessonThreeStateSchema = z.object({
+  run_id: z.number().int().positive(),
+  lesson_key: z.literal("required-lesson-3"),
+  content_version: z.string(),
+  status: z.enum(["active", "completed"]),
+  mission: z.object({
+    key: z.literal("mission-1"),
+    number: z.literal(1),
+    total: z.literal(1),
+    title: z.string(),
+  }),
+  progress: z.object({ current: z.number(), total: z.literal(5) }),
+  item: z
+    .object({
+      item_key: z.string(),
+      presentation: z.literal("display_phrase"),
+      display_text: z.string(),
+    })
+    .nullable(),
+  response: lessonResponseSchema,
+  teaching: lessonTeachingSchema,
+  support: lessonSupportSchema,
+  practice_tries: lessonPracticeTriesSchema,
+  completion: lessonCompletionSchema,
+});
+
+export type LessonThreeState = z.infer<typeof lessonThreeStateSchema>;
 
 const headers = (token: string): HeadersInit => ({
   Accept: "application/json",
@@ -211,6 +258,21 @@ async function parseLessonTwo(response: Response): Promise<LessonTwoState> {
     );
   }
   return lessonTwoStateSchema.parse(await response.json());
+}
+
+async function parseLessonThree(response: Response): Promise<LessonThreeState> {
+  if (!response.ok) {
+    const data: unknown = await response.json().catch(() => null);
+    throw new Error(
+      typeof data === "object" &&
+        data &&
+        "message" in data &&
+        typeof data.message === "string"
+        ? data.message
+        : "That lesson action could not be saved.",
+    );
+  }
+  return lessonThreeStateSchema.parse(await response.json());
 }
 
 export async function startLessonOne(token: string) {
@@ -386,4 +448,76 @@ export async function prepareLessonDemonstration(
   );
   if (!response.ok) throw new Error("Ma'am Clara could not prepare that word.");
   return response.blob();
+}
+
+export async function startLessonThree(token: string) {
+  return parseLessonThree(
+    await fetch("/api/learners/lessons/lesson-3/start", {
+      method: "POST",
+      headers: headers(token),
+    }),
+  );
+}
+
+export async function getLessonThree(token: string, runId: number) {
+  return parseLessonThree(
+    await fetch(`/api/learners/lessons/lesson-3/${runId}`, {
+      headers: headers(token),
+    }),
+  );
+}
+
+export async function submitLessonThreeItem(
+  token: string,
+  runId: number,
+  itemKey: string,
+  audio: Blob,
+) {
+  const body = new FormData();
+  body.append("item_key", itemKey);
+  body.append("audio", audio, `${itemKey}.webm`);
+  return parseLessonThree(
+    await fetch(`/api/learners/lessons/lesson-3/${runId}/submit`, {
+      method: "POST",
+      headers: headers(token),
+      body,
+    }),
+  );
+}
+
+export async function skipLessonThreeItem(
+  token: string,
+  runId: number,
+  itemKey: string,
+) {
+  return parseLessonThree(
+    await fetch(`/api/learners/lessons/lesson-3/${runId}/skip`, {
+      method: "POST",
+      headers: { ...headers(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ item_key: itemKey }),
+    }),
+  );
+}
+
+export async function continueLessonThreeSupport(
+  token: string,
+  runId: number,
+  itemKey: string,
+) {
+  return parseLessonThree(
+    await fetch(`/api/learners/lessons/lesson-3/${runId}/continue-support`, {
+      method: "POST",
+      headers: { ...headers(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ item_key: itemKey }),
+    }),
+  );
+}
+
+export async function advanceLessonThreeItem(token: string, runId: number) {
+  return parseLessonThree(
+    await fetch(`/api/learners/lessons/lesson-3/${runId}/advance`, {
+      method: "POST",
+      headers: headers(token),
+    }),
+  );
 }

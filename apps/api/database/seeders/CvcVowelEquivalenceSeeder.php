@@ -11,7 +11,7 @@ use RuntimeException;
 
 final class CvcVowelEquivalenceSeeder extends Seeder
 {
-    public const NOTES_PREFIX = '[system:cvc-aou-v1]';
+    public const NOTES_PREFIX = '[system:cvc-aou-v2]';
 
     public function run(): void
     {
@@ -28,7 +28,7 @@ final class CvcVowelEquivalenceSeeder extends Seeder
 
         EquivalenceRule::query()
             ->where('rule_type', 'token_alias')
-            ->where('notes', 'like', self::NOTES_PREFIX.'%')
+            ->where('notes', 'like', '[system:cvc-aou-v%')
             ->update(['is_active' => false]);
 
         $created = 0;
@@ -38,7 +38,7 @@ final class CvcVowelEquivalenceSeeder extends Seeder
                 'rule_type' => 'token_alias',
                 'expected_text' => $definition['expected_text'],
                 'recognized_text' => $definition['recognized_text'],
-                'scope' => 'item',
+                'scope' => 'global',
                 'item_key' => $definition['item_key'],
             ], [
                 'notes' => self::NOTES_PREFIX
@@ -70,7 +70,7 @@ final class CvcVowelEquivalenceSeeder extends Seeder
                 'reused_rule_count' => $reused,
                 'reactivated_fixture_rule_count' => $reactivatedFixtureRules,
                 'middle_vowel_family' => ['a', 'o', 'u'],
-                'scope' => 'item',
+                'scope' => 'global_token',
             ],
         ]);
     }

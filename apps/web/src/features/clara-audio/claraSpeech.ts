@@ -40,6 +40,8 @@ type LessonOneItemSpeechKey =
   `lesson-1-${"mission-1" | "mission-2" | "mission-3"}-item-${2 | 3 | 4 | 5}`;
 type LessonTwoItemSpeechKey =
   `lesson-2-${"mission-1" | "mission-2"}-item-${2 | 3 | 4 | 5}`;
+type LessonThreeItemSpeechKey = `lesson-3-mission-1-item-${2 | 3 | 4 | 5}`;
+type LessonThreeDemonstrationSpeechKey = `lesson-3-demo-${string}`;
 
 export type ClaraSpeechKey =
   | "learn-with-clara-lesson-1-greeting-morning"
@@ -80,6 +82,15 @@ export type ClaraSpeechKey =
   | "lesson-2-feedback-demonstrated"
   | "lesson-2-feedback-not-yet"
   | "lesson-2-feedback-unscorable"
+  | "lesson-3-mission-1"
+  | "lesson-3-complete"
+  | "lesson-3-technical-retry"
+  | "lesson-3-clue-mission-1"
+  | "lesson-3-feedback-independent"
+  | "lesson-3-feedback-supported"
+  | "lesson-3-feedback-demonstrated"
+  | "lesson-3-feedback-not-yet"
+  | "lesson-3-feedback-unscorable"
   | "assessment-orientation"
   | "assessment-letters"
   | "assessment-rhymes"
@@ -93,7 +104,9 @@ export type ClaraSpeechKey =
   | AssessmentComprehensionSpeechKey
   | LessonOneDemonstrationSpeechKey
   | LessonOneItemSpeechKey
-  | LessonTwoItemSpeechKey;
+  | LessonTwoItemSpeechKey
+  | LessonThreeItemSpeechKey
+  | LessonThreeDemonstrationSpeechKey;
 
 export interface ClaraSpeechPlayback {
   finished: Promise<void>;

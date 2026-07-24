@@ -696,7 +696,7 @@ The cat is sleeping.
 Examples:
 
 ```text
-a red ball
+red cap
 under the table
 runs very fast
 ```
@@ -949,7 +949,7 @@ Rules:
 Ready presentation:
 
 ```text
-[ a ] [ red ] [ ball ]
+[ red ] [ cap ]
 ```
 
 Interaction:

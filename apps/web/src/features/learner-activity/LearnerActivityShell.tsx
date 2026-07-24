@@ -17,6 +17,7 @@ interface LearnerActivityShellProps {
   title: ReactNode;
   headerAside?: ReactNode;
   itemContent: ReactNode;
+  itemPanelAccessory?: ReactNode;
   itemPanelClassName?: string;
   recorderContent?: ReactNode;
   recorderAriaLabel?: string;
@@ -39,6 +40,7 @@ export function LearnerActivityShell({
   title,
   headerAside,
   itemContent,
+  itemPanelAccessory,
   itemPanelClassName = "",
   recorderContent,
   recorderAriaLabel = "Voice recorder",
@@ -74,6 +76,7 @@ export function LearnerActivityShell({
         <section className="assessment-stage" aria-live="polite">
           {itemContent}
         </section>
+        {itemPanelAccessory}
       </section>
 
       {recorderContent !== undefined ? (

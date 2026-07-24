@@ -38,6 +38,9 @@ export function LearnerActivityResult({
           segments.length === 2
             ? "assessment-result__segments--centered-pair"
             : "",
+          segments.length === 1
+            ? "assessment-result__segments--centered-single"
+            : "",
         ]
           .filter(Boolean)
           .join(" ")}

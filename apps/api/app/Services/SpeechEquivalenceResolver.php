@@ -45,7 +45,6 @@ final class SpeechEquivalenceResolver
 
             $rule = $rules->first(function (EquivalenceRule $rule) use ($difference): bool {
                 return $rule->rule_type === 'token_alias'
-                    && $rule->scope === 'item'
                     && $this->normalize($rule->expected_text) === $difference['expected']
                     && $this->normalize($rule->recognized_text) === $difference['recognized'];
             });
@@ -122,81 +121,97 @@ final class SpeechEquivalenceResolver
      */
     private function align(array $expected, array $recognized): array
     {
-        $height = count($expected) + 1;
-        $width = count($recognized) + 1;
-        $table = array_fill(0, $height, array_fill(0, $width, 0));
+        $expectedCount = count($expected);
+        $recognizedCount = count($recognized);
+        $table = array_fill(
+            0,
+            $expectedCount + 1,
+            array_fill(0, $recognizedCount + 1, 0),
+        );
 
-        for ($left = 1; $left < $height; $left++) {
-            for ($right = 1; $right < $width; $right++) {
-                $table[$left][$right] = $expected[$left - 1] === $recognized[$right - 1]
-                    ? $table[$left - 1][$right - 1] + 1
-                    : max($table[$left - 1][$right], $table[$left][$right - 1]);
+        for ($expectedIndex = 0; $expectedIndex <= $expectedCount; $expectedIndex++) {
+            $table[$expectedIndex][0] = $expectedIndex;
+        }
+        for ($recognizedIndex = 0; $recognizedIndex <= $recognizedCount; $recognizedIndex++) {
+            $table[0][$recognizedIndex] = $recognizedIndex;
+        }
+
+        for ($expectedIndex = 1; $expectedIndex <= $expectedCount; $expectedIndex++) {
+            for ($recognizedIndex = 1; $recognizedIndex <= $recognizedCount; $recognizedIndex++) {
+                $substitutionCost = $expected[$expectedIndex - 1]
+                    === $recognized[$recognizedIndex - 1] ? 0 : 1;
+                $table[$expectedIndex][$recognizedIndex] = min(
+                    $table[$expectedIndex - 1][$recognizedIndex] + 1,
+                    $table[$expectedIndex][$recognizedIndex - 1] + 1,
+                    $table[$expectedIndex - 1][$recognizedIndex - 1]
+                        + $substitutionCost,
+                );
             }
         }
 
         $rows = [];
-        $left = count($expected);
-        $right = count($recognized);
+        $expectedIndex = $expectedCount;
+        $recognizedIndex = $recognizedCount;
 
-        while ($left > 0 || $right > 0) {
-            if ($left > 0 && $right > 0 && $expected[$left - 1] === $recognized[$right - 1]) {
+        while ($expectedIndex > 0 || $recognizedIndex > 0) {
+            if (
+                $expectedIndex > 0
+                && $recognizedIndex > 0
+                && $expected[$expectedIndex - 1] === $recognized[$recognizedIndex - 1]
+                && $table[$expectedIndex][$recognizedIndex]
+                    === $table[$expectedIndex - 1][$recognizedIndex - 1]
+            ) {
                 $rows[] = [
                     'status' => 'match',
-                    'expected' => $expected[$left - 1],
-                    'recognized' => $recognized[$right - 1],
+                    'expected' => $expected[$expectedIndex - 1],
+                    'recognized' => $recognized[$recognizedIndex - 1],
                 ];
-                $left--;
-                $right--;
-            } elseif ($right > 0 && ($left === 0 || $table[$left][$right - 1] >= $table[$left - 1][$right])) {
-                $rows[] = [
-                    'status' => 'insertion',
-                    'expected' => '',
-                    'recognized' => $recognized[$right - 1],
-                ];
-                $right--;
-            } else {
-                $rows[] = [
-                    'status' => 'omission',
-                    'expected' => $expected[$left - 1],
-                    'recognized' => '',
-                ];
-                $left--;
-            }
-        }
-
-        $rows = array_reverse($rows);
-
-        return $this->mergeSubstitutions($rows);
-    }
-
-    /**
-     * @param  list<array{status: string, expected: string, recognized: string}>  $rows
-     * @return list<array{status: string, expected: string, recognized: string}>
-     */
-    private function mergeSubstitutions(array $rows): array
-    {
-        $merged = [];
-
-        for ($index = 0; $index < count($rows); $index++) {
-            $current = $rows[$index];
-            $following = $rows[$index + 1] ?? null;
-
-            if ($following !== null && collect([$current['status'], $following['status']])->sort()->values()->all() === ['insertion', 'omission']) {
-                $omission = $current['status'] === 'omission' ? $current : $following;
-                $insertion = $current['status'] === 'insertion' ? $current : $following;
-                $merged[] = [
-                    'status' => 'substitution',
-                    'expected' => $omission['expected'],
-                    'recognized' => $insertion['recognized'],
-                ];
-                $index++;
+                $expectedIndex--;
+                $recognizedIndex--;
 
                 continue;
             }
 
-            $merged[] = $current;
+            if (
+                $expectedIndex > 0
+                && $recognizedIndex > 0
+                && $table[$expectedIndex][$recognizedIndex]
+                    === $table[$expectedIndex - 1][$recognizedIndex - 1] + 1
+            ) {
+                $rows[] = [
+                    'status' => 'substitution',
+                    'expected' => $expected[$expectedIndex - 1],
+                    'recognized' => $recognized[$recognizedIndex - 1],
+                ];
+                $expectedIndex--;
+                $recognizedIndex--;
+
+                continue;
+            }
+
+            if (
+                $expectedIndex > 0
+                && $table[$expectedIndex][$recognizedIndex]
+                    === $table[$expectedIndex - 1][$recognizedIndex] + 1
+            ) {
+                $rows[] = [
+                    'status' => 'omission',
+                    'expected' => $expected[$expectedIndex - 1],
+                    'recognized' => '',
+                ];
+                $expectedIndex--;
+
+                continue;
+            }
+
+            $rows[] = [
+                'status' => 'insertion',
+                'expected' => '',
+                'recognized' => $recognized[$recognizedIndex - 1],
+            ];
+            $recognizedIndex--;
         }
 
-        return $merged;
+        return array_reverse($rows);
     }
 }

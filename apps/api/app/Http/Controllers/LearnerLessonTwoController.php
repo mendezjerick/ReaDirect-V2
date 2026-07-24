@@ -9,6 +9,7 @@ use App\Models\LessonRun;
 use App\Services\LearnerAssessmentAsr;
 use App\Services\LearnerSessionResolver;
 use App\Services\LessonContentCatalog;
+use App\Services\LessonPracticeTryService;
 use App\Services\LessonTeachingStateMachine;
 use App\Services\LessonTwoSupportPresentation;
 use App\Services\SpeechEquivalenceResolver;
@@ -33,6 +34,7 @@ final class LearnerLessonTwoController extends Controller
         private readonly SpeechEquivalenceResolver $equivalenceResolver,
         private readonly LessonTeachingStateMachine $teaching,
         private readonly LessonTwoSupportPresentation $supportPresentation,
+        private readonly LessonPracticeTryService $practiceTries,
     ) {}
 
     public function start(Request $request): JsonResponse
@@ -655,6 +657,7 @@ final class LearnerLessonTwoController extends Controller
                 'can_advance' => $this->teaching->canAdvance($teaching),
             ],
             'support' => $support,
+            'practice_tries' => $this->practiceTries->forRun($run),
             'completion' => $this->completion($run),
         ];
     }

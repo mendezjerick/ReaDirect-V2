@@ -43,6 +43,7 @@ const lessonTwoState = {
     after_speech: "record",
     requires_speech_completion: true,
   },
+  practice_tries: { count: 0, entries: [] },
   completion: null,
 };
 

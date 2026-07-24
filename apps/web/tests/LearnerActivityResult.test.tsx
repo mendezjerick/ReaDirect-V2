@@ -11,6 +11,22 @@ const segment = (key: string) => ({
 });
 
 describe("LearnerActivityResult", () => {
+  it("centers a single mission card", () => {
+    render(
+      <LearnerActivityResult
+        ariaLabel="One mission"
+        segments={[segment("Phrases")]}
+        score={5}
+        maximum={5}
+        level="Phrase Pro"
+      />,
+    );
+
+    expect(screen.getByLabelText("One mission")).toHaveClass(
+      "assessment-result__segments--centered-single",
+    );
+  });
+
   it("centers a two-segment mission pair", () => {
     render(
       <LearnerActivityResult

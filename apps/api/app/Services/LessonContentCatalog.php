@@ -73,6 +73,33 @@ final class LessonContentCatalog
         ];
     }
 
+    /** @return array<string, list<array<string, string>>> */
+    public function lessonThreeSnapshot(int $learnerId): array
+    {
+        $rows = $this->readPhrases();
+        $scope = 'required.lesson-3.phrase-targets';
+        [$cycle, $used] = $this->exposureState($learnerId, $scope);
+        $available = array_values(array_filter(
+            $rows,
+            fn (array $row): bool => ! in_array($row['target_key'], $used, true),
+        ));
+
+        if (count($available) < 5) {
+            $cycle++;
+            $available = $rows;
+        }
+
+        shuffle($available);
+        $selection = array_slice($available, 0, 5);
+        if (count($selection) < 5) {
+            throw new RuntimeException('Lesson 3 does not have enough unique active targets.');
+        }
+
+        $this->recordExposures($learnerId, $scope, $cycle, $selection);
+
+        return ['mission-1' => $selection];
+    }
+
     /** @return list<array<string, string>> */
     private function readLetters(): array
     {
@@ -88,6 +115,15 @@ final class LessonContentCatalog
         return $this->readActiveRows(
             '../../content/lessons/v1/lesson-2-word-items.csv',
             'Lesson 2',
+        );
+    }
+
+    /** @return list<array<string, string>> */
+    private function readPhrases(): array
+    {
+        return $this->readActiveRows(
+            '../../content/lessons/v1/lesson-3-phrases.csv',
+            'Lesson 3',
         );
     }
 

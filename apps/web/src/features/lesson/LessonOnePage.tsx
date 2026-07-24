@@ -32,6 +32,7 @@ import {
 } from "./lessonApi";
 import { resolveLessonClaraPresentation } from "./lessonClaraPresentation";
 import { LessonProgressRail } from "./LessonProgressRail";
+import { LessonPracticeTriesToggle } from "./LessonPracticeTriesToggle";
 import "../assessment/assessment.css";
 import "./lesson.css";
 
@@ -469,6 +470,16 @@ export function LessonOnePage() {
             <LessonItem state={lesson} />
           </motion.div>
         </AnimatePresence>
+      }
+      itemPanelAccessory={
+        <LessonPracticeTriesToggle
+          practiceTries={lesson.practice_tries}
+          disabled={
+            controlsUnavailable ||
+            recorder.state === "recording" ||
+            recorder.state === "playing"
+          }
+        />
       }
       recorderContent={
         <Recorder
