@@ -110,17 +110,38 @@ final class LearnerTtsController extends Controller
         $final = trim((string) $lessonResponse->final_transcript);
         $canonicalLetter = strtoupper($final);
         $isLetterLesson = $lessonResponse->run->lesson_key === 'required-lesson-1';
-        if ($isLetterLesson && preg_match('/^[A-Z]$/', $canonicalLetter)) {
+        $isWordLesson = $lessonResponse->run->lesson_key === 'required-lesson-2';
+        $isPhraseLesson = $lessonResponse->run->lesson_key === 'required-lesson-3';
+        $phraseDiagnosis = (string) data_get(
+            $lessonResponse->evidence,
+            'transcript_alignment.diagnosis_key',
+            '',
+        );
+        if (
+            $isPhraseLesson
+            && $lessonResponse->decision !== 'CORRECT'
+            && $phraseDiagnosis !== ''
+        ) {
+            $text = $this->phraseCorrectionText(
+                (array) data_get(
+                    $lessonResponse->evidence,
+                    'transcript_alignment',
+                    [],
+                ),
+            );
+        } elseif ($isLetterLesson && preg_match('/^[A-Z]$/', $canonicalLetter)) {
             $spoken = $this->letterPronunciation->spokenForm($canonicalLetter);
             $text = "You said {$spoken}.";
-        } elseif ($lessonResponse->run->lesson_key === 'required-lesson-2'
+        } elseif (($isWordLesson || $isPhraseLesson)
             && $final !== ''
             && strtoupper($final) !== 'UNKNOWN') {
             $text = "You said {$final}.";
         } else {
-            $text = $isLetterLesson
-                ? 'I did not hear a clear letter. You can try the next one.'
-                : 'I did not hear a clear word. You can try the next one.';
+            $text = match (true) {
+                $isLetterLesson => 'I did not hear a clear letter. You can try the next one.',
+                $isPhraseLesson => 'I did not hear a clear phrase. You can try the next one.',
+                default => 'I did not hear a clear word. You can try the next one.',
+            };
         }
 
         return $this->runtimeSpeech($text, 'result', [
@@ -128,9 +149,16 @@ final class LearnerTtsController extends Controller
                 && preg_match('/^[A-Z]$/', $canonicalLetter)
                     ? $canonicalLetter
                     : 'UNKNOWN',
-            'X-ReaDirect-Word' => ! $isLetterLesson && $final !== ''
+            'X-ReaDirect-Word' => $isWordLesson && $final !== ''
                 ? $final
                 : 'UNKNOWN',
+            'X-ReaDirect-Phrase' => $isPhraseLesson && $final !== ''
+                ? $final
+                : 'UNKNOWN',
+            'X-ReaDirect-Phrase-Diagnosis' => $isPhraseLesson
+                && $phraseDiagnosis !== ''
+                    ? $phraseDiagnosis
+                    : 'NONE',
         ]);
     }
 
@@ -205,5 +233,62 @@ final class LearnerTtsController extends Controller
             'X-ReaDirect-TTS-Source' => 'runtime-cache',
             ...$headers,
         ]);
+    }
+
+    /** @param array<string, mixed> $alignment */
+    private function phraseCorrectionText(array $alignment): string
+    {
+        $diagnosis = (string) ($alignment['diagnosis_key'] ?? '');
+        $operation = (array) ($alignment['primary_operation'] ?? []);
+        $expected = trim((string) ($operation['expected'] ?? ''));
+        $actual = trim((string) ($operation['actual'] ?? ''));
+
+        return match ($diagnosis) {
+            'missing_word' => $expected !== ''
+                ? "You missed the word {$expected}."
+                : 'You missed one word. Let us try the phrase again.',
+            'extra_word' => $actual !== ''
+                ? "I heard an extra word, {$actual}."
+                : 'I heard one extra word. Let us try the phrase again.',
+            'replaced_word' => $expected !== '' && $actual !== ''
+                ? "I heard {$actual} instead of {$expected}."
+                : 'One word was different. Let us try the phrase again.',
+            'words_out_of_order' => $this->wordOrderCorrection($operation),
+            'multiple_word_differences' => $this->multipleDifferenceCorrection(
+                $operation,
+            ),
+            default => 'Some words were different. Let us read the phrase one word at a time.',
+        };
+    }
+
+    /** @param array<string, mixed> $operation */
+    private function wordOrderCorrection(array $operation): string
+    {
+        $first = trim((string) ($operation['expected_first'] ?? ''));
+        $second = trim((string) ($operation['expected_second'] ?? ''));
+
+        return $first !== '' && $second !== ''
+            ? "The words {$first} and {$second} changed places."
+            : 'Two words changed places. Let us try the phrase again.';
+    }
+
+    /** @param array<string, mixed> $operation */
+    private function multipleDifferenceCorrection(array $operation): string
+    {
+        $expected = trim((string) ($operation['expected'] ?? ''));
+        $actual = trim((string) ($operation['actual'] ?? ''));
+
+        return match ($operation['type'] ?? '') {
+            'delete' => $expected !== ''
+                ? "Let us fix one part. You missed the word {$expected}."
+                : 'Let us fix one part. One word was missing.',
+            'insert' => $actual !== ''
+                ? "Let us fix one part. I heard an extra word, {$actual}."
+                : 'Let us fix one part. I heard an extra word.',
+            'substitute' => $expected !== '' && $actual !== ''
+                ? "Let us fix one part. I heard {$actual} instead of {$expected}."
+                : 'Let us fix one part. One word was different.',
+            default => 'Some words were different. Let us read the phrase one word at a time.',
+        };
     }
 }

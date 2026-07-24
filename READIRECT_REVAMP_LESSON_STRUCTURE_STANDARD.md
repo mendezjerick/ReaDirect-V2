@@ -214,6 +214,8 @@ Phrases must:
 
 - Remain short
 - Use familiar words
+- Never begin with the standalone article `a`; begin with a stable lexical word
+  so Mu does not merge a weak opening article into the following word
 - Begin with lowercase unless they start with a proper noun
 - Have no ending period
 - Avoid unnecessary punctuation
@@ -222,8 +224,8 @@ Phrases must:
 Examples:
 
 ```text
-the fat cat
-a red bag
+fat cat
+red bag
 in the garden
 under the table
 Rosa and Ben
@@ -236,8 +238,8 @@ Example:
 ```json
 {
   "activity_type": "phrase",
-  "display_text": "the fat cat",
-  "spoken_target": "the fat cat",
+  "display_text": "fat cat",
+  "spoken_target": "fat cat",
   "asr_model": "mu"
 }
 ```
@@ -836,6 +838,33 @@ action height and Skip 20 percent; after submission, the action shows Clara's
 unavailable feedback/listening state. Next appears at full size only after
 Clara finishes speaking the feedback.
 
+## Global Lesson Practice-Try Journal
+
+Every implemented lesson must expose the same server-owned practice-try
+summary for its current persisted run.
+
+- A practice try is a `CLEAR_INCORRECT` independent or guided academic attempt.
+- Silence, uncertain recognition, unusable audio, technical retries, Skip, and
+  echo attempts are excluded.
+- The count accumulates for the current lesson run and survives item changes,
+  refreshes, and reopening the run.
+- Each learner-visible history entry contains only mission number, item order,
+  academic attempt number, and the committed `final_transcript`.
+- Raw Mu text, hidden expected targets, private audio paths, and internal
+  evidence must not appear in this journal.
+- The journal never changes scoring, mastery, progression, or achievements.
+
+The shared toggle is a small rounded vector button in the upper-right of the
+item panel. Its count badge appears only after the first practice try. The
+button must remain secondary to the item and recorder, use the standard tactile
+commit delay, and remain unavailable while Clara is speaking, TTS is preparing,
+or the learner is recording or playing audio.
+
+On mobile, the journal opens as a contained bottom sheet. On wider viewports,
+it opens as a right-side dialog. The lesson page remains non-scrollable; only
+the history list may scroll internally. Closing the journal restores the exact
+activity state.
+
 ## Implemented Lesson 2 Runtime and Teaching Engine
 
 Slice 1 establishes Lesson 2's server-owned start and resume boundary:
@@ -927,6 +956,66 @@ real Lesson 2 run ID, so refresh calls the normal authenticated show endpoint
 and cannot select a new snapshot. Completed portal state advances the required
 lesson order to 3 and persists Word Wizard. Portal prerequisites are
 identifiable in response evidence and never invent audio or ASR attempt rows.
+
+## Implemented Lesson 3 Runtime and Teaching Engine
+
+Lesson 3 is one five-item Simple Phrase mission backed by the 20 approved rows
+in `content/lessons/v1/lesson-3-phrases.csv`.
+
+- `POST /api/learners/lessons/lesson-3/start` creates or resumes one active
+  `required-lesson-3` run; `GET /api/learners/lessons/lesson-3/{lessonRun}`
+  restores that exact owned snapshot.
+- Start is permitted only when the learner's current required lesson order is
+  3. A completed run remains reopenable after progression advances.
+- Five unique unused phrase targets are selected and locked under
+  `required.lesson-3.phrase-targets`. A new selection cycle begins only when
+  fewer than five unused phrases remain.
+- The browser receives `display_phrase` and the display text, never the hidden
+  scoring target.
+- Submission sends audio to Mu with `task_type=phrase`, preserves raw evidence,
+  and commits the final transcript after the shared equivalence
+  resolver.
+- Clear phrase evidence is compared with the locked target through reusable
+  word-level Levenshtein alignment. The persisted evidence identifies a
+  missing, extra, replaced, reordered, or first actionable multiple
+  difference. Repeated words remain position-aware.
+- Clara speaks one short targeted correction before the existing clue. For
+  example, `cat on a mat` compared with `on a mat` persists
+  `missing_word` for `cat` and produces `You missed the word cat.`
+- Technical, silent, unusable, and uncertain evidence bypasses academic text
+  alignment and retains the neutral retry path.
+- Lesson 3 reuses the same bounded two-academic-attempt state machine,
+  technical-retry handling, clue, guided retry, demonstration, echo, skip, and
+  terminal evidence as Lessons 1 and 2.
+- Each phrase enters word by word from left to right, then remains still. The
+  page otherwise uses the exact shared assessment/lesson activity shell,
+  recorder, Clara dock, vertical actions, loaders, and responsive composition.
+- Completing all five items atomically advances required lesson order to 4 and
+  grants `reading.phrase_pro` (`Phrase Pro`).
+- The shared result displays one centered Phrases mission tile, the real
+  independent-mastery total, and the Phrase Pro achievement.
+
+Lesson 3 owns 33 fixed published Clara lines: one instruction, one completion,
+four ordinal cues, seven support lines, and demonstrations for all 20 possible
+phrases. The locked item content ID selects its demonstration key. Only
+response-owned final-transcript and targeted alignment feedback is
+runtime-generated, so the Lesson 3 activity manifest warms only the `result`
+profile. As everywhere in learner flow, playback waits for Clara's model-ready
+signal.
+
+### Lesson 3 Page Portal Checkpoints
+
+System Administrator Page Portals expose:
+
+- `lesson-3-mission-1`, opening the first locked Simple Phrase item.
+- `lesson-3-complete`, persisting five portal-prerequisite phrase responses and
+  opening the centered Phrase Pro result.
+
+Both destinations reset `KW000`, then persist completed Diagnostic, Lesson 1,
+and Lesson 2 prerequisites with Ready Reader, Letter Leader, and Word Wizard.
+The active route contains the real Lesson 3 run ID. The completed destination
+advances required lesson order to 4 and grants Phrase Pro without fabricating
+audio or ASR attempts.
 
 ## Optional Learn with Ma'am Clara Boundary
 

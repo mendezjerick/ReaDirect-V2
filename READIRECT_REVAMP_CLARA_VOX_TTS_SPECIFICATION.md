@@ -13,13 +13,15 @@ standards.
 
 Implementation status: published catalog delivery is active for Lesson Intro,
 all 32 fixed Part 1 assessment lines, all 14 fixed Part 2 and assessment
-completion lines, 51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, and 13
+completion lines, 51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, 33 fixed
+Lesson 3 lines, and 13
 published `Learn with Ma'am Clara` lines. PostgreSQL holds one published
-`clara-sh-v1` voice version and 130 speech metadata rows; Laravel verifies and
+`clara-sh-v1` voice version and 163 speech metadata rows; Laravel verifies and
 returns their private WAVs without calling VoxCPM2. Response-owned dynamic
-final-transcript feedback is active for Lessons 1 and 2. Lesson 2 also uses a
-response-owned target-word demonstration. Both are ordered by the
-server-authored support presentation.
+final-transcript feedback is active for Lessons 1, 2, and 3. Lesson 2 also
+uses a response-owned target-word demonstration. Lesson 3 instead uses one of
+20 finite published phrase demonstrations selected from the locked run
+snapshot. All are ordered by the server-authored support presentation.
 
 ## Approved Runtime Stack
 
@@ -122,6 +124,24 @@ what Mu and the equivalence resolver committed. Lesson 2 demonstration text
 uses the server-owned hidden target from the immutable run snapshot:
 `The word is {target}. Listen: {target}. Now you try.`. The browser cannot
 supply either substitution.
+
+For Lesson 3, correct phrase evidence still uses
+`You said {final_transcript}.`. Clear incorrect evidence first uses the
+server-persisted word-level alignment:
+
+```text
+missing_word       -> You missed the word {expected}.
+extra_word         -> I heard an extra word, {actual}.
+replaced_word      -> I heard {actual} instead of {expected}.
+words_out_of_order -> The words {first} and {second} changed places.
+```
+
+Multiple differences produce one targeted first correction, never an
+exhaustive list. The browser supplies neither the category nor any variable
+word. Laravel loads the response-owned alignment evidence, resolves the
+controlled template, and sends it with the `result` reference. This remains
+runtime speech because the operation and committed actual token are determined
+only after the learner responds.
 
 ### Runtime ownership and request boundaries
 
@@ -494,6 +514,10 @@ Current implementation:
 - Lesson 2 declares `result` for final-transcript feedback and `instruction`
   for target-word demonstrations. Lesson Intro must prepare both before its
   Continue action becomes available.
+- Lesson 3 declares only `result` for final-transcript feedback. Its mission
+  instructions, ordinal cues, support, completion, and all 20 possible phrase
+  demonstrations are published, so phrase demonstration never adds a runtime
+  `instruction` warm-up.
 - `Learn with Ma'am Clara` Lesson 1 declares the published-only
   `learn-with-clara-lesson-1-fixed` group and no runtime profiles. Its current
   Chapter 1 catalog contains three time-aware greetings, five letter-pair
@@ -979,6 +1003,28 @@ The fixed Lesson 2 support catalog contains:
 The 3 mission/completion lines, 8 ordinal cues, and 8 fixed support lines total
 19 published Lesson 2 lines. The target-word demonstration is deliberately not
 one of them because its selected target is run-specific.
+
+### Required published Lesson 3 speech
+
+Lesson 3 has one five-item phrase mission. The first item uses the full mission
+instruction and positions 2 through 5 use `Now, read the {ordinal} phrase.`
+
+The fixed Lesson 3 support catalog contains:
+
+- `lesson-3-technical-retry`
+- `lesson-3-clue-mission-1`
+- `lesson-3-feedback-independent`
+- `lesson-3-feedback-supported`
+- `lesson-3-feedback-demonstrated`
+- `lesson-3-feedback-not-yet`
+- `lesson-3-feedback-unscorable`
+
+Every one of the 20 active Version 1 phrase rows also owns a published
+`lesson-3-demo-{phrase-slug}` line using the instruction reference. The mission
+line, completion line, four ordinal cues, seven support lines, and 20
+demonstrations total 33 published Lesson 3 lines. Only the response-owned
+final-transcript or targeted alignment feedback uses runtime synthesis and the
+`result` profile.
 
 ## Published-Speech Generation Lifecycle
 

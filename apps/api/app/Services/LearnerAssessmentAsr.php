@@ -53,6 +53,17 @@ final class LearnerAssessmentAsr
     }
 
     /** @return array<string, mixed> */
+    public function phrase(UploadedFile $audio, string $expectedPhrase): array
+    {
+        return $this->send($audio, '/mu/transcribe', [
+            'expected_text' => $expectedPhrase,
+            'task_type' => 'phrase',
+            'noise_reduction_enabled' => app(SpeechProcessingSettings::class)
+                ->conditionalMuNoiseReductionEnabled() ? 'true' : 'false',
+        ]);
+    }
+
+    /** @return array<string, mixed> */
     public function passage(UploadedFile $audio, string $expectedPassage): array
     {
         return $this->send($audio, '/mu/transcribe', [

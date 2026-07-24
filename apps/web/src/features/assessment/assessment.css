@@ -532,6 +532,12 @@
   justify-content: center;
 }
 
+.assessment-result__segments--centered-single {
+  width: min(100%, 8rem);
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: center;
+}
+
 .assessment-result__segments > div {
   display: grid;
   min-width: 0;

@@ -12,6 +12,9 @@ lessons.
 | `lesson-5-passages.csv` | 5 passage targets |
 | `lesson-6-comprehension.csv` | 10 comprehension targets |
 
+Lesson 3 phrases never begin with the standalone article `a`. Internal articles
+remain permitted where they preserve natural phrasing.
+
 One Lesson 1 row owns all approved presentations of one letter. This prevents
 letter-pair, highlighted-letter, and missing-letter content from being counted
 as separate letter rows. Q and X support Mission 1 but are ineligible for the

@@ -43,6 +43,24 @@ patterns locally.
 - Shared components must consume the design tokens and viewport rules in this
   guide so fixes and future theme changes propagate throughout the system.
 
+### Lesson item-panel accessory
+
+Lesson pages use one shared practice-journal accessory in the upper-right of
+the item panel. It is a small rounded-square vector button with solid fake
+depth, a circular-practice icon, and an optional count badge. It must not be
+placed in the lesson header or duplicated inside keyed item animation content.
+
+The accessory opens an overlay rather than expanding the item panel:
+
+- Mobile uses a bottom sheet.
+- Wider viewports use a right-side dialog.
+- The page behind it does not scroll or reflow.
+- Only the contained history list may scroll.
+- Every color comes from design tokens.
+- Opening observes the standard button commit interval.
+- The button is unavailable during speech preparation, Clara speech,
+  recording, and playback.
+
 ## Approved Frontend Foundation
 
 The design system must be implemented with the approved frontend stack:

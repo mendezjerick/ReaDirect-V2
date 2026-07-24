@@ -314,8 +314,8 @@ belongs in `tts_voice_versions` and `tts_speech_lines`, while approved WAVs live
 under `apps/api/storage/app/private/tts/catalog/`. The current `clara-sh-v1`
 catalog contains Lesson Intro, every fixed Part 1 instruction and ordinal cue,
 all fixed Part 2 prompts and questions, the assessment completion line, and
-51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, and 13 fixed companion-class
-lines. Its 130 published rows are grouped under
+51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, 33 fixed Lesson 3 lines, and
+13 fixed companion-class lines. Its 163 published rows are grouped under
 `sh/lesson-intro/`, `sh/part-1/`, `sh/part-2/`, `sh/completion/`, and
 `sh/lessons/` for human review. Laravel verifies the catalog status, file
 existence, and SHA-256 checksum before returning audio. Browser code must never
@@ -347,7 +347,8 @@ calling Vox for manifest-declared profiles. The authenticated
 activity or profile. Assessments therefore validate their published catalog
 without contacting Vox. Lesson 1 prepares only `result`; Lesson 2 prepares
 `result` and `instruction` for controlled response feedback and word
-demonstration.
+demonstration; Lesson 3 prepares only `result` because all possible phrase
+demonstrations are published.
 
 Deterministic Philippine-English CVC vowel tolerance is owned by:
 
@@ -356,18 +357,22 @@ apps/api/app/Services/CvcVowelEquivalenceCatalog.php
 apps/api/database/seeders/CvcVowelEquivalenceSeeder.php
 ```
 
-The catalog derives item-aware `a/o/u` middle-vowel substitutions from the
-active Mu content registry. The seeder persists the derived token aliases,
-preserves raw ASR evidence, and is idempotent across content revisions.
+The catalog derives deduplicated global-token `a/o/u` middle-vowel
+substitutions from the active Mu content registry. The seeder persists each
+token pair once, and the resolver applies it word-by-word to isolated words,
+phrases, sentences, passages, and spoken comprehension answers while preserving
+raw ASR evidence. The seed remains idempotent across content revisions.
 
-System Administrator Page Portals currently resolve persisted Diagnostic,
-Lesson 1, and Lesson 2 checkpoints through
+System Administrator Page Portals currently resolve persisted Diagnostic and
+Lesson 1 through Lesson 3 checkpoints through
 `LearnerPortalLaunchService`. Lesson destinations create Kristen's completed
 Diagnostic prerequisite and Ready Reader first. Lesson 2 destinations also
 create her completed Lesson 1 prerequisite and Letter Leader before the
-selected `required-lesson-2` run, then navigate to
-`/learner/lessons/2?run={id}`. The learner page reloads that exact snapshot
-through the normal Lesson 2 API. Portal-only prerequisites remain in normal
+selected `required-lesson-2` run. Lesson 3 destinations additionally create a
+completed Lesson 2 prerequisite and Word Wizard before the selected
+`required-lesson-3` run, then navigate to the matching versioned lesson route.
+The learner page reloads that exact snapshot through the normal lesson API.
+Portal-only prerequisites remain in normal
 assessment and lesson tables with explicit evidence and no fabricated audio.
 
 Before VoxCPM2 receives a Clara reference, the TTS adapter creates a private
@@ -770,6 +775,7 @@ Lesson implementations remain inside the existing application boundaries:
 ```text
 apps/api/app/Http/Controllers/LearnerLessonOneController.php
 apps/api/app/Http/Controllers/LearnerLessonTwoController.php
+apps/api/app/Http/Controllers/LearnerLessonThreeController.php
 apps/api/app/Models/LessonRun.php
 apps/api/app/Models/LessonResponse.php
 apps/api/app/Models/LessonItemAttempt.php
@@ -777,21 +783,26 @@ apps/api/app/Services/LessonContentCatalog.php
 apps/api/app/Services/IsolatedLetterPronunciation.php
 apps/api/app/Services/LessonOneSupportPresentation.php
 apps/api/app/Services/LessonTwoSupportPresentation.php
+apps/api/app/Services/LessonThreeSupportPresentation.php
+apps/api/app/Services/LessonPracticeTryService.php
 apps/api/app/Services/LessonTeachingStateMachine.php
 apps/api/app/Services/SpeechEquivalenceResolver.php
+apps/api/app/Services/TranscriptAlignmentService.php
 apps/api/scripts/generate-published-tts-lines.php
 apps/api/database/migrations/2026_07_23_000017_add_bounded_support_to_lesson_runtime.php
 apps/web/src/features/learner-activity/LearnerActivityShell.tsx
 apps/web/src/features/learner-activity/LearnerActivityResult.tsx
 apps/web/src/features/lesson/LessonOnePage.tsx
 apps/web/src/features/lesson/LessonTwoPage.tsx
+apps/web/src/features/lesson/LessonThreePage.tsx
+apps/web/src/features/lesson/LessonPracticeTriesToggle.tsx
 apps/web/src/features/lesson/LessonProgressRail.tsx
 apps/web/src/features/lesson/lessonApi.ts
 apps/web/src/features/lesson/lesson.css
 ```
 
 Versioned authored lesson items remain under `content/lessons/`. Published
-Lesson 1 and Lesson 2 Clara WAV files remain private under the existing TTS
+Lesson 1 through Lesson 3 Clara WAV files remain private under the existing TTS
 catalog at `apps/api/storage/app/private/tts/catalog/sh/lessons/`. Future
 lessons must reuse the generic run, response, target-exposure, recorder, Clara,
 button, loader, and transition foundations rather than create parallel
@@ -809,14 +820,15 @@ apps/web/src/features/lesson/lessonClaraPresentation.ts
 priority. `ClaraExpressionController.ts` is the only runtime writer for the
 approved facial, cue, and celebration parameters.
 `lessonClaraPresentation.ts` maps shared lesson evidence and lifecycle states
-to that contract. Lessons 1 and 2 both consume this mapping and the same Clara
+to that contract. Lessons 1 through 3 consume this mapping and the same Clara
 controller.
 
-`LessonOneSupportPresentation.php` and `LessonTwoSupportPresentation.php` own
-their ordered learner-facing support contracts. Each maps persisted teaching
-state and the latest immutable attempt to published speech keys, controlled
-response-owned runtime speech, display mode, and the post-speech action. React
-must consume these payloads and must not reproduce either decision table.
+`LessonOneSupportPresentation.php`, `LessonTwoSupportPresentation.php`, and
+`LessonThreeSupportPresentation.php` own their ordered learner-facing support
+contracts. Each maps persisted teaching state and the latest immutable attempt
+to published speech keys, controlled response-owned runtime speech, display
+mode, and the post-speech action. React must consume these payloads and must
+not reproduce those decision tables.
 
 ## Learn with Ma'am Clara Placement
 

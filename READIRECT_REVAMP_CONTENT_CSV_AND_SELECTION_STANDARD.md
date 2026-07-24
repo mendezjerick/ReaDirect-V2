@@ -196,7 +196,7 @@ text corrections in released content also require a new content version.
 ```text
 letter:c
 word:cat
-phrase:a-red-bag
+phrase:red-bag
 sentence:lena-has-a-red-bag
 passage:lena-and-the-garden-001
 comprehension:who-lena-has-a-bag-001
@@ -463,6 +463,12 @@ and spoken comprehension answers. It never rewrites CSV content, displayed
 text, Mu's raw transcript, or the canonical final transcript. Middle `e` and
 `i`, different consonant frames, and irregular spellings remain outside the
 family.
+
+The family is stored as deduplicated global token aliases rather than one rule
+per item. Multi-word Mu targets are aligned first, then every substituted word
+is checked independently. All differing tokens must either match exactly or
+belong to the same CVC `a/o/u` family; omissions, insertions, and consonant
+changes remain incorrect.
 
 ## Consonant Cluster, Digraph, And Multigraph Rule
 
@@ -951,6 +957,11 @@ punctuation_sensitive
 
 `component_word_keys` is a JSON array of approved lexicon references. Every
 learner-spoken word must pass the non-passage restrictions.
+
+An active Lesson 3 phrase must never begin with the standalone article `a`.
+The opening token must carry a stable lexical sound so Mu cannot merge a weak
+initial article into the following word. An internal `a` remains permitted when
+it is needed for a natural phrase, such as `cat on a mat`.
 
 ### Passage Items
 

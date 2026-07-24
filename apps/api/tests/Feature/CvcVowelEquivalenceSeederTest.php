@@ -11,27 +11,27 @@ use Tests\TestCase;
 
 final class CvcVowelEquivalenceSeederTest extends TestCase
 {
-    public function test_catalog_generates_only_a_o_u_cvc_variants_for_runtime_item_keys(): void
+    public function test_catalog_generates_deduplicated_global_a_o_u_cvc_variants(): void
     {
         $rules = collect(app(CvcVowelEquivalenceCatalog::class)->rules());
 
-        $this->assertCount(208, $rules);
+        $this->assertCount(86, $rules);
         $this->assertTrue($rules->contains(fn (array $rule): bool => $rule === [
             'expected_text' => 'cap',
             'recognized_text' => 'cup',
-            'scope' => 'item',
-            'item_key' => 'task-2b-02',
+            'scope' => 'global',
+            'item_key' => null,
             'source_group' => 'assessment-task-2b',
         ]));
         $this->assertTrue($rules->contains(
             fn (array $rule): bool => $rule['expected_text'] === 'cat'
                 && $rule['recognized_text'] === 'cut'
-                && $rule['item_key'] === 'lesson-v1-word-cat',
+                && $rule['scope'] === 'global',
         ));
         $this->assertTrue($rules->contains(
             fn (array $rule): bool => $rule['expected_text'] === 'cut'
                 && $rule['recognized_text'] === 'cat'
-                && $rule['item_key'] === 'lesson-v1-word-cut',
+                && $rule['scope'] === 'global',
         ));
         $this->assertFalse($rules->contains(
             fn (array $rule): bool => in_array(
@@ -50,7 +50,7 @@ final class CvcVowelEquivalenceSeederTest extends TestCase
             'expected_text' => 'mat',
             'recognized_text' => 'map',
             'scope' => 'item',
-            'item_key' => 'lesson-v1-phrase-a-cat-on-a-mat',
+            'item_key' => 'lesson-v1-phrase-cat-on-a-mat',
             'notes' => 'Automatically observed in a known-correct two-voice Mu fixture audit. Evidence variant: jz.',
             'is_active' => false,
             'created_by_staff_user_id' => $administrator->id,
@@ -89,15 +89,35 @@ final class CvcVowelEquivalenceSeederTest extends TestCase
             'pin',
             'lesson-v1-word-pen',
         )['accepted_match']);
-        $this->assertFalse($resolver->resolve(
+        $this->assertTrue($resolver->resolve(
             'cap',
             'cup',
             'lesson-v1-word-cat',
         )['accepted_match']);
+        $this->assertFalse($resolver->resolve(
+            'cat',
+            'cap',
+            'lesson-v1-word-cat',
+        )['accepted_match']);
+        $this->assertTrue($resolver->resolve(
+            'fat cat',
+            'fot cut',
+            'lesson-v1-phrase-fat-cat',
+        )['accepted_match']);
+        $this->assertTrue($resolver->resolve(
+            'a cat is on a mat',
+            'a cut is on a mut',
+            'lesson-v1-sentence-cat-mat',
+        )['accepted_match']);
+        $this->assertTrue($resolver->resolve(
+            'lena sees a cat at the park',
+            'lena sees a cut at the park',
+            'lesson-v1-passage-mila-school',
+        )['accepted_match']);
         $this->assertDatabaseHas('equivalence_rules', [
             'expected_text' => 'mat',
             'recognized_text' => 'map',
-            'item_key' => 'lesson-v1-phrase-a-cat-on-a-mat',
+            'item_key' => 'lesson-v1-phrase-cat-on-a-mat',
             'is_active' => true,
         ]);
         $this->assertDatabaseHas('staff_audit_logs', [
@@ -105,7 +125,7 @@ final class CvcVowelEquivalenceSeederTest extends TestCase
         ]);
 
         (new CvcVowelEquivalenceSeeder)->run();
-        $this->assertSame(209, EquivalenceRule::query()->count());
+        $this->assertSame(87, EquivalenceRule::query()->count());
     }
 
     private function systemAdministrator(): StaffUser

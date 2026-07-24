@@ -18,7 +18,7 @@ final class CvcVowelEquivalenceCatalog
      *     expected_text: string,
      *     recognized_text: string,
      *     scope: string,
-     *     item_key: string,
+     *     item_key: null,
      *     source_group: string
      * }>
      */
@@ -39,16 +39,12 @@ final class CvcVowelEquivalenceCatalog
                             continue;
                         }
 
-                        $key = implode("\0", [
-                            $item['item_key'],
-                            $token,
-                            $recognized,
-                        ]);
-                        $rules[$key] = [
+                        $key = $token."\0".$recognized;
+                        $rules[$key] ??= [
                             'expected_text' => $token,
                             'recognized_text' => $recognized,
-                            'scope' => 'item',
-                            'item_key' => $item['item_key'],
+                            'scope' => 'global',
+                            'item_key' => null,
                             'source_group' => $group['key'],
                         ];
                     }

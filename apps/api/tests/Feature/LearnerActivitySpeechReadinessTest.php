@@ -101,6 +101,32 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         ]);
     }
 
+    public function test_lesson_three_validates_catalog_then_warms_only_result(): void
+    {
+        $this->publishActivity('lesson-3');
+        [, $token] = $this->learnerSession('required_lessons', 3);
+        Http::fake([
+            '*/warmup' => Http::response([
+                'ready' => true,
+                'device' => 'cuda',
+                'profiles_ready' => ['result'],
+            ]),
+        ]);
+
+        $this->withToken($token)
+            ->postJson('/api/learners/tts/activity-readiness')
+            ->assertOk()
+            ->assertJsonPath('activity', 'lesson-3')
+            ->assertJsonPath('ready', true)
+            ->assertJsonPath('published_ready', true)
+            ->assertJsonPath('runtime_profiles.0', 'result')
+            ->assertJsonPath('profiles_ready.0', 'result');
+
+        Http::assertSent(fn ($request): bool => $request->data() === [
+            'profiles' => ['result'],
+        ]);
+    }
+
     public function test_browser_payload_cannot_replace_the_server_resolved_activity(): void
     {
         $this->publishActivity('assessment-part-one');
