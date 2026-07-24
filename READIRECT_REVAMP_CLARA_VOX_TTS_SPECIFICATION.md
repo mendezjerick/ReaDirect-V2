@@ -14,14 +14,15 @@ standards.
 Implementation status: published catalog delivery is active for Lesson Intro,
 all 32 fixed Part 1 assessment lines, all 14 fixed Part 2 and assessment
 completion lines, 51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, 33 fixed
-Lesson 3 lines, and 13
+Lesson 3 lines, 33 fixed Lesson 4 lines, and 13
 published `Learn with Ma'am Clara` lines. PostgreSQL holds one published
-`clara-sh-v1` voice version and 163 speech metadata rows; Laravel verifies and
+`clara-sh-v1` voice version and 196 speech metadata rows; Laravel verifies and
 returns their private WAVs without calling VoxCPM2. Response-owned dynamic
-final-transcript feedback is active for Lessons 1, 2, and 3. Lesson 2 also
+final-transcript feedback is active for Lessons 1 through 4. Lesson 2 also
 uses a response-owned target-word demonstration. Lesson 3 instead uses one of
 20 finite published phrase demonstrations selected from the locked run
-snapshot. All are ordered by the server-authored support presentation.
+snapshot, and Lesson 4 uses the corresponding finite set of 20 sentence
+demonstrations. All are ordered by the server-authored support presentation.
 
 ## Approved Runtime Stack
 
@@ -518,6 +519,9 @@ Current implementation:
   instructions, ordinal cues, support, completion, and all 20 possible phrase
   demonstrations are published, so phrase demonstration never adds a runtime
   `instruction` warm-up.
+- Lesson 4 follows the same published-demonstration contract and declares only
+  `result`. Its instruction, four ordinal cues, support, completion, and all
+  20 approved sentence demonstrations are fixed catalog speech.
 - `Learn with Ma'am Clara` Lesson 1 declares the published-only
   `learn-with-clara-lesson-1-fixed` group and no runtime profiles. Its current
   Chapter 1 catalog contains three time-aware greetings, five letter-pair
@@ -1023,6 +1027,29 @@ Every one of the 20 active Version 1 phrase rows also owns a published
 `lesson-3-demo-{phrase-slug}` line using the instruction reference. The mission
 line, completion line, four ordinal cues, seven support lines, and 20
 demonstrations total 33 published Lesson 3 lines. Only the response-owned
+final-transcript or targeted alignment feedback uses runtime synthesis and the
+`result` profile.
+
+### Required published Lesson 4 speech
+
+Lesson 4 has one five-item sentence mission. The first item uses the full
+mission instruction and positions 2 through 5 use
+`Now, read the {ordinal} sentence.`
+
+Its fixed support family is:
+
+- `lesson-4-technical-retry`
+- `lesson-4-clue-mission-1`
+- `lesson-4-feedback-independent`
+- `lesson-4-feedback-supported`
+- `lesson-4-feedback-demonstrated`
+- `lesson-4-feedback-not-yet`
+- `lesson-4-feedback-unscorable`
+
+Every active Version 1 sentence row owns
+`lesson-4-demo-{sentence-slug}` using the instruction reference. The mission
+line, completion line, four ordinal cues, seven support lines, and 20
+demonstrations total 33 published Lesson 4 lines. Only response-owned
 final-transcript or targeted alignment feedback uses runtime synthesis and the
 `result` profile.
 

@@ -302,6 +302,23 @@ reading accuracy percent = max(0, 100 - (incorrect words * 2))
 Task 3A produces a reading accuracy percentage. It does not change the Part 1
 Score.
 
+Task 3A also persists presentation evidence for the later Passage Results step:
+
+- The authoritative equivalence-resolved word alignment is stored with the
+  response. React must not realign or rescore the passage.
+- Reading time is measured from the first timed Mu speech segment to the end of
+  the last timed speech segment. The captured-audio duration is the fallback
+  only when segment timing is unavailable.
+- Reading speed is stored as recognized words per minute. Correct words per
+  minute is stored separately for future reporting.
+- The alignment, highlighted story, and reading speed remain hidden throughout
+  Task 3B. They become visible only after all five comprehension responses
+  commit and the run reaches the dedicated Passage Results step.
+- Passage Results uses the Part 2 route and precedes the original Part 2 Results
+  score page. `Next` moves from Passage Results to Part 2 Results; `Continue`
+  moves from Part 2 Results toward assessment completion.
+- A skipped passage has no fabricated alignment or reading speed.
+
 ## Task 3B: Comprehension Check
 
 Task 3B checks comprehension of the Task 3A passage.
@@ -482,11 +499,13 @@ assessment run:
 - Task 3A and Task 3B Submit and Skip are atomic save-and-advance operations.
   Task 3A Skip stores zero reading accuracy and opens Task 3B. Task 3B Skip
   stores a distinct zero-score skipped response and opens the next question or
-  Part 2 Results.
-- Part 2 Results continues to Assessment Complete. Finishing the completion
-  page marks the assessment run completed and advances the learner progression
-  state to required Lesson 1.
+  Passage Results.
+- Passage Results advances to the original Part 2 Results score page. Part 2
+  Results continues to Assessment Complete. Finishing the completion page marks
+  the assessment run completed and advances the learner progression state to
+  required Lesson 1.
 - System-admin page portals expose every persisted diagnostic checkpoint:
   orientation, Tasks 1A/2A/2B, Part 1 Results, story selection, Tasks 3A/3B,
-  Part 2 Results, and Assessment Complete. Each portal builds the same prior
-  persisted state used by normal learner progression and is reset on exit.
+  the Passage Results entry point for the two-step Part 2 result sequence, and
+  Assessment Complete. Each portal builds the same prior persisted state used
+  by normal learner progression and is reset on exit.

@@ -112,27 +112,30 @@ final class LearnerTtsController extends Controller
         $isLetterLesson = $lessonResponse->run->lesson_key === 'required-lesson-1';
         $isWordLesson = $lessonResponse->run->lesson_key === 'required-lesson-2';
         $isPhraseLesson = $lessonResponse->run->lesson_key === 'required-lesson-3';
-        $phraseDiagnosis = (string) data_get(
+        $isSentenceLesson = $lessonResponse->run->lesson_key === 'required-lesson-4';
+        $isAlignedTextLesson = $isPhraseLesson || $isSentenceLesson;
+        $alignmentDiagnosis = (string) data_get(
             $lessonResponse->evidence,
             'transcript_alignment.diagnosis_key',
             '',
         );
         if (
-            $isPhraseLesson
+            $isAlignedTextLesson
             && $lessonResponse->decision !== 'CORRECT'
-            && $phraseDiagnosis !== ''
+            && $alignmentDiagnosis !== ''
         ) {
-            $text = $this->phraseCorrectionText(
+            $text = $this->alignedTextCorrection(
                 (array) data_get(
                     $lessonResponse->evidence,
                     'transcript_alignment',
                     [],
                 ),
+                $isSentenceLesson ? 'sentence' : 'phrase',
             );
         } elseif ($isLetterLesson && preg_match('/^[A-Z]$/', $canonicalLetter)) {
             $spoken = $this->letterPronunciation->spokenForm($canonicalLetter);
             $text = "You said {$spoken}.";
-        } elseif (($isWordLesson || $isPhraseLesson)
+        } elseif (($isWordLesson || $isAlignedTextLesson)
             && $final !== ''
             && strtoupper($final) !== 'UNKNOWN') {
             $text = "You said {$final}.";
@@ -140,6 +143,7 @@ final class LearnerTtsController extends Controller
             $text = match (true) {
                 $isLetterLesson => 'I did not hear a clear letter. You can try the next one.',
                 $isPhraseLesson => 'I did not hear a clear phrase. You can try the next one.',
+                $isSentenceLesson => 'I did not hear a clear sentence. You can try the next one.',
                 default => 'I did not hear a clear word. You can try the next one.',
             };
         }
@@ -156,8 +160,15 @@ final class LearnerTtsController extends Controller
                 ? $final
                 : 'UNKNOWN',
             'X-ReaDirect-Phrase-Diagnosis' => $isPhraseLesson
-                && $phraseDiagnosis !== ''
-                    ? $phraseDiagnosis
+                && $alignmentDiagnosis !== ''
+                    ? $alignmentDiagnosis
+                    : 'NONE',
+            'X-ReaDirect-Sentence' => $isSentenceLesson && $final !== ''
+                ? $final
+                : 'UNKNOWN',
+            'X-ReaDirect-Sentence-Diagnosis' => $isSentenceLesson
+                && $alignmentDiagnosis !== ''
+                    ? $alignmentDiagnosis
                     : 'NONE',
         ]);
     }
@@ -236,8 +247,10 @@ final class LearnerTtsController extends Controller
     }
 
     /** @param array<string, mixed> $alignment */
-    private function phraseCorrectionText(array $alignment): string
-    {
+    private function alignedTextCorrection(
+        array $alignment,
+        string $unit,
+    ): string {
         $diagnosis = (string) ($alignment['diagnosis_key'] ?? '');
         $operation = (array) ($alignment['primary_operation'] ?? []);
         $expected = trim((string) ($operation['expected'] ?? ''));
@@ -246,18 +259,18 @@ final class LearnerTtsController extends Controller
         return match ($diagnosis) {
             'missing_word' => $expected !== ''
                 ? "You missed the word {$expected}."
-                : 'You missed one word. Let us try the phrase again.',
+                : "You missed one word. Let us try the {$unit} again.",
             'extra_word' => $actual !== ''
                 ? "I heard an extra word, {$actual}."
-                : 'I heard one extra word. Let us try the phrase again.',
+                : "I heard one extra word. Let us try the {$unit} again.",
             'replaced_word' => $expected !== '' && $actual !== ''
                 ? "I heard {$actual} instead of {$expected}."
-                : 'One word was different. Let us try the phrase again.',
+                : "One word was different. Let us try the {$unit} again.",
             'words_out_of_order' => $this->wordOrderCorrection($operation),
             'multiple_word_differences' => $this->multipleDifferenceCorrection(
                 $operation,
             ),
-            default => 'Some words were different. Let us read the phrase one word at a time.',
+            default => "Some words were different. Let us read the {$unit} one word at a time.",
         };
     }
 

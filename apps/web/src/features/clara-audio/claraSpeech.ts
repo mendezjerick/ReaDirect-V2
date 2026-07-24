@@ -1,5 +1,5 @@
 const speechRequests = new Map<string, Promise<Blob>>();
-const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260724-7";
+const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260724-8";
 let audioContext: AudioContext | null = null;
 
 type AssessmentItemOrdinal = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
@@ -42,6 +42,8 @@ type LessonTwoItemSpeechKey =
   `lesson-2-${"mission-1" | "mission-2"}-item-${2 | 3 | 4 | 5}`;
 type LessonThreeItemSpeechKey = `lesson-3-mission-1-item-${2 | 3 | 4 | 5}`;
 type LessonThreeDemonstrationSpeechKey = `lesson-3-demo-${string}`;
+type LessonFourItemSpeechKey = `lesson-4-mission-1-item-${2 | 3 | 4 | 5}`;
+type LessonFourDemonstrationSpeechKey = `lesson-4-demo-${string}`;
 
 export type ClaraSpeechKey =
   | "learn-with-clara-lesson-1-greeting-morning"
@@ -91,6 +93,15 @@ export type ClaraSpeechKey =
   | "lesson-3-feedback-demonstrated"
   | "lesson-3-feedback-not-yet"
   | "lesson-3-feedback-unscorable"
+  | "lesson-4-mission-1"
+  | "lesson-4-complete"
+  | "lesson-4-technical-retry"
+  | "lesson-4-clue-mission-1"
+  | "lesson-4-feedback-independent"
+  | "lesson-4-feedback-supported"
+  | "lesson-4-feedback-demonstrated"
+  | "lesson-4-feedback-not-yet"
+  | "lesson-4-feedback-unscorable"
   | "assessment-orientation"
   | "assessment-letters"
   | "assessment-rhymes"
@@ -106,7 +117,9 @@ export type ClaraSpeechKey =
   | LessonOneItemSpeechKey
   | LessonTwoItemSpeechKey
   | LessonThreeItemSpeechKey
-  | LessonThreeDemonstrationSpeechKey;
+  | LessonThreeDemonstrationSpeechKey
+  | LessonFourItemSpeechKey
+  | LessonFourDemonstrationSpeechKey;
 
 export interface ClaraSpeechPlayback {
   finished: Promise<void>;

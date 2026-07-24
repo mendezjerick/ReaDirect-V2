@@ -351,8 +351,32 @@ Mobile reference:
 
 ## Part 2 Results Contract
 
-Part 2 Results appear only after the eligible Task 3A and Task 3B results are
-committed. The page displays:
+Part 2 uses two consecutive persisted result steps after the eligible Task 3A
+and Task 3B results are committed.
+
+### Passage Results
+
+The first step displays:
+
+- Heading: `Your Passage`.
+- The complete administered passage at the approved readable passage size.
+- Reading accuracy and reading speed in words per minute as supporting facts.
+- Authoritative substitutions and omissions highlighted in the passage.
+- Primary action: `Next`.
+
+The passage review must:
+
+- preserve every authored word and its original punctuation;
+- identify a highlighted word with more than color, using an underline and an
+  accessible explanation of a missed or replaced word;
+- expose inserted recognized words in one compact supporting note;
+- show neutral text and no false highlights when the passage was skipped or a
+  development portal has no detailed alignment evidence; and
+- fit inside the existing non-scrollable result composition.
+
+### Part 2 Score Results
+
+`Next` opens the original Part 2 score result layout. It displays:
 
 - Heading: `Part 2 Results`.
 - Supporting label: `Reading and Understanding`.
@@ -365,6 +389,9 @@ committed. The page displays:
 Reading accuracy and comprehension remain separate. Their tiles may assemble
 beside one another, but the frontend must not recalculate, average, or combine
 them. The final reading score is rendered exactly as returned by Laravel.
+On Passage Results, reading speed and story alignment are rendered exactly from
+the committed Task 3A response. React must not transcribe, realign, or
+recalculate them.
 
 The page must not show task-level correct answers, compare the learner with a
 class or grade, or describe the profile as a diagnosis.
@@ -372,6 +399,19 @@ class or grade, or describe the profile as a diagnosis.
 Mobile reference:
 
 ```text
++------------------------------+
+|         YOUR PASSAGE         |
+| Lena at the Park             |
+|                              |
+| [Accuracy 78%] [Speed 72 WPM]|
+|                              |
+| Lena goes to the [park] ...  |
+|                              |
+| Clara                  Next  |
++------------------------------+
+
+              Next
+
 +------------------------------+
 |       PART 2 RESULTS         |
 |  Reading and Understanding   |

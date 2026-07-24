@@ -66,6 +66,11 @@ const LessonThreePage = lazy(() =>
     default: module.LessonThreePage,
   })),
 );
+const LessonFourPage = lazy(() =>
+  import("./features/lesson/LessonFourPage").then((module) => ({
+    default: module.LessonFourPage,
+  })),
+);
 
 const GameOneRoutePage = lazy(() =>
   import("@readirect/game-one").then((module) => ({
@@ -198,6 +203,7 @@ export function App() {
             <Route path="/learner/lessons/1" element={<LessonOnePage />} />
             <Route path="/learner/lessons/2" element={<LessonTwoPage />} />
             <Route path="/learner/lessons/3" element={<LessonThreePage />} />
+            <Route path="/learner/lessons/4" element={<LessonFourPage />} />
             <Route path="/learner/games" element={<GameLobbyPage />} />
             <Route
               path="/learner/games/game-one"

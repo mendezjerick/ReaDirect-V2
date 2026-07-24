@@ -160,6 +160,44 @@ $lessonThreeSupportLines = [
     ],
 ];
 
+$lessonFourSupportLines = [
+    'lesson-4-technical-retry' => [
+        'text' => 'I could not hear that clearly. Let us try the sentence once more.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-4/support/technical/lesson-4-technical-retry.wav',
+    ],
+    'lesson-4-clue-mission-1' => [
+        'text' => 'Read one word at a time from left to right. Then say the whole sentence.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-4/support/clues/lesson-4-clue-mission-1.wav',
+    ],
+    'lesson-4-feedback-independent' => [
+        'text' => 'That is correct. You read the sentence by yourself.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-4/support/feedback/lesson-4-feedback-independent.wav',
+    ],
+    'lesson-4-feedback-supported' => [
+        'text' => 'That is correct. The clue helped you read the sentence.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-4/support/feedback/lesson-4-feedback-supported.wav',
+    ],
+    'lesson-4-feedback-demonstrated' => [
+        'text' => 'That is correct. You read the whole sentence with me.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-4/support/feedback/lesson-4-feedback-demonstrated.wav',
+    ],
+    'lesson-4-feedback-not-yet' => [
+        'text' => 'Not yet, and that is okay. We will practice this sentence again.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-4/support/feedback/lesson-4-feedback-not-yet.wav',
+    ],
+    'lesson-4-feedback-unscorable' => [
+        'text' => 'I still could not hear a clear answer. We can try this sentence again later.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-4/support/feedback/lesson-4-feedback-unscorable.wav',
+    ],
+];
+
 $learnWithClaraLessonOneGreetingLines = [
     'learn-with-clara-lesson-1-greeting-morning' => [
         'text' => 'Good morning. I am happy you are here. I have a little story for you today.',
@@ -314,6 +352,48 @@ foreach ($lessonThreePhrases as $phraseKey => $phrase) {
     ];
 }
 
+$lessonFourItemCueLines = [];
+foreach ($lessonOneItemOrdinals as $position => $ordinal) {
+    $speechKey = "lesson-4-mission-1-item-{$position}";
+    $lessonFourItemCueLines[$speechKey] = [
+        'text' => "Now, read the {$ordinal} sentence.",
+        'reference' => 'instruction',
+        'path' => "lessons/lesson-4/mission-1/{$speechKey}.wav",
+    ];
+}
+
+$lessonFourDemonstrationLines = [];
+$lessonFourSentences = [
+    'big-bag-bed' => 'A big bag is on a bed',
+    'cat-mat' => 'A cat is on a mat',
+    'dog-log' => 'A dog is on a log',
+    'hen-pen' => 'A hen is in a pen',
+    'hot-pan-mat' => 'A hot pan is on a mat',
+    'kid-hop' => 'A kid can hop',
+    'man-dig' => 'A man can dig',
+    'pig-mud' => 'A pig is in mud',
+    'red-cup-mat' => 'A red cup is on a mat',
+    'wet-dog-mat' => 'A wet dog is on a mat',
+    'ana-bag' => 'Ana has a bag',
+    'ben-cap' => 'Ben has a cap',
+    'lena-hop' => 'Lena can hop',
+    'lito-run' => 'Lito can run',
+    'mia-cat' => 'Mia has a cat',
+    'mina-fan' => 'Mina has a fan',
+    'nena-sit' => 'Nena can sit',
+    'nico-dog' => 'Nico has a dog',
+    'rosa-red-bag' => 'Rosa has a red bag',
+    'tino-pet-pig' => 'Tino has a pet pig',
+];
+foreach ($lessonFourSentences as $sentenceKey => $sentence) {
+    $speechKey = "lesson-4-demo-{$sentenceKey}";
+    $lessonFourDemonstrationLines[$speechKey] = [
+        'text' => "Listen: {$sentence}. Now say the whole sentence.",
+        'reference' => 'instruction',
+        'path' => "lessons/lesson-4/support/demonstrations/{$speechKey}.wav",
+    ];
+}
+
 foreach (IsolatedLetterPronunciation::all() as $letter => $spokenForm) {
     $lessonOneSupportLines["lesson-1-letter-demo-{$letter}"] = [
         'text' => "The letter name is {$spokenForm}. Listen: {$spokenForm}. Now you try.",
@@ -360,6 +440,13 @@ return [
             ...array_keys($lessonThreeSupportLines),
             ...array_keys($lessonThreeDemonstrationLines),
         ],
+        'lesson-4-fixed' => [
+            'lesson-4-mission-1',
+            'lesson-4-complete',
+            ...array_keys($lessonFourItemCueLines),
+            ...array_keys($lessonFourSupportLines),
+            ...array_keys($lessonFourDemonstrationLines),
+        ],
         'learn-with-clara-lesson-1-fixed' => [
             ...array_keys($learnWithClaraLessonOneGreetingLines),
             ...array_keys($learnWithClaraLessonOneChapterOneLines),
@@ -384,6 +471,10 @@ return [
         ],
         'lesson-3' => [
             'published_groups' => ['lesson-3-fixed'],
+            'runtime_profiles' => ['result'],
+        ],
+        'lesson-4' => [
+            'published_groups' => ['lesson-4-fixed'],
             'runtime_profiles' => ['result'],
         ],
         'learn-with-clara-lesson-1' => [
@@ -411,6 +502,8 @@ return [
         'lesson-2-complete' => 'lesson-2',
         'lesson-3-mission-1' => 'lesson-3',
         'lesson-3-complete' => 'lesson-3',
+        'lesson-4-mission-1' => 'lesson-4',
+        'lesson-4-complete' => 'lesson-4',
     ],
     'clara_lines' => [
         ...$learnWithClaraLessonOneGreetingLines,
@@ -464,6 +557,16 @@ return [
             'text' => 'Lesson three is complete. You are a Phrase Pro.',
             'reference' => 'result',
             'path' => 'lessons/lesson-3/completion/lesson-3-complete.wav',
+        ],
+        'lesson-4-mission-1' => [
+            'text' => 'Read the sentence you see. Say all the words from beginning to end.',
+            'reference' => 'instruction',
+            'path' => 'lessons/lesson-4/mission-1/lesson-4-mission-1.wav',
+        ],
+        'lesson-4-complete' => [
+            'text' => 'Lesson four is complete. You are a Sentence Star.',
+            'reference' => 'result',
+            'path' => 'lessons/lesson-4/completion/lesson-4-complete.wav',
         ],
         'assessment-orientation' => [
             'text' => 'Let us check your microphone. Say ready, then listen to your recording.',
@@ -567,6 +670,9 @@ return [
         ...$lessonThreeItemCueLines,
         ...$lessonThreeSupportLines,
         ...$lessonThreeDemonstrationLines,
+        ...$lessonFourItemCueLines,
+        ...$lessonFourSupportLines,
+        ...$lessonFourDemonstrationLines,
     ],
     'assessment_item_cues' => [
         'ordinals' => [

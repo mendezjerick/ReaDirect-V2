@@ -8,24 +8,25 @@ function storyVoiceKey(storyKey: string | null): "lena" | "rosa" {
 
 export function getPartTwoSpeechKey(
   state: AssessmentPartTwoState,
-): ClaraSpeechKey {
+): ClaraSpeechKey | null {
   if (state.stage === "story-selection") return "assessment-story-choice";
   if (state.stage === "task-3a") return "assessment-passage";
+  if (state.stage === "passage-results") return null;
   if (state.stage === "part-2-results") return "assessment-part-two-result";
   if (state.stage === "assessment-complete") return "assessment-complete";
 
   const item = Math.min(5, Math.max(1, state.progress?.current ?? 1)) as
-    | 1
-    | 2
-    | 3
-    | 4
-    | 5;
+    1 | 2 | 3 | 4 | 5;
   return `assessment-comprehension-${storyVoiceKey(state.selected_story_key)}-item-${item}`;
 }
 
 export function getNextPartTwoSpeechKey(
   state: AssessmentPartTwoState,
 ): ClaraSpeechKey | null {
+  if (state.stage === "passage-results") {
+    return "assessment-part-two-result";
+  }
+
   if (state.stage === "task-3a") {
     return `assessment-comprehension-${storyVoiceKey(state.selected_story_key)}-item-1`;
   }

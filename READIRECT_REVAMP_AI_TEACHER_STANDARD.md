@@ -896,14 +896,14 @@ Current implementation:
   teaching parameter. Runtime initialization fails clearly if the compiled
   model does not contain a required parameter.
 - Sad, angry, and dizzy toggles are excluded from the controller.
-- Lessons 1, 2, and 3 deterministically use demonstrating, listening, thinking,
+- Lessons 1 through 4 deterministically use demonstrating, listening, thinking,
   encouraging, gentle-correction, and celebrating presentation states.
 - Demonstration gaze temporarily overrides cursor tracking and then returns
   control to the shared interaction tracker.
 - Reduced motion preserves the communicative facial state and teaching gaze
   while removing celebration bounce.
 
-### Current Lesson 1 through Lesson 3 bounded-support implementation
+### Current Lesson 1 through Lesson 4 bounded-support implementation
 
 - `lesson_responses` is the persisted item-level teaching state and final
   outcome record.
@@ -919,8 +919,8 @@ Current implementation:
   remain distinct from independent mastery.
 - The API serializes server-derived recording, support-continuation, and
   advancement capabilities so refresh restores the exact state.
-- `LessonOneSupportPresentation`, `LessonTwoSupportPresentation`, and
-  `LessonThreeSupportPresentation` each
+- `LessonOneSupportPresentation`, `LessonTwoSupportPresentation`, and the
+  shared `SpokenTextLessonSupportPresentation` used by Lessons 3 and 4 each
   serialize one stable `sequence_key`, an ordered published-or-runtime speech
   sequence, a display mode, and the only action permitted after speech
   completion.
@@ -931,15 +931,15 @@ Current implementation:
 - Lesson 2 target-word demonstrations are response-owned runtime speech
   because the locked word varies by run. Laravel reads the hidden target from
   the immutable snapshot; the browser never supplies demonstration text.
-- Lesson 3 phrase demonstrations are finite published speech. All 20 possible
-  phrase targets are known in Version 1, so each demonstration is generated,
+- Lesson 3 phrase and Lesson 4 sentence demonstrations are finite published
+  speech. All 20 possible targets in each Version 1 catalog are generated,
   reviewed, cataloged, and addressed by the locked content ID. Only
   response-dependent final-transcript and alignment feedback remains runtime
-  speech in Lesson 3.
+  speech in these activities.
 - `TranscriptAlignmentService` implements reusable word-level Levenshtein
-  alignment for Lesson 3 and later phrase or sentence activities. Lesson 3
-  stores its complete result inside immutable attempt evidence and current
-  response evidence. The response diagnosis key is the alignment category.
+  alignment for Lesson 3 phrases and Lesson 4 sentences. Both store the
+  complete result inside immutable attempt evidence and current response
+  evidence. The response diagnosis key is the alignment category.
 - Technical, silent, unusable, and uncertain recordings never receive word
   alignment correction. Alignment runs only for clear academic evidence after
   the equivalence resolver commits the final transcript.

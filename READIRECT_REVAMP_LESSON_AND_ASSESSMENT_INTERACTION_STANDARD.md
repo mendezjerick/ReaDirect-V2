@@ -530,6 +530,11 @@ Task 3A passage review is the documented exception because a recording can last
 - Playback remains available for optional review.
 - Retry appears after playback completes.
 - Retrying restarts the complete passage recording and its 60-second timer.
+- The active passage and all linked comprehension questions remain neutral:
+  they do not reveal word alignment, errors, or reading speed.
+- After Task 3B commits, the dedicated Passage Results step may show the
+  persisted complete-passage alignment and reading speed defined by the
+  Assessment Guide and Results And Completion Presentation Standard.
 
 ## Lesson Skip, Processing, And Next Control
 
@@ -1186,6 +1191,12 @@ It must not imply that the score selected a lesson route.
 - Avoid flashing countdowns, ticking sounds, and punitive final-seconds motion.
 - Stop recording at the documented limit.
 - Use the passage review exception defined in this document.
+- Keep the word-level story review hidden until the Passage Results stage.
+- On Passage Results, highlight only authoritative substitutions and
+  omissions; accepted equivalences remain visually correct, and the browser
+  never recalculates alignment or speed.
+- `Next` advances to the original Part 2 Results score composition. That score
+  page contains no full passage and retains `Continue` as its primary action.
 
 ### Task 3B — Comprehension Check
 

@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\AssessmentResponse;
 use App\Models\AssessmentRun;
 use App\Models\Learner;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
 use App\Services\AssessmentContentCatalog;
+use App\Services\SpeechEquivalenceResolver;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -55,7 +57,13 @@ final class LearnerAssessmentPartTwoTest extends TestCase
         Http::fake([
             'http://127.0.0.1:8001/mu/transcribe' => Http::response([
                 'raw_transcript' => $passage['spoken_target'],
-                'audio_quality' => ['usable' => true],
+                'audio_quality' => [
+                    'usable' => true,
+                    'duration_seconds' => 31,
+                ],
+                'segments' => [
+                    ['start' => 1, 'end' => 31],
+                ],
                 'comparison' => ['exact_match' => true],
             ]),
         ]);
@@ -80,6 +88,16 @@ final class LearnerAssessmentPartTwoTest extends TestCase
             'task_key' => 'task-3a',
             'score' => 100,
         ]);
+        $response = AssessmentResponse::query()
+            ->where('assessment_run_id', $run->id)
+            ->where('task_key', 'task-3a')
+            ->firstOrFail();
+        $this->assertSame(30, data_get($response->evidence, 'scoring.reading_seconds'));
+        $this->assertSame(100, data_get($response->evidence, 'scoring.words_per_minute'));
+        $this->assertSame(
+            100,
+            data_get($response->evidence, 'scoring.correct_words_per_minute'),
+        );
     }
 
     public function test_skipped_passage_is_zero_and_still_opens_comprehension(): void
@@ -120,6 +138,34 @@ final class LearnerAssessmentPartTwoTest extends TestCase
             ->where('story_key', 'story:lena-at-park')
             ->sortBy('story_question_order')
             ->values();
+        $passage = collect($run->content_snapshot['task-3a'])
+            ->firstWhere('story_key', 'story:lena-at-park');
+        $resolution = app(SpeechEquivalenceResolver::class)->resolve(
+            $passage['spoken_target'],
+            $passage['spoken_target'],
+            $passage['item_key'],
+        );
+        AssessmentResponse::query()->create([
+            'assessment_run_id' => $run->id,
+            'task_key' => 'task-3a',
+            'item_key' => $passage['item_key'],
+            'item_order' => 1,
+            'response_type' => 'speech',
+            'raw_transcript' => $passage['spoken_target'],
+            'scoring_transcript' => $passage['spoken_target'],
+            'decision' => 'COMPLETED',
+            'score' => 80,
+            'evidence' => [
+                'equivalence_resolution' => $resolution,
+                'scoring' => [
+                    'incorrect_words' => 10,
+                    'reading_accuracy_percent' => 80,
+                    'reading_seconds' => 30.0,
+                    'words_per_minute' => 100,
+                    'correct_words_per_minute' => 80,
+                ],
+            ],
+        ]);
 
         foreach ($questions as $index => $question) {
             $choice = $index < 4 ? $question['correct_choice_key'] : 'a';
@@ -140,10 +186,23 @@ final class LearnerAssessmentPartTwoTest extends TestCase
         $this->withToken($token)
             ->get('/api/learners/assessments/part-two/current')
             ->assertOk()
-            ->assertJsonPath('stage', 'part-2-results')
+            ->assertJsonPath('stage', 'passage-results')
             ->assertJsonPath('result.reading_accuracy_percent', 80)
             ->assertJsonPath('result.comprehension_score', 4)
             ->assertJsonPath('result.comprehension_percent', 80)
+            ->assertJsonPath('result.score', 80)
+            ->assertJsonPath('result.profile', 'Transitioning Reader')
+            ->assertJsonPath('result.passage_review.title', 'Lena at the Park')
+            ->assertJsonPath('result.passage_review.review_available', true)
+            ->assertJsonPath('result.passage_review.words_per_minute', 100)
+            ->assertJsonPath('result.passage_review.correct_words_per_minute', 80)
+            ->assertJsonPath('result.passage_review.words.0.text', 'Lena')
+            ->assertJsonPath('result.passage_review.words.0.status', 'correct');
+
+        $this->withToken($token)
+            ->post("/api/learners/assessments/part-two/{$run->id}/continue")
+            ->assertOk()
+            ->assertJsonPath('stage', 'part-2-results')
             ->assertJsonPath('result.score', 80)
             ->assertJsonPath('result.profile', 'Transitioning Reader');
     }

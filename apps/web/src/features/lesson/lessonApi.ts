@@ -225,6 +225,34 @@ const lessonThreeStateSchema = z.object({
 
 export type LessonThreeState = z.infer<typeof lessonThreeStateSchema>;
 
+const lessonFourStateSchema = z.object({
+  run_id: z.number().int().positive(),
+  lesson_key: z.literal("required-lesson-4"),
+  content_version: z.string(),
+  status: z.enum(["active", "completed"]),
+  mission: z.object({
+    key: z.literal("mission-1"),
+    number: z.literal(1),
+    total: z.literal(1),
+    title: z.string(),
+  }),
+  progress: z.object({ current: z.number(), total: z.literal(5) }),
+  item: z
+    .object({
+      item_key: z.string(),
+      presentation: z.literal("display_sentence"),
+      display_text: z.string(),
+    })
+    .nullable(),
+  response: lessonResponseSchema,
+  teaching: lessonTeachingSchema,
+  support: lessonSupportSchema,
+  practice_tries: lessonPracticeTriesSchema,
+  completion: lessonCompletionSchema,
+});
+
+export type LessonFourState = z.infer<typeof lessonFourStateSchema>;
+
 const headers = (token: string): HeadersInit => ({
   Accept: "application/json",
   Authorization: `Bearer ${token}`,
@@ -273,6 +301,21 @@ async function parseLessonThree(response: Response): Promise<LessonThreeState> {
     );
   }
   return lessonThreeStateSchema.parse(await response.json());
+}
+
+async function parseLessonFour(response: Response): Promise<LessonFourState> {
+  if (!response.ok) {
+    const data: unknown = await response.json().catch(() => null);
+    throw new Error(
+      typeof data === "object" &&
+        data &&
+        "message" in data &&
+        typeof data.message === "string"
+        ? data.message
+        : "That lesson action could not be saved.",
+    );
+  }
+  return lessonFourStateSchema.parse(await response.json());
 }
 
 export async function startLessonOne(token: string) {
@@ -516,6 +559,78 @@ export async function continueLessonThreeSupport(
 export async function advanceLessonThreeItem(token: string, runId: number) {
   return parseLessonThree(
     await fetch(`/api/learners/lessons/lesson-3/${runId}/advance`, {
+      method: "POST",
+      headers: headers(token),
+    }),
+  );
+}
+
+export async function startLessonFour(token: string) {
+  return parseLessonFour(
+    await fetch("/api/learners/lessons/lesson-4/start", {
+      method: "POST",
+      headers: headers(token),
+    }),
+  );
+}
+
+export async function getLessonFour(token: string, runId: number) {
+  return parseLessonFour(
+    await fetch(`/api/learners/lessons/lesson-4/${runId}`, {
+      headers: headers(token),
+    }),
+  );
+}
+
+export async function submitLessonFourItem(
+  token: string,
+  runId: number,
+  itemKey: string,
+  audio: Blob,
+) {
+  const body = new FormData();
+  body.append("item_key", itemKey);
+  body.append("audio", audio, `${itemKey}.webm`);
+  return parseLessonFour(
+    await fetch(`/api/learners/lessons/lesson-4/${runId}/submit`, {
+      method: "POST",
+      headers: headers(token),
+      body,
+    }),
+  );
+}
+
+export async function skipLessonFourItem(
+  token: string,
+  runId: number,
+  itemKey: string,
+) {
+  return parseLessonFour(
+    await fetch(`/api/learners/lessons/lesson-4/${runId}/skip`, {
+      method: "POST",
+      headers: { ...headers(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ item_key: itemKey }),
+    }),
+  );
+}
+
+export async function continueLessonFourSupport(
+  token: string,
+  runId: number,
+  itemKey: string,
+) {
+  return parseLessonFour(
+    await fetch(`/api/learners/lessons/lesson-4/${runId}/continue-support`, {
+      method: "POST",
+      headers: { ...headers(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ item_key: itemKey }),
+    }),
+  );
+}
+
+export async function advanceLessonFourItem(token: string, runId: number) {
+  return parseLessonFour(
+    await fetch(`/api/learners/lessons/lesson-4/${runId}/advance`, {
       method: "POST",
       headers: headers(token),
     }),
