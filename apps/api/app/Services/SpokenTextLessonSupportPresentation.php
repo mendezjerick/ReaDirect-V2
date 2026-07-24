@@ -30,6 +30,15 @@ class SpokenTextLessonSupportPresentation
         ?LessonResponse $response,
         ?array $item,
     ): array {
+        if ($run->status === LessonRun::STATUS_REVIEW) {
+            return $this->presentation(
+                "lesson-run:{$run->id}:review",
+                [],
+                'review',
+                self::AFTER_NONE,
+            );
+        }
+
         if ($run->status === LessonRun::STATUS_COMPLETED || $item === null) {
             return $this->presentation(
                 "lesson-run:{$run->id}:complete",

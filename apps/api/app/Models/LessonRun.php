@@ -10,6 +10,8 @@ final class LessonRun extends Model
 {
     public const STATUS_ACTIVE = 'active';
 
+    public const STATUS_REVIEW = 'review';
+
     public const STATUS_COMPLETED = 'completed';
 
     protected $fillable = [

@@ -315,8 +315,8 @@ under `apps/api/storage/app/private/tts/catalog/`. The current `clara-sh-v1`
 catalog contains Lesson Intro, every fixed Part 1 instruction and ordinal cue,
 all fixed Part 2 prompts and questions, the assessment completion line, and
 51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, 33 fixed Lesson 3 lines, 33
-fixed Lesson 4 lines, and 13 fixed companion-class lines. Its 196 published
-rows are grouped under
+fixed Lesson 4 lines, 9 fixed Lesson 5 lines, and 13 fixed companion-class
+lines. Its 205 published rows are grouped under
 `sh/lesson-intro/`, `sh/part-1/`, `sh/part-2/`, `sh/completion/`, and
 `sh/lessons/` for human review. Laravel verifies the catalog status, file
 existence, and SHA-256 checksum before returning audio. Browser code must never
@@ -349,7 +349,9 @@ activity or profile. Assessments therefore validate their published catalog
 without contacting Vox. Lesson 1 prepares only `result`; Lesson 2 prepares
 `result` and `instruction` for controlled response feedback and word
 demonstration; Lessons 3 and 4 prepare only `result` because all possible
-phrase and sentence demonstrations are published.
+phrase and sentence demonstrations are published. Lesson 5 is published-only:
+its instruction, technical recovery, six review-band responses, and completion
+line require no runtime Vox profile.
 
 Deterministic Philippine-English CVC vowel tolerance is owned by:
 
@@ -365,7 +367,7 @@ phrases, sentences, passages, and spoken comprehension answers while preserving
 raw ASR evidence. The seed remains idempotent across content revisions.
 
 System Administrator Page Portals currently resolve persisted Diagnostic and
-Lesson 1 through Lesson 4 checkpoints through
+Lesson 1 through Lesson 5 checkpoints through
 `LearnerPortalLaunchService`. Lesson destinations create Kristen's completed
 Diagnostic prerequisite and Ready Reader first. Lesson 2 destinations also
 create her completed Lesson 1 prerequisite and Letter Leader before the
@@ -373,7 +375,9 @@ selected `required-lesson-2` run. Lesson 3 destinations additionally create a
 completed Lesson 2 prerequisite and Word Wizard before the selected
 `required-lesson-3` run. Lesson 4 destinations additionally persist completed
 Lesson 3 and Phrase Pro before creating the selected `required-lesson-4` run,
-then navigate to the matching versioned lesson route.
+then navigate to the matching versioned lesson route. Lesson 5 destinations
+additionally persist completed Lesson 4 and Sentence Star before opening the
+passage item, dedicated passage review, or Passage Explorer completion state.
 The learner page reloads that exact snapshot through the normal lesson API.
 Portal-only prerequisites remain in normal
 assessment and lesson tables with explicit evidence and no fabricated audio.
@@ -803,7 +807,9 @@ apps/web/src/features/lesson/LessonOnePage.tsx
 apps/web/src/features/lesson/LessonTwoPage.tsx
 apps/web/src/features/lesson/LessonThreePage.tsx
 apps/web/src/features/lesson/LessonFourPage.tsx
+apps/web/src/features/lesson/LessonFivePage.tsx
 apps/web/src/features/lesson/SpokenTextLessonPage.tsx
+apps/web/src/features/learner-activity/PassageReadingResult.tsx
 apps/web/src/features/lesson/LessonPracticeTriesToggle.tsx
 apps/web/src/features/lesson/LessonProgressRail.tsx
 apps/web/src/features/lesson/lessonApi.ts
@@ -811,7 +817,7 @@ apps/web/src/features/lesson/lesson.css
 ```
 
 Versioned authored lesson items remain under `content/lessons/`. Published
-Lesson 1 through Lesson 4 Clara WAV files remain private under the existing TTS
+Lesson 1 through Lesson 5 Clara WAV files remain private under the existing TTS
 catalog at `apps/api/storage/app/private/tts/catalog/sh/lessons/`. Future
 lessons must reuse the generic run, response, target-exposure, recorder, Clara,
 button, loader, and transition foundations rather than create parallel
@@ -829,16 +835,15 @@ apps/web/src/features/lesson/lessonClaraPresentation.ts
 priority. `ClaraExpressionController.ts` is the only runtime writer for the
 approved facial, cue, and celebration parameters.
 `lessonClaraPresentation.ts` maps shared lesson evidence and lifecycle states
-to that contract. Lessons 1 through 4 consume this mapping and the same Clara
+to that contract. Lessons 1 through 5 consume this mapping and the same Clara
 controller.
 
 `LessonOneSupportPresentation.php`, `LessonTwoSupportPresentation.php`, and
 the shared `SpokenTextLessonSupportPresentation.php` used by Lessons 3 and 4
-own their ordered learner-facing support contracts. Each maps persisted
-teaching state and the latest immutable attempt to published speech keys,
-controlled response-owned runtime speech, display mode, and the post-speech
-action. React must consume these payloads and must not reproduce those decision
-tables.
+own their ordered bounded-support contracts. `LessonFiveSupportPresentation`
+uses that shared foundation for instruction and technical recovery, then owns
+the published accuracy-band speech on passage review. React must consume these
+payloads and must not reproduce those decision tables.
 
 ## Learn with Ma'am Clara Placement
 

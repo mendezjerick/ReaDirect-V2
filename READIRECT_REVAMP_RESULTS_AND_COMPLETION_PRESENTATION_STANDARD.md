@@ -393,6 +393,26 @@ On Passage Results, reading speed and story alignment are rendered exactly from
 the committed Task 3A response. React must not transcribe, realign, or
 recalculate them.
 
+## Lesson 5 Passage Result Contract
+
+Lesson 5 inserts the shared passage-review surface directly between its one
+clear submitted recording and the ordinary Lesson Complete page.
+
+- It uses the locked Lesson 5 passage and committed Lesson response.
+- It displays the complete passage, authoritative word states, reading
+  accuracy, reading speed, and correct-word speed exactly from Laravel.
+- Skipped or unavailable evidence stays neutral and does not fabricate timing
+  or mistakes.
+- Clara speaks the published response selected from the committed accuracy
+  band while this result is visible. Speed never selects or lowers the band.
+- Its primary action is `Next`.
+- `Next` remains unavailable until Clara's selected review line finishes.
+- `Next` commits the explicit review boundary. Only the successful server
+  response reveals the shared Lesson Complete page, Passage Explorer award,
+  and dashboard-return action.
+- The Lesson Complete page does not repeat the full passage; it uses the shared
+  mission-tile, seal, Clara, achievement, and action composition.
+
 The page must not show task-level correct answers, compare the learner with a
 class or grade, or describe the profile as a diagnosis.
 

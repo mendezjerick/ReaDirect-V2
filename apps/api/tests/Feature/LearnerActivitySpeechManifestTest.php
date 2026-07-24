@@ -86,6 +86,20 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonCount(33, 'published_speech_keys');
     }
 
+    public function test_lesson_five_is_fully_published_without_runtime_warmup(): void
+    {
+        $token = $this->learnerSession('required_lessons', 5);
+
+        $this->withToken($token)
+            ->getJson('/api/learners/tts/activity-manifest')
+            ->assertOk()
+            ->assertJsonPath('activity', 'lesson-5')
+            ->assertJsonPath('published_groups.0', 'lesson-5-fixed')
+            ->assertJsonPath('runtime_profiles', [])
+            ->assertJsonPath('requires_runtime', false)
+            ->assertJsonCount(9, 'published_speech_keys');
+    }
+
     public function test_learn_with_clara_lesson_one_is_published_only(): void
     {
         $manifest = app(ActivitySpeechManifestService::class)

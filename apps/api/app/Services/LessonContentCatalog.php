@@ -95,6 +95,18 @@ final class LessonContentCatalog
         );
     }
 
+    /** @return array<string, list<array<string, string>>> */
+    public function lessonFiveSnapshot(int $learnerId): array
+    {
+        return $this->singleMissionSnapshot(
+            $learnerId,
+            $this->readPassages(),
+            'required.lesson-5.passage-targets',
+            'Lesson 5',
+            1,
+        );
+    }
+
     /**
      * @param  list<array<string, string>>  $rows
      * @return array<string, list<array<string, string>>>
@@ -104,6 +116,7 @@ final class LessonContentCatalog
         array $rows,
         string $scope,
         string $label,
+        int $selectionCount = 5,
     ): array {
         [$cycle, $used] = $this->exposureState($learnerId, $scope);
         $available = array_values(array_filter(
@@ -111,14 +124,14 @@ final class LessonContentCatalog
             fn (array $row): bool => ! in_array($row['target_key'], $used, true),
         ));
 
-        if (count($available) < 5) {
+        if (count($available) < $selectionCount) {
             $cycle++;
             $available = $rows;
         }
 
         shuffle($available);
-        $selection = array_slice($available, 0, 5);
-        if (count($selection) < 5) {
+        $selection = array_slice($available, 0, $selectionCount);
+        if (count($selection) < $selectionCount) {
             throw new RuntimeException("{$label} does not have enough unique active targets.");
         }
 
@@ -160,6 +173,15 @@ final class LessonContentCatalog
         return $this->readActiveRows(
             '../../content/lessons/v1/lesson-4-sentences.csv',
             'Lesson 4',
+        );
+    }
+
+    /** @return list<array<string, string>> */
+    private function readPassages(): array
+    {
+        return $this->readActiveRows(
+            '../../content/lessons/v1/lesson-5-passages.csv',
+            'Lesson 5',
         );
     }
 

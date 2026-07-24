@@ -17,6 +17,7 @@ import {
 } from "../clara-audio/activitySpeechReadiness";
 import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPreparation";
 import { ClaraStage } from "../intro/ClaraStage";
+import { PassageReadingResult } from "../learner-activity/PassageReadingResult";
 import { PointerTrail } from "../intro/PointerTrail";
 import { VectorCursor } from "../intro/VectorCursor";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
@@ -181,78 +182,17 @@ function PassageResult({ state }: { state: AssessmentPartTwoState }) {
 
   return (
     <motion.section
-      className="assessment-passage-result"
       initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.34 }}
     >
-      <div className="assessment-passage-result__heading">
-        <div>
-          <span>Passage reading</span>
-          <h2>{result.passage_review.title}</h2>
-        </div>
-        <div className="assessment-passage-result__facts">
-          <div>
-            <span>Accuracy</span>
-            <strong>{result.reading_accuracy_percent}%</strong>
-          </div>
-          <div>
-            <span>Speed</span>
-            <strong>
-              {result.passage_review.words_per_minute === null
-                ? "Not available"
-                : `${result.passage_review.words_per_minute} WPM`}
-            </strong>
-          </div>
-        </div>
-      </div>
-      <section
-        className="assessment-passage-review"
-        aria-label={`Story review for ${result.passage_review.title}`}
-      >
-        <div className="assessment-passage-review__heading">
-          {result.passage_review.review_available ? (
-            <small>
-              <i aria-hidden="true" />
-              Highlighted words need another try
-            </small>
-          ) : null}
-        </div>
-        <p className="assessment-passage-review__text">
-          {result.passage_review.words.map((word, index) => {
-            const detail =
-              word.status === "replaced"
-                ? `Expected ${word.text}. Heard ${word.heard}.`
-                : word.status === "missed"
-                  ? `The word ${word.text} was missed.`
-                  : word.text;
-
-            return (
-              <span
-                key={`${index}-${word.text}`}
-                data-status={word.status}
-                aria-label={detail}
-                title={word.status === "correct" ? undefined : detail}
-              >
-                {word.text}{" "}
-              </span>
-            );
-          })}
-        </p>
-        {result.passage_review.skipped ? (
-          <p className="assessment-passage-review__note">
-            Passage skipped. No word review is available.
-          </p>
-        ) : !result.passage_review.review_available ? (
-          <p className="assessment-passage-review__note">
-            Word details are unavailable in this portal preview.
-          </p>
-        ) : result.passage_review.extra_words.length > 0 ? (
-          <p className="assessment-passage-review__note">
-            Extra words heard: {result.passage_review.extra_words.join(", ")}
-          </p>
-        ) : null}
-      </section>
+      <PassageReadingResult
+        review={{
+          ...result.passage_review,
+          reading_accuracy_percent: result.reading_accuracy_percent,
+        }}
+        accuracyPercent={result.reading_accuracy_percent}
+      />
     </motion.section>
   );
 }
