@@ -15,6 +15,7 @@ final class ActivitySpeechManifestService
         'story-selection',
         'task-3a',
         'task-3b',
+        'passage-results',
         'part-2-results',
         'assessment-complete',
     ];
@@ -172,6 +173,11 @@ final class ActivitySpeechManifestService
         if ($stage === 'required_lessons'
             && (int) $progress?->current_required_lesson_order === 3) {
             return 'lesson-3';
+        }
+
+        if ($stage === 'required_lessons'
+            && (int) $progress?->current_required_lesson_order === 4) {
+            return 'lesson-4';
         }
 
         throw new DomainException(

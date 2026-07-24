@@ -1017,6 +1017,53 @@ The active route contains the real Lesson 3 run ID. The completed destination
 advances required lesson order to 4 and grants Phrase Pro without fabricating
 audio or ASR attempts.
 
+## Implemented Lesson 4 Runtime and Teaching Engine
+
+Lesson 4 is one five-item Simple Sentence mission backed by the 20 approved
+rows in `content/lessons/v1/lesson-4-sentences.csv`.
+
+- `POST /api/learners/lessons/lesson-4/start` creates or resumes one active
+  `required-lesson-4` run; `GET /api/learners/lessons/lesson-4/{lessonRun}`
+  restores that exact owned snapshot.
+- Start is permitted only at required lesson order 4. Five unique unused
+  sentence targets are selected and locked under
+  `required.lesson-4.sentence-targets`; a cycle restarts only when fewer than
+  five unused targets remain.
+- The browser receives `display_sentence` and display text, never the hidden
+  spoken scoring target.
+- Submission uses Mu `task_type=phrase`, the shared token-equivalence resolver,
+  and word-level Levenshtein alignment. A clear mismatch persists the missing,
+  extra, replaced, reordered, or first actionable multiple difference so
+  Clara can speak specific sentence feedback.
+- Lesson 4 shares `LearnerSpokenTextLessonController`,
+  `SpokenTextLessonSupportPresentation`, and `SpokenTextLessonPage` with
+  Lesson 3. The bounded support state machine, technical retries, clue,
+  demonstration, echo, skip, practice-tries journal, recorder, Clara dock,
+  vertical actions, and result composition are therefore one implementation.
+- Sentence words enter from left to right, then remain still while the learner
+  records. The complete sentence sits in one large responsive vector panel so
+  short and long approved rows remain readable without page scrolling.
+- Completing all five items advances required lesson order to 5, grants
+  `reading.sentence_star` (`Sentence Star`), and opens the shared one-segment
+  lesson result.
+
+Lesson 4 owns 33 fixed published Clara lines: one instruction, one completion,
+four ordinal cues, seven support lines, and one demonstration for every active
+Version 1 sentence. Only response-owned final-transcript and targeted
+alignment feedback is runtime-generated, so the Lesson 4 activity manifest
+warms only `result`.
+
+### Lesson 4 Page Portal Checkpoints
+
+- `lesson-4-mission-1` opens the first locked Simple Sentence item.
+- `lesson-4-complete` persists five portal-prerequisite sentence responses and
+  opens the Sentence Star result.
+
+Both destinations reset `KW000`, persist completed Diagnostic and Lessons 1
+through 3 prerequisites with their achievements, and navigate using the real
+Lesson 4 run ID. Completion advances the portal learner to required lesson
+order 5 without fabricating audio or ASR attempt rows.
+
 ## Optional Learn with Ma'am Clara Boundary
 
 `Learn with Ma'am Clara` is an always-available listening companion class, not

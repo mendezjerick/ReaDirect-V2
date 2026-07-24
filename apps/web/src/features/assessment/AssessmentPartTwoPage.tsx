@@ -52,6 +52,7 @@ const stageCopy = {
   "story-selection": { eyebrow: "Part 2", title: "Choose your story" },
   "task-3a": { eyebrow: "Part 2", title: "Read the passage" },
   "task-3b": { eyebrow: "Part 2", title: "Understanding" },
+  "passage-results": { eyebrow: "Story review", title: "Your Passage" },
   "part-2-results": { eyebrow: "Milestone reached", title: "Part 2 Results" },
   "assessment-complete": { eyebrow: "Reading path", title: "Great work!" },
 } as const;
@@ -173,6 +174,89 @@ function ComprehensionItem({ state }: { state: AssessmentPartTwoState }) {
   );
 }
 
+function PassageResult({ state }: { state: AssessmentPartTwoState }) {
+  const result = state.result;
+  const reduceMotion = useReducedMotion();
+  if (!result) return null;
+
+  return (
+    <motion.section
+      className="assessment-passage-result"
+      initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: reduceMotion ? 0 : 0.34 }}
+    >
+      <div className="assessment-passage-result__heading">
+        <div>
+          <span>Passage reading</span>
+          <h2>{result.passage_review.title}</h2>
+        </div>
+        <div className="assessment-passage-result__facts">
+          <div>
+            <span>Accuracy</span>
+            <strong>{result.reading_accuracy_percent}%</strong>
+          </div>
+          <div>
+            <span>Speed</span>
+            <strong>
+              {result.passage_review.words_per_minute === null
+                ? "Not available"
+                : `${result.passage_review.words_per_minute} WPM`}
+            </strong>
+          </div>
+        </div>
+      </div>
+      <section
+        className="assessment-passage-review"
+        aria-label={`Story review for ${result.passage_review.title}`}
+      >
+        <div className="assessment-passage-review__heading">
+          {result.passage_review.review_available ? (
+            <small>
+              <i aria-hidden="true" />
+              Highlighted words need another try
+            </small>
+          ) : null}
+        </div>
+        <p className="assessment-passage-review__text">
+          {result.passage_review.words.map((word, index) => {
+            const detail =
+              word.status === "replaced"
+                ? `Expected ${word.text}. Heard ${word.heard}.`
+                : word.status === "missed"
+                  ? `The word ${word.text} was missed.`
+                  : word.text;
+
+            return (
+              <span
+                key={`${index}-${word.text}`}
+                data-status={word.status}
+                aria-label={detail}
+                title={word.status === "correct" ? undefined : detail}
+              >
+                {word.text}{" "}
+              </span>
+            );
+          })}
+        </p>
+        {result.passage_review.skipped ? (
+          <p className="assessment-passage-review__note">
+            Passage skipped. No word review is available.
+          </p>
+        ) : !result.passage_review.review_available ? (
+          <p className="assessment-passage-review__note">
+            Word details are unavailable in this portal preview.
+          </p>
+        ) : result.passage_review.extra_words.length > 0 ? (
+          <p className="assessment-passage-review__note">
+            Extra words heard: {result.passage_review.extra_words.join(", ")}
+          </p>
+        ) : null}
+      </section>
+    </motion.section>
+  );
+}
+
 function PartTwoResult({ state }: { state: AssessmentPartTwoState }) {
   const result = state.result;
   const reduceMotion = useReducedMotion();
@@ -282,6 +366,15 @@ export function AssessmentPartTwoPage() {
 
   const speechKey = state ? getPartTwoSpeechKey(state) : null;
   const nextSpeechKey = state ? getNextPartTwoSpeechKey(state) : null;
+
+  useEffect(() => {
+    if (speechKey !== null) return;
+    playbackRef.current?.stop();
+    playbackRef.current = null;
+    setPreparedGuide(null);
+    setSpeechLevel(0);
+    setGuideState("ready");
+  }, [speechKey]);
 
   useEffect(() => {
     if (!speechKey || !session?.token || activityPreparation.status !== "ready")
@@ -435,7 +528,9 @@ export function AssessmentPartTwoPage() {
     saveAction !== null;
   const isPassage = state.stage === "task-3a";
   const isComprehension = state.stage === "task-3b";
-  const isResult = state.stage === "part-2-results";
+  const isPassageResult = state.stage === "passage-results";
+  const isPartTwoResult = state.stage === "part-2-results";
+  const isResult = isPassageResult || isPartTwoResult;
   const isCompletion = state.stage === "assessment-complete";
   const remainingSeconds = Math.max(
     0,
@@ -559,7 +654,9 @@ export function AssessmentPartTwoPage() {
               <PassageItem state={state} remainingSeconds={remainingSeconds} />
             ) : isComprehension ? (
               <ComprehensionItem state={state} />
-            ) : isResult ? (
+            ) : isPassageResult ? (
+              <PassageResult state={state} />
+            ) : isPartTwoResult ? (
               <PartTwoResult state={state} />
             ) : (
               <AssessmentCompletion state={state} />
@@ -635,11 +732,13 @@ export function AssessmentPartTwoPage() {
               committing={submitCommit.committing}
               onClick={() => submitCommit.commit(submitCurrent)}
             >
-              {isResult
-                ? "Continue"
-                : isCompletion
-                  ? "My reading path"
-                  : "Submit"}
+              {isPassageResult
+                ? "Next"
+                : isPartTwoResult
+                  ? "Continue"
+                  : isCompletion
+                    ? "My reading path"
+                    : "Submit"}
             </BigButton>
           </motion.div>
           {canSkip ? (

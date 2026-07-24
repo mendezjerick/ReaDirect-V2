@@ -23,6 +23,7 @@ final class LearnerAssessmentPartTwoController extends Controller
         'story-selection',
         'task-3a',
         'task-3b',
+        'passage-results',
         'part-2-results',
         'assessment-complete',
     ];
@@ -119,6 +120,7 @@ final class LearnerAssessmentPartTwoController extends Controller
                 && ! in_array($difference['status'] ?? '', ['match', 'equivalent'], true)
             )->count());
         $accuracy = max(0, 100 - ($incorrectWords * 2));
+        $readingMetrics = $this->readingMetrics($evidence, $resolution, $incorrectWords);
         $audioBytes = file_get_contents($audio->getRealPath());
         $sha = hash('sha256', $audioBytes);
         $extension = strtolower($audio->getClientOriginalExtension() ?: 'webm');
@@ -132,6 +134,7 @@ final class LearnerAssessmentPartTwoController extends Controller
             $resolution,
             $incorrectWords,
             $accuracy,
+            $readingMetrics,
             $path,
             $sha,
             $evidence,
@@ -157,6 +160,7 @@ final class LearnerAssessmentPartTwoController extends Controller
                             'incorrect_words' => $incorrectWords,
                             'reading_accuracy_percent' => $accuracy,
                             'expected_word_count' => $resolution['expected_word_count'] ?? 50,
+                            ...$readingMetrics,
                         ],
                     ],
                 ]);
@@ -258,8 +262,16 @@ final class LearnerAssessmentPartTwoController extends Controller
         $run = $this->resolveRun($request);
         DB::transaction(function () use ($run): void {
             $run->refresh();
-            abort_unless($run->stage === 'part-2-results', 409, 'Part 2 is not ready to continue.');
-            $run->forceFill(['stage' => 'assessment-complete'])->save();
+            abort_unless(
+                in_array($run->stage, ['passage-results', 'part-2-results'], true),
+                409,
+                'Part 2 is not ready to continue.',
+            );
+            $run->forceFill([
+                'stage' => $run->stage === 'passage-results'
+                    ? 'part-2-results'
+                    : 'assessment-complete',
+            ])->save();
         });
 
         return response()->json($this->serialize($run->fresh()));
@@ -353,7 +365,7 @@ final class LearnerAssessmentPartTwoController extends Controller
                     ],
                 ];
             }
-        } elseif ($run->stage === 'part-2-results') {
+        } elseif (in_array($run->stage, ['passage-results', 'part-2-results'], true)) {
             $payload['result'] = [
                 'score' => $run->final_reading_score,
                 'maximum' => 100,
@@ -361,6 +373,7 @@ final class LearnerAssessmentPartTwoController extends Controller
                 'reading_accuracy_percent' => $run->reading_accuracy_percent,
                 'comprehension_percent' => $run->comprehension_percent,
                 'comprehension_score' => $run->comprehension_score,
+                'passage_review' => $this->passageReview($run),
             ];
         } elseif ($run->stage === 'assessment-complete') {
             $payload['completion'] = [
@@ -415,6 +428,126 @@ final class LearnerAssessmentPartTwoController extends Controller
             ->where('task_key', $taskKey)
             ->where('item_key', $itemKey)
             ->first();
+    }
+
+    /**
+     * @param  array<string, mixed>  $evidence
+     * @param  array<string, mixed>  $resolution
+     * @return array<string, int|float|null>
+     */
+    private function readingMetrics(array $evidence, array $resolution, int $incorrectWords): array
+    {
+        $segments = collect($evidence['segments'] ?? [])
+            ->filter(fn (mixed $segment): bool => is_array($segment)
+                && is_numeric($segment['start'] ?? null)
+                && is_numeric($segment['end'] ?? null)
+                && (float) $segment['end'] > (float) $segment['start']);
+        $readingSeconds = null;
+
+        if ($segments->isNotEmpty()) {
+            $firstSpeech = (float) $segments->min(
+                fn (array $segment): float => (float) $segment['start'],
+            );
+            $lastSpeech = (float) $segments->max(
+                fn (array $segment): float => (float) $segment['end'],
+            );
+            $readingSeconds = $lastSpeech - $firstSpeech;
+        }
+
+        if ($readingSeconds === null || $readingSeconds <= 0) {
+            $duration = data_get($evidence, 'audio_quality.duration_seconds');
+            $readingSeconds = is_numeric($duration) && (float) $duration > 0
+                ? (float) $duration
+                : null;
+        }
+
+        $expectedWords = (int) ($resolution['expected_word_count'] ?? 0);
+        $recognizedWords = (int) ($resolution['recognized_word_count'] ?? 0);
+        $correctWords = max(0, $expectedWords - $incorrectWords);
+
+        return [
+            'recognized_word_count' => $recognizedWords,
+            'correct_word_count' => $correctWords,
+            'reading_seconds' => $readingSeconds === null ? null : round($readingSeconds, 1),
+            'words_per_minute' => $readingSeconds === null
+                ? null
+                : (int) round(($recognizedWords * 60) / max(0.1, $readingSeconds)),
+            'correct_words_per_minute' => $readingSeconds === null
+                ? null
+                : (int) round(($correctWords * 60) / max(0.1, $readingSeconds)),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function passageReview(AssessmentRun $run): array
+    {
+        $passage = $this->selectedPassage($run);
+        $response = $passage === null
+            ? null
+            : $this->response($run, 'task-3a', $passage['item_key']);
+        $skipped = $response?->response_type === 'skipped';
+        $differences = collect(data_get($response?->evidence, 'equivalence_resolution.differences', []));
+        $expectedDifferences = $differences
+            ->filter(fn (mixed $difference): bool => is_array($difference)
+                && trim((string) ($difference['expected'] ?? '')) !== '')
+            ->values();
+        $displayWords = preg_split(
+            '/\s+/u',
+            trim((string) ($passage['display_text'] ?? '')),
+            flags: PREG_SPLIT_NO_EMPTY,
+        ) ?: [];
+        $reviewAvailable = ! $skipped
+            && $response !== null
+            && $expectedDifferences->isNotEmpty()
+            && $expectedDifferences->count() === count($displayWords);
+
+        $words = collect($displayWords)
+            ->map(function (string $word, int $index) use ($expectedDifferences, $reviewAvailable): array {
+                $difference = $reviewAvailable ? $expectedDifferences->get($index) : null;
+                $sourceStatus = is_array($difference)
+                    ? (string) ($difference['status'] ?? '')
+                    : '';
+                $status = match ($sourceStatus) {
+                    'match', 'equivalent' => 'correct',
+                    'omission' => 'missed',
+                    'substitution' => 'replaced',
+                    default => 'unscored',
+                };
+
+                return [
+                    'text' => $word,
+                    'status' => $status,
+                    'heard' => $status === 'replaced'
+                        ? (string) ($difference['recognized'] ?? '')
+                        : null,
+                ];
+            })
+            ->values()
+            ->all();
+        $extraWords = $reviewAvailable
+            ? $differences
+                ->filter(fn (mixed $difference): bool => is_array($difference)
+                    && ($difference['status'] ?? '') === 'insertion'
+                    && trim((string) ($difference['recognized'] ?? '')) !== '')
+                ->pluck('recognized')
+                ->map(fn (mixed $word): string => (string) $word)
+                ->values()
+                ->all()
+            : [];
+
+        return [
+            'title' => (string) ($passage['title'] ?? 'Your story'),
+            'skipped' => $skipped,
+            'review_available' => $reviewAvailable,
+            'reading_seconds' => data_get($response?->evidence, 'scoring.reading_seconds'),
+            'words_per_minute' => data_get($response?->evidence, 'scoring.words_per_minute'),
+            'correct_words_per_minute' => data_get(
+                $response?->evidence,
+                'scoring.correct_words_per_minute',
+            ),
+            'words' => $words,
+            'extra_words' => $extraWords,
+        ];
     }
 
     private function resumePastCommittedItem(AssessmentRun $run): AssessmentRun
@@ -479,7 +612,7 @@ final class LearnerAssessmentPartTwoController extends Controller
                 $finalScore <= 90 => 'Transitioning Reader',
                 default => 'Reading at Grade Level',
             },
-            'stage' => 'part-2-results',
+            'stage' => 'passage-results',
             'current_item_index' => 0,
             'part_two_completed_at' => now(),
         ])->save();

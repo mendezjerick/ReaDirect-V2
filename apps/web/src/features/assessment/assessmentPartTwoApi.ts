@@ -20,9 +20,26 @@ const comprehensionItemSchema = z.object({
   kind: z.literal("comprehension"),
   question_type: z.enum(["who", "what", "where", "when", "why"]),
   question_text: z.string(),
-  choices: z.array(
-    z.object({ key: z.enum(["a", "b", "c", "d"]), text: z.string() }),
-  ).length(4),
+  choices: z
+    .array(z.object({ key: z.enum(["a", "b", "c", "d"]), text: z.string() }))
+    .length(4),
+});
+
+const passageReviewSchema = z.object({
+  title: z.string(),
+  skipped: z.boolean(),
+  review_available: z.boolean(),
+  reading_seconds: z.number().nonnegative().nullable(),
+  words_per_minute: z.number().int().nonnegative().nullable(),
+  correct_words_per_minute: z.number().int().nonnegative().nullable(),
+  words: z.array(
+    z.object({
+      text: z.string(),
+      status: z.enum(["correct", "missed", "replaced", "unscored"]),
+      heard: z.string().nullable(),
+    }),
+  ),
+  extra_words: z.array(z.string()),
 });
 
 export const assessmentPartTwoStateSchema = z.object({
@@ -32,6 +49,7 @@ export const assessmentPartTwoStateSchema = z.object({
     "story-selection",
     "task-3a",
     "task-3b",
+    "passage-results",
     "part-2-results",
     "assessment-complete",
   ]),
@@ -49,19 +67,16 @@ export const assessmentPartTwoStateSchema = z.object({
       reading_accuracy_percent: z.number().int().min(0).max(100),
       comprehension_percent: z.number().int().min(0).max(100),
       comprehension_score: z.number().int().min(0).max(5),
+      passage_review: passageReviewSchema,
     })
     .nullable(),
-  completion: z
-    .object({ title: z.string(), message: z.string() })
-    .nullable(),
+  completion: z.object({ title: z.string(), message: z.string() }).nullable(),
 });
 
 export type AssessmentPartTwoState = z.infer<
   typeof assessmentPartTwoStateSchema
 >;
-export type AssessmentPartTwoItem = NonNullable<
-  AssessmentPartTwoState["item"]
->;
+export type AssessmentPartTwoItem = NonNullable<AssessmentPartTwoState["item"]>;
 export type ComprehensionChoice = "a" | "b" | "c" | "d";
 
 function authHeaders(token: string): HeadersInit {
@@ -131,14 +146,11 @@ export async function submitAssessmentComprehension(
   choice: ComprehensionChoice,
 ) {
   return parseState(
-    await fetch(
-      `/api/learners/assessments/part-two/${runId}/comprehension`,
-      {
-        method: "POST",
-        headers: { ...authHeaders(token), "Content-Type": "application/json" },
-        body: JSON.stringify({ item_key: itemKey, choice }),
-      },
-    ),
+    await fetch(`/api/learners/assessments/part-two/${runId}/comprehension`, {
+      method: "POST",
+      headers: { ...authHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ item_key: itemKey, choice }),
+    }),
   );
 }
 

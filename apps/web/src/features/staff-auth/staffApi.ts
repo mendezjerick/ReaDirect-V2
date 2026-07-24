@@ -166,6 +166,8 @@ const portalTargetKeySchema = z.enum([
   "lesson-2-complete",
   "lesson-3-mission-1",
   "lesson-3-complete",
+  "lesson-4-mission-1",
+  "lesson-4-complete",
 ]);
 
 const portalTargetSchema = z.object({

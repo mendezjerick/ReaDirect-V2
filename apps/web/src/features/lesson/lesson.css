@@ -327,6 +327,34 @@
   animation: lesson-support-focus 0.9s ease-in-out infinite alternate;
 }
 
+.lesson-four-sentence {
+  display: flex;
+  width: min(94%, 38rem);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.22rem, 1.7vw, 0.5rem);
+  border: 2px solid var(--color-border-soft);
+  border-radius: var(--radius-panel);
+  padding: clamp(0.75rem, 2.2vh, 1.25rem) clamp(0.7rem, 3vw, 1.4rem);
+  color: var(--color-text-primary);
+  background: var(--color-surface-panel);
+  box-shadow: 0 7px 0 var(--color-frame-depth);
+  font-family: var(--font-reading-family);
+  font-size: clamp(1.65rem, 7.2vw, 3.35rem);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.lesson-four-sentence span {
+  display: inline-block;
+}
+
+.lesson-four-item[data-support-mode="clue"] .lesson-four-sentence,
+.lesson-four-item[data-support-mode="demonstration"] .lesson-four-sentence {
+  animation: lesson-support-focus 0.9s ease-in-out infinite alternate;
+}
+
 .lesson-word {
   font-family: var(--font-reading-family);
   font-size: clamp(3.15rem, 16vw, 5.25rem);
@@ -396,7 +424,8 @@
   .lesson-item[data-support-mode] .lesson-letter-pair strong,
   .lesson-item[data-support-mode] .lesson-word span,
   .lesson-item[data-support-mode] .lesson-missing,
-  .lesson-three-item[data-support-mode] .lesson-three-phrase span {
+  .lesson-three-item[data-support-mode] .lesson-three-phrase span,
+  .lesson-four-item[data-support-mode] .lesson-four-sentence {
     animation: none;
   }
 }

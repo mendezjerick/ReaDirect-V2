@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Learner;
 use App\Models\LearnerSession;
+use App\Models\LessonResponse;
+use App\Models\LessonRun;
 use App\Models\TtsSpeechLine;
 use App\Models\TtsVoiceVersion;
 use Illuminate\Support\Facades\Http;
@@ -56,7 +58,7 @@ final class LearnerTtsTest extends TestCase
         $token = $this->createLearnerSession();
         $definitions = $this->speechDefinitions();
 
-        $this->assertCount(163, $definitions);
+        $this->assertCount(196, $definitions);
         foreach ($definitions as $speechKey => $definition) {
             $this->assertStringNotContainsString(
                 '!',
@@ -98,6 +100,57 @@ final class LearnerTtsTest extends TestCase
         }
 
         Http::assertNothingSent();
+    }
+
+    public function test_sentence_alignment_feedback_uses_the_committed_difference(): void
+    {
+        $token = $this->createLearnerSession();
+        $learner = Learner::query()->firstOrFail();
+        $run = LessonRun::query()->create([
+            'learner_id' => $learner->id,
+            'lesson_key' => 'required-lesson-4',
+            'content_version' => 'v1',
+            'status' => LessonRun::STATUS_ACTIVE,
+            'mission_key' => 'mission-1',
+            'current_item_index' => 0,
+            'content_snapshot' => [],
+        ]);
+        $response = LessonResponse::query()->create([
+            'lesson_run_id' => $run->id,
+            'mission_key' => 'mission-1',
+            'item_key' => 'lesson-v1-sentence-cat-mat',
+            'item_order' => 1,
+            'response_type' => 'speech',
+            'raw_transcript' => 'a cat on a mat',
+            'final_transcript' => 'a cat on a mat',
+            'decision' => 'NEEDS_SUPPORT',
+            'evidence' => [
+                'transcript_alignment' => [
+                    'diagnosis_key' => 'missing_word',
+                    'primary_operation' => ['expected' => 'is'],
+                ],
+            ],
+        ]);
+        Http::fake([
+            '*/synthesize' => Http::response('RIFF-runtime-feedback', 200, [
+                'Content-Type' => 'audio/wav',
+            ]),
+        ]);
+
+        $this->withToken($token)
+            ->post("/api/learners/tts/lesson-feedback/{$response->id}")
+            ->assertOk()
+            ->assertHeader('X-ReaDirect-Sentence', 'a cat on a mat')
+            ->assertHeader(
+                'X-ReaDirect-Sentence-Diagnosis',
+                'missing_word',
+            )
+            ->assertContent('RIFF-runtime-feedback');
+
+        Http::assertSent(fn ($request): bool => $request->data() === [
+            'text' => 'You missed the word is.',
+            'reference' => 'result',
+        ]);
     }
 
     public function test_missing_or_modified_published_audio_never_falls_back_to_vox(): void

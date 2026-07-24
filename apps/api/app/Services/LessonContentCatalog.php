@@ -76,8 +76,35 @@ final class LessonContentCatalog
     /** @return array<string, list<array<string, string>>> */
     public function lessonThreeSnapshot(int $learnerId): array
     {
-        $rows = $this->readPhrases();
-        $scope = 'required.lesson-3.phrase-targets';
+        return $this->singleMissionSnapshot(
+            $learnerId,
+            $this->readPhrases(),
+            'required.lesson-3.phrase-targets',
+            'Lesson 3',
+        );
+    }
+
+    /** @return array<string, list<array<string, string>>> */
+    public function lessonFourSnapshot(int $learnerId): array
+    {
+        return $this->singleMissionSnapshot(
+            $learnerId,
+            $this->readSentences(),
+            'required.lesson-4.sentence-targets',
+            'Lesson 4',
+        );
+    }
+
+    /**
+     * @param  list<array<string, string>>  $rows
+     * @return array<string, list<array<string, string>>>
+     */
+    private function singleMissionSnapshot(
+        int $learnerId,
+        array $rows,
+        string $scope,
+        string $label,
+    ): array {
         [$cycle, $used] = $this->exposureState($learnerId, $scope);
         $available = array_values(array_filter(
             $rows,
@@ -92,7 +119,7 @@ final class LessonContentCatalog
         shuffle($available);
         $selection = array_slice($available, 0, 5);
         if (count($selection) < 5) {
-            throw new RuntimeException('Lesson 3 does not have enough unique active targets.');
+            throw new RuntimeException("{$label} does not have enough unique active targets.");
         }
 
         $this->recordExposures($learnerId, $scope, $cycle, $selection);
@@ -124,6 +151,15 @@ final class LessonContentCatalog
         return $this->readActiveRows(
             '../../content/lessons/v1/lesson-3-phrases.csv',
             'Lesson 3',
+        );
+    }
+
+    /** @return list<array<string, string>> */
+    private function readSentences(): array
+    {
+        return $this->readActiveRows(
+            '../../content/lessons/v1/lesson-4-sentences.csv',
+            'Lesson 4',
         );
     }
 
