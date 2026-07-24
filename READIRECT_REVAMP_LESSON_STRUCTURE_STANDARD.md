@@ -338,7 +338,7 @@ One simple sentence
         ↓
 One 5W question
         ↓
-One spoken answer
+Four authored choices
 ```
 
 The learner reads the simple sentence visually. The sentence reading is not a
@@ -348,11 +348,9 @@ Ma'am Clara then asks one comprehension question through audio. A short
 question-type token such as `WHO?` may be shown, but the complete question is
 not displayed as a permanent dialogue line.
 
-The learner answers the question aloud.
-
-Mu transcribes the spoken answer.
-
-The system compares the raw transcript with the hidden expected answer and accepted-answer variants.
+The learner selects one choice and explicitly submits it. Laravel compares only
+the selected key with the hidden authored correct key. Lesson 6 does not record
+audio, call Mu, normalize transcripts, or use the Equivalence Book.
 
 ## Required Comprehension Flow
 
@@ -361,16 +359,17 @@ Simple sentence is displayed
         ↓
 Ma'am Clara asks one comprehension question through audio
         ↓
-Learner answers aloud
+Four authored choices are displayed
         ↓
-Mu returns the raw answer transcript
+Learner selects and submits one choice
         ↓
-ReaDirect compares the transcript with hidden accepted answers
+Laravel compares the selected key
         ↓
-Correct, uncertain, or incorrect
+Correct feedback and Next, or authored Clara support
 ```
 
-The hidden expected answer must not be provided to Mu before transcription.
+The hidden correct choice, evidence span, and support text are never sent by
+the browser as authority.
 
 ## Question Types
 
@@ -397,17 +396,14 @@ Rosa waters the plant.
 Question:
 Who waters the plant?
 
-Hidden expected answer:
-Rosa
-```
+Choices:
+A. Rosa
+B. Lena
+C. Mia
+D. Ben
 
-Accepted answers may include:
-
-```text
-rosa
-it is rosa
-rosa does
-rosa waters the plant
+Correct choice:
+A
 ```
 
 ## What Example
@@ -419,17 +415,14 @@ Ben carries a red bag.
 Question:
 What does Ben carry?
 
-Hidden expected answer:
-a red bag
-```
+Choices:
+A. A red pen
+B. A red bag
+C. A pet cat
+D. A book
 
-Accepted answers may include:
-
-```text
-a red bag
-red bag
-the red bag
-ben carries a red bag
+Correct choice:
+B
 ```
 
 ## Where Example
@@ -441,16 +434,14 @@ The cat sleeps on the mat.
 Question:
 Where does the cat sleep?
 
-Hidden expected answer:
-on the mat
-```
+Choices:
+A. In a hut
+B. On a bed
+C. On the mat
+D. In a box
 
-Accepted answers may include:
-
-```text
-on the mat
-the mat
-it sleeps on the mat
+Correct choice:
+C
 ```
 
 ## When Example
@@ -462,16 +453,14 @@ Rosa waters the plant every morning.
 Question:
 When does Rosa water the plant?
 
-Hidden expected answer:
-every morning
-```
+Choices:
+A. At noon
+B. Every morning
+C. On Monday
+D. At ten
 
-Accepted answers may include:
-
-```text
-every morning
-in the morning
-morning
+Correct choice:
+B
 ```
 
 ## Why Example
@@ -483,17 +472,14 @@ Rosa waters the plant because it is dry.
 Question:
 Why does Rosa water the plant?
 
-Hidden expected answer:
-because it is dry
-```
+Choices:
+A. It is wet
+B. It is red
+C. It is dry
+D. It is new
 
-Accepted answers may include:
-
-```text
-because it is dry
-it is dry
-the plant is dry
-because the plant is dry
+Correct choice:
+C
 ```
 
 ## Comprehension Sentence Rules
@@ -534,8 +520,9 @@ When does Rosa water the plant?
 
 ## Comprehension Item Data Structure
 
-Each comprehension item contains one displayed sentence and one spoken-answer
-Mu interaction.
+Each comprehension item contains one displayed sentence, one published Clara
+question, four authored choices, one hidden correct key, and deterministic
+teaching metadata.
 
 Example:
 
@@ -548,57 +535,53 @@ Example:
   },
   "question": {
     "audio_prompt_text": "Who waters the plant?",
-    "expected_answer": "rosa",
-    "accepted_answers": [
-      "rosa",
-      "it is rosa",
-      "rosa does",
-      "rosa waters the plant"
-    ],
-    "asr_model": "mu",
-    "case_sensitive": false,
-    "punctuation_sensitive": false
+    "choices": {
+      "a": "Rosa",
+      "b": "Lena",
+      "c": "Mia",
+      "d": "Ben"
+    },
+    "correct_choice_key": "a",
+    "correct_answer_text": "Rosa",
+    "expected_answer_role": "person",
+    "answer_evidence_span": "Rosa",
+    "targeted_clue": "Who asks for a person. Read the sentence again.",
+    "guided_clue": "Look at the highlighted name.",
+    "demonstration_text": "The sentence says Rosa. Choose Rosa."
   }
 }
 ```
 
-## Hidden Expected Answers
+## Hidden Choice Authority
 
-The expected answer and accepted-answer variants must remain hidden from the learner.
-
-They may only be used after Mu returns the raw transcript.
+The correct choice key, evidence span, and teaching escalation remain
+server-owned. The browser sends only the current item key and selected choice.
 
 Required order:
 
 ```text
-Audio
+Selected item and choice key
     ↓
-Mu raw transcript
+Laravel locks the active lesson run
     ↓
-Answer normalization
+Laravel resolves the authored snapshot row
     ↓
-Accepted-answer comparison
+Correct-key comparison and persisted attempt
 ```
 
 Prohibited order:
 
 ```text
-Expected answer
+Browser-supplied answer authority
     ↓
-Passed to Mu as a transcription hint
+Trusted lesson decision
 ```
 
-## Answer Normalization
+## Choice Support Persistence
 
-Answer comparison may normalize:
-
-- Letter case
-- Ending punctuation
-- Extra spaces
-- Common harmless contractions
-- Leading articles when permitted by the item
-
-The raw Mu transcript must still be preserved separately for evaluation and debugging.
+Every wrong selection persists the selected choice, attempt number, assistance
+level, disabled choices, and whether evidence or the correct choice has been
+revealed. Refresh and resume must restore the exact support state.
 
 ## Required Scoring Separation
 
@@ -610,7 +593,7 @@ Word drill result
 Phrase drill result
 Sentence drill result
 Paragraph-reading result
-Spoken-comprehension-answer result
+Choice-comprehension result
 ```
 
 Do not combine paragraph reading and comprehension into one result.

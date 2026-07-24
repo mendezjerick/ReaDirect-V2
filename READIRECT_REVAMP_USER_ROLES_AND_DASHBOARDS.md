@@ -202,9 +202,10 @@ System Administrator page portal and ASR review tools:
   scoring decisions.
 - True Sandbox must not contain, test, or evaluate isolated-letter items.
 - True Sandbox provides a Laravel-owned selector for active Mu speech targets
-  from Assessment Tasks 2B and 3A and Lessons 2 through 6. Lesson 6 exposes only
-  spoken answers. Rhyme yes/no items, assessment comprehension questions and
-  choices, Lesson 6 question text, and isolated letters are excluded.
+  from Assessment Tasks 2B and 3A and Lessons 2 through 5. Rhyme yes/no items,
+  assessment comprehension questions and choices, all Lesson 6 content, and
+  isolated letters are excluded. Lesson 6 is a choice activity and has no Mu
+  target.
 - Selecting authored content locks the exact spoken target, Mu task type, and
   stable item key. Administrators may return to custom text for isolated tests.
 - True Sandbox can create Equivalence Book entries only when the admin marks a

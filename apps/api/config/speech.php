@@ -236,6 +236,120 @@ $lessonFiveSupportLines = [
     ],
 ];
 
+$lessonSixItems = [
+    'who-lena' => [
+        'question' => 'Who has a red bag?',
+        'guided' => 'Look at the highlighted name. Who has a red bag?',
+        'demo' => 'The sentence says Lena. Choose Lena.',
+        'correct' => 'That is correct. Lena has the red bag.',
+    ],
+    'who-rosa' => [
+        'question' => 'Who has a pet cat?',
+        'guided' => 'Look at the highlighted name. Who has a pet cat?',
+        'demo' => 'The sentence says Rosa. Choose Rosa.',
+        'correct' => 'That is correct. Rosa has the pet cat.',
+    ],
+    'what-mia' => [
+        'question' => 'What does Mia have?',
+        'guided' => 'Look at the highlighted thing. What does Mia have?',
+        'demo' => 'The sentence says a red pen. Choose A red pen.',
+        'correct' => 'That is correct. Mia has a red pen.',
+    ],
+    'what-ben' => [
+        'question' => 'What does Ben have?',
+        'guided' => 'Look at the highlighted thing. What does Ben have?',
+        'demo' => 'The sentence says a pet dog. Choose A pet dog.',
+        'correct' => 'That is correct. Ben has a pet dog.',
+    ],
+    'where-cat' => [
+        'question' => 'Where is the cat?',
+        'guided' => 'Look at the highlighted place. Where is the cat?',
+        'demo' => 'The sentence says on a bed. Choose On a bed.',
+        'correct' => 'That is correct. The cat is on a bed.',
+    ],
+    'where-hen' => [
+        'question' => 'Where is the hen?',
+        'guided' => 'Look at the highlighted place. Where is the hen?',
+        'demo' => 'The sentence says in a hut. Choose In a hut.',
+        'correct' => 'That is correct. The hen is in a hut.',
+    ],
+    'when-lito' => [
+        'question' => 'When can Lito run?',
+        'guided' => 'Look at the highlighted time. When can Lito run?',
+        'demo' => 'The sentence says at noon. Choose At noon.',
+        'correct' => 'That is correct. Lito can run at noon.',
+    ],
+    'when-nena' => [
+        'question' => 'When can Nena nap?',
+        'guided' => 'Look at the highlighted time. When can Nena nap?',
+        'demo' => 'The sentence says at ten. Choose At ten.',
+        'correct' => 'That is correct. Nena can nap at ten.',
+    ],
+    'why-mila' => [
+        'question' => 'Why is Mila wet?',
+        'guided' => 'Look at the highlighted reason. Why is Mila wet?',
+        'demo' => 'The sentence says rain made Mila wet. Choose Rain.',
+        'correct' => 'That is correct. Rain made Mila wet.',
+    ],
+    'why-tino' => [
+        'question' => 'Why is Tino sad?',
+        'guided' => 'Look at the highlighted reason. Why is Tino sad?',
+        'demo' => 'The sentence says a cut made Tino sad. Choose A cut.',
+        'correct' => 'That is correct. A cut made Tino sad.',
+    ],
+];
+
+$lessonSixLines = [
+    'lesson-6-mission-1' => [
+        'text' => 'Read the sentence, listen to my question, then choose the best answer.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-6/mission-1/lesson-6-mission-1.wav',
+    ],
+    'lesson-6-clue-who' => [
+        'text' => 'Who asks for a person. Find the name of the person in the sentence.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-6/support/clues/lesson-6-clue-who.wav',
+    ],
+    'lesson-6-clue-what' => [
+        'text' => 'What asks for a thing or an action. Find what the sentence tells us.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-6/support/clues/lesson-6-clue-what.wav',
+    ],
+    'lesson-6-clue-where' => [
+        'text' => 'Where asks for a place. Find the place in the sentence.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-6/support/clues/lesson-6-clue-where.wav',
+    ],
+    'lesson-6-clue-when' => [
+        'text' => 'When asks for a time. Find the time in the sentence.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-6/support/clues/lesson-6-clue-when.wav',
+    ],
+    'lesson-6-clue-why' => [
+        'text' => 'Why asks for a reason. Find the words that tell why it happened.',
+        'reference' => 'instruction',
+        'path' => 'lessons/lesson-6/support/clues/lesson-6-clue-why.wav',
+    ],
+    'lesson-6-complete' => [
+        'text' => 'You finished all six reading lessons. You are a Question Detective. Your Final Assessment is ready.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-6/completion/lesson-6-complete.wav',
+    ],
+];
+
+foreach ($lessonSixItems as $slug => $lines) {
+    foreach (['question', 'guided', 'demo', 'correct'] as $kind) {
+        $speechKey = "lesson-6-{$kind}-{$slug}";
+        $lessonSixLines[$speechKey] = [
+            'text' => $lines[$kind],
+            'reference' => $kind === 'question' ? 'question' : (
+                $kind === 'correct' ? 'result' : 'instruction'
+            ),
+            'path' => "lessons/lesson-6/{$kind}/{$speechKey}.wav",
+        ];
+    }
+}
+
 $learnWithClaraLessonOneGreetingLines = [
     'learn-with-clara-lesson-1-greeting-morning' => [
         'text' => 'Good morning. I am happy you are here. I have a little story for you today.',
@@ -490,6 +604,7 @@ return [
             'lesson-5-complete',
             ...array_keys($lessonFiveSupportLines),
         ],
+        'lesson-6-fixed' => array_keys($lessonSixLines),
         'learn-with-clara-lesson-1-fixed' => [
             ...array_keys($learnWithClaraLessonOneGreetingLines),
             ...array_keys($learnWithClaraLessonOneChapterOneLines),
@@ -524,6 +639,10 @@ return [
             'published_groups' => ['lesson-5-fixed'],
             'runtime_profiles' => [],
         ],
+        'lesson-6' => [
+            'published_groups' => ['lesson-6-fixed'],
+            'runtime_profiles' => [],
+        ],
         'learn-with-clara-lesson-1' => [
             'published_groups' => ['learn-with-clara-lesson-1-fixed'],
             'runtime_profiles' => [],
@@ -554,8 +673,14 @@ return [
         'lesson-5-mission-1' => 'lesson-5',
         'lesson-5-review' => 'lesson-5',
         'lesson-5-complete' => 'lesson-5',
+        'lesson-6-mission-1' => 'lesson-6',
+        'lesson-6-targeted-clue' => 'lesson-6',
+        'lesson-6-guided' => 'lesson-6',
+        'lesson-6-demonstration' => 'lesson-6',
+        'lesson-6-complete' => 'lesson-6',
     ],
     'clara_lines' => [
+        ...$lessonSixLines,
         ...$learnWithClaraLessonOneGreetingLines,
         ...$learnWithClaraLessonOneChapterOneLines,
         'lesson-intro' => [

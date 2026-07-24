@@ -6,12 +6,32 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 
 abstract class TestCase extends BaseTestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
+
+        config()->set('database.default', 'sqlite');
+        config()->set('database.connections.sqlite.database', ':memory:');
+        config()->set(
+            'database.connections.sqlite.foreign_key_constraints',
+            true,
+        );
+        DB::purge();
+        DB::setDefaultConnection('sqlite');
+
+        $connection = DB::connection();
+        if (
+            $connection->getDriverName() !== 'sqlite'
+            || $connection->getDatabaseName() !== ':memory:'
+        ) {
+            throw new RuntimeException(
+                'Tests may only rebuild the isolated in-memory SQLite database.',
+            );
+        }
 
         Schema::dropIfExists('assessment_responses');
         Schema::dropIfExists('assessment_runs');

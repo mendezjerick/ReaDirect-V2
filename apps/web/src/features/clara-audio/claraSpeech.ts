@@ -1,5 +1,6 @@
 const speechRequests = new Map<string, Promise<Blob>>();
-const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260724-8";
+const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260724-9";
+const LESSON_SIX_SPEECH_DELIVERY_VERSION = "lesson-6-content-alignment-v2";
 let audioContext: AudioContext | null = null;
 
 type AssessmentItemOrdinal = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
@@ -44,6 +45,11 @@ type LessonThreeItemSpeechKey = `lesson-3-mission-1-item-${2 | 3 | 4 | 5}`;
 type LessonThreeDemonstrationSpeechKey = `lesson-3-demo-${string}`;
 type LessonFourItemSpeechKey = `lesson-4-mission-1-item-${2 | 3 | 4 | 5}`;
 type LessonFourDemonstrationSpeechKey = `lesson-4-demo-${string}`;
+type LessonSixSpeechKey =
+  | "lesson-6-mission-1"
+  | "lesson-6-complete"
+  | `lesson-6-clue-${"who" | "what" | "where" | "when" | "why"}`
+  | `lesson-6-${"question" | "guided" | "demo" | "correct"}-${string}`;
 
 export type ClaraSpeechKey =
   | "learn-with-clara-lesson-1-greeting-morning"
@@ -128,7 +134,8 @@ export type ClaraSpeechKey =
   | LessonThreeItemSpeechKey
   | LessonThreeDemonstrationSpeechKey
   | LessonFourItemSpeechKey
-  | LessonFourDemonstrationSpeechKey;
+  | LessonFourDemonstrationSpeechKey
+  | LessonSixSpeechKey;
 
 export interface ClaraSpeechPlayback {
   finished: Promise<void>;
@@ -171,7 +178,10 @@ export function prepareClaraSpeech(
   speechKey: ClaraSpeechKey,
   token: string,
 ): Promise<Blob> {
-  const requestKey = `${SPEECH_DELIVERY_VERSION}:${token}:${speechKey}`;
+  const deliveryVersion = speechKey.startsWith("lesson-6-")
+    ? `${SPEECH_DELIVERY_VERSION}:${LESSON_SIX_SPEECH_DELIVERY_VERSION}`
+    : SPEECH_DELIVERY_VERSION;
+  const requestKey = `${deliveryVersion}:${token}:${speechKey}`;
   const existingRequest = speechRequests.get(requestKey);
 
   if (existingRequest) {

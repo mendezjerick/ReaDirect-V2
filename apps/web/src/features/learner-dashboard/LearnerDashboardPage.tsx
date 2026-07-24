@@ -126,6 +126,7 @@ export function LearnerDashboardPage() {
   });
   const learner = sessionQuery.data?.learner;
   const isLessonFlow = learner?.progress.stage === "required_lessons";
+  const isFinalAssessment = learner?.progress.stage === "final_assessment";
   const currentLesson = learner?.progress.current_required_lesson_order ?? 1;
   const activitySpeechScope = learner
     ? activitySpeechScopeForProgress(learner.progress)
@@ -245,7 +246,9 @@ export function LearnerDashboardPage() {
                 <span>
                   {learner?.progress.stage === "before_diagnostic"
                     ? "Getting started"
-                    : "Reading in progress"}
+                    : isFinalAssessment
+                      ? "Final check ready"
+                      : "Reading in progress"}
                 </span>
                 <strong>{learner?.learner_code}</strong>
               </div>
@@ -279,12 +282,16 @@ export function LearnerDashboardPage() {
             <h2>
               {isLessonFlow
                 ? `Continue Lesson ${currentLesson}.`
-                : "Find your reading starting point."}
+                : isFinalAssessment
+                  ? "Show what you learned."
+                  : "Find your reading starting point."}
             </h2>
             <p>
               {isLessonFlow
                 ? "Your exact place is saved and ready."
-                : "Complete this once to open your lessons."}
+                : isFinalAssessment
+                  ? "Your Final Assessment is ready."
+                  : "Complete this once to open your lessons."}
             </p>
           </div>
           <BigButton
@@ -292,14 +299,18 @@ export function LearnerDashboardPage() {
             aria-label={
               isLessonFlow
                 ? `Continue Lesson ${currentLesson}`
-                : "Start Diagnostic Assessment"
+                : isFinalAssessment
+                  ? "Start Final Assessment"
+                  : "Start Diagnostic Assessment"
             }
             committing={readingCommit.committing}
             onClick={openNextReadingActivity}
           >
             {isLessonFlow
               ? `Continue Lesson ${currentLesson}`
-              : "Start Diagnostic"}
+              : isFinalAssessment
+                ? "Start Final Assessment"
+                : "Start Diagnostic"}
           </BigButton>
           <p className="learner-dashboard__notice" aria-live="polite">
             {readingCommit.committing ? "Getting Ma'am Clara ready..." : ""}

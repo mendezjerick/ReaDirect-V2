@@ -449,14 +449,12 @@ catalog contains:
 - Lesson 3 phrase targets.
 - Lesson 4 sentence targets.
 - Lesson 5 passage targets.
-- Lesson 6 answer targets only.
 
 Assessment Task 2A rhyme yes/no choices, Assessment Task 3B comprehension
-questions and choices, Lesson 6 question text, and all isolated-letter targets
-are excluded. Lesson 6 entries are labeled and sent using the spoken answer,
-not the displayed sentence or Clara's question. Selecting authored content must
-lock its exact expected text, ASR task type, and stable item scope until the
-administrator returns to custom input.
+questions and choices, all Lesson 6 content, and all isolated-letter targets
+are excluded. Lesson 6 is an authored choice activity and never calls Mu.
+Selecting authored speech content must lock its exact expected text, ASR task
+type, and stable item scope until the administrator returns to custom input.
 
 IsoLetter Sandbox uses the same expected-correct review gate. When Mu's raw
 letter transcript is wrong or unmapped but the administrator confirms the
@@ -544,8 +542,8 @@ Hard boundaries:
   three characters.
 
 `CvcVowelEquivalenceCatalog` scans every active Mu target exposed by
-`SpeechContentCatalog`, including tokens inside phrases, sentences, passages,
-and Lesson 6 spoken answers. `CvcVowelEquivalenceSeeder` currently produces
+`SpeechContentCatalog`, including tokens inside phrases, sentences, and
+passages. `CvcVowelEquivalenceSeeder` currently produces
 86 deduplicated global-token aliases across the Version 1 corpus. The resolver
 uses word-level Levenshtein alignment and checks each substituted token, so two
 or more qualifying vowel-family substitutions can pass inside one longer

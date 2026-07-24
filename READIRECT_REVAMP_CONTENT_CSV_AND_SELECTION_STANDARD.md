@@ -49,9 +49,8 @@ content. It complements:
     version instead of silently changing an active or completed attempt.
 13. The System Administrator True Sandbox may receive an admin-only catalog of
     active spoken targets through Laravel. This catalog excludes choice-only
-    rhyme and assessment-comprehension items, excludes isolated letters, and
-    exposes only the expected spoken answers for Lesson 6 comprehension. It
-    never gives the browser direct CSV access.
+    rhyme and comprehension items, including Lesson 6, and excludes isolated
+    letters. It never gives the browser direct CSV access.
 
 ## Authority Boundaries
 
@@ -525,12 +524,10 @@ The prohibition applies to learner-spoken targets in:
 - Lesson 2 target words and their displayed sentence contexts.
 - Lesson 3 phrases.
 - Lesson 4 sentences.
-- Lesson 6 displayed sentences and learner-spoken expected answers.
 
 Words spoken only by Ma'am Clara as interface instructions or mandatory 5W
-questions are not learner-spoken targets. This prompt exception permits the
-required words `who`, `what`, `where`, `when`, and `why`; it must not be used to
-place prohibited words into the learner's expected response.
+questions are not learner-spoken targets. Lesson 6 answers are authored
+four-choice selections and are outside the spoken-target rule.
 
 ### Existing Examples
 
@@ -996,16 +993,30 @@ Required fields include:
 question_type
 display_sentence
 question_audio_text
-expected_answer
-accepted_answers
-sentence_word_keys
-answer_word_keys
+choice_a
+choice_b
+choice_c
+choice_d
+correct_choice_key
+correct_answer_text
+expected_answer_role
+answer_evidence_span
+highlightable_evidence_span
+targeted_clue
+guided_clue
+demonstration_text
+correct_feedback_text
 ```
 
 `question_type` is exactly one of `who`, `what`, `where`, `when`, or `why`.
-Each row contains one sentence and one question. Expected and accepted answers
-remain hidden from the learner and are used only after Mu produces its raw
-transcript.
+Each row contains one sentence, one question, exactly four unique authored
+choices, and exactly one correct choice key from `a`, `b`, `c`, or `d`.
+The correct choice key and all teaching metadata remain server-owned.
+
+Lesson 6 is choice comprehension, not spoken comprehension. It has no
+`spoken_target`, `accepted_answers`, or Mu model. Every wrong choice must remain
+unambiguous, child-readable, and safe for Clara's authored support. The
+highlightable evidence span must occur exactly in the displayed sentence.
 
 ### Assessment-Specific Fields
 
