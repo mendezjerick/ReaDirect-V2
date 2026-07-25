@@ -12,11 +12,12 @@ content scoring, and general interface composition are governed by their own
 standards.
 
 Implementation status: published catalog delivery is active for Lesson Intro,
-all 32 fixed Part 1 assessment lines, all 14 fixed Part 2 and assessment
-completion lines, 51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, 33 fixed
-Lesson 3 lines, 33 fixed Lesson 4 lines, 9 fixed Lesson 5 lines, and 13
-published `Learn with Ma'am Clara` lines. PostgreSQL holds one published
-`clara-sh-v1` voice version and 205 speech metadata rows; Laravel verifies and
+all 32 fixed Part 1 assessment lines, 15 unique fixed Part 2 and completion
+lines (14 required by each assessment type), 51 fixed Lesson 1 lines, 19 fixed
+Lesson 2 lines, 33 fixed Lesson 3 lines, 33 fixed Lesson 4 lines, 9 fixed
+Lesson 5 lines, 47 fixed Lesson 6 lines, and 13 published
+`Learn with Ma'am Clara` lines. PostgreSQL holds one published
+`clara-sh-v1` voice version and 253 speech metadata rows; Laravel verifies and
 returns their private WAVs without calling VoxCPM2. Response-owned dynamic
 final-transcript feedback is active for Lessons 1 through 4. Lesson 2 also
 uses a response-owned target-word demonstration. Lesson 3 instead uses one of
@@ -929,6 +930,7 @@ omits a requested profile returns HTTP `503` and keeps `ready: false`.
 | `assessment-passage` | Read the story aloud. You have one minute. You can submit when you finish. | `instruction` |
 | `assessment-part-two-result` | Part two is complete. You finished reading and understanding the story. | `result` |
 | `assessment-complete` | Assessment complete. Your first lesson is ready. | `result` |
+| `assessment-final-complete` | You finished your Reading Journey. I am proud of how much you learned. | `result` |
 
 Task 3B has ten additional published keys, five for each selectable story:
 `assessment-comprehension-lena-item-1` through `-5` and
@@ -950,6 +952,11 @@ Items 2 through 10 use controlled ordinal words from `second` through `tenth`.
 
 Assessment cues must remain neutral. They must not disclose a score or imply
 that the preceding response was correct or incorrect.
+
+Diagnostic and Final Assessment reuse every Part 1 and content-specific Part 2
+line. Only their completion line differs. The Final Part 2 manifest replaces
+`assessment-complete` with `assessment-final-complete`; both manifests remain
+published-only and must never warm or call runtime Vox.
 
 ### Required published Lesson 1 item cues
 

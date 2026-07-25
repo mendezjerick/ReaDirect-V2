@@ -110,7 +110,10 @@ function state(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function renderPartTwo(responses: object[]) {
+function renderPartTwo(
+  responses: object[],
+  assessmentType: "diagnostic" | "final" = "diagnostic",
+) {
   window.sessionStorage.setItem(
     "readirect.learner-session",
     JSON.stringify(learnerSession),
@@ -131,13 +134,17 @@ function renderPartTwo(responses: object[]) {
   );
   vi.stubGlobal("fetch", fetchMock);
 
+  const route =
+    assessmentType === "final"
+      ? "/learner/final-assessment/part-two"
+      : "/learner/assessment/part-two";
   render(
-    <MemoryRouter initialEntries={["/learner/assessment/part-two"]}>
+    <MemoryRouter initialEntries={[route]}>
       <ThemeProvider>
         <Routes>
           <Route
-            path="/learner/assessment/part-two"
-            element={<AssessmentPartTwoPage />}
+            path={route}
+            element={<AssessmentPartTwoPage assessmentType={assessmentType} />}
           />
         </Routes>
       </ThemeProvider>
@@ -271,5 +278,61 @@ describe("AssessmentPartTwoPage", () => {
     );
     expect(await screen.findByText("What does Lena take?")).toBeVisible();
     expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+  });
+
+  it("renders the committed Final Assessment finale from the final API", async () => {
+    speechMocks.prepare.mockResolvedValue(new Blob(["wave"]));
+    speechMocks.play.mockResolvedValue({
+      finished: Promise.resolve(),
+      stop: vi.fn(),
+    });
+    const achievementKeys = [
+      "reading.ready_reader",
+      "reading.letter_leader",
+      "reading.word_wizard",
+      "reading.phrase_pro",
+      "reading.sentence_star",
+      "reading.passage_explorer",
+      "reading.question_detective",
+      "reading.readirect_champion",
+    ];
+    const fetchMock = renderPartTwo(
+      [
+        state({
+          assessment_type: "final",
+          stage: "assessment-complete",
+          story_choices: [],
+          completion: {
+            kind: "reading-journey-finale",
+            title: "You finished your Reading Journey",
+            message:
+              "You completed the Diagnostic Assessment, all six lessons, and the Final Assessment.",
+            achievement_keys: achievementKeys,
+          },
+        }),
+      ],
+      "final",
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "You finished your Reading Journey",
+      }),
+    ).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/learners/assessments/final/part-two/current",
+      expect.any(Object),
+    );
+    expect(screen.getByText("8 of 8")).toBeVisible();
+    expect(
+      screen.getByRole("list", {
+        name: "Completed Reading Journey achievements",
+      }).children,
+    ).toHaveLength(8);
+    expect(
+      screen.getByRole("listitem", {
+        name: /ReaDirect Champion.*Earned/i,
+      }),
+    ).toBeVisible();
   });
 });

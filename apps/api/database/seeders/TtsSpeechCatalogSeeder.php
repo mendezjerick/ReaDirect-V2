@@ -15,7 +15,7 @@ final class TtsSpeechCatalogSeeder extends Seeder
 
     private const VOICE_KEY = 'clara-sh-v1';
 
-    private const EXPECTED_LINE_COUNT = 252;
+    private const EXPECTED_LINE_COUNT = 253;
 
     public function run(): void
     {

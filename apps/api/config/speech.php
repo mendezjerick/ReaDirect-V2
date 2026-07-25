@@ -31,6 +31,14 @@ $assessmentPartTwoSpeechKeys = [
     'assessment-complete',
 ];
 
+$finalAssessmentPartTwoSpeechKeys = [
+    ...array_values(array_filter(
+        $assessmentPartTwoSpeechKeys,
+        fn (string $speechKey): bool => $speechKey !== 'assessment-complete',
+    )),
+    'assessment-final-complete',
+];
+
 $lessonOneSupportLines = [
     'lesson-1-technical-retry' => [
         'text' => 'I could not hear that clearly. Let us try once more.',
@@ -570,6 +578,7 @@ return [
     'published_speech_groups' => [
         'assessment-part-one-fixed' => $assessmentPartOneSpeechKeys,
         'assessment-part-two-fixed' => $assessmentPartTwoSpeechKeys,
+        'assessment-final-part-two-fixed' => $finalAssessmentPartTwoSpeechKeys,
         'lesson-1-fixed' => [
             'lesson-1-mission-1',
             'lesson-1-mission-2',
@@ -619,6 +628,10 @@ return [
             'published_groups' => ['assessment-part-two-fixed'],
             'runtime_profiles' => [],
         ],
+        'assessment-final-part-two' => [
+            'published_groups' => ['assessment-final-part-two-fixed'],
+            'runtime_profiles' => [],
+        ],
         'lesson-1' => [
             'published_groups' => ['lesson-1-fixed'],
             'runtime_profiles' => ['result'],
@@ -659,6 +672,16 @@ return [
         'assessment-task-3b' => 'assessment-part-two',
         'assessment-part-2-results' => 'assessment-part-two',
         'assessment-complete' => 'assessment-part-two',
+        'final-assessment-orientation' => 'assessment-part-one',
+        'final-assessment-task-1a' => 'assessment-part-one',
+        'final-assessment-task-2a' => 'assessment-part-one',
+        'final-assessment-task-2b' => 'assessment-part-one',
+        'final-assessment-part-1-results' => 'assessment-part-one',
+        'final-assessment-story-selection' => 'assessment-final-part-two',
+        'final-assessment-task-3a' => 'assessment-final-part-two',
+        'final-assessment-task-3b' => 'assessment-final-part-two',
+        'final-assessment-part-2-results' => 'assessment-final-part-two',
+        'final-assessment-complete' => 'assessment-final-part-two',
         'lesson-1-mission-1' => 'lesson-1',
         'lesson-1-mission-2' => 'lesson-1',
         'lesson-1-mission-3' => 'lesson-1',
@@ -847,6 +870,11 @@ return [
             'text' => 'Assessment complete. Your first lesson is ready.',
             'reference' => 'result',
             'path' => 'completion/assessment-complete.wav',
+        ],
+        'assessment-final-complete' => [
+            'text' => 'You finished your Reading Journey. I am proud of how much you learned.',
+            'reference' => 'result',
+            'path' => 'completion/assessment-final-complete.wav',
         ],
         ...$lessonOneItemCueLines,
         ...$lessonOneSupportLines,

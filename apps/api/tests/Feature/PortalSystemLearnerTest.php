@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AssessmentResponse;
 use App\Models\AssessmentRun;
 use App\Models\Learner;
+use App\Models\LearnerAchievement;
 use App\Models\LearnerPortalRun;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
@@ -75,7 +76,7 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('learner.analytics_excluded', true)
             ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
             ->assertJsonPath('portal_launch.available', true)
-            ->assertJsonCount(29, 'portal_launch.targets');
+            ->assertJsonCount(39, 'portal_launch.targets');
     }
 
     public function test_kw000_can_use_normal_case_insensitive_learner_login(): void
@@ -244,6 +245,91 @@ final class PortalSystemLearnerTest extends TestCase
             'staff_user_id' => $systemAdministrator->id,
             'action_key' => 'portal_system_learner.portal_launched',
         ]);
+    }
+
+    public function test_system_admin_can_launch_each_final_assessment_checkpoint(): void
+    {
+        (new PortalSystemLearnerSeeder)->run();
+        $learner = Learner::query()->where('learner_code', 'KW000')->firstOrFail();
+        $systemAdministrator = $this->createSystemAdministrator();
+        $targets = [
+            'final-assessment-orientation' => ['orientation', 0],
+            'final-assessment-task-1a' => ['task-1a', 0],
+            'final-assessment-task-2a' => ['task-2a', 10],
+            'final-assessment-task-2b' => ['task-2b', 10],
+            'final-assessment-part-1-results' => ['part-1-results', 20],
+            'final-assessment-story-selection' => ['story-selection', 20],
+            'final-assessment-task-3a' => ['task-3a', 20],
+            'final-assessment-task-3b' => ['task-3b', 21],
+            'final-assessment-part-2-results' => ['passage-results', 26],
+            'final-assessment-complete' => ['assessment-complete', 26],
+        ];
+
+        foreach ($targets as $targetKey => [$stage, $responseCount]) {
+            $launch = $this->postJson(
+                "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
+                ['target_key' => $targetKey],
+            )
+                ->assertOk()
+                ->assertJsonPath('launch.target_key', $targetKey)
+                ->assertJsonPath(
+                    'launch.route',
+                    fn (string $route): bool => str_starts_with(
+                        $route,
+                        in_array($stage, [
+                            'story-selection',
+                            'task-3a',
+                            'task-3b',
+                            'passage-results',
+                        ], true)
+                            ? '/learner/final-assessment/part-two'
+                            : ($stage === 'assessment-complete'
+                                ? '/learner/final-assessment/complete'
+                                : '/learner/final-assessment/part-one'),
+                    ),
+                );
+
+            $token = $launch->json('launch.learner_session.token');
+            $run = AssessmentRun::query()
+                ->where('learner_id', $learner->id)
+                ->where('assessment_type', AssessmentRun::TYPE_FINAL)
+                ->latest('id')
+                ->firstOrFail();
+            $this->assertSame($stage, $run->stage);
+            $this->assertSame(
+                $responseCount,
+                AssessmentResponse::query()
+                    ->where('assessment_run_id', $run->id)
+                    ->where('response_type', 'portal_prerequisite')
+                    ->count(),
+            );
+            $this->assertSame(
+                7 + ($stage === 'assessment-complete' ? 1 : 0),
+                LearnerAchievement::query()
+                    ->where('learner_id', $learner->id)
+                    ->count(),
+            );
+
+            if (in_array($stage, [
+                'orientation',
+                'task-1a',
+                'task-2a',
+                'task-2b',
+                'part-1-results',
+            ], true)) {
+                $this->withToken($token)
+                    ->post('/api/learners/assessments/final/part-one/start')
+                    ->assertOk()
+                    ->assertJsonPath('assessment_type', 'final')
+                    ->assertJsonPath('stage', $stage);
+            } else {
+                $this->withToken($token)
+                    ->get('/api/learners/assessments/final/part-two/current')
+                    ->assertOk()
+                    ->assertJsonPath('assessment_type', 'final')
+                    ->assertJsonPath('stage', $stage);
+            }
+        }
     }
 
     public function test_system_admin_can_launch_each_lesson_one_checkpoint(): void

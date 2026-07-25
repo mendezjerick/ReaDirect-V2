@@ -18,6 +18,7 @@ import {
 import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPreparation";
 import { ClaraStage } from "../intro/ClaraStage";
 import { PassageReadingResult } from "../learner-activity/PassageReadingResult";
+import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
 import { PointerTrail } from "../intro/PointerTrail";
 import { VectorCursor } from "../intro/VectorCursor";
 import { ComprehensionChoiceGrid } from "../learner-activity/ComprehensionChoiceGrid";
@@ -34,6 +35,7 @@ import {
   type AssessmentPartTwoState,
   type ComprehensionChoice,
 } from "./assessmentPartTwoApi";
+import type { AssessmentType } from "./assessmentApi";
 import {
   getNextPartTwoSpeechKey,
   getPartTwoSpeechKey,
@@ -238,10 +240,12 @@ function PartTwoResult({ state }: { state: AssessmentPartTwoState }) {
 function AssessmentCompletion({ state }: { state: AssessmentPartTwoState }) {
   const reduceMotion = useReducedMotion();
   if (!state.completion) return null;
+  const isFinale = state.completion.kind === "reading-journey-finale";
+  const earned = new Set(state.completion.achievement_keys);
 
   return (
     <motion.section
-      className="assessment-completion"
+      className={`assessment-completion${isFinale ? " assessment-completion--finale" : ""}`}
       initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 14 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.34 }}
@@ -251,6 +255,31 @@ function AssessmentCompletion({ state }: { state: AssessmentPartTwoState }) {
       </span>
       <h2>{state.completion.title}</h2>
       <p>{state.completion.message}</p>
+      {isFinale ? (
+        <>
+          <strong className="assessment-completion__count">
+            {earned.size} of {readingJourneyAchievements.length}
+          </strong>
+          <ol
+            className="assessment-completion__journey"
+            aria-label="Completed Reading Journey achievements"
+          >
+            {readingJourneyAchievements.map((achievement) => (
+              <li
+                key={achievement.key}
+                data-earned={earned.has(achievement.key) || undefined}
+                tabIndex={0}
+                aria-label={`${achievement.name}. ${achievement.criteria}. ${
+                  earned.has(achievement.key) ? "Earned" : "Not earned"
+                }`}
+              >
+                <span aria-hidden="true">★</span>
+                <strong>{achievement.name}</strong>
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : null}
       <div className="assessment-result__particles" aria-hidden="true">
         {Array.from({ length: 12 }, (_, index) => (
           <i key={index} />
@@ -260,13 +289,19 @@ function AssessmentCompletion({ state }: { state: AssessmentPartTwoState }) {
   );
 }
 
-export function AssessmentPartTwoPage() {
+export function AssessmentPartTwoPage({
+  assessmentType = "diagnostic",
+}: {
+  assessmentType?: AssessmentType;
+}) {
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
   const session = loadLearnerSession();
   const activityPreparation = useActivitySpeechPreparation(
     session?.token,
-    "assessment-part-two",
+    assessmentType === "final"
+      ? "assessment-final-part-two"
+      : "assessment-part-two",
     Boolean(session?.token),
   );
   const [state, setState] = useState<AssessmentPartTwoState | null>(null);
@@ -296,14 +331,14 @@ export function AssessmentPartTwoPage() {
       navigate("/learner/login", { replace: true });
       return;
     }
-    void getPartTwo(session.token)
+    void getPartTwo(session.token, assessmentType)
       .then(setState)
       .catch((error: unknown) =>
         setLoadingError(
           error instanceof Error ? error.message : "Part 2 could not open.",
         ),
       );
-  }, [navigate, session?.token]);
+  }, [assessmentType, navigate, session?.token]);
 
   const speechKey = state ? getPartTwoSpeechKey(state) : null;
   const nextSpeechKey = state ? getNextPartTwoSpeechKey(state) : null;
@@ -504,7 +539,12 @@ export function AssessmentPartTwoPage() {
     if (!session?.token || !canSubmit) return;
     if (state.stage === "story-selection" && selectedStory) {
       void save(
-        selectAssessmentStory(session.token, state.run_id, selectedStory),
+        selectAssessmentStory(
+          session.token,
+          state.run_id,
+          selectedStory,
+          assessmentType,
+        ),
         "submit",
       );
     } else if (isPassage && state.item && recorder.audio) {
@@ -514,6 +554,7 @@ export function AssessmentPartTwoPage() {
           state.run_id,
           state.item.item_key,
           recorder.audio,
+          assessmentType,
         ),
         "submit",
       );
@@ -524,19 +565,25 @@ export function AssessmentPartTwoPage() {
           state.run_id,
           state.item.item_key,
           selectedChoice,
+          assessmentType,
         ),
         "submit",
       );
     } else if (isResult) {
-      void save(continuePartTwoResult(session.token, state.run_id), "continue");
+      void save(
+        continuePartTwoResult(session.token, state.run_id, assessmentType),
+        "continue",
+      );
     } else if (isCompletion) {
       setSaveAction("finish");
-      void finishAssessment(session.token, state.run_id)
+      void finishAssessment(session.token, state.run_id, assessmentType)
         .then(({ next_route }) => {
           clearActivitySpeechPreparation(session.token);
-          void prepareActivitySpeech(session.token, "lesson-1").catch(
-            () => undefined,
-          );
+          if (assessmentType === "diagnostic") {
+            void prepareActivitySpeech(session.token, "lesson-1").catch(
+              () => undefined,
+            );
+          }
           navigate(next_route);
         })
         .catch(() => {
@@ -550,7 +597,12 @@ export function AssessmentPartTwoPage() {
     if (!session?.token || !state.item) return;
     recorder.retry();
     void save(
-      skipPartTwoItem(session.token, state.run_id, state.item.item_key),
+      skipPartTwoItem(
+        session.token,
+        state.run_id,
+        state.item.item_key,
+        assessmentType,
+      ),
       "skip",
     );
   };

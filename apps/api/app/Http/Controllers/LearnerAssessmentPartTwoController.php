@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\AssessmentResponse;
 use App\Models\AssessmentRun;
 use App\Models\LearnerAchievement;
-use App\Models\LearnerProgressState;
 use App\Services\LearnerAssessmentAsr;
+use App\Services\LearnerAssessmentCompletionService;
 use App\Services\LearnerSessionResolver;
 use App\Services\PassageReadingResultService;
 use App\Services\SpeechEquivalenceResolver;
@@ -20,6 +20,17 @@ use RuntimeException;
 
 final class LearnerAssessmentPartTwoController extends Controller
 {
+    private const READING_JOURNEY_ACHIEVEMENT_KEYS = [
+        'reading.ready_reader',
+        'reading.letter_leader',
+        'reading.word_wizard',
+        'reading.phrase_pro',
+        'reading.sentence_star',
+        'reading.passage_explorer',
+        'reading.question_detective',
+        'reading.readirect_champion',
+    ];
+
     private const ACTIVE_STAGES = [
         'story-selection',
         'task-3a',
@@ -34,15 +45,26 @@ final class LearnerAssessmentPartTwoController extends Controller
         private readonly LearnerAssessmentAsr $asr,
         private readonly SpeechEquivalenceResolver $equivalenceResolver,
         private readonly PassageReadingResultService $passageResults,
+        private readonly LearnerAssessmentCompletionService $completion,
     ) {}
 
     public function show(Request $request): JsonResponse
     {
         $session = $this->sessionResolver->resolve($request);
+        $assessmentType = $this->assessmentType($request);
         $run = AssessmentRun::query()
             ->where('learner_id', $session->learner_id)
-            ->where('assessment_type', 'diagnostic')
-            ->where('status', AssessmentRun::STATUS_ACTIVE)
+            ->where('assessment_type', $assessmentType)
+            ->where(function ($query) use ($assessmentType): void {
+                $query->where('status', AssessmentRun::STATUS_ACTIVE);
+                if ($assessmentType === AssessmentRun::TYPE_FINAL) {
+                    $query->orWhere(function ($completed): void {
+                        $completed
+                            ->where('status', AssessmentRun::STATUS_COMPLETED)
+                            ->where('stage', 'assessment-complete');
+                    });
+                }
+            })
             ->whereIn('stage', self::ACTIVE_STAGES)
             ->latest('id')
             ->first();
@@ -280,34 +302,19 @@ final class LearnerAssessmentPartTwoController extends Controller
             ])->save();
         });
 
-        return response()->json($this->serialize($run->fresh()));
+        $run->refresh();
+        if ($run->assessment_type === AssessmentRun::TYPE_FINAL
+            && $run->stage === 'assessment-complete') {
+            $run = $this->completion->complete($run);
+        }
+
+        return response()->json($this->serialize($run));
     }
 
     public function finish(Request $request): JsonResponse
     {
         $run = $this->resolveRun($request);
-        DB::transaction(function () use ($run): void {
-            $run->refresh();
-            abort_unless($run->stage === 'assessment-complete', 409, 'The assessment is not ready to finish.');
-            $completedAt = now();
-            LearnerProgressState::query()->updateOrCreate(
-                ['learner_id' => $run->learner_id],
-                [
-                    'stage' => 'required_lessons',
-                    'current_required_lesson_order' => 1,
-                    'diagnostic_completed_at' => $completedAt,
-                    'last_confirmed_at' => $completedAt,
-                ],
-            );
-            $run->forceFill([
-                'status' => AssessmentRun::STATUS_COMPLETED,
-                'assessment_completed_at' => $completedAt,
-            ])->save();
-            LearnerAchievement::query()->firstOrCreate(
-                ['learner_id' => $run->learner_id, 'achievement_key' => 'reading.ready_reader'],
-                ['awarded_at' => $completedAt, 'evidence' => ['assessment_run_id' => $run->id]],
-            );
-        });
+        $this->completion->complete($run);
 
         return response()->json([
             'completed' => true,
@@ -382,9 +389,25 @@ final class LearnerAssessmentPartTwoController extends Controller
                 'passage_review' => $this->passageReview($run),
             ];
         } elseif ($run->stage === 'assessment-complete') {
+            $isFinal = $run->assessment_type === AssessmentRun::TYPE_FINAL;
+            $achievementKeys = LearnerAchievement::query()
+                ->where('learner_id', $run->learner_id)
+                ->whereIn(
+                    'achievement_key',
+                    self::READING_JOURNEY_ACHIEVEMENT_KEYS,
+                )
+                ->orderBy('awarded_at')
+                ->pluck('achievement_key')
+                ->all();
             $payload['completion'] = [
-                'title' => 'Assessment complete!',
-                'message' => 'Your first lesson is ready.',
+                'kind' => $isFinal ? 'reading-journey-finale' : 'diagnostic',
+                'title' => $isFinal
+                    ? 'You finished your Reading Journey'
+                    : 'Assessment complete',
+                'message' => $isFinal
+                    ? 'You completed the Diagnostic Assessment, all six lessons, and the Final Assessment.'
+                    : 'Your first lesson is ready.',
+                'achievement_keys' => $achievementKeys,
             ];
         }
 
@@ -397,11 +420,38 @@ final class LearnerAssessmentPartTwoController extends Controller
         $run = AssessmentRun::query()
             ->whereKey($request->route('assessmentRun'))
             ->where('learner_id', $session->learner_id)
-            ->where('status', AssessmentRun::STATUS_ACTIVE)
+            ->where('assessment_type', $this->assessmentType($request))
+            ->where(function ($query): void {
+                $query
+                    ->where('status', AssessmentRun::STATUS_ACTIVE)
+                    ->orWhere(function ($completed): void {
+                        $completed
+                            ->where('status', AssessmentRun::STATUS_COMPLETED)
+                            ->where('assessment_type', AssessmentRun::TYPE_FINAL)
+                            ->where('stage', 'assessment-complete');
+                    });
+            })
             ->first();
         abort_unless($run !== null, 404, 'That assessment run is unavailable.');
 
         return $run;
+    }
+
+    private function assessmentType(Request $request): string
+    {
+        $assessmentType = (string) $request->route(
+            'assessmentType',
+            AssessmentRun::TYPE_DIAGNOSTIC,
+        );
+        abort_unless(
+            in_array($assessmentType, [
+                AssessmentRun::TYPE_DIAGNOSTIC,
+                AssessmentRun::TYPE_FINAL,
+            ], true),
+            404,
+        );
+
+        return $assessmentType;
     }
 
     /** @return array<string, string>|null */

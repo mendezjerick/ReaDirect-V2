@@ -145,16 +145,35 @@ final class ActivitySpeechManifestService
         $progress = $session->learner->progressState;
         $stage = $progress?->stage ?? LearnerProgressState::BASELINE_STAGE;
 
-        if ($stage === LearnerProgressState::BASELINE_STAGE) {
+        if (in_array($stage, [
+            LearnerProgressState::BASELINE_STAGE,
+            LearnerProgressState::FINAL_ASSESSMENT_STAGE,
+            LearnerProgressState::READING_JOURNEY_COMPLETE_STAGE,
+        ], true)) {
+            $assessmentType = $stage === LearnerProgressState::BASELINE_STAGE
+                ? AssessmentRun::TYPE_DIAGNOSTIC
+                : AssessmentRun::TYPE_FINAL;
             $activeAssessmentStage = AssessmentRun::query()
                 ->where('learner_id', $session->learner_id)
-                ->where('status', AssessmentRun::STATUS_ACTIVE)
+                ->where('assessment_type', $assessmentType)
+                ->where(function ($query) use ($assessmentType): void {
+                    $query->where('status', AssessmentRun::STATUS_ACTIVE);
+                    if ($assessmentType === AssessmentRun::TYPE_FINAL) {
+                        $query->orWhere(function ($completed): void {
+                            $completed
+                                ->where('status', AssessmentRun::STATUS_COMPLETED)
+                                ->where('stage', 'assessment-complete');
+                        });
+                    }
+                })
                 ->latest('updated_at')
                 ->value('stage');
 
             if (is_string($activeAssessmentStage)
                 && in_array($activeAssessmentStage, self::PART_TWO_ASSESSMENT_STAGES, true)) {
-                return 'assessment-part-two';
+                return $assessmentType === AssessmentRun::TYPE_FINAL
+                    ? 'assessment-final-part-two'
+                    : 'assessment-part-two';
             }
 
             return 'assessment-part-one';

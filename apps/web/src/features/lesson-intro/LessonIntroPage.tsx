@@ -45,7 +45,9 @@ export function LessonIntroPage() {
   const nextRoute =
     session?.learner.progress.stage === "required_lessons"
       ? `/learner/lessons/${session.learner.progress.current_required_lesson_order ?? 1}`
-      : "/learner/assessment/part-one";
+      : session?.learner.progress.stage === "final_assessment"
+        ? "/learner/final-assessment/part-one"
+        : "/learner/assessment/part-one";
 
   useEffect(() => {
     if (!session?.token) {

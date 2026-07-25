@@ -25,6 +25,7 @@ import {
   submitSpeech,
   type AssessmentItem,
   type AssessmentState,
+  type AssessmentType,
 } from "./assessmentApi";
 import {
   getAssessmentSpeechKey,
@@ -259,7 +260,11 @@ function ResultView({ state }: { state: AssessmentState }) {
   );
 }
 
-export function AssessmentPartOnePage() {
+export function AssessmentPartOnePage({
+  assessmentType = "diagnostic",
+}: {
+  assessmentType?: AssessmentType;
+}) {
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
   const storedSession = loadLearnerSession();
@@ -297,7 +302,7 @@ export function AssessmentPartOnePage() {
       navigate("/learner/login", { replace: true });
       return;
     }
-    void startPartOne(storedSession.token)
+    void startPartOne(storedSession.token, assessmentType)
       .then(setAssessment)
       .catch((error: unknown) =>
         setLoadingError(
@@ -306,7 +311,7 @@ export function AssessmentPartOnePage() {
             : "The assessment could not open.",
         ),
       );
-  }, [navigate, storedSession?.token]);
+  }, [assessmentType, navigate, storedSession?.token]);
 
   const speechKey = assessment
     ? getAssessmentSpeechKey(assessment.stage, assessment.progress?.current)
@@ -483,7 +488,12 @@ export function AssessmentPartOnePage() {
     if (!assessment || !storedSession?.token) return;
     if (assessment.stage === "orientation") {
       void save(
-        submitOrientation(storedSession.token, assessment.run_id, audio),
+        submitOrientation(
+          storedSession.token,
+          assessment.run_id,
+          audio,
+          assessmentType,
+        ),
       );
     } else if (assessment.item) {
       void save(
@@ -492,6 +502,7 @@ export function AssessmentPartOnePage() {
           assessment.run_id,
           assessment.item.item_key,
           audio,
+          assessmentType,
         ),
       );
     }
@@ -505,6 +516,7 @@ export function AssessmentPartOnePage() {
         assessment.run_id,
         assessment.item.item_key,
         choice,
+        assessmentType,
       ),
     );
   };
@@ -517,6 +529,7 @@ export function AssessmentPartOnePage() {
         storedSession.token,
         assessment.run_id,
         assessment.item.item_key,
+        assessmentType,
       ),
       "skip",
     );
@@ -525,7 +538,11 @@ export function AssessmentPartOnePage() {
   const continueFromResult = () => {
     if (!assessment || !storedSession?.token) return;
     setSaveState("processing");
-    void continuePartOneResult(storedSession.token, assessment.run_id)
+    void continuePartOneResult(
+      storedSession.token,
+      assessment.run_id,
+      assessmentType,
+    )
       .then(({ next_route }) => navigate(next_route))
       .catch(() => setSaveState("error"));
   };

@@ -37,9 +37,9 @@ final class SystemAdminSpeechSandboxTest extends TestCase
         $response = $this->getJson(
             "/api/staff/system-admin/{$admin->id}/speech/content-catalog",
         )->assertOk()
-            ->assertJsonPath('summary.total_items', 116)
+            ->assertJsonPath('summary.total_items', 106)
             ->assertJsonPath('summary.assessment_items', 12)
-            ->assertJsonPath('summary.lesson_items', 104);
+            ->assertJsonPath('summary.lesson_items', 94);
 
         $groups = collect($response->json('groups'));
         $this->assertSame([
@@ -54,11 +54,7 @@ final class SystemAdminSpeechSandboxTest extends TestCase
 
         $items = $groups->pluck('items')->flatten(1);
         $this->assertTrue($items->contains('content_id', 'assessment-v1-task-2b-01'));
-        $this->assertTrue($items->contains('content_id', 'lesson-v1-comprehension-who-lena'));
-        $this->assertSame(
-            'lena',
-            $items->firstWhere('content_id', 'lesson-v1-comprehension-who-lena')['display_text'],
-        );
+        $this->assertFalse($items->contains('content_id', 'lesson-v1-comprehension-who-lena'));
         $this->assertSame(
             'Lena at the Park',
             $items->firstWhere('content_id', 'assessment-v1-task-3a-story-1')['display_text'],

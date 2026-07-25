@@ -176,6 +176,16 @@ const portalTargetKeySchema = z.enum([
   "lesson-6-guided",
   "lesson-6-demonstration",
   "lesson-6-complete",
+  "final-assessment-orientation",
+  "final-assessment-task-1a",
+  "final-assessment-task-2a",
+  "final-assessment-task-2b",
+  "final-assessment-part-1-results",
+  "final-assessment-story-selection",
+  "final-assessment-task-3a",
+  "final-assessment-task-3b",
+  "final-assessment-part-2-results",
+  "final-assessment-complete",
 ]);
 
 const portalTargetSchema = z.object({

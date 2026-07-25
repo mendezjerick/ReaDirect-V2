@@ -150,6 +150,42 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonCount(14, 'published_speech_keys');
     }
 
+    public function test_final_assessment_reuses_part_one_and_has_a_finale_part_two_manifest(): void
+    {
+        [$learner, $token] = $this->learnerSessionRecord('final_assessment');
+
+        $this->withToken($token)
+            ->getJson('/api/learners/tts/activity-manifest')
+            ->assertOk()
+            ->assertJsonPath('activity', 'assessment-part-one')
+            ->assertJsonCount(32, 'published_speech_keys');
+
+        AssessmentRun::query()->create([
+            'learner_id' => $learner->id,
+            'assessment_type' => AssessmentRun::TYPE_FINAL,
+            'content_version' => 'v1',
+            'status' => AssessmentRun::STATUS_ACTIVE,
+            'stage' => 'task-3b',
+            'current_item_index' => 0,
+            'content_snapshot' => [],
+        ]);
+
+        $this->withToken($token)
+            ->getJson('/api/learners/tts/activity-manifest')
+            ->assertOk()
+            ->assertJsonPath('activity', 'assessment-final-part-two')
+            ->assertJsonPath(
+                'published_groups.0',
+                'assessment-final-part-two-fixed',
+            )
+            ->assertJsonPath('runtime_profiles', [])
+            ->assertJsonCount(14, 'published_speech_keys')
+            ->assertJsonPath(
+                'published_speech_keys.13',
+                'assessment-final-complete',
+            );
+    }
+
     public function test_portal_session_uses_the_active_portal_target_instead_of_progress(): void
     {
         [$learner, $token] = $this->learnerSessionRecord('required_lessons', 1, 'portal');

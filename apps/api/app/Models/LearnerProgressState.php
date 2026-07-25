@@ -9,6 +9,10 @@ final class LearnerProgressState extends Model
 {
     public const BASELINE_STAGE = 'before_diagnostic';
 
+    public const FINAL_ASSESSMENT_STAGE = 'final_assessment';
+
+    public const READING_JOURNEY_COMPLETE_STAGE = 'reading_journey_complete';
+
     protected $fillable = [
         'learner_id',
         'stage',
