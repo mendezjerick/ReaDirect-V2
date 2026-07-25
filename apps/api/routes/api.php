@@ -101,19 +101,39 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/lessons/lesson-6/{lessonRun}/submit', [LearnerLessonSixController::class, 'submit']);
     Route::post('/lessons/lesson-6/{lessonRun}/skip', [LearnerLessonSixController::class, 'skip']);
     Route::post('/lessons/lesson-6/{lessonRun}/advance', [LearnerLessonSixController::class, 'advance']);
-    Route::post('/assessments/part-one/start', [LearnerAssessmentPartOneController::class, 'start']);
-    Route::get('/assessments/part-one/{assessmentRun}', [LearnerAssessmentPartOneController::class, 'show']);
-    Route::post('/assessments/part-one/{assessmentRun}/orientation', [LearnerAssessmentPartOneController::class, 'submitOrientation']);
-    Route::post('/assessments/part-one/{assessmentRun}/speech', [LearnerAssessmentPartOneController::class, 'submitSpeech']);
-    Route::post('/assessments/part-one/{assessmentRun}/rhyme', [LearnerAssessmentPartOneController::class, 'submitRhyme']);
-    Route::post('/assessments/part-one/{assessmentRun}/skip', [LearnerAssessmentPartOneController::class, 'skip']);
-    Route::post('/assessments/part-one/{assessmentRun}/advance', [LearnerAssessmentPartOneController::class, 'advance']);
-    Route::post('/assessments/part-one/{assessmentRun}/continue', [LearnerAssessmentPartOneController::class, 'continueResult']);
-    Route::get('/assessments/part-two/current', [LearnerAssessmentPartTwoController::class, 'show']);
-    Route::post('/assessments/part-two/{assessmentRun}/story', [LearnerAssessmentPartTwoController::class, 'selectStory']);
-    Route::post('/assessments/part-two/{assessmentRun}/passage', [LearnerAssessmentPartTwoController::class, 'submitPassage']);
-    Route::post('/assessments/part-two/{assessmentRun}/comprehension', [LearnerAssessmentPartTwoController::class, 'submitComprehension']);
-    Route::post('/assessments/part-two/{assessmentRun}/skip', [LearnerAssessmentPartTwoController::class, 'skip']);
-    Route::post('/assessments/part-two/{assessmentRun}/continue', [LearnerAssessmentPartTwoController::class, 'continueResult']);
-    Route::post('/assessments/part-two/{assessmentRun}/finish', [LearnerAssessmentPartTwoController::class, 'finish']);
+    foreach ([
+        'diagnostic' => 'assessments',
+        'final' => 'assessments/final',
+    ] as $assessmentType => $assessmentPrefix) {
+        Route::post("/{$assessmentPrefix}/part-one/start", [LearnerAssessmentPartOneController::class, 'start'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::get("/{$assessmentPrefix}/part-one/{assessmentRun}", [LearnerAssessmentPartOneController::class, 'show'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-one/{assessmentRun}/orientation", [LearnerAssessmentPartOneController::class, 'submitOrientation'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-one/{assessmentRun}/speech", [LearnerAssessmentPartOneController::class, 'submitSpeech'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-one/{assessmentRun}/rhyme", [LearnerAssessmentPartOneController::class, 'submitRhyme'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-one/{assessmentRun}/skip", [LearnerAssessmentPartOneController::class, 'skip'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-one/{assessmentRun}/advance", [LearnerAssessmentPartOneController::class, 'advance'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-one/{assessmentRun}/continue", [LearnerAssessmentPartOneController::class, 'continueResult'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::get("/{$assessmentPrefix}/part-two/current", [LearnerAssessmentPartTwoController::class, 'show'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-two/{assessmentRun}/story", [LearnerAssessmentPartTwoController::class, 'selectStory'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-two/{assessmentRun}/passage", [LearnerAssessmentPartTwoController::class, 'submitPassage'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-two/{assessmentRun}/comprehension", [LearnerAssessmentPartTwoController::class, 'submitComprehension'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-two/{assessmentRun}/skip", [LearnerAssessmentPartTwoController::class, 'skip'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-two/{assessmentRun}/continue", [LearnerAssessmentPartTwoController::class, 'continueResult'])
+            ->defaults('assessmentType', $assessmentType);
+        Route::post("/{$assessmentPrefix}/part-two/{assessmentRun}/finish", [LearnerAssessmentPartTwoController::class, 'finish'])
+            ->defaults('assessmentType', $assessmentType);
+    }
 });

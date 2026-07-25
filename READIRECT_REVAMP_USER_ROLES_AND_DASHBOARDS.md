@@ -338,6 +338,9 @@ Continue Lesson <number or title> when an incomplete saved attempt exists
 
 After all required lessons:
 Start or Resume Final Assessment
+
+After Final Assessment completion:
+Reading Journey Complete (settled, non-navigating state)
 ~~~
 
 Only the currently required primary action is shown. The previous action
@@ -358,6 +361,8 @@ It contains:
 - Current required lesson start or continue action when unlocked.
 - Saved position and completion state for the current required lesson.
 - Final Assessment start or resume action when available.
+- A settled Reading Journey Complete primary card after Final Assessment
+  completion; it must not create another Final Assessment run.
 - Latest Diagnostic Assessment task scores.
 - Latest Final Assessment task scores when available.
 - Latest passage reading accuracy.
@@ -415,6 +420,9 @@ management screens.
   starting tracks.
 - Diagnostic Assessment completion unlocks the first required lesson.
 - Required lessons unlock one at a time in their defined order.
+- Final Assessment completion changes progression to
+  `reading_journey_complete`, records its completion timestamp, and prevents
+  the dashboard primary action from restarting the assessment.
 - Every started lesson has a persistent save state tied uniquely to the
   authenticated learner or verified guest.
 - Leaving a lesson for the dashboard or closing the application preserves the

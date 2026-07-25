@@ -400,12 +400,16 @@ The integrated gallery renders the eight Reading Journey records in this
 standard plus centrally approved game achievements returned by Laravel. It does
 not keep a second hard-coded frontend catalog.
 
-The current persistence increment grants `reading.ready_reader` when the
-Diagnostic Assessment is authoritatively finished and
-`reading.letter_leader` in the same transaction that completes Lesson 1 and
-unlocks Lesson 2. The `(learner_id, achievement_key)` uniqueness constraint
-makes repeated completion idempotent. `KW000` reset deletes its lesson runs,
-lesson audio, and awards as part of the approved portal-only reset exception.
+The current persistence implementation grants all eight Reading Journey
+milestones from their authoritative activity completion transactions.
+`reading.ready_reader` unlocks with the Diagnostic Assessment;
+`reading.letter_leader` through `reading.question_detective` unlock with
+Lessons 1 through 6; and `reading.readirect_champion` unlocks atomically with
+Final Assessment completion and `reading_journey_complete` progression. The
+`(learner_id, achievement_key)` uniqueness constraint makes repeated
+completion idempotent. `KW000` reset deletes its assessment runs, lesson runs,
+private activity audio, and awards as part of the approved portal-only reset
+exception.
 
 ## Data Contract
 

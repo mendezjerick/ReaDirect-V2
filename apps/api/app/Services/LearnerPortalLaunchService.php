@@ -23,6 +23,12 @@ final class LearnerPortalLaunchService
 
     public const COMPLETION_ROUTE = '/learner/assessment/complete';
 
+    public const FINAL_PART_ONE_ROUTE = '/learner/final-assessment/part-one';
+
+    public const FINAL_PART_TWO_ROUTE = '/learner/final-assessment/part-two';
+
+    public const FINAL_COMPLETION_ROUTE = '/learner/final-assessment/complete';
+
     public const LESSON_ONE_ROUTE = '/learner/lessons/1';
 
     public const LESSON_TWO_ROUTE = '/learner/lessons/2';
@@ -39,6 +45,7 @@ final class LearnerPortalLaunchService
         private readonly AssessmentContentCatalog $contentCatalog,
         private readonly LessonContentCatalog $lessonContentCatalog,
         private readonly LearnerProgressResetService $resetService,
+        private readonly LearnerAssessmentCompletionService $assessmentCompletion,
     ) {}
 
     /** @return list<array{key: string, label: string, description: string, task: string}> */
@@ -219,6 +226,66 @@ final class LearnerPortalLaunchService
                 'description' => 'Open the six-lesson celebration and Question Detective award.',
                 'task' => 'Completion',
             ],
+            [
+                'key' => 'final-assessment-orientation',
+                'label' => 'Final microphone check',
+                'description' => 'Open Final Assessment Part 1 before the first scored item.',
+                'task' => 'Final setup',
+            ],
+            [
+                'key' => 'final-assessment-task-1a',
+                'label' => 'Final letters',
+                'description' => 'Start Final Task 1A at its first letter pair.',
+                'task' => 'Final Task 1A',
+            ],
+            [
+                'key' => 'final-assessment-task-2a',
+                'label' => 'Final rhyme Yes / No',
+                'description' => 'Use the Final low branch and open its first rhyme pair.',
+                'task' => 'Final Task 2A',
+            ],
+            [
+                'key' => 'final-assessment-task-2b',
+                'label' => 'Final words',
+                'description' => 'Use the Final high branch and open its first word.',
+                'task' => 'Final Task 2B',
+            ],
+            [
+                'key' => 'final-assessment-part-1-results',
+                'label' => 'Final Part 1 Results',
+                'description' => 'Open a persisted Final high-branch Part 1 result.',
+                'task' => 'Final result',
+            ],
+            [
+                'key' => 'final-assessment-story-selection',
+                'label' => 'Final story choice',
+                'description' => 'Open Final Part 2 before a story is confirmed.',
+                'task' => 'Final Part 2',
+            ],
+            [
+                'key' => 'final-assessment-task-3a',
+                'label' => 'Final passage reading',
+                'description' => 'Open Final Task 3A with Lena at the Park confirmed.',
+                'task' => 'Final Task 3A',
+            ],
+            [
+                'key' => 'final-assessment-task-3b',
+                'label' => 'Final comprehension',
+                'description' => 'Open the first Final 5W question after persisted passage evidence.',
+                'task' => 'Final Task 3B',
+            ],
+            [
+                'key' => 'final-assessment-part-2-results',
+                'label' => 'Final Part 2 result sequence',
+                'description' => 'Open the Final passage review before its score result.',
+                'task' => 'Final result',
+            ],
+            [
+                'key' => 'final-assessment-complete',
+                'label' => 'Reading Journey Finale',
+                'description' => 'Open the committed Final Assessment celebration and collection.',
+                'task' => 'Finale',
+            ],
         ];
     }
 
@@ -236,6 +303,10 @@ final class LearnerPortalLaunchService
         return DB::transaction(function () use ($learner, $actor, $targetKey): array {
             $learner = $this->resetService->reset($learner, $actor);
             $isLessonTarget = str_starts_with($targetKey, 'lesson-');
+            $isFinalAssessmentTarget = str_starts_with(
+                $targetKey,
+                'final-assessment-',
+            );
             if ($isLessonTarget) {
                 $run = $this->prepareLessonPortal($learner, $targetKey);
                 $learner->progressState()->updateOrCreate([], [
@@ -244,6 +315,20 @@ final class LearnerPortalLaunchService
                     'diagnostic_completed_at' => now(),
                     'last_confirmed_at' => now(),
                 ]);
+            } elseif ($isFinalAssessmentTarget) {
+                $this->prepareLessonPortal($learner, 'lesson-6-complete');
+                $learner->progressState()->updateOrCreate([], [
+                    'stage' => 'final_assessment',
+                    'current_required_lesson_order' => null,
+                    'diagnostic_completed_at' => now(),
+                    'last_confirmed_at' => now(),
+                ]);
+                $snapshot = $this->contentCatalog->assessmentSnapshot();
+                $run = $this->createAssessmentRun($learner, $snapshot, $targetKey);
+                $this->seedPrerequisites($run, $targetKey);
+                if ($targetKey === 'final-assessment-complete') {
+                    $run = $this->assessmentCompletion->complete($run);
+                }
             } else {
                 $snapshot = $this->contentCatalog->assessmentSnapshot();
                 $run = $this->createAssessmentRun($learner, $snapshot, $targetKey);
@@ -294,12 +379,16 @@ final class LearnerPortalLaunchService
     /** @param array<string, list<array<string, string>>> $snapshot */
     private function createAssessmentRun(Learner $learner, array $snapshot, string $targetKey): AssessmentRun
     {
+        $checkpointKey = $this->assessmentCheckpointKey($targetKey);
+        $assessmentType = str_starts_with($targetKey, 'final-assessment-')
+            ? AssessmentRun::TYPE_FINAL
+            : AssessmentRun::TYPE_DIAGNOSTIC;
         $attributes = [
             'learner_id' => $learner->id,
-            'assessment_type' => 'diagnostic',
+            'assessment_type' => $assessmentType,
             'content_version' => 'v1',
             'status' => AssessmentRun::STATUS_ACTIVE,
-            'stage' => match ($targetKey) {
+            'stage' => match ($checkpointKey) {
                 'assessment-orientation' => 'orientation',
                 'assessment-task-1a' => 'task-1a',
                 'assessment-task-2a' => 'task-2a',
@@ -313,10 +402,10 @@ final class LearnerPortalLaunchService
             },
             'current_item_index' => 0,
             'content_snapshot' => $snapshot,
-            'orientation_completed_at' => $targetKey === 'assessment-orientation' ? null : now(),
+            'orientation_completed_at' => $checkpointKey === 'assessment-orientation' ? null : now(),
         ];
 
-        if ($targetKey === 'assessment-task-2a') {
+        if ($checkpointKey === 'assessment-task-2a') {
             $attributes += [
                 'part_one_branch' => 'low',
                 'task_1a_score' => 6,
@@ -332,7 +421,7 @@ final class LearnerPortalLaunchService
             'assessment-part-2-results',
             'assessment-complete',
         ];
-        if (in_array($targetKey, $highBranchTargets, true)) {
+        if (in_array($checkpointKey, $highBranchTargets, true)) {
             $attributes += [
                 'part_one_branch' => 'high',
                 'task_1a_score' => 7,
@@ -340,7 +429,7 @@ final class LearnerPortalLaunchService
             ];
         }
 
-        if (in_array($targetKey, array_slice($highBranchTargets, 1), true)) {
+        if (in_array($checkpointKey, array_slice($highBranchTargets, 1), true)) {
             $attributes += [
                 'task_2b_score' => 8,
                 'part_one_score' => 25,
@@ -349,21 +438,21 @@ final class LearnerPortalLaunchService
             ];
         }
 
-        if (in_array($targetKey, ['assessment-task-3a', 'assessment-task-3b', 'assessment-part-2-results', 'assessment-complete'], true)) {
+        if (in_array($checkpointKey, ['assessment-task-3a', 'assessment-task-3b', 'assessment-part-2-results', 'assessment-complete'], true)) {
             $attributes += [
                 'selected_story_key' => 'story:lena-at-park',
                 'story_selected_at' => now(),
             ];
         }
 
-        if (in_array($targetKey, ['assessment-task-3b', 'assessment-part-2-results', 'assessment-complete'], true)) {
+        if (in_array($checkpointKey, ['assessment-task-3b', 'assessment-part-2-results', 'assessment-complete'], true)) {
             $attributes += [
                 'passage_incorrect_words' => 10,
                 'reading_accuracy_percent' => 80,
             ];
         }
 
-        if (in_array($targetKey, ['assessment-part-2-results', 'assessment-complete'], true)) {
+        if (in_array($checkpointKey, ['assessment-part-2-results', 'assessment-complete'], true)) {
             $attributes += [
                 'comprehension_score' => 4,
                 'comprehension_percent' => 80,
@@ -378,7 +467,8 @@ final class LearnerPortalLaunchService
 
     private function seedPrerequisites(AssessmentRun $run, string $targetKey): void
     {
-        if ($targetKey === 'assessment-task-2a') {
+        $checkpointKey = $this->assessmentCheckpointKey($targetKey);
+        if ($checkpointKey === 'assessment-task-2a') {
             $this->seedTaskResponses($run, 'task-1a', 6, $targetKey);
         }
 
@@ -391,19 +481,19 @@ final class LearnerPortalLaunchService
             'assessment-part-2-results',
             'assessment-complete',
         ];
-        if (in_array($targetKey, $highBranchTargets, true)) {
+        if (in_array($checkpointKey, $highBranchTargets, true)) {
             $this->seedTaskResponses($run, 'task-1a', 7, $targetKey);
         }
 
-        if (in_array($targetKey, array_slice($highBranchTargets, 1), true)) {
+        if (in_array($checkpointKey, array_slice($highBranchTargets, 1), true)) {
             $this->seedTaskResponses($run, 'task-2b', 8, $targetKey);
         }
 
-        if (in_array($targetKey, ['assessment-task-3b', 'assessment-part-2-results', 'assessment-complete'], true)) {
+        if (in_array($checkpointKey, ['assessment-task-3b', 'assessment-part-2-results', 'assessment-complete'], true)) {
             $this->seedPassageResponse($run, $targetKey);
         }
 
-        if (in_array($targetKey, ['assessment-part-2-results', 'assessment-complete'], true)) {
+        if (in_array($checkpointKey, ['assessment-part-2-results', 'assessment-complete'], true)) {
             $this->seedComprehensionResponses($run, $targetKey);
         }
     }
@@ -1165,6 +1255,23 @@ final class LearnerPortalLaunchService
 
     private function routeFor(string $targetKey): string
     {
+        if (str_starts_with($targetKey, 'final-assessment-')) {
+            $checkpointKey = $this->assessmentCheckpointKey($targetKey);
+            if ($checkpointKey === 'assessment-complete') {
+                return self::FINAL_COMPLETION_ROUTE;
+            }
+            if (in_array($checkpointKey, [
+                'assessment-story-selection',
+                'assessment-task-3a',
+                'assessment-task-3b',
+                'assessment-part-2-results',
+            ], true)) {
+                return self::FINAL_PART_TWO_ROUTE;
+            }
+
+            return self::FINAL_PART_ONE_ROUTE;
+        }
+
         if (str_starts_with($targetKey, 'lesson-6-')) {
             return self::LESSON_SIX_ROUTE;
         }
@@ -1197,5 +1304,12 @@ final class LearnerPortalLaunchService
         }
 
         return self::PART_ONE_ROUTE;
+    }
+
+    private function assessmentCheckpointKey(string $targetKey): string
+    {
+        return str_starts_with($targetKey, 'final-assessment-')
+            ? 'assessment-'.substr($targetKey, strlen('final-assessment-'))
+            : $targetKey;
     }
 }

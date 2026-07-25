@@ -313,10 +313,11 @@ Laravel is the authenticated browser-facing speech proxy. Published metadata
 belongs in `tts_voice_versions` and `tts_speech_lines`, while approved WAVs live
 under `apps/api/storage/app/private/tts/catalog/`. The current `clara-sh-v1`
 catalog contains Lesson Intro, every fixed Part 1 instruction and ordinal cue,
-all fixed Part 2 prompts and questions, the assessment completion line, and
+all fixed Part 2 prompts and questions, the Diagnostic and Final Assessment
+completion lines, and
 51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, 33 fixed Lesson 3 lines, 33
-fixed Lesson 4 lines, 9 fixed Lesson 5 lines, and 13 fixed companion-class
-lines. Its 205 published rows are grouped under
+fixed Lesson 4 lines, 9 fixed Lesson 5 lines, 47 fixed Lesson 6 lines, and 13
+fixed companion-class lines. Its 253 published rows are grouped under
 `sh/lesson-intro/`, `sh/part-1/`, `sh/part-2/`, `sh/completion/`, and
 `sh/lessons/` for human review. Laravel verifies the catalog status, file
 existence, and SHA-256 checksum before returning audio. Browser code must never
@@ -367,8 +368,8 @@ phrases, sentences, and passages while preserving raw ASR evidence. Lesson 6
 choice comprehension never enters this resolver. The seed remains idempotent
 across content revisions.
 
-System Administrator Page Portals currently resolve persisted Diagnostic and
-Lesson 1 through Lesson 6 checkpoints through
+System Administrator Page Portals currently resolve persisted Diagnostic,
+Lesson 1 through Lesson 6, and Final Assessment checkpoints through
 `LearnerPortalLaunchService`. Lesson destinations create Kristen's completed
 Diagnostic prerequisite and Ready Reader first. Lesson 2 destinations also
 create her completed Lesson 1 prerequisite and Letter Leader before the
@@ -382,6 +383,11 @@ passage item, dedicated passage review, or Passage Explorer completion state.
 Lesson 6 destinations additionally persist completed Lesson 5 and Passage
 Explorer before opening the selected comprehension support checkpoint or the
 all-lessons completion state.
+Final Assessment destinations persist the completed Diagnostic Assessment and
+all six completed lesson runs and awards before creating the selected
+`assessment_type = final` checkpoint. Its ten destinations use the shared
+assessment engine under `/learner/final-assessment/...`; the finale destination
+also commits ReaDirect Champion and `reading_journey_complete` before it opens.
 The learner page reloads that exact snapshot through the normal lesson API.
 Portal-only prerequisites remain in normal
 assessment and lesson tables with explicit evidence and no fabricated audio.

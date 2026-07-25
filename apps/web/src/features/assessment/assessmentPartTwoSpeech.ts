@@ -13,7 +13,11 @@ export function getPartTwoSpeechKey(
   if (state.stage === "task-3a") return "assessment-passage";
   if (state.stage === "passage-results") return null;
   if (state.stage === "part-2-results") return "assessment-part-two-result";
-  if (state.stage === "assessment-complete") return "assessment-complete";
+  if (state.stage === "assessment-complete") {
+    return state.assessment_type === "final"
+      ? "assessment-final-complete"
+      : "assessment-complete";
+  }
 
   const item = Math.min(5, Math.max(1, state.progress?.current ?? 1)) as
     1 | 2 | 3 | 4 | 5;

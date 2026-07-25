@@ -13,6 +13,7 @@ import {
   activitySpeechScopeForProgress,
   prepareActivitySpeech,
 } from "../clara-audio/activitySpeechReadiness";
+import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
 import {
   clearLearnerSession,
   getLearnerSession,
@@ -21,49 +22,6 @@ import {
   saveLearnerSession,
 } from "../learner-auth/learnerApi";
 import "./learner-dashboard.css";
-
-const achievementSlots = [
-  {
-    key: "reading.ready_reader",
-    name: "Ready Reader",
-    criteria: "Complete the Diagnostic Assessment",
-  },
-  {
-    key: "reading.letter_leader",
-    name: "Letter Leader",
-    criteria: "Complete Lesson 1: Letters",
-  },
-  {
-    key: "reading.word_wizard",
-    name: "Word Wizard",
-    criteria: "Complete Lesson 2: Words",
-  },
-  {
-    key: "reading.phrase_pro",
-    name: "Phrase Pro",
-    criteria: "Complete Lesson 3: Phrases",
-  },
-  {
-    key: "reading.sentence_star",
-    name: "Sentence Star",
-    criteria: "Complete Lesson 4: Sentences",
-  },
-  {
-    key: "reading.passage_explorer",
-    name: "Passage Explorer",
-    criteria: "Complete Lesson 5: Short Passage",
-  },
-  {
-    key: "reading.question_detective",
-    name: "Question Detective",
-    criteria: "Complete Lesson 6: Comprehension",
-  },
-  {
-    key: "reading.readirect_champion",
-    name: "ReaDirect Champion",
-    criteria: "Complete the Final Assessment",
-  },
-] as const;
 
 function LearningIcon() {
   return (
@@ -127,11 +85,16 @@ export function LearnerDashboardPage() {
   const learner = sessionQuery.data?.learner;
   const isLessonFlow = learner?.progress.stage === "required_lessons";
   const isFinalAssessment = learner?.progress.stage === "final_assessment";
+  const isReadingJourneyComplete =
+    learner?.progress.stage === "reading_journey_complete";
   const currentLesson = learner?.progress.current_required_lesson_order ?? 1;
   const activitySpeechScope = learner
     ? activitySpeechScopeForProgress(learner.progress)
     : null;
   const earnedAchievements = new Set(learner?.achievement_keys ?? []);
+  const earnedReadingAchievementCount = readingJourneyAchievements.filter(
+    (achievement) => earnedAchievements.has(achievement.key),
+  ).length;
 
   useEffect(() => {
     if (sessionQuery.isError) {
@@ -175,6 +138,9 @@ export function LearnerDashboardPage() {
   };
 
   const openNextReadingActivity = () => {
+    if (isReadingJourneyComplete) {
+      return;
+    }
     unlockClaraAudio();
 
     if (storedSession?.token) {
@@ -248,7 +214,9 @@ export function LearnerDashboardPage() {
                     ? "Getting started"
                     : isFinalAssessment
                       ? "Final check ready"
-                      : "Reading in progress"}
+                      : isReadingJourneyComplete
+                        ? "Journey complete"
+                        : "Reading in progress"}
                 </span>
                 <strong>{learner?.learner_code}</strong>
               </div>
@@ -284,14 +252,18 @@ export function LearnerDashboardPage() {
                 ? `Continue Lesson ${currentLesson}.`
                 : isFinalAssessment
                   ? "Show what you learned."
-                  : "Find your reading starting point."}
+                  : isReadingJourneyComplete
+                    ? "Your Reading Journey is complete."
+                    : "Find your reading starting point."}
             </h2>
             <p>
               {isLessonFlow
                 ? "Your exact place is saved and ready."
                 : isFinalAssessment
                   ? "Your Final Assessment is ready."
-                  : "Complete this once to open your lessons."}
+                  : isReadingJourneyComplete
+                    ? "You completed all eight reading milestones."
+                    : "Complete this once to open your lessons."}
             </p>
           </div>
           <BigButton
@@ -301,8 +273,12 @@ export function LearnerDashboardPage() {
                 ? `Continue Lesson ${currentLesson}`
                 : isFinalAssessment
                   ? "Start Final Assessment"
-                  : "Start Diagnostic Assessment"
+                  : isReadingJourneyComplete
+                    ? "Reading Journey complete"
+                    : "Start Diagnostic Assessment"
             }
+            variant={isReadingJourneyComplete ? "unavailable" : "primary"}
+            disabled={isReadingJourneyComplete}
             committing={readingCommit.committing}
             onClick={openNextReadingActivity}
           >
@@ -310,7 +286,9 @@ export function LearnerDashboardPage() {
               ? `Continue Lesson ${currentLesson}`
               : isFinalAssessment
                 ? "Start Final Assessment"
-                : "Start Diagnostic"}
+                : isReadingJourneyComplete
+                  ? "Journey Complete"
+                  : "Start Diagnostic"}
           </BigButton>
           <p className="learner-dashboard__notice" aria-live="polite">
             {readingCommit.committing ? "Getting Ma'am Clara ready..." : ""}
@@ -388,7 +366,8 @@ export function LearnerDashboardPage() {
                 <h2>Achievements</h2>
               </div>
               <span className="learner-dashboard__achievement-count">
-                {earnedAchievements.size}/{achievementSlots.length}
+                {earnedReadingAchievementCount}/
+                {readingJourneyAchievements.length}
               </span>
             </div>
 
@@ -396,7 +375,7 @@ export function LearnerDashboardPage() {
               className="learner-dashboard__achievement-preview"
               aria-label="Locked achievements"
             >
-              {achievementSlots.map((achievement) => (
+              {readingJourneyAchievements.map((achievement) => (
                 <li
                   key={achievement.key}
                   data-earned={

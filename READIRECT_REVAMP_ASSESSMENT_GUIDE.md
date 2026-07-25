@@ -430,10 +430,12 @@ Task 1A Letter Pronunciation
   learner dashboard can apply its fixed progression gates.
 - Do not use an assessment score to choose, reorder, skip, or replace lessons.
 
-### Implemented diagnostic runtime boundary
+### Implemented shared assessment runtime boundary
 
-The Diagnostic Part 1 implementation uses one Laravel-owned, refresh-safe
-assessment run:
+Diagnostic and Final Assessment use the same Laravel-owned, refresh-safe
+assessment runtime. `assessment_type` isolates their runs and results while
+both types reuse the same controllers, fixed content snapshot, scoring,
+Skip behavior, React pages, and published item cues:
 
 - `assessment_runs` stores the fixed `v1` content snapshot, current stage,
   current item, branch, separate task scores, Part 1 score, and Part 1 level.
@@ -445,8 +447,9 @@ assessment run:
   evidence as applicable.
 - Laravel imports the active shared Part 1 CSV rows into the immutable run
   snapshot when a run begins. React never reads a root CSV.
-- Orientation, Task 1A, Task 2A, Task 2B, and Part 1 Results are served by the
-  learner Part 1 API under `/api/learners/assessments/part-one`.
+- Diagnostic APIs remain under `/api/learners/assessments/...`; Final
+  Assessment APIs use `/api/learners/assessments/final/...`. A route can
+  resolve and mutate only a run of its declared type.
 - Every assessment Submit atomically persists the current response and opens
   the next item or documented result page. The response exposed to React never
   reveals per-item correctness, and active assessment items never expose a
@@ -500,12 +503,19 @@ assessment run:
   Task 3A Skip stores zero reading accuracy and opens Task 3B. Task 3B Skip
   stores a distinct zero-score skipped response and opens the next question or
   Passage Results.
-- Passage Results advances to the original Part 2 Results score page. Part 2
-  Results continues to Assessment Complete. Finishing the completion page marks
-  the assessment run completed and advances the learner progression state to
-  required Lesson 1.
+- Passage Results advances to the original Part 2 Results score page. For the
+  Diagnostic Assessment, Assessment Complete commits Ready Reader and advances
+  progression to required Lesson 1. For the Final Assessment, continuing from
+  the last valid result atomically completes the run, records
+  `final_assessment_completed_at`, grants ReaDirect Champion, changes progression
+  to `reading_journey_complete`, and only then exposes the Reading Journey
+  Finale.
 - System-admin page portals expose every persisted diagnostic checkpoint:
   orientation, Tasks 1A/2A/2B, Part 1 Results, story selection, Tasks 3A/3B,
   the Passage Results entry point for the two-step Part 2 result sequence, and
   Assessment Complete. Each portal builds the same prior persisted state used
   by normal learner progression and is reset on exit.
+- A matching set of Final Assessment portals exposes the same ten checkpoints
+  after persisting the Diagnostic Assessment and all six lessons as explicit
+  portal prerequisites. The Final completion portal opens only after its final
+  completion and achievement transaction is committed.

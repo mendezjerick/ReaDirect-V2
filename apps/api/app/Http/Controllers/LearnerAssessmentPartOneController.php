@@ -6,6 +6,7 @@ use App\Models\AssessmentResponse;
 use App\Models\AssessmentRun;
 use App\Services\AssessmentContentCatalog;
 use App\Services\LearnerAssessmentAsr;
+use App\Services\LearnerAssessmentCompletionService;
 use App\Services\LearnerSessionResolver;
 use App\Services\SpeechEquivalenceResolver;
 use Illuminate\Http\JsonResponse;
@@ -23,22 +24,32 @@ final class LearnerAssessmentPartOneController extends Controller
         private readonly AssessmentContentCatalog $contentCatalog,
         private readonly LearnerAssessmentAsr $asr,
         private readonly SpeechEquivalenceResolver $equivalenceResolver,
+        private readonly LearnerAssessmentCompletionService $completion,
     ) {}
 
     public function start(Request $request): JsonResponse
     {
         $session = $this->sessionResolver->resolve($request);
+        $assessmentType = $this->assessmentType($request);
         $run = AssessmentRun::query()
             ->where('learner_id', $session->learner_id)
-            ->where('assessment_type', 'diagnostic')
+            ->where('assessment_type', $assessmentType)
             ->where('status', AssessmentRun::STATUS_ACTIVE)
             ->latest('id')
             ->first();
 
         if (! $run) {
+            if ($assessmentType === AssessmentRun::TYPE_FINAL) {
+                abort_unless(
+                    $session->learner->progressState?->stage === 'final_assessment',
+                    409,
+                    'Complete all six lessons before starting the Final Assessment.',
+                );
+            }
+
             $run = AssessmentRun::query()->create([
                 'learner_id' => $session->learner_id,
-                'assessment_type' => 'diagnostic',
+                'assessment_type' => $assessmentType,
                 'content_version' => 'v1',
                 'status' => AssessmentRun::STATUS_ACTIVE,
                 'stage' => 'orientation',
@@ -295,11 +306,18 @@ final class LearnerAssessmentPartOneController extends Controller
             ])->save();
         });
 
+        $run->refresh();
+        if ($run->assessment_type === AssessmentRun::TYPE_FINAL
+            && $run->stage === 'assessment-complete') {
+            $this->completion->complete($run);
+        }
+
         return response()->json([
             'run_id' => $run->id,
-            'next_route' => $run->fresh()->stage === 'story-selection'
-                ? '/learner/assessment/part-two'
-                : '/learner/assessment/complete',
+            'next_route' => $this->frontendRoute(
+                $run,
+                $run->stage === 'story-selection' ? 'part-two' : 'complete',
+            ),
         ]);
     }
 
@@ -369,11 +387,38 @@ final class LearnerAssessmentPartOneController extends Controller
         $run = AssessmentRun::query()
             ->whereKey($request->input('run_id', $request->route('assessmentRun')))
             ->where('learner_id', $session->learner_id)
+            ->where('assessment_type', $this->assessmentType($request))
             ->where('status', AssessmentRun::STATUS_ACTIVE)
             ->first();
         abort_unless($run !== null, 404, 'That assessment run is unavailable.');
 
         return $run;
+    }
+
+    private function assessmentType(Request $request): string
+    {
+        $assessmentType = (string) $request->route(
+            'assessmentType',
+            AssessmentRun::TYPE_DIAGNOSTIC,
+        );
+        abort_unless(
+            in_array($assessmentType, [
+                AssessmentRun::TYPE_DIAGNOSTIC,
+                AssessmentRun::TYPE_FINAL,
+            ], true),
+            404,
+        );
+
+        return $assessmentType;
+    }
+
+    private function frontendRoute(AssessmentRun $run, string $page): string
+    {
+        $prefix = $run->assessment_type === AssessmentRun::TYPE_FINAL
+            ? '/learner/final-assessment'
+            : '/learner/assessment';
+
+        return "{$prefix}/{$page}";
     }
 
     /** @return array<string, string>|null */

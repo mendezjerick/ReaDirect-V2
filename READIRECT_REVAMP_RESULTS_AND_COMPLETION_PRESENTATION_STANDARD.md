@@ -536,6 +536,13 @@ The eight positions are not eight new unlock pops. The queue presents only the
 newly earned ReaDirect Champion once; the settled collection then assembles the
 already earned journey badges as a final retrospective.
 
+The implemented finale is the `reading-journey-finale` variant of the shared
+assessment completion surface. Laravel returns the committed eight achievement
+keys; React renders the canonical shared Reading Journey catalog as a fixed
+`4 x 2` collection and never invents earned state. The final primary action
+returns to the Learner Dashboard, whose terminal
+`reading_journey_complete` state cannot restart the Final Assessment.
+
 Interactive collection behavior:
 
 - Every badge is keyboard-focusable and touch-readable after the main reveal.

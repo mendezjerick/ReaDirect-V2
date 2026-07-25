@@ -66,6 +66,7 @@ export type ClaraSpeechKey =
   | "learn-with-clara-lesson-1-story-name-return"
   | "learn-with-clara-lesson-1-chapter-1-complete"
   | "lesson-intro"
+  | "assessment-final-complete"
   | "lesson-1-mission-1"
   | "lesson-1-mission-2"
   | "lesson-1-mission-3"

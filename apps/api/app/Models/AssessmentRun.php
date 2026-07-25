@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class AssessmentRun extends Model
 {
+    public const TYPE_DIAGNOSTIC = 'diagnostic';
+
+    public const TYPE_FINAL = 'final';
+
     public const STATUS_ACTIVE = 'active';
 
     public const STATUS_COMPLETED = 'completed';

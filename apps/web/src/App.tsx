@@ -210,6 +210,18 @@ export function App() {
               path="/learner/assessment/complete"
               element={<AssessmentPartTwoPage />}
             />
+            <Route
+              path="/learner/final-assessment/part-one"
+              element={<AssessmentPartOnePage assessmentType="final" />}
+            />
+            <Route
+              path="/learner/final-assessment/part-two"
+              element={<AssessmentPartTwoPage assessmentType="final" />}
+            />
+            <Route
+              path="/learner/final-assessment/complete"
+              element={<AssessmentPartTwoPage assessmentType="final" />}
+            />
             <Route path="/learner/lessons/1" element={<LessonOnePage />} />
             <Route path="/learner/lessons/2" element={<LessonTwoPage />} />
             <Route path="/learner/lessons/3" element={<LessonThreePage />} />

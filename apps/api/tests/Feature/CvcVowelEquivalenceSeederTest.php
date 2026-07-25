@@ -15,7 +15,7 @@ final class CvcVowelEquivalenceSeederTest extends TestCase
     {
         $rules = collect(app(CvcVowelEquivalenceCatalog::class)->rules());
 
-        $this->assertCount(86, $rules);
+        $this->assertCount(84, $rules);
         $this->assertTrue($rules->contains(fn (array $rule): bool => $rule === [
             'expected_text' => 'cap',
             'recognized_text' => 'cup',
@@ -125,7 +125,7 @@ final class CvcVowelEquivalenceSeederTest extends TestCase
         ]);
 
         (new CvcVowelEquivalenceSeeder)->run();
-        $this->assertSame(87, EquivalenceRule::query()->count());
+        $this->assertSame(85, EquivalenceRule::query()->count());
     }
 
     private function systemAdministrator(): StaffUser

@@ -1057,6 +1057,81 @@
   font-size: var(--font-learner-prompt);
 }
 
+.assessment-completion--finale {
+  width: min(100%, 34rem);
+  gap: clamp(0.35rem, 1.2vh, 0.65rem);
+}
+
+.assessment-completion--finale .assessment-completion__seal {
+  width: clamp(3.75rem, 12vw, 5rem);
+  font-size: clamp(1.75rem, 6vw, 2.6rem);
+}
+
+.assessment-completion--finale h2 {
+  font-size: clamp(1.45rem, 5vw, 2.35rem);
+}
+
+.assessment-completion--finale p {
+  max-width: 32rem;
+  font-size: clamp(0.8rem, 2.4vw, 1rem);
+}
+
+.assessment-completion__count {
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-pill);
+  padding: 0.25rem 0.65rem;
+  color: var(--color-action-primary-depth);
+  background: var(--color-surface-notice);
+  box-shadow: 0 3px 0 var(--color-frame-depth);
+}
+
+.assessment-completion__journey {
+  display: grid;
+  width: 100%;
+  margin: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.3rem, 1vw, 0.55rem);
+  padding: 0;
+  list-style: none;
+}
+
+.assessment-completion__journey li {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  gap: 0.15rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-control);
+  padding: clamp(0.3rem, 1.2vw, 0.55rem) 0.2rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  box-shadow: 0 3px 0 var(--color-frame-depth);
+  text-align: center;
+}
+
+.assessment-completion__journey li[data-earned] {
+  color: var(--color-action-primary-depth);
+  background: var(--color-surface-notice);
+}
+
+.assessment-completion__journey li:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.assessment-completion__journey span {
+  color: var(--color-action-primary);
+  font-size: clamp(1rem, 3.4vw, 1.55rem);
+}
+
+.assessment-completion__journey strong {
+  overflow: hidden;
+  width: 100%;
+  font-size: clamp(0.48rem, 1.55vw, 0.7rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .assessment-save-error {
   position: fixed;
   top: max(0.5rem, env(safe-area-inset-top));

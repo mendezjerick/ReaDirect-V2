@@ -210,4 +210,24 @@ describe("LearnerDashboardPage", () => {
     );
     expect(screen.getByText("Lesson intro route")).toBeInTheDocument();
   });
+
+  it("presents the Final Assessment as the next required action", () => {
+    renderDashboard("final_assessment");
+
+    expect(
+      screen.getByRole("button", { name: "Start Final Assessment" }),
+    ).toBeEnabled();
+    expect(screen.getByText("Your Final Assessment is ready.")).toBeVisible();
+  });
+
+  it("settles into a non-restarting state after the Reading Journey", () => {
+    renderDashboard("reading_journey_complete");
+
+    expect(
+      screen.getByRole("button", { name: "Reading Journey complete" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByText("You completed all eight reading milestones."),
+    ).toBeVisible();
+  });
 });
