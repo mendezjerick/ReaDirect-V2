@@ -1,6 +1,7 @@
 export interface StaffNavigationItem {
   label: string;
   to?: string;
+  end?: boolean;
 }
 
 export interface StaffNavigationGroup {
@@ -75,15 +76,25 @@ export const schoolAdminNavigationGroups: StaffNavigationGroup[] = [
   {
     label: "School management",
     items: [
-      { label: "School profile" },
+      { label: "School profile", to: "/staff/school-admin/profile" },
       { label: "Teachers", to: "/staff/school-admin/teachers" },
-      { label: "Classes" },
-      { label: "Learners" },
+      { label: "Classes", to: "/staff/school-admin/classes" },
+      {
+        label: "Learners",
+        to: "/staff/school-admin/learners",
+        end: false,
+      },
     ],
   },
   {
     label: "Review and reporting",
-    items: [{ label: "Reports" }, { label: "Teacher dashboards" }],
+    items: [
+      { label: "Reports", to: "/staff/school-admin/reports" },
+      {
+        label: "Teacher dashboards",
+        to: "/staff/school-admin/teacher-dashboards",
+      },
+    ],
   },
 ];
 
@@ -95,22 +106,35 @@ export const teacherNavigationGroups: StaffNavigationGroup[] = [
   {
     label: "Class management",
     items: [
-      { label: "Learners", to: "/staff/teacher/learners" },
-      { label: "Import learners" },
-      { label: "Credential sheets" },
+      {
+        label: "Learners",
+        to: "/staff/teacher/learners",
+        end: false,
+      },
+      {
+        label: "Import learners",
+        to: "/staff/teacher/learners/import",
+      },
+      {
+        label: "Credential sheets",
+        to: "/staff/teacher/learners/credentials",
+      },
     ],
   },
   {
     label: "Assessment review",
     items: [
-      { label: "Diagnostic Assessment" },
-      { label: "Final Assessment" },
-      { label: "Reports" },
-      { label: "Analytics" },
+      {
+        label: "Diagnostic Assessment",
+        to: "/staff/teacher/assessments/diagnostic",
+      },
+      {
+        label: "Final Assessment",
+        to: "/staff/teacher/assessments/final",
+      },
+      { label: "Reports", to: "/staff/teacher/reports" },
+      { label: "Analytics", to: "/staff/teacher/analytics" },
+      { label: "Audio review", to: "/staff/teacher/audio-review" },
     ],
-  },
-  {
-    label: "Learning content",
-    items: [{ label: "Optional lessons" }],
   },
 ];

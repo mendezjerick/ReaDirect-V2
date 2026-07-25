@@ -165,6 +165,7 @@ ReaDirect-V2/
 |-- READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md
 |-- READIRECT_REVAMP_AUDIO_PREPROCESSING_AND_RECORDING_STANDARD.md
 |-- READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md
+|-- READIRECT_REVAMP_DEVELOPMENT_AND_STAGING_LAUNCHER_STANDARD.md
 |-- READIRECT_REVAMP_FRONTEND_DESIGN_SYSTEM.md
 |-- READIRECT_REVAMP_GAME_DATABASE_AND_API_STANDARD.md
 |-- READIRECT_REVAMP_GAME_MODULE_STANDARD.md
@@ -181,8 +182,26 @@ ReaDirect-V2/
 |-- .node-version
 |-- .npmrc
 |-- .gitignore
+|-- start.ps1
+|-- stop.ps1
+|-- cstart.ps1
+|-- cstop.ps1
 \-- .env.example
 ```
+
+## Repository Launchers
+
+The root `start.ps1` and `stop.ps1` scripts own local service startup and
+shutdown. The root `cstart.ps1` and `cstop.ps1` scripts compose that local
+launcher with the owner-controlled Cloudflare staging tunnel. They must not
+duplicate application startup logic or expose API, ASR, TTS, Reverb, or
+PostgreSQL ports directly.
+
+Generated manifests, logs, stop requests, and the temporary tunnel
+configuration belong below `.runtime/` and remain Git-ignored. Complete
+launcher, credential, network-boundary, and first-successful-build recovery
+rules are defined by
+`READIRECT_REVAMP_DEVELOPMENT_AND_STAGING_LAUNCHER_STANDARD.md`.
 
 ## Main Applications
 
@@ -233,6 +252,87 @@ Cross-feature achievement gallery, queue, and unlock presentation components
 belong under `apps/web/src/features/achievements/`. The Learner Dashboard and
 Game Lobby both compose that shared feature.
 
+School Administrator workspace ownership remains inside the existing staff
+dashboard and Laravel boundaries:
+
+```text
+apps/api/app/Http/Controllers/SchoolAdminClassController.php
+apps/api/app/Http/Controllers/SchoolAdminLearnerController.php
+apps/api/app/Http/Controllers/SchoolAdminReportController.php
+apps/api/app/Http/Controllers/SchoolAdminTeacherDashboardController.php
+apps/api/app/Http/Controllers/SchoolAdminWorkspaceController.php
+apps/api/app/Services/SchoolAdminOverviewService.php
+apps/api/app/Services/SchoolAdminReportService.php
+apps/web/src/features/staff-dashboard/SchoolAdminClassesPage.tsx
+apps/web/src/features/staff-dashboard/SchoolAdminLearnerDetailPage.tsx
+apps/web/src/features/staff-dashboard/SchoolAdminLearnersPage.tsx
+apps/web/src/features/staff-dashboard/SchoolAdminProfilePage.tsx
+apps/web/src/features/staff-dashboard/SchoolAdminReportsPage.tsx
+apps/web/src/features/staff-dashboard/SchoolAdminTeacherDashboardsPage.tsx
+apps/web/src/features/staff-dashboard/schoolAdminApi.ts
+```
+
+These controllers resolve the authenticated School Administrator identity
+before applying `school_id` scope. Learner queries additionally require
+`account_purpose = standard`. Read-only pages may reuse Teacher serialization
+services only after the school scope is resolved. Class assignment updates own
+staff and Learner account context only; they must not call assessment, lesson,
+progression, scoring, or achievement writers.
+
+The read-only Teacher Learner Detail workspace belongs under:
+
+```text
+apps/web/src/features/staff-dashboard/TeacherLearnerDetailPage.tsx
+apps/web/src/features/staff-dashboard/teacherLearnerDetailApi.ts
+```
+
+It is protected by the existing Teacher role route boundary, consumes the
+shared authenticated `staffFetch` client, and is reached from the Teacher
+Learner directory. It reuses `StaffShell`, `StaffPageHeader`, shared surfaces,
+shared buttons, and the professional staff responsive foundations.
+
+Teacher Learner password reset remains in the existing
+`LearnerAccountsPage.tsx` directory instead of the read-only detail feature.
+Its typed API contract belongs with the other learner-account calls in
+`features/staff-auth/staffApi.ts`. The directory owns the explicit confirmation
+and one-time credential notice; it must not retain the returned password in
+session storage, query data, or the learner list.
+
+Teacher Learner CSV import belongs under:
+
+```text
+apps/web/src/features/staff-dashboard/TeacherLearnerImportPage.tsx
+apps/web/src/features/staff-dashboard/learnerImportCsv.ts
+apps/api/app/Services/TeacherLearnerImportService.php
+```
+
+The browser parser owns file selection and a non-authoritative preview. The
+authenticated Laravel endpoint validates the complete roster again, creates
+the assigned accounts in one transaction through the canonical Learner Code
+and temporary-password generators, and returns passwords only in the creation
+response.
+
+Teacher credential-sheet issuance belongs in
+`TeacherCredentialSheetsPage.tsx` and
+`app/Services/TeacherCredentialSheetService.php`. Laravel locks and
+scope-checks the complete selected set before rotating passwords, revoking
+active sessions, and writing one audit event in the same transaction. The
+print layout is browser-owned, contains no persisted plaintext password, and
+must not include staff navigation or unrelated workspace content.
+
+The Teacher Diagnostic and Final Assessment review workspaces belong under:
+
+```text
+apps/web/src/features/staff-dashboard/TeacherAssessmentReviewPage.tsx
+apps/web/src/features/staff-dashboard/TeacherDiagnosticAssessmentPage.tsx
+apps/web/src/features/staff-dashboard/TeacherFinalAssessmentPage.tsx
+apps/web/src/features/staff-dashboard/teacherAssessmentReviewApi.ts
+```
+
+Both are protected Teacher routes, use the same shared responsive review page
+and `staffFetch` contract, and drill into the existing Learner Detail route
+rather than creating another evidence-detail UI.
+
 The learner Part 1 assessment frontend belongs under
 `apps/web/src/features/assessment/`. `AssessmentPartOnePage.tsx` composes the
 shared non-scrollable shell, Clara, orientation, Task 1A, Task 2A, Task 2B, and
@@ -244,6 +344,80 @@ pages must reuse this boundary rather than copy its recorder or shell.
 ### `apps/api`
 
 Contains the Laravel application responsible for authentication, learner and teacher records, lessons, assessment results, scoring records, progress, PostgreSQL operations, and communication with the ASR and TTS services.
+
+Staff authentication is server-backed. `StaffAuthController` issues opaque
+bearer tokens, `StaffSessionResolver` resolves only their stored hashes, and
+the `staff.auth` plus `staff.role` middleware aliases protect every staff
+workspace API. `staff_sessions` is the source of truth for expiry, activity,
+and revocation. React stores the plaintext token only in tab-scoped session
+storage, verifies it through `/api/staff/session` before mounting a protected
+staff route, and sends it through the shared `staffFetch` client. Frontend
+guards are never a replacement for Laravel role and account-scope checks.
+
+Teacher Learner Detail serialization belongs in
+`app/Services/TeacherLearnerDetailService.php`. The Teacher detail controller
+must first resolve one Learner through both the authenticated Teacher ID and
+`account_purpose = standard`. The service may read progression, assessment
+runs and responses, lesson runs and responses, and the immutable lesson
+attempt ledger, but its browser contract exposes only safe review evidence.
+Raw ASR transcripts, private audio paths, audio checksums, and internal service
+evidence remain server-private.
+
+Teacher Learner account creation and password reset share
+`app/Services/LearnerTemporaryPasswordGenerator.php`. The reset controller
+must resolve an active Learner by authenticated `teacher_id` and
+`account_purpose = standard` before changing the hashed password. The same
+transaction revokes active `learner_sessions` and writes a
+`learner.password_reset` staff audit event whose description and metadata
+exclude the plaintext password. It does not modify learner progress.
+
+Teacher overview aggregation belongs in
+`app/Services/TeacherOverviewService.php`. It owns Teacher-scoped progression
+counts, latest-result distributions, and the bounded recent learner activity
+feed. The controller supplies assignment and account context; aggregate queries
+must still constrain both `teacher_id` and `account_purpose = standard`.
+
+Teacher assessment cohort serialization belongs in
+`app/Services/TeacherAssessmentReviewService.php`, behind the explicit
+Diagnostic and Final Assessment controllers. The shared service resolves
+assigned standard Learners first, then attaches only their latest run of the
+requested type and a skipped-response count. Final readiness comes from the
+canonical progression stage when no Final run exists. It never serializes
+response bodies or private speech evidence.
+
+Teacher class-report serialization belongs in
+`app/Services/TeacherReportService.php`, behind
+`TeacherReportController.php`. Its React owners are
+`TeacherReportsPage.tsx` and `teacherReportApi.ts`. It reads canonical
+progression, latest assessment runs, required-lesson completion, skips, and
+persisted review flags without adding report snapshots or changing source
+records.
+
+Teacher analytics aggregation belongs in
+`app/Services/TeacherAnalyticsService.php`, behind
+`TeacherAnalyticsController.php`. `TeacherAnalyticsPage.tsx` and
+`teacherAnalyticsApi.ts` render its read-only contract. The service owns
+latest-run deduplication and keeps learning, support, technical-audio, skip,
+and review categories separate.
+
+Teacher audio-review ownership is separated from the learner runtime:
+
+```text
+apps/api/app/Http/Controllers/TeacherAudioReviewController.php
+apps/api/app/Models/StaffResponseReview.php
+apps/api/app/Services/TeacherAudioReviewService.php
+apps/api/database/migrations/2026_07_25_000020_create_staff_response_reviews_table.php
+apps/web/src/features/staff-dashboard/TeacherAudioReviewPage.tsx
+apps/web/src/features/staff-dashboard/teacherAudioReviewApi.ts
+```
+
+`TeacherAudioReviewService` resolves an assigned standard Learner before it
+resolves an assessment or lesson response. The controller streams private
+recording bytes only through the authenticated Teacher route and writes
+append-only `staff_response_reviews` annotations. It must not call learner
+progression, scoring, assessment, lesson, or achievement writers, and it must
+not update the source response. Private storage paths, checksums, raw service
+evidence, and unauthenticated media URLs remain server-only.
 
 Learner Part 1 orchestration is owned by
 `LearnerAssessmentPartOneController`, `AssessmentContentCatalog`, and

@@ -118,6 +118,8 @@ describe("StaffLoginPage", () => {
       vi.fn().mockResolvedValue(
         new Response(
           JSON.stringify({
+            token: "a".repeat(64),
+            session: { expires_at: "2099-01-01T00:00:00Z" },
             staff: {
               id: 1,
               username: "system-admin-test",
@@ -156,6 +158,8 @@ describe("StaffLoginPage", () => {
       vi.fn().mockResolvedValue(
         new Response(
           JSON.stringify({
+            token: "b".repeat(64),
+            session: { expires_at: "2099-01-01T00:00:00Z" },
             staff: {
               id: 2,
               username: "school-admin-test",
@@ -194,6 +198,8 @@ describe("StaffLoginPage", () => {
       vi.fn().mockResolvedValue(
         new Response(
           JSON.stringify({
+            token: "c".repeat(64),
+            session: { expires_at: "2099-01-01T00:00:00Z" },
             staff: {
               id: 3,
               username: "teacher-test",

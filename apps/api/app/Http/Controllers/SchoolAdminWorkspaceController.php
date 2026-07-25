@@ -6,13 +6,74 @@ use App\Models\Learner;
 use App\Models\School;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
+use App\Services\SchoolAdminOverviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 final class SchoolAdminWorkspaceController extends Controller
 {
+    public function schoolProfile(StaffUser $staffUser): JsonResponse
+    {
+        $school = $this->readySchool($staffUser);
+
+        return response()->json([
+            'school' => $this->serializeSchoolProfile($school),
+        ]);
+    }
+
+    public function updateSchoolProfile(
+        Request $request,
+        StaffUser $staffUser,
+    ): JsonResponse {
+        $school = $this->readySchool($staffUser);
+        $validated = $request->validate([
+            'school_name' => ['required', 'string', 'min:2', 'max:180'],
+        ]);
+        $schoolName = preg_replace('/\s+/', ' ', trim($validated['school_name']));
+        $normalizedName = mb_strtolower($schoolName);
+        $nameTaken = School::query()
+            ->where('normalized_name', $normalizedName)
+            ->whereKeyNot($school->id)
+            ->exists();
+
+        if ($nameTaken) {
+            throw ValidationException::withMessages([
+                'school_name' => 'That school name is already in use.',
+            ]);
+        }
+
+        DB::transaction(function () use (
+            $school,
+            $schoolName,
+            $normalizedName,
+            $staffUser,
+        ): void {
+            $previousName = $school->name;
+            $school->update([
+                'name' => $schoolName,
+                'normalized_name' => $normalizedName,
+            ]);
+
+            StaffAuditLog::query()->create([
+                'staff_user_id' => $staffUser->id,
+                'action_key' => 'school.profile_updated',
+                'description' => "Updated the school profile for {$schoolName}.",
+                'metadata' => [
+                    'school_id' => $school->id,
+                    'previous_name' => $previousName,
+                    'school_name' => $schoolName,
+                ],
+            ]);
+        });
+
+        return response()->json([
+            'school' => $this->serializeSchoolProfile($school->refresh()),
+        ]);
+    }
+
     public function updateSchool(Request $request, StaffUser $staffUser): JsonResponse
     {
         $this->assertSchoolAdministrator($staffUser);
@@ -63,8 +124,10 @@ final class SchoolAdminWorkspaceController extends Controller
         ]);
     }
 
-    public function overview(StaffUser $staffUser): JsonResponse
-    {
+    public function overview(
+        StaffUser $staffUser,
+        SchoolAdminOverviewService $overview,
+    ): JsonResponse {
         $this->assertSchoolAdministrator($staffUser);
 
         if ($staffUser->school_id === null) {
@@ -78,28 +141,7 @@ final class SchoolAdminWorkspaceController extends Controller
                 'id' => $staffUser->school->id,
                 'name' => $staffUser->school->name,
             ],
-            'metrics' => [
-                'total_teachers' => StaffUser::query()
-                    ->where('role', 'teacher')
-                    ->where('school_id', $staffUser->school_id)
-                    ->count(),
-                'total_learners' => Learner::query()
-                    ->where('account_purpose', Learner::PURPOSE_STANDARD)
-                    ->where('school_id', $staffUser->school_id)
-                    ->count(),
-                'active_learners' => Learner::query()
-                    ->where('account_purpose', Learner::PURPOSE_STANDARD)
-                    ->where('school_id', $staffUser->school_id)
-                    ->where('is_active', true)
-                    ->count(),
-            ],
-            'part_one_distribution' => [
-                ['label' => 'Full Refresher', 'value' => 0],
-                ['label' => 'Moderate Refresher', 'value' => 0],
-                ['label' => 'Light Refresher', 'value' => 0],
-                ['label' => 'Grade Ready', 'value' => 0],
-            ],
-            'recent_assessment_activity' => [],
+            ...$overview->build($staffUser),
             'requires_credential_setup' => $staffUser->requires_credential_setup,
             'generated_at' => now()->toIso8601String(),
         ]);
@@ -110,5 +152,38 @@ final class SchoolAdminWorkspaceController extends Controller
         if ($staffUser->role !== 'school_admin' || ! $staffUser->is_active) {
             abort(404);
         }
+    }
+
+    private function readySchool(StaffUser $staffUser): School
+    {
+        $this->assertSchoolAdministrator($staffUser);
+
+        if ($staffUser->school_id === null) {
+            throw new HttpException(
+                409,
+                'School setup is required before opening the school profile.',
+            );
+        }
+
+        return School::query()->findOrFail($staffUser->school_id);
+    }
+
+    /** @return array<string, mixed> */
+    private function serializeSchoolProfile(School $school): array
+    {
+        return [
+            'id' => $school->id,
+            'name' => $school->name,
+            'teachers' => StaffUser::query()
+                ->where('school_id', $school->id)
+                ->where('role', 'teacher')
+                ->count(),
+            'learners' => Learner::query()
+                ->where('school_id', $school->id)
+                ->where('account_purpose', Learner::PURPOSE_STANDARD)
+                ->count(),
+            'created_at' => $school->created_at?->toIso8601String(),
+            'updated_at' => $school->updated_at?->toIso8601String(),
+        ];
     }
 }

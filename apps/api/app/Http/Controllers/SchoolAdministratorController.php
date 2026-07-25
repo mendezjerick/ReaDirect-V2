@@ -28,6 +28,9 @@ final class SchoolAdministratorController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        /** @var StaffUser $systemAdministrator */
+        $systemAdministrator = $request->user();
+
         $request->merge([
             'username' => mb_strtolower(trim((string) $request->input('username'))),
         ]);
@@ -47,7 +50,7 @@ final class SchoolAdministratorController extends Controller
             'username.unique' => 'That username is already assigned to a staff account.',
         ]);
 
-        $schoolAdministrator = DB::transaction(function () use ($credentials): StaffUser {
+        $schoolAdministrator = DB::transaction(function () use ($credentials, $systemAdministrator): StaffUser {
             $account = StaffUser::query()->create([
                 'username' => $credentials['username'],
                 'password' => $credentials['temporary_password'],
@@ -57,13 +60,8 @@ final class SchoolAdministratorController extends Controller
                 'requires_credential_setup' => true,
             ]);
 
-            $developmentSystemAdministrator = StaffUser::query()
-                ->where('role', 'system_admin')
-                ->oldest('id')
-                ->first();
-
             StaffAuditLog::query()->create([
-                'staff_user_id' => $developmentSystemAdministrator?->id,
+                'staff_user_id' => $systemAdministrator->id,
                 'action_key' => 'school_administrator.created',
                 'description' => "Created School Administrator account {$account->username}.",
                 'metadata' => [

@@ -227,6 +227,7 @@ final class PortalSystemLearnerTest extends TestCase
         ];
 
         foreach ($targets as $targetKey => [$stage, $taskOneScore, $taskTwoAScore, $responseCount]) {
+            $this->authenticateStaff($systemAdministrator);
             $launch = $this->postJson(
                 "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
                 ['target_key' => $targetKey],
@@ -313,6 +314,7 @@ final class PortalSystemLearnerTest extends TestCase
         ];
 
         foreach ($targets as $targetKey => [$stage, $responseCount]) {
+            $this->authenticateStaff($systemAdministrator);
             $launch = $this->postJson(
                 "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
                 ['target_key' => $targetKey],
@@ -392,6 +394,7 @@ final class PortalSystemLearnerTest extends TestCase
         ];
 
         foreach ($targets as $targetKey => [$mission, $status, $responseCount]) {
+            $this->authenticateStaff($systemAdministrator);
             $launch = $this->postJson(
                 "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
                 ['target_key' => $targetKey],
@@ -419,6 +422,7 @@ final class PortalSystemLearnerTest extends TestCase
         ];
 
         foreach ($targets as $targetKey => [$mission, $status, $responseCount, $lessonOrder]) {
+            $this->authenticateStaff($systemAdministrator);
             $launch = $this->postJson(
                 "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
                 ['target_key' => $targetKey],
@@ -496,6 +500,7 @@ final class PortalSystemLearnerTest extends TestCase
         ];
 
         foreach ($targets as $targetKey => [$status, $responseCount, $lessonOrder]) {
+            $this->authenticateStaff($systemAdministrator);
             $launch = $this->postJson(
                 "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
                 ['target_key' => $targetKey],
@@ -567,6 +572,7 @@ final class PortalSystemLearnerTest extends TestCase
         ];
 
         foreach ($targets as $targetKey => [$status, $responseCount, $lessonOrder]) {
+            $this->authenticateStaff($systemAdministrator);
             $launch = $this->postJson(
                 "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
                 ['target_key' => $targetKey],
@@ -621,6 +627,7 @@ final class PortalSystemLearnerTest extends TestCase
         ];
 
         foreach ($targets as $targetKey => [$status, $responseCount, $lessonOrder]) {
+            $this->authenticateStaff($systemAdministrator);
             $launch = $this->postJson(
                 "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
                 ['target_key' => $targetKey],
@@ -685,6 +692,7 @@ final class PortalSystemLearnerTest extends TestCase
         ];
 
         foreach ($targets as $targetKey => [$status, $responseCount, $support]) {
+            $this->authenticateStaff($systemAdministrator);
             $launch = $this->postJson(
                 "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
                 ['target_key' => $targetKey],
@@ -739,12 +747,16 @@ final class PortalSystemLearnerTest extends TestCase
 
     private function createSystemAdministrator(): StaffUser
     {
-        return StaffUser::query()->create([
+        $systemAdministrator = StaffUser::query()->create([
             'username' => 'system-admin-test',
             'password' => 'local-test-password',
             'role' => 'system_admin',
             'display_name' => 'System Administrator',
             'is_active' => true,
         ]);
+
+        $this->authenticateStaff($systemAdministrator);
+
+        return $systemAdministrator;
     }
 }

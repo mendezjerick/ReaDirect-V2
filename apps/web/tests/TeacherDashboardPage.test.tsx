@@ -18,6 +18,8 @@ const emptyProfiles = [
 
 function saveTeacherSession() {
   saveStaffSession({
+    token: "teacher-session-token".repeat(4),
+    session: { expires_at: "2099-01-01T00:00:00Z" },
     staff: {
       id: 3,
       username: "teacher-test",
@@ -75,7 +77,18 @@ describe("TeacherDashboardPage", () => {
             ],
             diagnostic_reading_profile_distribution: emptyProfiles,
             final_reading_profile_distribution: emptyProfiles,
-            recent_learner_activity: [],
+            recent_learner_activity: [
+              {
+                id: "lesson-18",
+                learner_id: 12,
+                learner_code: "AA012",
+                learner_name: "Dorothy Gale Wright",
+                activity_type: "lesson",
+                title: "Lesson 6 · Comprehension",
+                status: "completed",
+                occurred_at: "2026-07-20T09:30:00+00:00",
+              },
+            ],
             teacher_lessons: [],
             requires_assignment_acknowledgement: true,
             requires_credential_setup: true,
@@ -105,6 +118,10 @@ describe("TeacherDashboardPage", () => {
     expect(
       screen.getByRole("button", { name: "Create Learner" }),
     ).toBeEnabled();
+    expect(await screen.findByText("Dorothy Gale Wright")).toBeVisible();
+    expect(screen.getByText("Lesson 6 · Comprehension")).toBeVisible();
+    expect(screen.getByText("Completed")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Review" })).toBeEnabled();
   });
 
   it("persists first-login assignment acknowledgement after the button commit", async () => {

@@ -16,7 +16,10 @@ import {
   createLearnerAccount,
   getTeacherLearners,
   loadStaffSession,
+  resetLearnerPassword,
   type CreatedLearnerAccount,
+  type LearnerAccount,
+  type ResetLearnerCredentials,
 } from "../staff-auth/staffApi";
 
 interface LearnerAccountForm {
@@ -42,9 +45,15 @@ export function LearnerAccountsPage() {
   const queryClient = useQueryClient();
   const exitCommit = useButtonCommit();
   const createCommit = useButtonCommit();
+  const openLearnerCommit = useButtonCommit();
+  const resetPasswordCommit = useButtonCommit();
   const [session] = useState(loadStaffSession);
   const [createdLearner, setCreatedLearner] =
     useState<CreatedLearnerAccount | null>(null);
+  const [passwordResetTarget, setPasswordResetTarget] =
+    useState<LearnerAccount | null>(null);
+  const [resetCredentials, setResetCredentials] =
+    useState<ResetLearnerCredentials | null>(null);
   const teacherSession = session?.staff.role === "teacher" ? session : null;
   const assignedSchool = teacherSession?.staff.school ?? null;
   const assignedGrade = teacherSession?.staff.grade_level ?? null;
@@ -70,6 +79,7 @@ export function LearnerAccountsPage() {
         lrn: form.lrn,
       }),
     onSuccess: (learner) => {
+      setResetCredentials(null);
       setCreatedLearner(learner);
       reset();
       void queryClient.invalidateQueries({
@@ -78,6 +88,18 @@ export function LearnerAccountsPage() {
       void queryClient.invalidateQueries({
         queryKey: ["teacher-overview", teacherSession?.staff.id],
       });
+    },
+  });
+  const resetPasswordMutation = useMutation({
+    mutationFn: (learner: LearnerAccount) =>
+      resetLearnerPassword({
+        staffUserId: teacherSession!.staff.id,
+        learnerId: learner.id,
+      }),
+    onSuccess: (credentials) => {
+      setCreatedLearner(null);
+      setPasswordResetTarget(null);
+      setResetCredentials(credentials);
     },
   });
   const {
@@ -139,6 +161,9 @@ export function LearnerAccountsPage() {
 
   const submitAccount = handleSubmit((form) => {
     setCreatedLearner(null);
+    setPasswordResetTarget(null);
+    setResetCredentials(null);
+    resetPasswordMutation.reset();
     createCommit.commit(() => createMutation.mutate(form));
   });
   const accountLabel =
@@ -207,6 +232,102 @@ export function LearnerAccountsPage() {
             >
               Credentials saved
             </BigButton>
+          </Surface>
+        ) : null}
+
+        {resetCredentials ? (
+          <Surface
+            kind="notice"
+            padding="normal"
+            className="learner-credentials-card"
+            role="status"
+            aria-labelledby="learner-reset-credentials-title"
+          >
+            <div>
+              <p>Password reset</p>
+              <h2 id="learner-reset-credentials-title">
+                Save {resetCredentials.full_name}&apos;s new credentials
+              </h2>
+              <span>
+                This password is shown only once. Existing Learner sessions have
+                been signed out.
+              </span>
+            </div>
+            <dl className="learner-credentials-card__values">
+              <div>
+                <dt>Learner Code</dt>
+                <dd>{resetCredentials.learner_code}</dd>
+              </div>
+              <div>
+                <dt>New password</dt>
+                <dd>{resetCredentials.temporary_password}</dd>
+              </div>
+            </dl>
+            <BigButton
+              variant="secondary"
+              size="regular"
+              onClick={() => setResetCredentials(null)}
+            >
+              Credentials saved
+            </BigButton>
+          </Surface>
+        ) : null}
+
+        {passwordResetTarget ? (
+          <Surface
+            kind="notice"
+            padding="normal"
+            className="learner-password-reset-confirmation"
+            role="group"
+            aria-label={`Confirm password reset for ${passwordResetTarget.full_name}`}
+          >
+            <div>
+              <p>Password reset</p>
+              <h2>Reset the password for {passwordResetTarget.full_name}?</h2>
+              <span>
+                Their old password will stop working immediately and every
+                active Learner session will be signed out. Learning progress
+                will not be changed.
+              </span>
+              {resetPasswordMutation.isError ? (
+                <strong
+                  className="learner-password-reset-confirmation__error"
+                  role="alert"
+                >
+                  {resetPasswordMutation.error.message}
+                </strong>
+              ) : null}
+            </div>
+            <div className="learner-password-reset-confirmation__actions">
+              <BigButton
+                variant="quiet"
+                size="regular"
+                disabled={
+                  resetPasswordMutation.isPending ||
+                  resetPasswordCommit.committing
+                }
+                onClick={() => {
+                  setPasswordResetTarget(null);
+                  resetPasswordMutation.reset();
+                }}
+              >
+                Cancel
+              </BigButton>
+              <BigButton
+                variant="secondary"
+                size="regular"
+                committing={resetPasswordCommit.committing}
+                busy={resetPasswordMutation.isPending}
+                busyLabel="Resetting password"
+                onClick={() =>
+                  resetPasswordCommit.commit(() =>
+                    resetPasswordMutation.mutate(passwordResetTarget),
+                  )
+                }
+              >
+                Confirm password reset
+              </BigButton>
+            </div>
           </Surface>
         ) : null}
 
@@ -361,12 +482,16 @@ export function LearnerAccountsPage() {
             ) : null}
 
             {learnersQuery.data && learnersQuery.data.length > 0 ? (
-              <div className="staff-account-table" role="table">
+              <div
+                className="staff-account-table staff-account-table--learners"
+                role="table"
+              >
                 <div className="staff-account-table__header" role="row">
                   <span role="columnheader">Learner</span>
                   <span role="columnheader">Code</span>
                   <span role="columnheader">Assignment</span>
                   <span role="columnheader">LRN</span>
+                  <span role="columnheader">Actions</span>
                 </div>
                 {learnersQuery.data.map((learner) => (
                   <article
@@ -388,6 +513,39 @@ export function LearnerAccountsPage() {
                     </div>
                     <div role="cell" data-label="LRN">
                       {learner.lrn ?? "Not entered"}
+                    </div>
+                    <div
+                      className="staff-account-table__actions"
+                      role="cell"
+                      data-label="Actions"
+                    >
+                      <BigButton
+                        className="staff-account-table__review"
+                        variant="secondary"
+                        size="regular"
+                        committing={openLearnerCommit.committing}
+                        onClick={() =>
+                          openLearnerCommit.commit(() =>
+                            navigate(`/staff/teacher/learners/${learner.id}`),
+                          )
+                        }
+                      >
+                        View progress
+                      </BigButton>
+                      <BigButton
+                        className="staff-account-table__reset"
+                        variant="quiet"
+                        size="regular"
+                        aria-label={`Reset password for ${learner.full_name}`}
+                        onClick={() => {
+                          setCreatedLearner(null);
+                          setResetCredentials(null);
+                          setPasswordResetTarget(learner);
+                          resetPasswordMutation.reset();
+                        }}
+                      >
+                        Reset password
+                      </BigButton>
                     </div>
                   </article>
                 ))}

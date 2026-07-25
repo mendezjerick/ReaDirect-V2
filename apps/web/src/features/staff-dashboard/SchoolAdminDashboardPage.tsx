@@ -43,11 +43,23 @@ function ActiveLearnersIcon() {
   );
 }
 
+function formatAssessmentDate(value: string | null): string {
+  if (!value) {
+    return "Time unavailable";
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export function SchoolAdminDashboardPage() {
   const navigate = useNavigate();
   const exitCommit = useButtonCommit();
   const setupCommit = useButtonCommit();
   const teacherCommit = useButtonCommit();
+  const toolCommit = useButtonCommit();
   const [session] = useState(loadStaffSession);
   const schoolAdminSession =
     session?.staff.role === "school_admin" ? session : null;
@@ -164,8 +176,8 @@ export function SchoolAdminDashboardPage() {
           >
             <strong>Temporary credentials are active.</strong>
             <span>
-              Email linking and password conversion will be added in a later
-              account setup pass.
+              Account credential conversion is separate from school workspace
+              management. Your current authenticated session remains valid.
             </span>
           </Surface>
         ) : null}
@@ -215,13 +227,36 @@ export function SchoolAdminDashboardPage() {
                 <h2>Recent assessments</h2>
               </div>
             </header>
-            <div className="staff-empty-state">
-              <span aria-hidden="true">0</span>
-              <div>
-                <strong>No assessment activity yet</strong>
-                <p>School learner activity will appear here.</p>
+            {overview?.recent_assessment_activity.length ? (
+              <div className="school-admin-recent-assessments">
+                {overview.recent_assessment_activity.map((activity) => (
+                  <article key={activity.id}>
+                    <span>
+                      <strong>{activity.learner_name}</strong>
+                      <small>
+                        {activity.learner_code} ·{" "}
+                        {activity.teacher_username ?? "Teacher unavailable"}
+                      </small>
+                    </span>
+                    <span>
+                      <strong>{activity.assessment_label}</strong>
+                      <small>
+                        {activity.status.replaceAll("_", " ")} ·{" "}
+                        {formatAssessmentDate(activity.occurred_at)}
+                      </small>
+                    </span>
+                  </article>
+                ))}
               </div>
-            </div>
+            ) : (
+              <div className="staff-empty-state">
+                <span aria-hidden="true">0</span>
+                <div>
+                  <strong>No assessment activity yet</strong>
+                  <p>Persisted school Learner activity will appear here.</p>
+                </div>
+              </div>
+            )}
           </Surface>
         </section>
 
@@ -250,18 +285,23 @@ export function SchoolAdminDashboardPage() {
             >
               Create Teacher
             </BigButton>
-            {["School profile", "Manage learners", "Create class"].map(
-              (label) => (
-                <BigButton
-                  variant="secondary"
-                  size="regular"
-                  disabled
-                  key={label}
-                >
-                  {label} · Next
-                </BigButton>
-              ),
-            )}
+            {[
+              ["School Profile", "/staff/school-admin/profile"],
+              ["Manage Learners", "/staff/school-admin/learners"],
+              ["Manage Classes", "/staff/school-admin/classes"],
+              ["School Reports", "/staff/school-admin/reports"],
+              ["Teacher Dashboards", "/staff/school-admin/teacher-dashboards"],
+            ].map(([label, route]) => (
+              <BigButton
+                variant="secondary"
+                size="regular"
+                key={label}
+                committing={toolCommit.committing}
+                onClick={() => toolCommit.commit(() => navigate(route))}
+              >
+                {label}
+              </BigButton>
+            ))}
           </div>
         </Surface>
       </div>

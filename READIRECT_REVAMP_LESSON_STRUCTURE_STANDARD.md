@@ -41,8 +41,6 @@ Rules:
   centrally defined order.
 - Learners cannot skip a locked required lesson.
 - Completion and unlock state are authoritative server data.
-- Optional teacher-created lessons do not change the required order and do not
-  block Final Assessment.
 - Restarting the application, opening the Game Lobby, or playing a game does not
   change required lesson progression.
 

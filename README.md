@@ -55,6 +55,29 @@ The launcher stores verified process IDs and start times under the ignored
 `.runtime` directory. The stop script uses that manifest and only falls back to
 known ports when the listener can be verified as a process from this repository.
 
+## Cloudflare staging launcher
+
+Start the approved staging tunnel and all required local services:
+
+```powershell
+.\cstart.ps1
+```
+
+Use `.\cstart.ps1 -Detached` to run without keeping the initiating terminal
+attached, or add `-OpenBrowser` to open the public site after readiness.
+
+Stop the staging tunnel and its repository-owned local services with:
+
+```powershell
+.\cstop.ps1
+```
+
+The staging launcher exposes only the Vite web server through Cloudflare. The
+API remains behind Vite's `/api` proxy, while ASR, TTS, Reverb, PostgreSQL,
+recordings, models, and tunnel credentials remain private to the host. The full
+rules are defined by
+`READIRECT_REVAMP_DEVELOPMENT_AND_STAGING_LAUNCHER_STANDARD.md`.
+
 ## Live2D Cubism SDK
 
 The open Cubism Web Framework is downloaded from Live2D's official GitHub

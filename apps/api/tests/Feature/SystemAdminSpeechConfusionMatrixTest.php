@@ -311,12 +311,16 @@ final class SystemAdminSpeechConfusionMatrixTest extends TestCase
 
     private function systemAdministrator(): StaffUser
     {
-        return StaffUser::query()->create([
+        $systemAdministrator = StaffUser::query()->create([
             'username' => 'matrix-admin',
             'password' => 'local-test-password',
             'role' => 'system_admin',
             'display_name' => 'Matrix Administrator',
             'is_active' => true,
         ]);
+
+        $this->authenticateStaff($systemAdministrator);
+
+        return $systemAdministrator;
     }
 }

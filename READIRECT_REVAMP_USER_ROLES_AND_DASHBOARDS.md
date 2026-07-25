@@ -19,8 +19,8 @@ ReaDirect uses five user-facing roles.
 |---|---|---|---|
 | `system_admin` | System Administrator | System Admin Dashboard | Full system management, technical tools, content, Page Portals, and global reporting. |
 | `school_admin` | School Administrator | School Admin Dashboard | School-scoped administration, teachers, classes, learners, and school reporting. |
-| `teacher` | Teacher | Teacher Dashboard | Assigned learners, learner progress, reports, analytics, assessment review, and optional lesson creation. |
-| `student` | Learner | Learner Dashboard | Learner assessment progress and optional teacher-created lessons. |
+| `teacher` | Teacher | Teacher Dashboard | Assigned learners, learner progress, reports, analytics, and assessment review. |
+| `student` | Learner | Learner Dashboard | Learner assessment and required-lesson progress. |
 | `general_user` | Guest | Learner Dashboard after guest access | Trial or guest learner flow without staff administration. |
 
 Role hierarchy:
@@ -74,11 +74,6 @@ unlocks the Final Assessment.
 
 Lessons are the ReaDirect learning content unit. ReaDirect includes a
 developer-made minimum lesson set, and that required set is sequential.
-Teachers can add optional lessons from the Teacher Dashboard. Those
-teacher-created lessons display on the Learner Dashboard as optional learning
-items and do not block the required sequence or Final Assessment.
-
-Detailed lesson creation rules belong in a separate lesson guide.
 
 ## System Administrator
 
@@ -268,6 +263,34 @@ School Administrator controls include:
 - Learner records.
 - Teacher dashboard access for school-scoped learner review.
 
+The School Administrator workspaces use these security and data rules:
+
+- School Profile reads the authenticated administrator's assigned school and
+  may update only that school's display name. A rename is audited and does not
+  update Learner accounts, assessment or lesson evidence, progression, scores,
+  outcomes, or achievements.
+- A class is the existing one-Teacher grade-and-section assignment. Class
+  creation remains part of Teacher account creation. Updating an assignment
+  synchronizes grade and section on that Teacher's standard Learner account
+  context and requires the Teacher to acknowledge the revised assignment.
+  It does not reset, recalculate, or update any learner-flow record.
+- The school Learner directory and Learner detail routes are read-only.
+  Laravel resolves the Learner through the authenticated School Administrator's
+  `school_id` and `account_purpose = standard` before loading persisted
+  evidence. Changing a URL cannot expose another school's Learner, `KW000`, or
+  any portal-system Learner.
+- School reports aggregate the existing Teacher report contract for Teachers
+  assigned to the school. Reports use persisted evidence, add no snapshots or
+  conclusions, and write no learner-flow or audit data when opened, filtered,
+  or printed.
+- Teacher Dashboard Review is a read-only School Administrator view of an
+  in-school Teacher's overview and class report. It does not create a Teacher
+  session, impersonate the Teacher, acknowledge the Teacher assignment, or
+  expose another school's class.
+- School overview metrics, Part 1 distribution, and recent assessment activity
+  use persisted records from school-scoped standard Learners. Portal-system and
+  out-of-school records are excluded before aggregation.
+
 Access rule: a School Administrator does not receive system-only technical
 tools such as AI status controls, guests, rules, prompts, audit logs, system
 monitoring, confusion matrix, Page Portals, IsoLetter Sandbox, True Sandbox, or
@@ -278,8 +301,7 @@ Equivalence Book.
 Dashboard entry: Teacher Dashboard.
 
 The Teacher Dashboard gives a class and learner progress view for assigned or
-school-scoped learners. It also gives teachers a simple lesson creation surface
-for optional learner lessons.
+school-scoped learners.
 
 It contains:
 
@@ -292,8 +314,6 @@ It contains:
 - Diagnostic Assessment reading profile distribution.
 - Final Assessment reading profile distribution.
 - Recent learner activity.
-- Teacher-created lesson list.
-- Lesson status for optional lessons.
 
 Teacher controls include:
 
@@ -307,13 +327,197 @@ Teacher controls include:
 - Analytics.
 - Audio playback.
 - Transcript update for reviewed audio.
-- Lesson creation.
-- Lesson editing.
-- Lesson publishing or visibility control.
 
-Teacher lesson creation is friendly by design. A teacher types the needed lesson
-details into guided text inputs instead of building a technical lesson package.
-The exact fields and creation flow belong in a separate lesson creation guide.
+Learner import is a Teacher-scoped account-creation workflow:
+
+- The import accepts the fixed CSV columns `first_name`, `middle_name`,
+  `last_name`, `suffix`, and `lrn` in that order. First, middle, and last names
+  are mandatory; suffix and LRN may be blank.
+- One import contains between 1 and 100 Learners and is all-or-nothing.
+  Client-side parsing provides a preview, but Laravel repeats validation and is
+  the authority. An invalid row creates no accounts.
+- Every imported account is a new active standard Learner assigned
+  automatically to the authenticated Teacher's school, grade, and section.
+  The import cannot supply account purpose, Teacher, school, grade, section,
+  learner code, password, or progression data.
+- Learner Codes use the canonical global generator. Generated passwords are
+  hashed and returned only in the successful one-time credential response.
+- A `learner.imported` staff audit event records the imported Learner IDs,
+  count, and class assignment without plaintext passwords.
+
+Credential sheets are an explicit credential-rotation workflow:
+
+- A Teacher may select between 1 and 50 active standard Learners assigned to
+  that Teacher. If any requested identifier is outside that scope, Laravel
+  rejects the complete operation without changing any password.
+- The confirmation must state that current passwords stop working, active
+  Learner sessions are revoked, and learning progress is preserved.
+- A successful operation replaces the selected passwords, returns each new
+  password once, and provides a print-specific sheet containing only Learner
+  name, Learner Code, and new password.
+- Assessment, lesson, score, progression, and achievement records are never
+  changed. A `learner.credentials_issued` audit event records only Learner IDs,
+  count, and the session-revocation fact.
+
+The Teacher Learner Detail workspace is a read-only progress-review surface for
+one assigned standard Learner:
+
+- A Teacher can open it only from the assigned Learner directory.
+- Laravel resolves the Learner through the authenticated Teacher ID and
+  `account_purpose = standard` in the same query. Changing the Learner
+  identifier cannot expose another Teacher's Learner, `KW000`, or any other
+  portal-system Learner.
+- It displays Learner identity, school, grade, section, persisted progression,
+  the latest Diagnostic and Final Assessment summaries when available, and the
+  six required lessons in course order.
+- Assessment review includes separate task and result values plus explicitly
+  skipped assessment items. Skips remain distinct persisted `SKIPPED`
+  responses.
+- Lesson review reports run completion, item outcomes, academic attempts,
+  technical retries, clear incorrect practice attempts, final transcripts,
+  scaffold use, diagnoses, and review flags only where those values were
+  persisted.
+- Review recommendations are deterministic. They are created only from an
+  explicit saved assessment or lesson skip or a persisted lesson
+  `review_recommended` flag, and they show the evidence that caused the
+  recommendation. The workspace does not generate unrestricted AI conclusions
+  or infer a lasting weakness from one response.
+- Raw model transcripts, service evidence, private audio paths, and audio
+  checksums are not included in the read-only detail response.
+- Learner editing, password reset, reassignment, export, and messaging remain
+  outside this workspace.
+
+Learner password reset is a separate Teacher directory control:
+
+- A Teacher may reset only an active standard Learner currently assigned to
+  that authenticated Teacher. Laravel applies the Teacher ID,
+  `account_purpose = standard`, and active-account constraints in the same
+  lookup. Another Teacher's Learner, `KW000`, every other portal-system
+  Learner, and an inactive Learner return no account data and cannot be reset
+  through an altered URL.
+- The directory requires an explicit confirmation that names the affected
+  Learner and explains that the old password will stop working. The Learner
+  Detail workspace remains read-only and contains no account-management
+  action.
+- A successful reset replaces only the password, stores it through the
+  Learner model's password hash, and revokes every active Learner session.
+  Assessment, lesson, achievement, and canonical progression records are
+  unchanged.
+- The generated replacement password is returned once in the successful
+  response and shown only in the resulting credential notice. Dismissing the
+  notice removes it from the interface; it is not added to directory queries,
+  browser storage, or audit metadata.
+- The reset writes a `learner.password_reset` staff audit event with the
+  Learner identity and session-revocation fact. The plaintext password must
+  never appear in the audit description or metadata.
+
+The Teacher Dashboard overview uses persisted class-scoped data:
+
+- Counts come from the authenticated Teacher's assigned standard Learners and
+  their canonical progression states. Diagnostic pending is the assigned total
+  minus confirmed Diagnostic completions, readiness for Final Assessment is
+  the persisted `final_assessment` stage, and Final completion requires its
+  saved completion timestamp.
+- The Part 1 Score level distribution uses each Learner's latest Diagnostic
+  Assessment run with a persisted Part 1 result.
+- Diagnostic and Final reading-profile distributions use each Learner's latest
+  completed run of the corresponding assessment type.
+- Recent progress combines persisted Diagnostic Assessment, Final Assessment,
+  and required-lesson runs, orders them by their saved completion or update
+  time, and links back to the read-only Learner Detail workspace.
+- Dashboard aggregates and activity never include `KW000`, another portal
+  system Learner, or a Learner assigned to another Teacher.
+- Missing results remain zero or empty. The overview does not estimate scores,
+  profiles, completion, or activity.
+
+The Teacher Diagnostic Assessment review workspace is a read-only class
+directory:
+
+- It shows every standard Learner assigned to the authenticated Teacher once
+  and uses that Learner's latest persisted Diagnostic Assessment run.
+- Status is `Pending` when no run exists, `In progress` when the latest run is
+  active, and `Completed` only when the latest run is saved as completed.
+- Persisted Part 1 Score and level, passage reading accuracy, Comprehension
+  Check values, final reading score and profile, completion time, and skipped
+  item count may be shown when available. Missing values remain explicitly
+  unavailable.
+- The summary does not expose response transcripts, audio locations, audio
+  checksums, or internal scoring evidence. Full safe review evidence remains in
+  the existing Learner Detail workspace.
+- Each row may link to that Learner Detail workspace. This review directory
+  does not edit results, reset assessments, update transcripts, or generate
+  unsupported conclusions.
+- `KW000`, every portal-system Learner, and Learners assigned to another
+  Teacher are excluded before assessment runs are resolved.
+
+The Teacher Final Assessment review workspace follows the same read-only
+evidence contract with one necessary progression distinction:
+
+- `Not ready` means no Final Assessment run exists and the canonical
+  progression stage has not reached `final_assessment`.
+- `Ready` means the Learner's canonical stage is `final_assessment` and no
+  Final Assessment run exists yet.
+- `In progress` and `Completed` require a persisted Final Assessment run with
+  the corresponding saved status.
+- Results and skipped counts come only from each assigned Learner's latest
+  Final Assessment run. Diagnostic runs never populate the Final directory.
+- Completion, score, profile, privacy, drill-down, and scope rules are
+  otherwise identical to the Diagnostic Assessment review directory.
+
+Teacher reporting, analytics, and review surfaces consume persisted
+learner-flow evidence. They must not update assessment responses, lesson
+responses, scores, outcomes, progression, achievements, or learner-facing
+routes and components.
+
+The Teacher Class Progress Report is a read-only printable cohort record:
+
+- It includes each standard Learner assigned to the authenticated Teacher and
+  excludes `KW000`, portal-system Learners, and other Teachers' Learners before
+  resolving evidence.
+- Each row reports the canonical progression stage, latest persisted
+  Diagnostic and Final Assessment status/result, unique completed required
+  lessons, explicit skipped-item count, and persisted lesson
+  `review_recommended` count.
+- Missing runs and results remain `Not started`, `No profile`, or unavailable.
+  The report does not estimate performance or infer recommendations.
+- Search is a client-side view filter. Printing hides workspace navigation and
+  controls; opening or printing a report writes no learner-flow or audit data.
+
+Teacher Class Analytics is a read-only evidence aggregation:
+
+- It resolves assigned standard Learners first and uses only each Learner's
+  latest persisted run per assessment type and per required lesson. Retakes do
+  not silently multiply one Learner's contribution.
+- Independent success, supported success, demonstrated items, not-yet-correct
+  items, unscorable recordings, technical retries, review recommendations, and
+  assessment skips remain separate counts.
+- Each lesson shows cohort size, Learners started, Learners completed, recorded
+  item denominator, independent and supported successes, and review flags.
+- Recurring evidence lists persisted deterministic `diagnosis_key` counts.
+  Labels do not become diagnoses of a Learner, rankings, predictions, or
+  unsupported conclusions.
+- Private transcripts, audio locations, internal evidence, and portal-system
+  activity are excluded. Loading analytics never changes learner-flow data.
+
+Teacher Audio Review is a staff-only evidence annotation workspace:
+
+- The queue contains only persisted assessment and lesson responses with a
+  saved recording for active standard Learners assigned to the authenticated
+  Teacher. `KW000`, portal-system Learners, and other Teachers' Learners are
+  excluded before response evidence is resolved.
+- Recording bytes are delivered only through an authenticated, Teacher-scoped
+  Laravel endpoint. Browser payloads never receive private storage paths,
+  checksums, raw service evidence, or an unauthenticated recording URL.
+- A Teacher may listen to the recording and save a reviewed transcript,
+  reviewed decision, and optional note. Each save creates an append-only
+  `staff_response_reviews` row and a `learner.response_reviewed` audit event.
+- A staff review is an annotation, not a rescore or learner-flow correction.
+  It never updates the source assessment or lesson response, run, score,
+  outcome, progression, achievement, recommendation, or learner-facing
+  behavior. The original persisted transcript and decision remain canonical.
+- The workspace shows the latest annotation while preserving earlier review
+  rows for audit history. It makes no generated diagnosis, recommendation, or
+  unsupported conclusion.
 
 Access rule: a Teacher reviews and manages learner progress, but does not
 manage system configuration, assessment content, lesson system defaults, Page
@@ -370,7 +574,6 @@ It contains:
 - Latest Final Assessment task scores when available.
 - Latest passage reading accuracy.
 - Latest Comprehension Check score when available.
-- Optional teacher-created lessons when available.
 
 Learner controls include:
 
@@ -378,7 +581,6 @@ Learner controls include:
   sequential lesson, or Final Assessment.
 - Open the Game Lobby through a smaller secondary action.
 - View progress.
-- Open optional teacher-created lessons when available.
 - View achievements.
 - View help.
 
@@ -403,6 +605,27 @@ It contains:
 Access rule: a Guest follows the same learner-facing reading flow after access,
 but does not receive staff administration, school records, system tools, or
 management screens.
+
+## Staff Session And Access Rules
+
+- Successful staff sign-in creates an opaque bearer session. Only its SHA-256
+  hash is persisted in PostgreSQL; the plaintext token exists only in the
+  current browser tab's session storage.
+- A staff session expires after eight hours by default. The duration is
+  configurable through `STAFF_SESSION_LIFETIME_HOURS`.
+- Staff sign-in is rate limited. Explicit sign-out revokes the active server
+  session, and inactive accounts, expired sessions, and revoked sessions
+  receive `401 Unauthorized`.
+- Every staff data and mutation endpoint requires a valid server-resolved staff
+  session. Role scope is enforced by Laravel, and a route containing a staff
+  account identifier must match the authenticated account. Changing a URL or
+  request body must never allow one staff account to impersonate another.
+- React staff route guards verify the session before rendering a workspace and
+  redirect users to their own role home when they open another role's route.
+  These guards improve navigation only; Laravel remains the authorization
+  authority.
+- A browser profile left over from the earlier development-only login format is
+  invalid and must sign in again.
 
 ## Dashboard Data Rules
 
@@ -435,7 +658,6 @@ management screens.
 - One account can never load, overwrite, or continue another account's lesson
   save state.
 - Completion of all required lessons unlocks the Final Assessment.
-- Optional teacher-created lessons do not block required progression.
 - Lesson dashboards use lesson terminology only.
 
 ## Out Of Scope
@@ -447,6 +669,5 @@ This guide does not define:
 - Database schema.
 - Assessment scoring rules.
 - ASR expected-aware processing.
-- Lesson creation field requirements.
 - Lesson progression rules.
 - Visual design specifications.

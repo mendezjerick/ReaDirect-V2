@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { staffFetch } from "../staff-auth/staffApi";
+
 const modelStatusSchema = z.object({
   available: z.boolean(),
   model: z.enum(["nu", "mu"]),
@@ -323,7 +325,7 @@ async function parseResponse(response: Response): Promise<unknown> {
 }
 
 export async function getSpeechModelStatus(staffUserId: number) {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/speech/status`,
   );
   return speechStatusSchema.parse(await parseResponse(response));
@@ -332,7 +334,7 @@ export async function getSpeechModelStatus(staffUserId: number) {
 export async function getSpeechContentCatalog(
   staffUserId: number,
 ): Promise<SpeechContentCatalog> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/speech/content-catalog`,
   );
   return speechContentCatalogSchema.parse(await parseResponse(response));
@@ -341,7 +343,7 @@ export async function getSpeechContentCatalog(
 export async function getEquivalenceBook(
   staffUserId: number,
 ): Promise<EquivalenceBook> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/equivalence-rules`,
   );
   return equivalenceBookSchema.parse(await parseResponse(response));
@@ -359,7 +361,7 @@ export async function getRawConfusionMatrix(
     search.set("task_type", filters.taskType);
   }
   const query = search.size ? `?${search.toString()}` : "";
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/speech/confusion-matrix/raw${query}`,
   );
   return rawConfusionMatrixSchema.parse(await parseResponse(response));
@@ -370,7 +372,7 @@ export async function updateEquivalenceRuleStatus(
   ruleId: number,
   isActive: boolean,
 ): Promise<void> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/equivalence-rules/${ruleId}`,
     {
       method: "PATCH",
@@ -389,7 +391,7 @@ export async function classifyWithNu(
   const body = new FormData();
   body.append("audio", audio);
   body.append("expected_letter", expectedLetter);
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/speech/letter/resolve`,
     {
       method: "POST",
@@ -413,7 +415,7 @@ export async function transcribeWithMu(
   if (itemKey) {
     body.append("item_key", itemKey);
   }
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/speech/mu/transcribe`,
     {
       method: "POST",
@@ -435,7 +437,7 @@ export async function createEquivalenceRule(
     sandbox_attempt_id?: number;
   },
 ): Promise<void> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/equivalence-rules`,
     {
       method: "POST",

@@ -15,6 +15,8 @@ describe("SchoolAdminDashboardPage", () => {
 
   it("shows only the assigned school workspace", async () => {
     saveStaffSession({
+      token: "school-admin-token".repeat(4),
+      session: { expires_at: "2099-01-01T00:00:00Z" },
       staff: {
         id: 2,
         username: "school-admin-test",
@@ -43,7 +45,21 @@ describe("SchoolAdminDashboardPage", () => {
               { label: "Light Refresher", value: 0 },
               { label: "Grade Ready", value: 0 },
             ],
-            recent_assessment_activity: [],
+            recent_assessment_activity: [
+              {
+                id: 12,
+                learner_id: 20,
+                learner_code: "AA250",
+                learner_name: "Dorothy Gale Wright",
+                teacher_username: "teacher-maple",
+                assessment_type: "diagnostic",
+                assessment_label: "Diagnostic Assessment",
+                status: "completed",
+                score: 82,
+                profile: "Developing Reader",
+                occurred_at: "2026-07-25T10:00:00Z",
+              },
+            ],
             requires_credential_setup: true,
             generated_at: "2026-07-20T10:00:00+00:00",
           }),
@@ -76,5 +92,16 @@ describe("SchoolAdminDashboardPage", () => {
     expect(
       screen.getByRole("button", { name: "Create Teacher" }),
     ).toBeEnabled();
+    expect(await screen.findByText("Dorothy Gale Wright")).toBeVisible();
+    for (const label of [
+      "School Profile",
+      "Manage Learners",
+      "Manage Classes",
+      "School Reports",
+      "Teacher Dashboards",
+    ]) {
+      expect(screen.getByRole("button", { name: label })).toBeEnabled();
+    }
+    expect(screen.queryByText(/next|later/i)).not.toBeInTheDocument();
   });
 });

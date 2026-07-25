@@ -90,7 +90,7 @@ final class SchoolAdminTeacherTest extends TestCase
 
     private function createSchoolAdministrator(?int $schoolId): StaffUser
     {
-        return StaffUser::query()->create([
+        $schoolAdministrator = StaffUser::query()->create([
             'username' => 'school-admin-test',
             'password' => 'temporary-pass',
             'role' => 'school_admin',
@@ -99,6 +99,10 @@ final class SchoolAdminTeacherTest extends TestCase
             'is_active' => true,
             'requires_credential_setup' => true,
         ]);
+
+        $this->authenticateStaff($schoolAdministrator);
+
+        return $schoolAdministrator;
     }
 
     private function createTeacher(string $username, int $schoolId): StaffUser

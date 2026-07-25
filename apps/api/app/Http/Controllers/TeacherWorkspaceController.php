@@ -2,22 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Learner;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
+use App\Services\TeacherOverviewService;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 final class TeacherWorkspaceController extends Controller
 {
-    public function overview(StaffUser $staffUser): JsonResponse
-    {
+    public function overview(
+        StaffUser $staffUser,
+        TeacherOverviewService $overview,
+    ): JsonResponse {
         $this->assertReadyTeacher($staffUser);
         $staffUser->load('school:id,name');
-        $totalLearners = Learner::query()
-            ->where('account_purpose', Learner::PURPOSE_STANDARD)
-            ->where('teacher_id', $staffUser->id)
-            ->count();
+        $classOverview = $overview->build($staffUser);
 
         return response()->json([
             'school' => [
@@ -28,22 +27,7 @@ final class TeacherWorkspaceController extends Controller
                 'grade_level' => $staffUser->grade_level,
                 'section' => $staffUser->section,
             ],
-            'metrics' => [
-                'total_learners' => $totalLearners,
-                'diagnostic_complete' => 0,
-                'diagnostic_pending' => $totalLearners,
-                'ready_for_final' => 0,
-                'final_complete' => 0,
-            ],
-            'part_one_distribution' => [
-                ['label' => 'Full Refresher', 'value' => 0],
-                ['label' => 'Moderate Refresher', 'value' => 0],
-                ['label' => 'Light Refresher', 'value' => 0],
-                ['label' => 'Grade Ready', 'value' => 0],
-            ],
-            'diagnostic_reading_profile_distribution' => $this->emptyReadingProfileDistribution(),
-            'final_reading_profile_distribution' => $this->emptyReadingProfileDistribution(),
-            'recent_learner_activity' => [],
+            ...$classOverview,
             'teacher_lessons' => [],
             'requires_assignment_acknowledgement' => $staffUser->teacher_assignment_acknowledged_at === null,
             'requires_credential_setup' => $staffUser->requires_credential_setup,
@@ -87,16 +71,5 @@ final class TeacherWorkspaceController extends Controller
         if ($staffUser->school_id === null || $staffUser->grade_level === null || $staffUser->section === null) {
             throw new HttpException(409, 'A school, grade level, and section assignment are required before opening the Teacher Dashboard.');
         }
-    }
-
-    private function emptyReadingProfileDistribution(): array
-    {
-        return [
-            ['label' => 'Low Emerging Reader', 'value' => 0],
-            ['label' => 'High Emerging Reader', 'value' => 0],
-            ['label' => 'Developing Reader', 'value' => 0],
-            ['label' => 'Transitioning Reader', 'value' => 0],
-            ['label' => 'Reading at Grade Level', 'value' => 0],
-        ];
     }
 }

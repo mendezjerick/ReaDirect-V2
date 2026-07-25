@@ -34,6 +34,8 @@ describe("SchoolAdminSetupPage", () => {
 
   it("requires the School Administrator to enter a school", () => {
     saveStaffSession({
+      token: "school-admin-token".repeat(4),
+      session: { expires_at: "2099-01-01T00:00:00Z" },
       staff: {
         id: 2,
         username: "school-admin-test",
@@ -57,6 +59,8 @@ describe("SchoolAdminSetupPage", () => {
 
   it("saves the school and opens the dashboard", async () => {
     saveStaffSession({
+      token: "school-admin-token".repeat(4),
+      session: { expires_at: "2099-01-01T00:00:00Z" },
       staff: {
         id: 2,
         username: "school-admin-test",

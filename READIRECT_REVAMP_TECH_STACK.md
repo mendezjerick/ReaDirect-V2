@@ -128,6 +128,12 @@ defined in READIRECT_REVAMP_GAME_TECH_STACK.md.
 - Cloudflare Tunnel
 - cloudflared
 
+The developer-operated staging topology, public-port boundary, launcher
+ownership, credentials policy, and known recovery baseline are defined by
+`READIRECT_REVAMP_DEVELOPMENT_AND_STAGING_LAUNCHER_STANDARD.md`. Cloudflare
+staging exposes only the Vite web boundary; backend and speech services are
+never direct tunnel ingress targets.
+
 ## Testing and Code Quality
 
 ### Frontend

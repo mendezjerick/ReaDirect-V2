@@ -38,6 +38,7 @@ final class SchoolAdminWorkspaceTest extends TestCase
             'is_active' => true,
             'requires_credential_setup' => true,
         ]);
+        $this->authenticateStaff($schoolAdministrator);
 
         $this->getJson("/api/staff/school-admin/{$schoolAdministrator->id}/overview")
             ->assertStatus(409);

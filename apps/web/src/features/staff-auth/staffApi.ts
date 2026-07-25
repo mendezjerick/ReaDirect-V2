@@ -19,8 +19,31 @@ const staffAccountSchema = z.object({
   requires_assignment_acknowledgement: z.boolean().optional(),
 });
 
-const staffSessionSchema = z.object({
+const staffIdentitySessionSchema = z.object({
   staff: staffAccountSchema,
+  session: z.object({ expires_at: z.string() }),
+});
+
+const staffSessionSchema = staffIdentitySessionSchema.extend({
+  token: z.string().min(32),
+});
+
+const staffAccountResponseSchema = z.object({
+  staff: staffAccountSchema,
+});
+
+const schoolAssessmentActivitySchema = z.object({
+  id: z.number().int().positive(),
+  learner_id: z.number().int().positive(),
+  learner_code: z.string(),
+  learner_name: z.string(),
+  teacher_username: z.string().nullable(),
+  assessment_type: z.enum(["diagnostic", "final"]),
+  assessment_label: z.string(),
+  status: z.string(),
+  score: z.number().int().nullable(),
+  profile: z.string().nullable(),
+  occurred_at: z.string().nullable(),
 });
 
 const schoolAdminOverviewSchema = z.object({
@@ -36,9 +59,24 @@ const schoolAdminOverviewSchema = z.object({
       value: z.number().int().nonnegative(),
     }),
   ),
-  recent_assessment_activity: z.array(z.unknown()),
+  recent_assessment_activity: z.array(schoolAssessmentActivitySchema),
   requires_credential_setup: z.boolean(),
   generated_at: z.string(),
+});
+
+const teacherRecentActivitySchema = z.object({
+  id: z.string(),
+  learner_id: z.number().int().positive(),
+  learner_code: z.string(),
+  learner_name: z.string(),
+  activity_type: z.enum([
+    "diagnostic_assessment",
+    "final_assessment",
+    "lesson",
+  ]),
+  title: z.string(),
+  status: z.enum(["completed", "in_progress"]),
+  occurred_at: z.string().nullable(),
 });
 
 const teacherOverviewSchema = z.object({
@@ -72,7 +110,7 @@ const teacherOverviewSchema = z.object({
       value: z.number().int().nonnegative(),
     }),
   ),
-  recent_learner_activity: z.array(z.unknown()),
+  recent_learner_activity: z.array(teacherRecentActivitySchema),
   teacher_lessons: z.array(z.unknown()),
   requires_assignment_acknowledgement: z.boolean(),
   requires_credential_setup: z.boolean(),
@@ -142,6 +180,7 @@ const apiErrorSchema = z.object({
 });
 
 export type StaffSession = z.infer<typeof staffSessionSchema>;
+export type StaffRole = StaffSession["staff"]["role"];
 export type SchoolAdminOverview = z.infer<typeof schoolAdminOverviewSchema>;
 export type TeacherOverview = z.infer<typeof teacherOverviewSchema>;
 export type SystemAdminOverview = z.infer<typeof systemAdminOverviewSchema>;
@@ -292,7 +331,68 @@ export function loadStaffSession(): StaffSession | null {
 }
 
 export function clearStaffSession(): void {
+  const session = loadStaffSession();
   window.sessionStorage.removeItem(staffSessionStorageKey);
+
+  if (session) {
+    void fetch("/api/staff/logout", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${session.token}`,
+      },
+      keepalive: true,
+    }).catch(() => undefined);
+  }
+}
+
+function discardStaffSession(): void {
+  window.sessionStorage.removeItem(staffSessionStorageKey);
+}
+
+export async function staffFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> {
+  const session = loadStaffSession();
+  const headers = new Headers(init.headers);
+
+  if (session) {
+    headers.set("Authorization", `Bearer ${session.token}`);
+  }
+
+  const response = await fetch(input, { ...init, headers });
+
+  if (response.status === 401) {
+    discardStaffSession();
+  }
+
+  return response;
+}
+
+export async function getCurrentStaffSession(): Promise<StaffSession> {
+  const currentSession = loadStaffSession();
+
+  if (!currentSession) {
+    throw new Error("Staff session is required.");
+  }
+
+  const response = await staffFetch("/api/staff/session", {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  const identity = staffIdentitySessionSchema.parse(await response.json());
+  const refreshedSession = staffSessionSchema.parse({
+    ...identity,
+    token: currentSession.token,
+  });
+  saveStaffSession(refreshedSession);
+
+  return refreshedSession;
 }
 
 async function readApiError(response: Response): Promise<string> {
@@ -345,7 +445,7 @@ export type SchoolAdministrator = z.infer<typeof schoolAdministratorSchema>;
 export async function getSchoolAdministrators(): Promise<
   SchoolAdministrator[]
 > {
-  const response = await fetch(
+  const response = await staffFetch(
     "/api/staff/system-admin/school-administrators",
     {
       headers: { Accept: "application/json" },
@@ -364,7 +464,7 @@ export async function createSchoolAdministrator(credentials: {
   username: string;
   temporary_password: string;
 }): Promise<SchoolAdministrator> {
-  const response = await fetch(
+  const response = await staffFetch(
     "/api/staff/system-admin/school-administrators",
     {
       method: "POST",
@@ -408,7 +508,7 @@ export type TeacherAccount = z.infer<typeof teacherSchema>;
 export async function getSchoolAdminTeachers(
   staffUserId: number,
 ): Promise<TeacherAccount[]> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/school-admin/${staffUserId}/teachers`,
     { headers: { Accept: "application/json" } },
   );
@@ -427,7 +527,7 @@ export async function createTeacherAccount(input: {
   gradeLevel: number;
   section: string;
 }): Promise<TeacherAccount> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/school-admin/${input.staffUserId}/teachers`,
     {
       method: "POST",
@@ -478,15 +578,43 @@ const createdLearnerResponseSchema = z.object({
   learner: createdLearnerSchema,
 });
 
+const resetLearnerCredentialsSchema = z.object({
+  id: z.number().int().positive(),
+  learner_code: z.string().regex(/^[A-Z]{2}\d{3}$/),
+  full_name: z.string(),
+  temporary_password: z.string().regex(/^(apple|orange|lemon)\d{3}$/),
+});
+
+const resetLearnerPasswordResponseSchema = z.object({
+  learner: resetLearnerCredentialsSchema,
+});
+
+const importedLearnersResponseSchema = z.object({
+  learners: z.array(resetLearnerCredentialsSchema).min(1).max(100),
+});
+
 export type LearnerAccount = z.infer<typeof learnerAccountSchema>;
 export type CreatedLearnerAccount = z.infer<typeof createdLearnerSchema>;
+export type ResetLearnerCredentials = z.infer<
+  typeof resetLearnerCredentialsSchema
+>;
+export interface LearnerImportRow {
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  suffix: string;
+  lrn: string;
+}
 
 export async function getTeacherLearners(
   staffUserId: number,
 ): Promise<LearnerAccount[]> {
-  const response = await fetch(`/api/staff/teacher/${staffUserId}/learners`, {
-    headers: { Accept: "application/json" },
-  });
+  const response = await staffFetch(
+    `/api/staff/teacher/${staffUserId}/learners`,
+    {
+      headers: { Accept: "application/json" },
+    },
+  );
 
   if (!response.ok) {
     throw new Error(await readApiError(response));
@@ -503,7 +631,7 @@ export async function createLearnerAccount(input: {
   suffix: string;
   lrn: string;
 }): Promise<CreatedLearnerAccount> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/teacher/${input.staffUserId}/learners`,
     {
       method: "POST",
@@ -528,6 +656,72 @@ export async function createLearnerAccount(input: {
   return createdLearnerResponseSchema.parse(await response.json()).learner;
 }
 
+export async function resetLearnerPassword(input: {
+  staffUserId: number;
+  learnerId: number;
+}): Promise<ResetLearnerCredentials> {
+  const response = await staffFetch(
+    `/api/staff/teacher/${input.staffUserId}/learners/${input.learnerId}/reset-password`,
+    {
+      method: "POST",
+      headers: { Accept: "application/json" },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return resetLearnerPasswordResponseSchema.parse(await response.json())
+    .learner;
+}
+
+export async function importTeacherLearners(input: {
+  staffUserId: number;
+  learners: LearnerImportRow[];
+}): Promise<ResetLearnerCredentials[]> {
+  const response = await staffFetch(
+    `/api/staff/teacher/${input.staffUserId}/learners/import`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ learners: input.learners }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return importedLearnersResponseSchema.parse(await response.json()).learners;
+}
+
+export async function issueTeacherCredentialSheet(input: {
+  staffUserId: number;
+  learnerIds: number[];
+}): Promise<ResetLearnerCredentials[]> {
+  const response = await staffFetch(
+    `/api/staff/teacher/${input.staffUserId}/learners/credential-sheet`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ learner_ids: input.learnerIds }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return importedLearnersResponseSchema.parse(await response.json()).learners;
+}
+
 export async function loginStaff(credentials: {
   identifier: string;
   password: string;
@@ -549,7 +743,7 @@ export async function loginStaff(credentials: {
 }
 
 export async function getSystemAdminOverview(): Promise<SystemAdminOverview> {
-  const response = await fetch("/api/staff/system-admin/overview", {
+  const response = await staffFetch("/api/staff/system-admin/overview", {
     headers: { Accept: "application/json" },
   });
 
@@ -568,7 +762,7 @@ export async function updateConditionalMuNoiseReduction(
   staffUserId: number,
   enabled: boolean,
 ): Promise<SystemAdminOverview["speech_processing"]> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/speech-settings/mu-noise-reduction`,
     {
       method: "PUT",
@@ -591,7 +785,7 @@ export async function updateConditionalMuNoiseReduction(
 export async function getPortalSystemLearner(
   staffUserId: number,
 ): Promise<PortalSystemLearner> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/page-portals`,
     { headers: { Accept: "application/json" } },
   );
@@ -606,7 +800,7 @@ export async function getPortalSystemLearner(
 export async function resetPortalSystemLearner(
   staffUserId: number,
 ): Promise<PortalSystemLearner> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/page-portals/reset-kristen`,
     {
       method: "POST",
@@ -625,7 +819,7 @@ export async function launchPortalSystemLearner(
   staffUserId: number,
   targetKey: PortalTargetKey,
 ): Promise<PortalLaunchResponse> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/page-portals/launch`,
     {
       method: "POST",
@@ -648,7 +842,7 @@ export async function completeSchoolAdminSetup(input: {
   staffUserId: number;
   schoolName: string;
 }): Promise<StaffSession> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/school-admin/${input.staffUserId}/school`,
     {
       method: "POST",
@@ -664,13 +858,25 @@ export async function completeSchoolAdminSetup(input: {
     throw new Error(await readApiError(response));
   }
 
-  return staffSessionSchema.parse(await response.json());
+  const currentSession = loadStaffSession();
+  if (!currentSession) {
+    throw new Error("Your staff session has expired.");
+  }
+
+  const updatedAccount = staffAccountResponseSchema.parse(
+    await response.json(),
+  );
+
+  return staffSessionSchema.parse({
+    ...currentSession,
+    staff: updatedAccount.staff,
+  });
 }
 
 export async function getSchoolAdminOverview(
   staffUserId: number,
 ): Promise<SchoolAdminOverview> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/school-admin/${staffUserId}/overview`,
     { headers: { Accept: "application/json" } },
   );
@@ -685,9 +891,12 @@ export async function getSchoolAdminOverview(
 export async function getTeacherOverview(
   staffUserId: number,
 ): Promise<TeacherOverview> {
-  const response = await fetch(`/api/staff/teacher/${staffUserId}/overview`, {
-    headers: { Accept: "application/json" },
-  });
+  const response = await staffFetch(
+    `/api/staff/teacher/${staffUserId}/overview`,
+    {
+      headers: { Accept: "application/json" },
+    },
+  );
 
   if (!response.ok) {
     throw new Error(await readApiError(response));
@@ -699,7 +908,7 @@ export async function getTeacherOverview(
 export async function acknowledgeTeacherAssignment(
   staffUserId: number,
 ): Promise<z.infer<typeof teacherAssignmentAcknowledgementSchema>> {
-  const response = await fetch(
+  const response = await staffFetch(
     `/api/staff/teacher/${staffUserId}/assignment-acknowledgement`,
     {
       method: "POST",
