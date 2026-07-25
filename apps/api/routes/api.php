@@ -11,8 +11,12 @@ use App\Http\Controllers\LearnerLessonSixController;
 use App\Http\Controllers\LearnerLessonThreeController;
 use App\Http\Controllers\LearnerLessonTwoController;
 use App\Http\Controllers\LearnerTtsController;
+use App\Http\Controllers\SchoolAdminClassController;
 use App\Http\Controllers\SchoolAdministratorController;
+use App\Http\Controllers\SchoolAdminLearnerController;
+use App\Http\Controllers\SchoolAdminReportController;
 use App\Http\Controllers\SchoolAdminTeacherController;
+use App\Http\Controllers\SchoolAdminTeacherDashboardController;
 use App\Http\Controllers\SchoolAdminWorkspaceController;
 use App\Http\Controllers\StaffAuthController;
 use App\Http\Controllers\SystemAdminEquivalenceController;
@@ -21,36 +25,84 @@ use App\Http\Controllers\SystemAdminPortalController;
 use App\Http\Controllers\SystemAdminSpeechAnalyticsController;
 use App\Http\Controllers\SystemAdminSpeechSandboxController;
 use App\Http\Controllers\SystemAdminSpeechSettingsController;
+use App\Http\Controllers\TeacherAnalyticsController;
+use App\Http\Controllers\TeacherAudioReviewController;
+use App\Http\Controllers\TeacherDiagnosticAssessmentController;
+use App\Http\Controllers\TeacherFinalAssessmentController;
 use App\Http\Controllers\TeacherLearnerController;
+use App\Http\Controllers\TeacherReportController;
 use App\Http\Controllers\TeacherWorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('staff')->group(function (): void {
-    Route::post('/login', [StaffAuthController::class, 'store']);
-    Route::get('/system-admin/overview', [SystemAdminOverviewController::class, 'show']);
-    Route::get('/system-admin/school-administrators', [SchoolAdministratorController::class, 'index']);
-    Route::post('/system-admin/school-administrators', [SchoolAdministratorController::class, 'store']);
-    Route::get('/system-admin/{staffUser}/page-portals', [SystemAdminPortalController::class, 'show']);
-    Route::post('/system-admin/{staffUser}/page-portals/reset-kristen', [SystemAdminPortalController::class, 'reset']);
-    Route::post('/system-admin/{staffUser}/page-portals/launch', [SystemAdminPortalController::class, 'launch']);
-    Route::get('/system-admin/{staffUser}/speech/status', [SystemAdminSpeechSandboxController::class, 'status']);
-    Route::get('/system-admin/{staffUser}/speech/content-catalog', [SystemAdminSpeechSandboxController::class, 'contentCatalog']);
-    Route::post('/system-admin/{staffUser}/speech/letter/resolve', [SystemAdminSpeechSandboxController::class, 'resolveLetter']);
-    Route::post('/system-admin/{staffUser}/speech/mu/transcribe', [SystemAdminSpeechSandboxController::class, 'transcribeMu']);
-    Route::post('/system-admin/{staffUser}/speech/attempts/{speechSandboxAttempt}/review', [SystemAdminSpeechSandboxController::class, 'reviewAttempt']);
-    Route::get('/system-admin/{staffUser}/speech/confusion-matrix/raw', [SystemAdminSpeechAnalyticsController::class, 'rawConfusionMatrix']);
-    Route::post('/system-admin/{staffUser}/equivalence-rules', [SystemAdminSpeechSandboxController::class, 'storeEquivalenceRule']);
-    Route::get('/system-admin/{staffUser}/equivalence-rules', [SystemAdminEquivalenceController::class, 'index']);
-    Route::patch('/system-admin/{staffUser}/equivalence-rules/{equivalenceRule}', [SystemAdminEquivalenceController::class, 'update']);
-    Route::put('/system-admin/{staffUser}/speech-settings/mu-noise-reduction', [SystemAdminSpeechSettingsController::class, 'update']);
-    Route::post('/school-admin/{staffUser}/school', [SchoolAdminWorkspaceController::class, 'updateSchool']);
-    Route::get('/school-admin/{staffUser}/overview', [SchoolAdminWorkspaceController::class, 'overview']);
-    Route::get('/school-admin/{staffUser}/teachers', [SchoolAdminTeacherController::class, 'index']);
-    Route::post('/school-admin/{staffUser}/teachers', [SchoolAdminTeacherController::class, 'store']);
-    Route::get('/teacher/{staffUser}/overview', [TeacherWorkspaceController::class, 'overview']);
-    Route::post('/teacher/{staffUser}/assignment-acknowledgement', [TeacherWorkspaceController::class, 'acknowledgeAssignment']);
-    Route::get('/teacher/{staffUser}/learners', [TeacherLearnerController::class, 'index']);
-    Route::post('/teacher/{staffUser}/learners', [TeacherLearnerController::class, 'store']);
+    Route::post('/login', [StaffAuthController::class, 'store'])
+        ->middleware('throttle:10,1');
+
+    Route::middleware('staff.auth')->group(function (): void {
+        Route::get('/session', [StaffAuthController::class, 'show']);
+        Route::post('/logout', [StaffAuthController::class, 'destroy']);
+
+        Route::middleware('staff.role:system_admin')->prefix('system-admin')->group(function (): void {
+            Route::get('/overview', [SystemAdminOverviewController::class, 'show']);
+            Route::get('/school-administrators', [SchoolAdministratorController::class, 'index']);
+            Route::post('/school-administrators', [SchoolAdministratorController::class, 'store']);
+            Route::get('/{staffUser}/page-portals', [SystemAdminPortalController::class, 'show']);
+            Route::post('/{staffUser}/page-portals/reset-kristen', [SystemAdminPortalController::class, 'reset']);
+            Route::post('/{staffUser}/page-portals/launch', [SystemAdminPortalController::class, 'launch']);
+            Route::get('/{staffUser}/speech/status', [SystemAdminSpeechSandboxController::class, 'status']);
+            Route::get('/{staffUser}/speech/content-catalog', [SystemAdminSpeechSandboxController::class, 'contentCatalog']);
+            Route::post('/{staffUser}/speech/letter/resolve', [SystemAdminSpeechSandboxController::class, 'resolveLetter']);
+            Route::post('/{staffUser}/speech/mu/transcribe', [SystemAdminSpeechSandboxController::class, 'transcribeMu']);
+            Route::post('/{staffUser}/speech/attempts/{speechSandboxAttempt}/review', [SystemAdminSpeechSandboxController::class, 'reviewAttempt']);
+            Route::get('/{staffUser}/speech/confusion-matrix/raw', [SystemAdminSpeechAnalyticsController::class, 'rawConfusionMatrix']);
+            Route::post('/{staffUser}/equivalence-rules', [SystemAdminSpeechSandboxController::class, 'storeEquivalenceRule']);
+            Route::get('/{staffUser}/equivalence-rules', [SystemAdminEquivalenceController::class, 'index']);
+            Route::patch('/{staffUser}/equivalence-rules/{equivalenceRule}', [SystemAdminEquivalenceController::class, 'update']);
+            Route::put('/{staffUser}/speech-settings/mu-noise-reduction', [SystemAdminSpeechSettingsController::class, 'update']);
+        });
+
+        Route::middleware('staff.role:school_admin')->prefix('school-admin')->group(function (): void {
+            Route::post('/{staffUser}/school', [SchoolAdminWorkspaceController::class, 'updateSchool']);
+            Route::get('/{staffUser}/school-profile', [SchoolAdminWorkspaceController::class, 'schoolProfile']);
+            Route::put('/{staffUser}/school-profile', [SchoolAdminWorkspaceController::class, 'updateSchoolProfile']);
+            Route::get('/{staffUser}/overview', [SchoolAdminWorkspaceController::class, 'overview']);
+            Route::get('/{staffUser}/classes', [SchoolAdminClassController::class, 'index']);
+            Route::put('/{staffUser}/classes/{teacher}', [SchoolAdminClassController::class, 'update'])
+                ->whereNumber('teacher');
+            Route::get('/{staffUser}/learners', [SchoolAdminLearnerController::class, 'index']);
+            Route::get('/{staffUser}/learners/{learner}', [SchoolAdminLearnerController::class, 'show'])
+                ->whereNumber('learner');
+            Route::get('/{staffUser}/reports', [SchoolAdminReportController::class, 'show']);
+            Route::get('/{staffUser}/teacher-dashboards/{teacher}', [SchoolAdminTeacherDashboardController::class, 'show'])
+                ->whereNumber('teacher');
+            Route::get('/{staffUser}/teachers', [SchoolAdminTeacherController::class, 'index']);
+            Route::post('/{staffUser}/teachers', [SchoolAdminTeacherController::class, 'store']);
+        });
+
+        Route::middleware('staff.role:teacher')->prefix('teacher')->group(function (): void {
+            Route::get('/{staffUser}/overview', [TeacherWorkspaceController::class, 'overview']);
+            Route::post('/{staffUser}/assignment-acknowledgement', [TeacherWorkspaceController::class, 'acknowledgeAssignment']);
+            Route::get('/{staffUser}/assessments/diagnostic', [TeacherDiagnosticAssessmentController::class, 'index']);
+            Route::get('/{staffUser}/assessments/final', [TeacherFinalAssessmentController::class, 'index']);
+            Route::get('/{staffUser}/analytics', [TeacherAnalyticsController::class, 'show']);
+            Route::get('/{staffUser}/audio-reviews', [TeacherAudioReviewController::class, 'index']);
+            Route::get('/{staffUser}/audio-reviews/{responseKind}/{responseId}/audio', [TeacherAudioReviewController::class, 'audio'])
+                ->whereIn('responseKind', ['assessment', 'lesson'])
+                ->whereNumber('responseId');
+            Route::post('/{staffUser}/audio-reviews/{responseKind}/{responseId}', [TeacherAudioReviewController::class, 'store'])
+                ->whereIn('responseKind', ['assessment', 'lesson'])
+                ->whereNumber('responseId');
+            Route::get('/{staffUser}/reports', [TeacherReportController::class, 'show']);
+            Route::get('/{staffUser}/learners', [TeacherLearnerController::class, 'index']);
+            Route::post('/{staffUser}/learners/import', [TeacherLearnerController::class, 'import']);
+            Route::post('/{staffUser}/learners/credential-sheet', [TeacherLearnerController::class, 'credentialSheet']);
+            Route::get('/{staffUser}/learners/{learner}', [TeacherLearnerController::class, 'show'])
+                ->whereNumber('learner');
+            Route::post('/{staffUser}/learners/{learner}/reset-password', [TeacherLearnerController::class, 'resetPassword'])
+                ->whereNumber('learner');
+            Route::post('/{staffUser}/learners', [TeacherLearnerController::class, 'store']);
+        });
+    });
 });
 
 Route::prefix('learners')->group(function (): void {

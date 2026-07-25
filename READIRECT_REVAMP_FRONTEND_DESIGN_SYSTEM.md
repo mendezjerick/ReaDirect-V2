@@ -237,8 +237,8 @@ not appear before, overlap, or compete with the required learning action.
 
 The achievement holder follows the primary action and Games action. It remains
 easy to discover, uses fixed badge positions, and shows locked silhouettes with
-visible criteria. Supporting scores, progress, optional lessons, help, and
-other controls use lower visual emphasis.
+visible criteria. Supporting scores, progress, help, and other controls use
+lower visual emphasis.
 
 The achievement gallery, shared queued unlock overlay, slow-pop animation, and
 acknowledgement behavior are defined by
@@ -303,6 +303,173 @@ Professional dashboard adjustments are required:
 The intended result is clean operational software with recognizable ReaDirect
 geometry and color—not generic corporate software and not an oversized learner
 game screen.
+
+### School Administrator workspaces
+
+- Keep the shared staff shell and use School management plus Review and
+  reporting navigation groups. Every visible navigation item must resolve to
+  an implemented protected route; do not show `Next` or `Later` placeholders.
+- School Profile uses a two-panel identity-and-form layout. State that a rename
+  changes display identity only and does not alter learner-flow evidence.
+- Classes use a responsive assignment list and editor. Explain that a class is
+  the existing Teacher grade-and-section assignment and distinguish account
+  context changes from protected academic-flow records.
+- The Learner directory becomes labeled stacked rows on narrow screens.
+  Learner detail is read-only and summarizes persisted progression,
+  assessments, ordered lessons, and evidence-based review flags.
+- School reports preserve school, Teacher, grade, and section context in both
+  screen and print layouts. Filtering and printing must not create report
+  records or audit events.
+- Teacher Dashboard Review uses a Teacher picker beside the selected class
+  overview at wide widths and stacks them on mobile. Keep a visible
+  `No impersonation` boundary and provide no Teacher-only mutations.
+- Overview activity displays only persisted school-scoped assessment records.
+  Empty state copy must describe the absence of saved activity rather than a
+  future implementation.
+
+### Staff learner-detail workspace
+
+The Teacher Learner Detail workspace uses the professional staff language:
+
+- Keep identity and progression in compact shared surfaces near the top.
+- Present Diagnostic and Final Assessment as separate peer summary cards.
+- Keep the six required lessons in course order and use native expandable
+  sections for dense item-level evidence.
+- On mobile, assessment cards, lesson metrics, item facts, attempts, and
+  recommendations stack into the normal page column. Do not require horizontal
+  table scrolling.
+- Use compact status pills, flat evidence regions, semantic feedback colors,
+  and no more than `2px` to `3px` of solid card depth.
+- Final transcripts and incorrect attempts remain readable text. Do not hide
+  required evidence behind hover or color alone.
+- Recommendations must state their persisted evidence source. Do not add
+  speculative charts, scores, labels, or AI-generated learner conclusions.
+- The page remains read-only. Editing and account-management actions do not
+  share the progress-review surface.
+
+### Teacher learner password reset
+
+Password reset is an account action in the Teacher Learner directory:
+
+- Keep `View progress` and `Reset password` as distinct row actions. Reset
+  never appears in the read-only Learner Detail workspace.
+- Opening reset shows an inline warning surface naming the Learner. Require
+  separate Cancel and Confirm actions, and state both effects: existing
+  sessions are signed out and learning progress is preserved.
+- Show the replacement Learner Code and password only in the successful
+  one-time credential surface. Use the same credential presentation as account
+  creation, label the password as new, and provide an explicit
+  `Credentials saved` dismissal.
+- Use warning tokens for confirmation, success tokens for returned
+  credentials, shared surfaces and buttons, and the normal `2px` to `3px`
+  staff depth cue. Do not introduce a modal, raw colors, or decorative motion.
+- Stack confirmation actions and directory row actions on narrow screens.
+  Align confirmation content and actions at the standard `48rem` breakpoint;
+  retain the staff table-to-labeled-card behavior without horizontal scrolling.
+
+### Teacher Learner import
+
+- Use a dedicated Teacher route with the shared staff shell, page header,
+  surfaces, buttons, and class context.
+- Provide a downloadable fixed-column CSV template, file selection, validation
+  feedback, and a bounded roster preview before the import action.
+- State that import is all-or-nothing and that school, grade, and section are
+  inherited rather than editable.
+- Present returned codes and passwords in a success surface only after the
+  server commits the roster. The surface must explain that passwords are shown
+  once and provide an explicit dismissal.
+- Stack controls and credential rows on mobile. Use a two-panel import layout
+  and aligned credential columns only when sufficient width is available.
+
+### Teacher credential sheets
+
+- List active assigned Learners with native checkboxes, a select-all control,
+  and a visible selection count. Do not allow more than 50 per sheet.
+- Require an inline confirmation that explains password replacement, session
+  revocation, and preservation of learning progress.
+- After issuance, replace selection controls with a one-time credential sheet.
+  Provide Print and `Credentials saved` actions.
+- The print stylesheet hides staff navigation, controls, and unrelated page
+  content. Credential cards remain legible in a two-column paper grid and avoid
+  page breaks within one Learner's card.
+
+### Teacher overview activity
+
+The Teacher Dashboard recent-progress surface uses a compact vertical activity
+list:
+
+- Show the Learner name and code, persisted activity title, completion state,
+  and saved activity time.
+- Use compact semantic status pills and one shared secondary Review action.
+- The Review action opens the existing read-only Learner Detail workspace.
+- Stack activity facts and the Review action on mobile, then align the action
+  beside the facts at the standard `48rem` breakpoint.
+- Show an honest empty state when no persisted activity exists. Do not create
+  sample events, inferred activity, or decorative trend values.
+
+### Teacher assessment review directory
+
+The Teacher Diagnostic and Final Assessment directories use one shared
+responsive evidence table:
+
+- Start with compact status totals, then list the latest persisted result for
+  each assigned Learner.
+- On mobile, render each row as labeled facts without horizontal scrolling. At
+  medium widths use a two-column fact card, and switch to the full table header
+  only when the staff content region is wide enough.
+- Keep pending, not-ready, ready, in-progress, and completed states
+  text-labeled and supported by semantic status colors. Diagnostic uses
+  pending; Final uses not-ready and ready to preserve progression meaning.
+- Missing score and profile fields say `Not available`; they are never replaced
+  by estimates or placeholder analytics.
+- Use one shared secondary action to open the existing Learner Detail
+  workspace. Do not place editing or assessment-reset actions in this
+  directory.
+
+### Teacher class progress report
+
+- Lead with five persisted summary counts and follow with one responsive
+  Learner report table.
+- On narrow screens, rows become labeled two-column facts with a full-width
+  Review action. Use the full header and seven-column layout only at wide staff
+  content widths.
+- Display missing assessment scores and profiles explicitly. Review evidence
+  means saved skips or saved lesson review flags, never an inferred concern.
+- Provide name/code search and a print action. The print view hides navigation,
+  search, and row actions while preserving class context, summary, and data
+  rows.
+
+### Teacher class analytics
+
+- Use compact evidence cards with the persisted count and its recorded-item
+  denominator. Never present a percentage without its source count.
+- Present the six required lessons in order with native meters for completed
+  Learners and explicit started, recorded-item, independent, supported, and
+  review values.
+- Keep unscorable audio and technical retries visually and semantically
+  separate from not-yet-correct learning outcomes.
+- Label recurring diagnosis keys as saved evidence counts and include copy
+  stating that they are not conclusions about a Learner.
+- Stack cards and lesson facts on mobile; use four evidence columns and the
+  two-panel lesson/diagnosis layout only when sufficient width is available.
+
+### Teacher audio review
+
+- Use a responsive queue-and-editor layout inside the shared staff shell. Stack
+  the queue above the editor on narrow screens; use two columns only when both
+  the recording identity and form controls remain readable.
+- Lead with a persistent notice that a review is a staff annotation and does
+  not overwrite the original transcript, decision, score, progression, or
+  Learner experience.
+- Present canonical transcript and decision in a distinct read-only evidence
+  block. Keep the reviewed transcript, reviewed decision, and optional note in
+  the staff annotation form below it.
+- Load recording bytes only after an explicit action through the authenticated
+  staff client. Do not expose private paths or place a reusable public media URL
+  in page data.
+- Label saves as staff-only reviews and confirm after success that canonical
+  Learner records were not changed. Do not describe the control as rescoring,
+  correction, remediation, or an AI recommendation.
 
 ## Typography
 

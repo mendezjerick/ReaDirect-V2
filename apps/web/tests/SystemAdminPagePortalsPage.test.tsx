@@ -104,6 +104,8 @@ function renderPage() {
   window.sessionStorage.setItem(
     "readirect.staff-session",
     JSON.stringify({
+      token: "system-admin-token".repeat(4),
+      session: { expires_at: "2099-01-01T00:00:00Z" },
       staff: {
         id: 1,
         username: "rd07170",

@@ -10,13 +10,7 @@ final class SchoolAdministratorTest extends TestCase
 {
     public function test_system_administrator_can_create_a_school_administrator(): void
     {
-        $systemAdministrator = StaffUser::query()->create([
-            'username' => 'system-admin-test',
-            'password' => 'local-test-password',
-            'role' => 'system_admin',
-            'display_name' => 'System Administrator',
-            'is_active' => true,
-        ]);
+        $systemAdministrator = $this->createSystemAdministrator();
 
         $response = $this->postJson('/api/staff/system-admin/school-administrators', [
             'username' => '  New.School.Admin  ',
@@ -42,6 +36,8 @@ final class SchoolAdministratorTest extends TestCase
 
     public function test_school_administrator_username_is_unique_without_case_sensitivity(): void
     {
+        $this->createSystemAdministrator();
+
         StaffUser::query()->create([
             'username' => 'existing-admin',
             'password' => 'temporary-pass',
@@ -61,6 +57,8 @@ final class SchoolAdministratorTest extends TestCase
 
     public function test_school_administrator_list_excludes_other_staff_roles(): void
     {
+        $this->createSystemAdministrator();
+
         StaffUser::query()->create([
             'username' => 'school-admin',
             'password' => 'temporary-pass',
@@ -82,5 +80,20 @@ final class SchoolAdministratorTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'school_administrators')
             ->assertJsonPath('school_administrators.0.username', 'school-admin');
+    }
+
+    private function createSystemAdministrator(): StaffUser
+    {
+        $systemAdministrator = StaffUser::query()->create([
+            'username' => 'system-admin-test',
+            'password' => 'local-test-password',
+            'role' => 'system_admin',
+            'display_name' => 'System Administrator',
+            'is_active' => true,
+        ]);
+
+        $this->authenticateStaff($systemAdministrator);
+
+        return $systemAdministrator;
     }
 }

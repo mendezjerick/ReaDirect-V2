@@ -444,12 +444,16 @@ final class SystemAdminSpeechSandboxTest extends TestCase
 
     private function systemAdministrator(): StaffUser
     {
-        return StaffUser::query()->create([
+        $systemAdministrator = StaffUser::query()->create([
             'username' => 'speech-admin',
             'password' => 'local-test-password',
             'role' => 'system_admin',
             'display_name' => 'Speech Administrator',
             'is_active' => true,
         ]);
+
+        $this->authenticateStaff($systemAdministrator);
+
+        return $systemAdministrator;
     }
 }

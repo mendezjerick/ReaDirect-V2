@@ -48,4 +48,14 @@ final class StaffUser extends Model
     {
         return $this->hasMany(StaffAuditLog::class);
     }
+
+    public function learners(): HasMany
+    {
+        return $this->hasMany(Learner::class, 'teacher_id');
+    }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(StaffSession::class);
+    }
 }

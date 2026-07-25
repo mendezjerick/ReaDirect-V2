@@ -2,10 +2,13 @@
 
 namespace Tests;
 
+use App\Models\StaffSession;
+use App\Models\StaffUser;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 abstract class TestCase extends BaseTestCase
@@ -37,6 +40,7 @@ abstract class TestCase extends BaseTestCase
         Schema::dropIfExists('assessment_runs');
         Schema::dropIfExists('learner_clara_listening_sessions');
         Schema::dropIfExists('learner_achievements');
+        Schema::dropIfExists('staff_response_reviews');
         Schema::dropIfExists('lesson_item_attempts');
         Schema::dropIfExists('lesson_responses');
         Schema::dropIfExists('lesson_runs');
@@ -45,6 +49,7 @@ abstract class TestCase extends BaseTestCase
         Schema::dropIfExists('tts_voice_versions');
         Schema::dropIfExists('speech_sandbox_attempts');
         Schema::dropIfExists('staff_audit_logs');
+        Schema::dropIfExists('staff_sessions');
         Schema::dropIfExists('equivalence_rules');
         Schema::dropIfExists('system_settings');
         Schema::dropIfExists('learner_portal_runs');
@@ -85,6 +90,16 @@ abstract class TestCase extends BaseTestCase
             $table->string('action_key', 80)->index();
             $table->string('description');
             $table->json('metadata')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('staff_sessions', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('staff_user_id')->constrained()->cascadeOnDelete();
+            $table->char('token_hash', 64)->unique();
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamp('expires_at')->index();
+            $table->timestamp('revoked_at')->nullable()->index();
             $table->timestamps();
         });
 
@@ -355,6 +370,21 @@ abstract class TestCase extends BaseTestCase
             $table->unique(['lesson_response_id', 'attempt_sequence']);
         });
 
+        Schema::create('staff_response_reviews', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('learner_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('reviewed_by_staff_user_id')->constrained('staff_users')->cascadeOnDelete();
+            $table->string('response_kind', 24);
+            $table->unsignedBigInteger('response_id');
+            $table->text('original_transcript')->nullable();
+            $table->string('original_decision', 32)->nullable();
+            $table->text('reviewed_transcript');
+            $table->string('reviewed_decision', 32);
+            $table->text('notes')->nullable();
+            $table->timestamps();
+            $table->index(['response_kind', 'response_id', 'id']);
+        });
+
         Schema::create('learner_achievements', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('learner_id')->constrained()->cascadeOnDelete();
@@ -364,5 +394,21 @@ abstract class TestCase extends BaseTestCase
             $table->timestamps();
             $table->unique(['learner_id', 'achievement_key']);
         });
+    }
+
+    protected function authenticateStaff(StaffUser $staffUser): string
+    {
+        $plainToken = Str::random(64);
+
+        StaffSession::query()->create([
+            'staff_user_id' => $staffUser->id,
+            'token_hash' => hash('sha256', $plainToken),
+            'last_used_at' => now(),
+            'expires_at' => now()->addHours(8),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer {$plainToken}");
+
+        return $plainToken;
     }
 }

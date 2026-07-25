@@ -10,6 +10,8 @@ import { TeacherAccountsPage } from "../src/features/staff-dashboard/TeacherAcco
 
 function saveSchoolAdminSession() {
   saveStaffSession({
+    token: "school-admin-token".repeat(4),
+    session: { expires_at: "2099-01-01T00:00:00Z" },
     staff: {
       id: 2,
       username: "school-admin-test",
@@ -42,6 +44,8 @@ describe("TeacherAccountsPage", () => {
 
   it("requires the School Administrator school setup", () => {
     saveStaffSession({
+      token: "school-admin-token".repeat(4),
+      session: { expires_at: "2099-01-01T00:00:00Z" },
       staff: {
         id: 2,
         username: "school-admin-test",

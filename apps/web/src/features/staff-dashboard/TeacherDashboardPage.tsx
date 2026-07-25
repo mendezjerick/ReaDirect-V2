@@ -65,12 +65,29 @@ function FlagIcon() {
   );
 }
 
+function formatActivityDate(value: string | null) {
+  if (!value) {
+    return "Time unavailable";
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export function TeacherDashboardPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const exitCommit = useButtonCommit();
   const acknowledgementCommit = useButtonCommit();
   const learnerCommit = useButtonCommit();
+  const importCommit = useButtonCommit();
+  const credentialCommit = useButtonCommit();
+  const reportsCommit = useButtonCommit();
+  const analyticsCommit = useButtonCommit();
+  const audioReviewCommit = useButtonCommit();
+  const activityCommit = useButtonCommit();
   const [session, setSession] = useState(loadStaffSession);
   const [assignmentAcknowledged, setAssignmentAcknowledged] = useState(false);
   const teacherSession = session?.staff.role === "teacher" ? session : null;
@@ -101,6 +118,7 @@ export function TeacherDashboardPage() {
 
       if (teacherSession) {
         const updatedSession = {
+          ...teacherSession,
           staff: {
             ...teacherSession.staff,
             requires_assignment_acknowledgement: false,
@@ -344,29 +362,65 @@ export function TeacherDashboardPage() {
                 <h2>Recent progress</h2>
               </div>
             </header>
-            <div className="staff-empty-state">
-              <span aria-hidden="true">0</span>
-              <div>
-                <strong>No learner activity yet</strong>
-                <p>Assessment and lesson activity will appear here.</p>
+            {overview?.recent_learner_activity.length ? (
+              <ol className="teacher-recent-activity">
+                {overview.recent_learner_activity.map((activity) => (
+                  <li key={activity.id}>
+                    <div className="teacher-recent-activity__summary">
+                      <div>
+                        <strong>{activity.learner_name}</strong>
+                        <span>{activity.learner_code}</span>
+                      </div>
+                      <span
+                        className={[
+                          "teacher-recent-activity__status",
+                          activity.status === "completed"
+                            ? "teacher-recent-activity__status--success"
+                            : "teacher-recent-activity__status--neutral",
+                        ].join(" ")}
+                      >
+                        {activity.status === "completed"
+                          ? "Completed"
+                          : "In progress"}
+                      </span>
+                    </div>
+                    <div className="teacher-recent-activity__details">
+                      <div>
+                        <span>{activity.title}</span>
+                        <time dateTime={activity.occurred_at ?? undefined}>
+                          {formatActivityDate(activity.occurred_at)}
+                        </time>
+                      </div>
+                      <BigButton
+                        className="teacher-recent-activity__review"
+                        variant="secondary"
+                        size="regular"
+                        committing={activityCommit.committing}
+                        onClick={() =>
+                          activityCommit.commit(() =>
+                            navigate(
+                              `/staff/teacher/learners/${activity.learner_id}`,
+                            ),
+                          )
+                        }
+                      >
+                        Review
+                      </BigButton>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : overview ? (
+              <div className="staff-empty-state">
+                <span aria-hidden="true">0</span>
+                <div>
+                  <strong>No learner activity yet</strong>
+                  <p>Assessment and lesson activity will appear here.</p>
+                </div>
               </div>
-            </div>
-          </Surface>
-
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>Optional learning</p>
-                <h2>Teacher-created lessons</h2>
-              </div>
-            </header>
-            <div className="staff-empty-state">
-              <span aria-hidden="true">0</span>
-              <div>
-                <strong>No optional lessons yet</strong>
-                <p>Your published class lessons will appear here.</p>
-              </div>
-            </div>
+            ) : (
+              <div className="staff-loading-block" />
+            )}
           </Surface>
         </section>
 
@@ -380,7 +434,7 @@ export function TeacherDashboardPage() {
               <p>Class management</p>
               <h2>Quick actions</h2>
             </div>
-            <span>Next workspaces</span>
+            <span>Teacher tools</span>
           </header>
           <div className="staff-quick-links__grid">
             <BigButton
@@ -393,20 +447,64 @@ export function TeacherDashboardPage() {
             >
               Create Learner
             </BigButton>
-            {[
-              "Import learners",
-              "Credential sheets",
-              "Create optional lesson",
-            ].map((label) => (
-              <BigButton
-                variant="secondary"
-                size="regular"
-                disabled
-                key={label}
-              >
-                {label} · Next
-              </BigButton>
-            ))}
+            <BigButton
+              variant="secondary"
+              size="regular"
+              committing={importCommit.committing}
+              onClick={() =>
+                importCommit.commit(() =>
+                  navigate("/staff/teacher/learners/import"),
+                )
+              }
+            >
+              Import Learners
+            </BigButton>
+            <BigButton
+              variant="secondary"
+              size="regular"
+              committing={credentialCommit.committing}
+              onClick={() =>
+                credentialCommit.commit(() =>
+                  navigate("/staff/teacher/learners/credentials"),
+                )
+              }
+            >
+              Credential Sheets
+            </BigButton>
+            <BigButton
+              variant="secondary"
+              size="regular"
+              committing={reportsCommit.committing}
+              onClick={() =>
+                reportsCommit.commit(() => navigate("/staff/teacher/reports"))
+              }
+            >
+              Reports
+            </BigButton>
+            <BigButton
+              variant="secondary"
+              size="regular"
+              committing={analyticsCommit.committing}
+              onClick={() =>
+                analyticsCommit.commit(() =>
+                  navigate("/staff/teacher/analytics"),
+                )
+              }
+            >
+              Analytics
+            </BigButton>
+            <BigButton
+              variant="secondary"
+              size="regular"
+              committing={audioReviewCommit.committing}
+              onClick={() =>
+                audioReviewCommit.commit(() =>
+                  navigate("/staff/teacher/audio-review"),
+                )
+              }
+            >
+              Audio Review
+            </BigButton>
           </div>
         </Surface>
       </div>

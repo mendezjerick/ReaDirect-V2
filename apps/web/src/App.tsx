@@ -8,6 +8,7 @@ import {
 } from "@readirect/game-lobby";
 
 import { RouteTransitionProvider } from "./components/transitions/RouteTransitionProvider";
+import { RequireStaffRole } from "./components/staff/RequireStaffRole";
 import { HomePage } from "./features/home/HomePage";
 import { IntroPage } from "./features/intro/IntroPage";
 
@@ -154,6 +155,44 @@ const SchoolAdminDashboardPage = lazy(() =>
   ),
 );
 
+const SchoolAdminProfilePage = lazy(() =>
+  import("./features/staff-dashboard/SchoolAdminProfilePage").then(
+    (module) => ({ default: module.SchoolAdminProfilePage }),
+  ),
+);
+
+const SchoolAdminClassesPage = lazy(() =>
+  import("./features/staff-dashboard/SchoolAdminClassesPage").then(
+    (module) => ({ default: module.SchoolAdminClassesPage }),
+  ),
+);
+
+const SchoolAdminLearnersPage = lazy(() =>
+  import("./features/staff-dashboard/SchoolAdminLearnersPage").then(
+    (module) => ({ default: module.SchoolAdminLearnersPage }),
+  ),
+);
+
+const SchoolAdminLearnerDetailPage = lazy(() =>
+  import("./features/staff-dashboard/SchoolAdminLearnerDetailPage").then(
+    (module) => ({ default: module.SchoolAdminLearnerDetailPage }),
+  ),
+);
+
+const SchoolAdminReportsPage = lazy(() =>
+  import("./features/staff-dashboard/SchoolAdminReportsPage").then(
+    (module) => ({ default: module.SchoolAdminReportsPage }),
+  ),
+);
+
+const SchoolAdminTeacherDashboardsPage = lazy(() =>
+  import("./features/staff-dashboard/SchoolAdminTeacherDashboardsPage").then(
+    (module) => ({
+      default: module.SchoolAdminTeacherDashboardsPage,
+    }),
+  ),
+);
+
 const TeacherAccountsPage = lazy(() =>
   import("./features/staff-dashboard/TeacherAccountsPage").then((module) => ({
     default: module.TeacherAccountsPage,
@@ -170,6 +209,66 @@ const LearnerAccountsPage = lazy(() =>
   import("./features/staff-dashboard/LearnerAccountsPage").then((module) => ({
     default: module.LearnerAccountsPage,
   })),
+);
+
+const TeacherLearnerImportPage = lazy(() =>
+  import("./features/staff-dashboard/TeacherLearnerImportPage").then(
+    (module) => ({
+      default: module.TeacherLearnerImportPage,
+    }),
+  ),
+);
+
+const TeacherCredentialSheetsPage = lazy(() =>
+  import("./features/staff-dashboard/TeacherCredentialSheetsPage").then(
+    (module) => ({
+      default: module.TeacherCredentialSheetsPage,
+    }),
+  ),
+);
+
+const TeacherLearnerDetailPage = lazy(() =>
+  import("./features/staff-dashboard/TeacherLearnerDetailPage").then(
+    (module) => ({
+      default: module.TeacherLearnerDetailPage,
+    }),
+  ),
+);
+
+const TeacherDiagnosticAssessmentPage = lazy(() =>
+  import("./features/staff-dashboard/TeacherDiagnosticAssessmentPage").then(
+    (module) => ({
+      default: module.TeacherDiagnosticAssessmentPage,
+    }),
+  ),
+);
+
+const TeacherFinalAssessmentPage = lazy(() =>
+  import("./features/staff-dashboard/TeacherFinalAssessmentPage").then(
+    (module) => ({
+      default: module.TeacherFinalAssessmentPage,
+    }),
+  ),
+);
+
+const TeacherReportsPage = lazy(() =>
+  import("./features/staff-dashboard/TeacherReportsPage").then((module) => ({
+    default: module.TeacherReportsPage,
+  })),
+);
+
+const TeacherAnalyticsPage = lazy(() =>
+  import("./features/staff-dashboard/TeacherAnalyticsPage").then((module) => ({
+    default: module.TeacherAnalyticsPage,
+  })),
+);
+
+const TeacherAudioReviewPage = lazy(() =>
+  import("./features/staff-dashboard/TeacherAudioReviewPage").then(
+    (module) => ({
+      default: module.TeacherAudioReviewPage,
+    }),
+  ),
 );
 
 function RouteLoading() {
@@ -247,50 +346,116 @@ export function App() {
             />
             <Route path="/staff/login" element={<StaffLoginPage />} />
             <Route
-              path="/staff/system-admin"
-              element={<SystemAdminDashboardPage />}
-            />
+              element={<RequireStaffRole allowedRoles={["system_admin"]} />}
+            >
+              <Route
+                path="/staff/system-admin"
+                element={<SystemAdminDashboardPage />}
+              />
+              <Route
+                path="/staff/system-admin/school-administrators"
+                element={<SchoolAdministratorsPage />}
+              />
+              <Route
+                path="/staff/system-admin/page-portals"
+                element={<SystemAdminPagePortalsPage />}
+              />
+              <Route
+                path="/staff/system-admin/isoletter-sandbox"
+                element={<IsoLetterSandboxPage />}
+              />
+              <Route
+                path="/staff/system-admin/true-sandbox"
+                element={<TrueSandboxPage />}
+              />
+              <Route
+                path="/staff/system-admin/equivalence-book"
+                element={<EquivalenceBookPage />}
+              />
+              <Route
+                path="/staff/system-admin/confusion-matrix"
+                element={<RawConfusionMatrixPage />}
+              />
+            </Route>
             <Route
-              path="/staff/system-admin/school-administrators"
-              element={<SchoolAdministratorsPage />}
-            />
-            <Route
-              path="/staff/system-admin/page-portals"
-              element={<SystemAdminPagePortalsPage />}
-            />
-            <Route
-              path="/staff/system-admin/isoletter-sandbox"
-              element={<IsoLetterSandboxPage />}
-            />
-            <Route
-              path="/staff/system-admin/true-sandbox"
-              element={<TrueSandboxPage />}
-            />
-            <Route
-              path="/staff/system-admin/equivalence-book"
-              element={<EquivalenceBookPage />}
-            />
-            <Route
-              path="/staff/system-admin/confusion-matrix"
-              element={<RawConfusionMatrixPage />}
-            />
-            <Route
-              path="/staff/school-admin/setup-school"
-              element={<SchoolAdminSetupPage />}
-            />
-            <Route
-              path="/staff/school-admin"
-              element={<SchoolAdminDashboardPage />}
-            />
-            <Route
-              path="/staff/school-admin/teachers"
-              element={<TeacherAccountsPage />}
-            />
-            <Route path="/staff/teacher" element={<TeacherDashboardPage />} />
-            <Route
-              path="/staff/teacher/learners"
-              element={<LearnerAccountsPage />}
-            />
+              element={<RequireStaffRole allowedRoles={["school_admin"]} />}
+            >
+              <Route
+                path="/staff/school-admin/setup-school"
+                element={<SchoolAdminSetupPage />}
+              />
+              <Route
+                path="/staff/school-admin"
+                element={<SchoolAdminDashboardPage />}
+              />
+              <Route
+                path="/staff/school-admin/teachers"
+                element={<TeacherAccountsPage />}
+              />
+              <Route
+                path="/staff/school-admin/profile"
+                element={<SchoolAdminProfilePage />}
+              />
+              <Route
+                path="/staff/school-admin/classes"
+                element={<SchoolAdminClassesPage />}
+              />
+              <Route
+                path="/staff/school-admin/learners"
+                element={<SchoolAdminLearnersPage />}
+              />
+              <Route
+                path="/staff/school-admin/learners/:learnerId"
+                element={<SchoolAdminLearnerDetailPage />}
+              />
+              <Route
+                path="/staff/school-admin/reports"
+                element={<SchoolAdminReportsPage />}
+              />
+              <Route
+                path="/staff/school-admin/teacher-dashboards"
+                element={<SchoolAdminTeacherDashboardsPage />}
+              />
+            </Route>
+            <Route element={<RequireStaffRole allowedRoles={["teacher"]} />}>
+              <Route path="/staff/teacher" element={<TeacherDashboardPage />} />
+              <Route
+                path="/staff/teacher/learners"
+                element={<LearnerAccountsPage />}
+              />
+              <Route
+                path="/staff/teacher/learners/import"
+                element={<TeacherLearnerImportPage />}
+              />
+              <Route
+                path="/staff/teacher/learners/credentials"
+                element={<TeacherCredentialSheetsPage />}
+              />
+              <Route
+                path="/staff/teacher/learners/:learnerId"
+                element={<TeacherLearnerDetailPage />}
+              />
+              <Route
+                path="/staff/teacher/assessments/diagnostic"
+                element={<TeacherDiagnosticAssessmentPage />}
+              />
+              <Route
+                path="/staff/teacher/assessments/final"
+                element={<TeacherFinalAssessmentPage />}
+              />
+              <Route
+                path="/staff/teacher/reports"
+                element={<TeacherReportsPage />}
+              />
+              <Route
+                path="/staff/teacher/analytics"
+                element={<TeacherAnalyticsPage />}
+              />
+              <Route
+                path="/staff/teacher/audio-review"
+                element={<TeacherAudioReviewPage />}
+              />
+            </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>

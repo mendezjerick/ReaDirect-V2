@@ -17,6 +17,7 @@ final class SystemAdminOverviewTest extends TestCase
             'display_name' => 'System Administrator',
             'is_active' => true,
         ]);
+        $this->authenticateStaff($staffUser);
 
         StaffAuditLog::query()->create([
             'staff_user_id' => $staffUser->id,
@@ -55,6 +56,7 @@ final class SystemAdminOverviewTest extends TestCase
             'display_name' => 'System Administrator',
             'is_active' => true,
         ]);
+        $this->authenticateStaff($staffUser);
 
         $endpoint = "/api/staff/system-admin/{$staffUser->id}/speech-settings/mu-noise-reduction";
 

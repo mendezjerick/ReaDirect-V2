@@ -212,7 +212,6 @@ Do not introduce Reading Journey achievements for:
 - Recording or answering quickly.
 - Daily logins, consecutive-day streaks, or attendance.
 - Comparing one learner with another.
-- Finishing optional teacher-created lessons.
 
 These criteria either conflict with the current academic rules, punish support
 needs, encourage rushing, or turn sensitive performance data into a reward
@@ -554,7 +553,6 @@ assessment results.
 - [ ] Each required lesson completion grants only its matching milestone.
 - [ ] Final Assessment completion grants `ReaDirect Champion`.
 - [ ] Scores, skips, retries, speed, and accuracy do not gate these awards.
-- [ ] Optional lessons do not grant or block Reading Journey milestones.
 
 ### Authority And Persistence
 

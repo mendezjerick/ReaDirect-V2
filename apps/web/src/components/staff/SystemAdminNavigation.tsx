@@ -30,7 +30,7 @@ export function StaffNavigation({
                       .filter(Boolean)
                       .join(" ")
                   }
-                  end
+                  end={item.end ?? true}
                   key={item.label}
                   onClick={onNavigate}
                   to={item.to}
