@@ -76,7 +76,41 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('learner.analytics_excluded', true)
             ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
             ->assertJsonPath('portal_launch.available', true)
-            ->assertJsonCount(39, 'portal_launch.targets');
+            ->assertJsonPath('portal_launch.targets.0.key', 'learner-dashboard')
+            ->assertJsonCount(40, 'portal_launch.targets');
+    }
+
+    public function test_system_admin_can_launch_the_learner_dashboard_as_the_first_portal(): void
+    {
+        (new PortalSystemLearnerSeeder)->run();
+        $learner = Learner::query()->where('learner_code', 'KW000')->firstOrFail();
+        $systemAdministrator = $this->createSystemAdministrator();
+
+        $launch = $this->postJson(
+            "/api/staff/system-admin/{$systemAdministrator->id}/page-portals/launch",
+            ['target_key' => 'learner-dashboard'],
+        )
+            ->assertOk()
+            ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
+            ->assertJsonPath('learner.active_portal_run.target_key', 'learner-dashboard')
+            ->assertJsonPath('launch.target_key', 'learner-dashboard')
+            ->assertJsonPath('launch.route', '/learner/dashboard')
+            ->assertJsonPath('launch.learner_session.learner.learner_code', 'KW000')
+            ->assertJsonPath(
+                'launch.learner_session.learner.progress.stage',
+                'before_diagnostic',
+            );
+
+        $this->assertSame(0, AssessmentRun::query()->where('learner_id', $learner->id)->count());
+        $this->assertSame(0, LessonRun::query()->where('learner_id', $learner->id)->count());
+        $this->assertDatabaseHas('staff_audit_logs', [
+            'staff_user_id' => $systemAdministrator->id,
+            'action_key' => 'portal_system_learner.portal_launched',
+        ]);
+        $this->withToken($launch->json('launch.learner_session.token'))
+            ->getJson('/api/learners/session')
+            ->assertOk()
+            ->assertJsonPath('learner.progress.stage', 'before_diagnostic');
     }
 
     public function test_kw000_can_use_normal_case_insensitive_learner_login(): void
@@ -210,10 +244,16 @@ final class PortalSystemLearnerTest extends TestCase
                     ->assertOk()
                     ->assertJsonPath('stage', $stage);
             } else {
-                $this->withToken($token)
+                $partTwoState = $this->withToken($token)
                     ->get('/api/learners/assessments/part-two/current')
                     ->assertOk()
                     ->assertJsonPath('stage', $stage);
+                if ($targetKey === 'assessment-complete') {
+                    $partTwoState->assertJsonPath(
+                        'completion.achievement_keys.0',
+                        'reading.ready_reader',
+                    );
+                }
             }
 
             $run = AssessmentRun::query()
@@ -223,6 +263,13 @@ final class PortalSystemLearnerTest extends TestCase
             $this->assertSame($stage, $run->stage);
             $this->assertSame($taskOneScore, $run->task_1a_score);
             $this->assertSame($taskTwoAScore, $run->task_2a_score);
+            if ($targetKey === 'assessment-complete') {
+                $this->assertSame(AssessmentRun::STATUS_COMPLETED, $run->status);
+                $this->assertDatabaseHas('learner_achievements', [
+                    'learner_id' => $learner->id,
+                    'achievement_key' => 'reading.ready_reader',
+                ]);
+            }
             $this->assertSame(
                 $responseCount,
                 AssessmentResponse::query()

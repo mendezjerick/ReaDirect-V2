@@ -1,0 +1,40 @@
+.reading-journey-achievement-icon {
+  display: grid;
+  width: clamp(2.35rem, 10vw, 3rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-control);
+  padding: 0.2rem;
+  background: var(--color-surface-panel);
+  box-shadow: 0 3px 0 var(--color-frame-depth);
+  transition:
+    filter 180ms ease-out,
+    opacity 180ms ease-out,
+    transform 180ms ease-out;
+}
+
+.reading-journey-achievement-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+  user-select: none;
+}
+
+li:not([data-earned]) .reading-journey-achievement-icon {
+  filter: grayscale(1);
+  opacity: 0.38;
+}
+
+li[data-earned] .reading-journey-achievement-icon {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-journey-achievement-icon {
+    transition: none;
+  }
+}

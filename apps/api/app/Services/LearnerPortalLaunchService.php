@@ -7,6 +7,7 @@ use App\Models\AssessmentRun;
 use App\Models\Learner;
 use App\Models\LearnerAchievement;
 use App\Models\LearnerPortalRun;
+use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
 use App\Models\LessonResponse;
 use App\Models\LessonRun;
@@ -17,6 +18,8 @@ use Illuminate\Support\Str;
 
 final class LearnerPortalLaunchService
 {
+    public const DASHBOARD_ROUTE = '/learner/dashboard';
+
     public const PART_ONE_ROUTE = '/learner/assessment/part-one';
 
     public const PART_TWO_ROUTE = '/learner/assessment/part-two';
@@ -52,6 +55,12 @@ final class LearnerPortalLaunchService
     public static function targets(): array
     {
         return [
+            [
+                'key' => 'learner-dashboard',
+                'label' => 'Learner Dashboard',
+                'description' => 'Open Kristen at the normal learner starting dashboard.',
+                'task' => 'Dashboard',
+            ],
             [
                 'key' => 'assessment-orientation',
                 'label' => 'Microphone check',
@@ -302,12 +311,22 @@ final class LearnerPortalLaunchService
     {
         return DB::transaction(function () use ($learner, $actor, $targetKey): array {
             $learner = $this->resetService->reset($learner, $actor);
+            $isDashboardTarget = $targetKey === 'learner-dashboard';
             $isLessonTarget = str_starts_with($targetKey, 'lesson-');
             $isFinalAssessmentTarget = str_starts_with(
                 $targetKey,
                 'final-assessment-',
             );
-            if ($isLessonTarget) {
+            $run = null;
+            if ($isDashboardTarget) {
+                $learner->progressState()->updateOrCreate([], [
+                    'stage' => LearnerProgressState::BASELINE_STAGE,
+                    'current_required_lesson_order' => null,
+                    'diagnostic_completed_at' => null,
+                    'final_assessment_completed_at' => null,
+                    'last_confirmed_at' => now(),
+                ]);
+            } elseif ($isLessonTarget) {
                 $run = $this->prepareLessonPortal($learner, $targetKey);
                 $learner->progressState()->updateOrCreate([], [
                     'stage' => 'required_lessons',
@@ -333,6 +352,9 @@ final class LearnerPortalLaunchService
                 $snapshot = $this->contentCatalog->assessmentSnapshot();
                 $run = $this->createAssessmentRun($learner, $snapshot, $targetKey);
                 $this->seedPrerequisites($run, $targetKey);
+                if ($targetKey === 'assessment-complete') {
+                    $run = $this->assessmentCompletion->complete($run);
+                }
             }
 
             $expiresAt = now()->addHour();
@@ -354,23 +376,31 @@ final class LearnerPortalLaunchService
                 'expires_at' => $expiresAt,
             ]);
 
+            $auditMetadata = [
+                'learner_id' => $learner->id,
+                'learner_code' => $learner->learner_code,
+                'target_key' => $targetKey,
+            ];
+            if ($run !== null) {
+                $auditMetadata[
+                    $isLessonTarget ? 'lesson_run_id' : 'assessment_run_id'
+                ] = $run->id;
+            }
+
             StaffAuditLog::query()->create([
                 'staff_user_id' => $actor->id,
                 'action_key' => 'portal_system_learner.portal_launched',
                 'description' => "Opened {$targetKey} for portal system Learner {$learner->learner_code}.",
-                'metadata' => [
-                    'learner_id' => $learner->id,
-                    'learner_code' => $learner->learner_code,
-                    'target_key' => $targetKey,
-                    ($isLessonTarget ? 'lesson_run_id' : 'assessment_run_id') => $run->id,
-                ],
+                'metadata' => $auditMetadata,
             ]);
 
             return [
                 'learner' => $learner->fresh(),
                 'token' => $plainToken,
                 'target_key' => $targetKey,
-                'route' => $this->routeFor($targetKey).($isLessonTarget ? '?run='.$run->id : ''),
+                'route' => $this->routeFor($targetKey).(
+                    $isLessonTarget && $run !== null ? '?run='.$run->id : ''
+                ),
                 'expires_at' => $expiresAt->toIso8601String(),
             ];
         });
@@ -1255,6 +1285,10 @@ final class LearnerPortalLaunchService
 
     private function routeFor(string $targetKey): string
     {
+        if ($targetKey === 'learner-dashboard') {
+            return self::DASHBOARD_ROUTE;
+        }
+
         if (str_starts_with($targetKey, 'final-assessment-')) {
             $checkpointKey = $this->assessmentCheckpointKey($targetKey);
             if ($checkpointKey === 'assessment-complete') {

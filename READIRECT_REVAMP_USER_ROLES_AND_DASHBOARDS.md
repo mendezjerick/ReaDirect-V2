@@ -142,6 +142,9 @@ System Administrator page portal and ASR review tools:
   prerequisite records that the real learner workflow would create before the
   chosen target. A portal must never invent a parallel or display-only progress
   state.
+- `Learner Dashboard` is always the first Page Portal destination. It resets
+  Kristen to `before_diagnostic`, creates no assessment or lesson run, and
+  opens `/learner/dashboard` with the standard one-hour portal session.
 - Leaving or ending a Page Portal resets Kristen to `before_diagnostic` and
   revokes its session. Expired runs must receive the same cleanup.
 - The Page Portals workspace provides a manual reset control. Resetting revokes

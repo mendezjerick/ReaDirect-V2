@@ -307,8 +307,7 @@ final class LearnerAssessmentPartOneController extends Controller
         });
 
         $run->refresh();
-        if ($run->assessment_type === AssessmentRun::TYPE_FINAL
-            && $run->stage === 'assessment-complete') {
+        if ($run->stage === 'assessment-complete') {
             $this->completion->complete($run);
         }
 

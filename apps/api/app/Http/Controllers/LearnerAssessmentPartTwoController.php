@@ -55,15 +55,14 @@ final class LearnerAssessmentPartTwoController extends Controller
         $run = AssessmentRun::query()
             ->where('learner_id', $session->learner_id)
             ->where('assessment_type', $assessmentType)
-            ->where(function ($query) use ($assessmentType): void {
-                $query->where('status', AssessmentRun::STATUS_ACTIVE);
-                if ($assessmentType === AssessmentRun::TYPE_FINAL) {
-                    $query->orWhere(function ($completed): void {
+            ->where(function ($query): void {
+                $query
+                    ->where('status', AssessmentRun::STATUS_ACTIVE)
+                    ->orWhere(function ($completed): void {
                         $completed
                             ->where('status', AssessmentRun::STATUS_COMPLETED)
                             ->where('stage', 'assessment-complete');
                     });
-                }
             })
             ->whereIn('stage', self::ACTIVE_STAGES)
             ->latest('id')
@@ -303,8 +302,7 @@ final class LearnerAssessmentPartTwoController extends Controller
         });
 
         $run->refresh();
-        if ($run->assessment_type === AssessmentRun::TYPE_FINAL
-            && $run->stage === 'assessment-complete') {
+        if ($run->stage === 'assessment-complete') {
             $run = $this->completion->complete($run);
         }
 
@@ -427,7 +425,6 @@ final class LearnerAssessmentPartTwoController extends Controller
                     ->orWhere(function ($completed): void {
                         $completed
                             ->where('status', AssessmentRun::STATUS_COMPLETED)
-                            ->where('assessment_type', AssessmentRun::TYPE_FINAL)
                             ->where('stage', 'assessment-complete');
                     });
             })

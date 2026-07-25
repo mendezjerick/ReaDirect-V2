@@ -63,6 +63,37 @@
   --color-action-skip-border: #bca9a9;
   --color-action-skip-depth: #d8c5c5;
 
+  /* Recessed learner achievement case */
+  --color-achievement-holder-rim: #493a55;
+  --color-achievement-holder-depth: #211927;
+  --color-achievement-holder-shadow: #0c0910;
+  --color-achievement-well: #08070d;
+  --color-achievement-well-depth: #020204;
+  --color-achievement-slot: #17111f;
+  --color-achievement-slot-border: #6b587b;
+  --color-achievement-slot-depth: #030205;
+  --color-achievement-selected: var(--color-accent-sun);
+  --color-achievement-selected-outline: color-mix(
+    in srgb,
+    var(--color-achievement-selected) 35%,
+    var(--color-transparent)
+  );
+  --color-achievement-earned: #f3c85b;
+  --color-achievement-detail-text: #fffdf7;
+  --color-achievement-detail-muted: #c5b9d0;
+  --color-achievement-overlay-scrim: color-mix(
+    in srgb,
+    var(--color-live2d-recolor-base) 82%,
+    var(--color-transparent)
+  );
+  --color-achievement-overlay-text: #ffffff;
+  --color-achievement-overlay-accent: #f3c85b;
+  --color-achievement-overlay-spark: #fff1a8;
+  --color-achievement-overlay-frame: #f3c85b;
+  --color-achievement-overlay-icon-well: #08070d;
+  --color-achievement-overlay-icon-depth: #211927;
+  --color-achievement-overlay-shadow: #020204;
+
   --color-success: #247451;
   --color-success-soft: #e8f6ef;
   --color-warning: #9a5a00;

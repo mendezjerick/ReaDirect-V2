@@ -16,8 +16,14 @@ const portalState = {
   portal_launch: {
     available: true,
     reason:
-      "Diagnostic assessment checkpoints are ready. Lesson checkpoints remain unavailable until their persisted workflow exists.",
+      "The Learner Dashboard and all implemented workflow checkpoints are ready for persisted testing.",
     targets: [
+      {
+        key: "learner-dashboard",
+        label: "Learner Dashboard",
+        description: "Open Kristen at the normal learner starting dashboard.",
+        task: "Dashboard",
+      },
       {
         key: "assessment-orientation",
         label: "Microphone check",
