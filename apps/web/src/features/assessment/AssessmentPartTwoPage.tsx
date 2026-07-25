@@ -4,6 +4,10 @@ import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { AchievementUnlockOverlay } from "../achievements/AchievementUnlockOverlay";
+import { ReadingJourneyAchievementIcon } from "../achievements/ReadingJourneyAchievementIcon";
+import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
+import { useReadingJourneyAchievementUnlock } from "../achievements/useReadingJourneyAchievementUnlock";
 import {
   playClaraSpeech,
   prepareClaraSpeech,
@@ -17,8 +21,8 @@ import {
 } from "../clara-audio/activitySpeechReadiness";
 import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPreparation";
 import { ClaraStage } from "../intro/ClaraStage";
+import { LearnerActivityResult } from "../learner-activity/LearnerActivityResult";
 import { PassageReadingResult } from "../learner-activity/PassageReadingResult";
-import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
 import { PointerTrail } from "../intro/PointerTrail";
 import { VectorCursor } from "../intro/VectorCursor";
 import { ComprehensionChoiceGrid } from "../learner-activity/ComprehensionChoiceGrid";
@@ -241,6 +245,30 @@ function AssessmentCompletion({ state }: { state: AssessmentPartTwoState }) {
   const reduceMotion = useReducedMotion();
   if (!state.completion) return null;
   const isFinale = state.completion.kind === "reading-journey-finale";
+
+  if (!isFinale) {
+    return (
+      <LearnerActivityResult
+        ariaLabel="Diagnostic completion summary"
+        segments={[
+          {
+            key: "diagnostic",
+            label: "Diagnostic",
+            value: "Complete",
+            status: "Reading path set",
+          },
+          {
+            key: "next-step",
+            label: "Next step",
+            value: "Lesson 1",
+            status: "Ready to begin",
+          },
+        ]}
+        level={readingJourneyAchievements[0].name}
+      />
+    );
+  }
+
   const earned = new Set(state.completion.achievement_keys);
 
   return (
@@ -273,11 +301,13 @@ function AssessmentCompletion({ state }: { state: AssessmentPartTwoState }) {
                   earned.has(achievement.key) ? "Earned" : "Not earned"
                 }`}
               >
-                <span aria-hidden="true">★</span>
-                <strong>{achievement.name}</strong>
+                <ReadingJourneyAchievementIcon achievement={achievement} />
               </li>
             ))}
           </ol>
+          <strong className="assessment-completion__journey-label">
+            Reading Journey Complete
+          </strong>
         </>
       ) : null}
       <div className="assessment-result__particles" aria-hidden="true">
@@ -342,6 +372,22 @@ export function AssessmentPartTwoPage({
 
   const speechKey = state ? getPartTwoSpeechKey(state) : null;
   const nextSpeechKey = state ? getNextPartTwoSpeechKey(state) : null;
+  const expectedCompletionAchievement =
+    assessmentType === "final"
+      ? readingJourneyAchievements[7]
+      : readingJourneyAchievements[0];
+  const completionAchievementKey =
+    state?.stage === "assessment-complete" &&
+    state.completion?.achievement_keys.includes(
+      expectedCompletionAchievement.key,
+    )
+      ? expectedCompletionAchievement.key
+      : null;
+  const achievementUnlock = useReadingJourneyAchievementUnlock({
+    sourceId: state ? `assessment-run:${state.run_id}` : null,
+    achievementKey: completionAchievementKey,
+    presentationReady: claraReady,
+  });
 
   useEffect(() => {
     if (speechKey !== null) return;
@@ -396,6 +442,7 @@ export function AssessmentPartTwoPage({
     if (
       activityPreparation.status !== "ready" ||
       !claraReady ||
+      achievementUnlock.pending ||
       !speechKey ||
       preparedGuide?.key !== speechKey
     )
@@ -423,7 +470,13 @@ export function AssessmentPartTwoPage({
       playbackRef.current?.stop();
       playbackRef.current = null;
     };
-  }, [activityPreparation.status, claraReady, preparedGuide, speechKey]);
+  }, [
+    activityPreparation.status,
+    achievementUnlock.pending,
+    claraReady,
+    preparedGuide,
+    speechKey,
+  ]);
 
   const resetKey = useMemo(
     () => `${state?.stage ?? "loading"}:${state?.item?.item_key ?? "none"}`,
@@ -528,6 +581,11 @@ export function AssessmentPartTwoPage({
     recorder.state === "recording" ||
     recorder.state === "playing";
   const copy = stageCopy[state.stage];
+  const pageCopy =
+    state.stage === "assessment-complete" &&
+    state.completion?.kind === "diagnostic"
+      ? { eyebrow: "Milestone reached", title: "Diagnostic Results" }
+      : copy;
   const emotion =
     isResult || isCompletion
       ? "happy"
@@ -610,6 +668,9 @@ export function AssessmentPartTwoPage({
   return (
     <main
       className={`assessment-page assessment-part-two learner-flow-page learner-typography-page assessment-part-two--${state.stage}`}
+      data-assessment-completion-kind={
+        isCompletion ? state.completion?.kind : undefined
+      }
       data-route-focus
       tabIndex={-1}
     >
@@ -625,8 +686,8 @@ export function AssessmentPartTwoPage({
       <VectorCursor />
       <header className="assessment-header">
         <div>
-          <p>{copy.eyebrow}</p>
-          <h1>{copy.title}</h1>
+          <p>{pageCopy.eyebrow}</p>
+          <h1>{pageCopy.title}</h1>
         </div>
         <ProgressRail state={state} />
       </header>
@@ -759,6 +820,13 @@ export function AssessmentPartTwoPage({
         <p className="assessment-save-error" role="alert">
           {loadingError}
         </p>
+      ) : null}
+      {achievementUnlock.achievement ? (
+        <AchievementUnlockOverlay
+          achievement={achievementUnlock.achievement}
+          open={achievementUnlock.open}
+          onDismiss={achievementUnlock.dismiss}
+        />
       ) : null}
     </main>
   );

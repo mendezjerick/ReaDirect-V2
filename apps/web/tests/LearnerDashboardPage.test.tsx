@@ -168,6 +168,29 @@ describe("LearnerDashboardPage", () => {
     );
   });
 
+  it("shows the selected badge details from the recessed achievement case", () => {
+    renderDashboard();
+
+    const readyReader = screen.getByRole("button", {
+      name: "View Ready Reader achievement",
+    });
+    const wordWizard = screen.getByRole("button", {
+      name: "View Word Wizard achievement",
+    });
+
+    expect(readyReader).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByText("Complete the Diagnostic Assessment"),
+    ).toBeVisible();
+
+    fireEvent.click(wordWizard);
+
+    expect(readyReader).toHaveAttribute("aria-pressed", "false");
+    expect(wordWizard).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Word Wizard")).toBeVisible();
+    expect(screen.getByText("Complete Lesson 2: Words")).toBeVisible();
+  });
+
   it("opens Learn with Ma'am Clara before the diagnostic", () => {
     renderDashboard("before_diagnostic");
 

@@ -334,7 +334,7 @@ achievement animation. It is no longer treated as a lobby-local effect.
 Required presentation:
 
 - Dim the current surface with a theme-token backdrop.
-- Center one achievement badge or placeholder artwork in a focused container.
+- Center the achievement's approved pixel icon in a focused container.
 - Keep only the unlock label, achievement name, artwork, and `Tap to continue`
   action prominent.
 - Use a deliberate slow-pop entrance with a small scale overshoot and settle.
@@ -369,8 +369,8 @@ It contains two categories:
 Gallery rules:
 
 - Positions never shift based on what the account has earned.
-- Locked positions show a silhouette or central placeholder and the visible
-  learner-facing criterion.
+- Locked positions show a muted grayscale rendering of their permanent icon and
+  the visible learner-facing criterion.
 - Earned positions show the approved artwork, name, and earned date.
 - Newly earned but not yet acknowledged positions may show a small `New` marker.
 - Hidden criteria are prohibited for the Reading Journey category.
@@ -378,10 +378,33 @@ Gallery rules:
   can be clicked to unlock.
 - Achievement artwork is a reward asset and is not an instructional lesson
   image; it does not violate the lesson no-image rule.
-- Artwork sources belong in `assets/illustrations/rewards/`; optimized runtime
-  copies belong in the web public asset structure defined by the Project
-  Structure Standard.
-- Placeholder artwork remains acceptable until final reward artwork exists.
+- Reading Journey icon sources belong in
+  `assets/icons/source/achievements/`; approved runtime copies belong in
+  `apps/web/public/assets/icons/achievements/`.
+- Runtime icons use transparent pixel artwork inside a shared, theme-variable
+  frame. Do not use baked icon backgrounds, smooth interpolation, emoji,
+  Unicode stars, or one repeated placeholder.
+- Render pixel icons with nearest-neighbor or `image-rendering: pixelated`.
+- Every permanent Reading Journey achievement uses a different icon.
+- The Learner Dashboard presents the eight Reading Journey icons in a fixed
+  four-by-two near-black recessed badge case.
+- Selecting a badge keeps the grid compact and presents its name, criterion,
+  and explicit `Earned` or `Locked` status in the detail strip below the case.
+- The raised rim, inner well, slots, borders, selected outline, and fake depth
+  must use the `--color-achievement-*` theme-variable family.
+
+Approved Reading Journey icon mapping:
+
+| Achievement | Pixel symbol | Runtime asset |
+| --- | --- | --- |
+| Ready Reader | First-aid cross | `ready-reader.png` |
+| Letter Leader | Letter-like `I` tablet | `letter-leader.png` |
+| Word Wizard | Green magic emblem | `word-wizard.png` |
+| Phrase Pro | Red triangle stone | `phrase-pro.png` |
+| Sentence Star | Star | `sentence-star.png` |
+| Passage Explorer | Crossed explorer tools | `passage-explorer.png` |
+| Question Detective | Question-mark vial | `question-detective.png` |
+| ReaDirect Champion | Trophy | `readirect-champion.png` |
 
 The gallery must use a responsive grid. It may scroll as part of the Learner
 Dashboard; it must not force a lesson, assessment, or active game screen to
@@ -392,9 +415,9 @@ become scrollable.
 The obsolete placeholder keys and criteria `first-steps`, `lesson-one`,
 `word-helper`, `steady-reader`, `game-starter`, and `final-reader` have been
 removed. The Learner Dashboard now renders the eight canonical Reading Journey
-identities in this standard and marks server-reported earned keys. Moving the
-remaining display metadata into the shared database catalog remains required
-before the gallery is considered fully integrated.
+identities and their approved distinct pixel icons, and marks server-reported
+earned keys. Moving the remaining display metadata into the shared database
+catalog remains required before the gallery is considered fully integrated.
 
 The integrated gallery renders the eight Reading Journey records in this
 standard plus centrally approved game achievements returned by Laravel. It does
@@ -410,6 +433,17 @@ Final Assessment completion and `reading_journey_complete` progression. The
 completion idempotent. `KW000` reset deletes its assessment runs, lesson runs,
 private activity audio, and awards as part of the approved portal-only reset
 exception.
+
+The learner completion UI now composes one shared unlock overlay for all eight
+Reading Journey milestones. Diagnostic low-path completion, Diagnostic
+high-path completion, Lessons 1 through 6, their completed portal checkpoints,
+and Final Assessment completion all present only the canonical achievement key
+returned by their committed server state. Clara's model-loading reveal has
+priority; completion speech waits until the learner acknowledges the overlay.
+The current run-scoped browser acknowledgement prevents an immediate refresh
+replay during this frontend stage. The central account queue and server-side
+`acknowledged_at` API defined below remain required for cross-device recovery,
+Dashboard fallback presentation, and Game Lobby integration.
 
 ## Data Contract
 

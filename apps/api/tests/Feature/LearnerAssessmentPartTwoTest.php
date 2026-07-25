@@ -223,7 +223,17 @@ final class LearnerAssessmentPartTwoTest extends TestCase
             ->post("/api/learners/assessments/part-two/{$run->id}/continue")
             ->assertOk()
             ->assertJsonPath('stage', 'assessment-complete')
-            ->assertJsonPath('completion.message', 'Your first lesson is ready.');
+            ->assertJsonPath('completion.message', 'Your first lesson is ready.')
+            ->assertJsonPath(
+                'completion.achievement_keys.0',
+                'reading.ready_reader',
+            );
+
+        $this->assertSame(AssessmentRun::STATUS_COMPLETED, $run->fresh()->status);
+        $this->assertDatabaseHas('learner_achievements', [
+            'learner_id' => $run->learner_id,
+            'achievement_key' => 'reading.ready_reader',
+        ]);
 
         $this->withToken($token)
             ->post("/api/learners/assessments/part-two/{$run->id}/finish")

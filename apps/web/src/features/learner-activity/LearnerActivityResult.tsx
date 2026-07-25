@@ -11,8 +11,8 @@ export interface LearnerActivityResultSegment {
 interface LearnerActivityResultProps {
   ariaLabel: string;
   segments: LearnerActivityResultSegment[];
-  score: ReactNode;
-  maximum: ReactNode;
+  score?: ReactNode;
+  maximum?: ReactNode;
   level: ReactNode;
 }
 
@@ -60,15 +60,17 @@ export function LearnerActivityResult({
         ))}
       </div>
 
-      <motion.div
-        className="assessment-result__score"
-        initial={reduceMotion ? false : { opacity: 0, scale: 0.94 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: reduceMotion ? 0 : 0.55, duration: 0.35 }}
-      >
-        <strong>{score}</strong>
-        <span>/ {maximum}</span>
-      </motion.div>
+      {score !== undefined && maximum !== undefined ? (
+        <motion.div
+          className="assessment-result__score"
+          initial={reduceMotion ? false : { opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: reduceMotion ? 0 : 0.55, duration: 0.35 }}
+        >
+          <strong>{score}</strong>
+          <span>/ {maximum}</span>
+        </motion.div>
+      ) : null}
 
       <motion.p
         className="assessment-result__level"

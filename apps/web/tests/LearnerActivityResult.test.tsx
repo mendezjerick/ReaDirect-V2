@@ -62,4 +62,17 @@ describe("LearnerActivityResult", () => {
       "assessment-result__segments--centered-pair",
     );
   });
+
+  it("supports a non-score completion summary", () => {
+    const { container } = render(
+      <LearnerActivityResult
+        ariaLabel="Completion milestone"
+        segments={[segment("Diagnostic"), segment("Next step")]}
+        level="Ready Reader"
+      />,
+    );
+
+    expect(screen.getByText("Ready Reader")).toBeVisible();
+    expect(container.querySelector(".assessment-result__score")).toBeNull();
+  });
 });

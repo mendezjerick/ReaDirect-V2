@@ -1119,9 +1119,8 @@
   outline-offset: 2px;
 }
 
-.assessment-completion__journey span {
-  color: var(--color-action-primary);
-  font-size: clamp(1rem, 3.4vw, 1.55rem);
+.assessment-completion__journey .reading-journey-achievement-icon {
+  width: clamp(2rem, 7vw, 2.75rem);
 }
 
 .assessment-completion__journey strong {
@@ -1130,6 +1129,43 @@
   font-size: clamp(0.48rem, 1.55vw, 0.7rem);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.assessment-completion--finale .assessment-completion__journey {
+  width: min(100%, 30rem);
+  gap: clamp(0.4rem, 1.6vw, 0.7rem);
+}
+
+.assessment-completion--finale .assessment-completion__journey li {
+  aspect-ratio: 1;
+  padding: clamp(0.3rem, 1.4vw, 0.55rem);
+  border-color: var(--color-border-warm);
+  background: var(--color-surface-panel);
+  box-shadow: 0 5px 0 var(--color-frame-depth);
+}
+
+.assessment-completion--finale .assessment-completion__journey li[data-earned] {
+  background: var(--color-surface-notice);
+}
+
+.assessment-completion--finale
+  .assessment-completion__journey
+  .reading-journey-achievement-icon {
+  width: 92%;
+  max-width: 5rem;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: var(--color-transparent);
+  box-shadow: none;
+}
+
+.assessment-completion__journey-label {
+  color: var(--color-action-primary-depth);
+  font-size: clamp(0.85rem, 3vw, 1.15rem);
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .assessment-save-error {

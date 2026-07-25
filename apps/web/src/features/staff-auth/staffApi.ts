@@ -147,6 +147,7 @@ export type TeacherOverview = z.infer<typeof teacherOverviewSchema>;
 export type SystemAdminOverview = z.infer<typeof systemAdminOverviewSchema>;
 
 const portalTargetKeySchema = z.enum([
+  "learner-dashboard",
   "assessment-orientation",
   "assessment-task-1a",
   "assessment-task-2a",

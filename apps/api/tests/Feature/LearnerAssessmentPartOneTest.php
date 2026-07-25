@@ -234,8 +234,22 @@ final class LearnerAssessmentPartOneTest extends TestCase
 
         $run->refresh();
         $this->assertSame('assessment-complete', $run->stage);
+        $this->assertSame(AssessmentRun::STATUS_COMPLETED, $run->status);
         $this->assertSame(0, $run->final_reading_score);
         $this->assertSame('Low Emerging Reader', $run->final_reading_profile);
+        $this->assertDatabaseHas('learner_achievements', [
+            'learner_id' => $run->learner_id,
+            'achievement_key' => 'reading.ready_reader',
+        ]);
+
+        $this->withToken($token)
+            ->get('/api/learners/assessments/part-two/current')
+            ->assertOk()
+            ->assertJsonPath('stage', 'assessment-complete')
+            ->assertJsonPath(
+                'completion.achievement_keys.0',
+                'reading.ready_reader',
+            );
     }
 
     /** @return array{string, AssessmentRun} */

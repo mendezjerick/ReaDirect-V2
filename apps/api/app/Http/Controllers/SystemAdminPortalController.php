@@ -127,7 +127,7 @@ final class SystemAdminPortalController extends Controller
             ],
             'portal_launch' => [
                 'available' => true,
-                'reason' => 'Diagnostic Assessment, Lesson 1, and Lesson 2 checkpoints are ready for persisted workflow testing.',
+                'reason' => 'The Learner Dashboard and all implemented workflow checkpoints are ready for persisted testing.',
                 'targets' => LearnerPortalLaunchService::targets(),
             ],
         ];

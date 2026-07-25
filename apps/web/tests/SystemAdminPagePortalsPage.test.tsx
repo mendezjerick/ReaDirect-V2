@@ -28,8 +28,14 @@ const response = {
   portal_launch: {
     available: true,
     reason:
-      "Diagnostic assessment checkpoints are ready. Lesson checkpoints remain unavailable until their persisted workflow exists.",
+      "The Learner Dashboard and all implemented workflow checkpoints are ready for persisted testing.",
     targets: [
+      {
+        key: "learner-dashboard",
+        label: "Learner Dashboard",
+        description: "Open Kristen at the normal learner starting dashboard.",
+        task: "Dashboard",
+      },
       {
         key: "assessment-orientation",
         label: "Microphone check",
@@ -162,6 +168,9 @@ describe("SystemAdminPagePortalsPage", () => {
     expect(screen.getByText("Rhyme Yes / No")).toBeVisible();
     expect(screen.getByText("Passage Reading")).toBeVisible();
     expect(screen.getByText("Assessment Complete")).toBeVisible();
+    expect(
+      screen.getAllByRole("button", { name: /^Open .* portal$/ })[0],
+    ).toHaveAccessibleName("Open Learner Dashboard portal");
     expect(
       screen.getByRole("button", { name: "Open Words portal" }),
     ).toBeEnabled();

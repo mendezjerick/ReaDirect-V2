@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -280,6 +281,61 @@ describe("AssessmentPartTwoPage", () => {
     expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
   });
 
+  it("reveals Ready Reader once over Diagnostic completion before Clara speaks", async () => {
+    speechMocks.prepare.mockResolvedValue(new Blob(["wave"]));
+    speechMocks.play.mockResolvedValue({
+      finished: Promise.resolve(),
+      stop: vi.fn(),
+    });
+    renderPartTwo([
+      state({
+        stage: "assessment-complete",
+        story_choices: [],
+        completion: {
+          kind: "diagnostic",
+          title: "Assessment complete",
+          message: "Your first lesson is ready.",
+          achievement_keys: ["reading.ready_reader"],
+        },
+      }),
+    ]);
+
+    expect(
+      await screen.findByRole("heading", { name: "Diagnostic Results" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("Diagnostic completion summary")).toHaveClass(
+      "assessment-result__segments--centered-pair",
+    );
+    expect(screen.queryByText("Your first lesson is ready.")).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await readyClara();
+    const dialog = await screen.findByRole("dialog", {
+      name: "Achievement unlocked",
+    });
+    expect(dialog).toBeVisible();
+    expect(within(dialog).getByText("Ready Reader")).toBeVisible();
+    expect(within(dialog).getByText("Tap to continue")).toBeVisible();
+    await waitFor(() => expect(speechMocks.prepare).toHaveBeenCalled());
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Achievement unlockedReady ReaderTap to continue/i,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Achievement unlocked" }),
+      ).toBeNull(),
+    );
+    await waitFor(() => expect(speechMocks.play).toHaveBeenCalled());
+    expect(
+      window.sessionStorage.getItem(
+        "readirect.achievement-unlock.assessment-run:12.reading.ready_reader",
+      ),
+    ).toBe("dismissed");
+  });
+
   it("renders the committed Final Assessment finale from the final API", async () => {
     speechMocks.prepare.mockResolvedValue(new Blob(["wave"]));
     speechMocks.play.mockResolvedValue({
@@ -324,14 +380,27 @@ describe("AssessmentPartTwoPage", () => {
       expect.any(Object),
     );
     expect(screen.getByText("8 of 8")).toBeVisible();
-    expect(
-      screen.getByRole("list", {
-        name: "Completed Reading Journey achievements",
-      }).children,
-    ).toHaveLength(8);
+    const achievementGrid = screen.getByRole("list", {
+      name: "Completed Reading Journey achievements",
+    });
+    expect(achievementGrid.children).toHaveLength(8);
+    expect(achievementGrid.querySelectorAll("strong")).toHaveLength(0);
+    expect(achievementGrid.querySelectorAll("img")).toHaveLength(8);
+    expect(screen.getByText("Reading Journey Complete")).toBeVisible();
     expect(
       screen.getByRole("listitem", {
         name: /ReaDirect Champion.*Earned/i,
+      }),
+    ).toBeVisible();
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await readyClara();
+    expect(
+      await screen.findByRole("dialog", { name: "Achievement unlocked" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", {
+        name: /Achievement unlockedReaDirect ChampionTap to continue/i,
       }),
     ).toBeVisible();
   });

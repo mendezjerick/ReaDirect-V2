@@ -1,10 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { ReadingJourneyAchievementIcon } from "../achievements/ReadingJourneyAchievementIcon";
+import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
 import {
   prepareClaraSpeech,
   unlockClaraAudio,
@@ -13,7 +15,6 @@ import {
   activitySpeechScopeForProgress,
   prepareActivitySpeech,
 } from "../clara-audio/activitySpeechReadiness";
-import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
 import {
   clearLearnerSession,
   getLearnerSession,
@@ -62,6 +63,9 @@ function ClaraStoryIcon() {
 
 export function LearnerDashboardPage() {
   const navigate = useNavigate();
+  const [selectedAchievementKey, setSelectedAchievementKey] = useState<
+    (typeof readingJourneyAchievements)[number]["key"]
+  >("reading.ready_reader");
   const readingCommit = useButtonCommit();
   const gamesCommit = useButtonCommit();
   const learnWithClaraCommit = useButtonCommit();
@@ -95,6 +99,13 @@ export function LearnerDashboardPage() {
   const earnedReadingAchievementCount = readingJourneyAchievements.filter(
     (achievement) => earnedAchievements.has(achievement.key),
   ).length;
+  const selectedAchievement =
+    readingJourneyAchievements.find(
+      (achievement) => achievement.key === selectedAchievementKey,
+    ) ?? readingJourneyAchievements[0];
+  const selectedAchievementIsEarned = earnedAchievements.has(
+    selectedAchievement.key,
+  );
 
   useEffect(() => {
     if (sessionQuery.isError) {
@@ -371,28 +382,57 @@ export function LearnerDashboardPage() {
               </span>
             </div>
 
-            <ul
-              className="learner-dashboard__achievement-preview"
-              aria-label="Locked achievements"
-            >
-              {readingJourneyAchievements.map((achievement) => (
-                <li
-                  key={achievement.key}
-                  data-earned={
-                    earnedAchievements.has(achievement.key) || undefined
-                  }
-                  aria-label={`${achievement.name}: ${achievement.criteria}`}
-                >
-                  <span
-                    className="learner-dashboard__achievement-star"
-                    aria-hidden="true"
-                  >
-                    ★
+            <div className="learner-dashboard__achievement-case">
+              <ul
+                className="learner-dashboard__achievement-preview"
+                aria-label="Reading Journey achievements"
+              >
+                {readingJourneyAchievements.map((achievement) => {
+                  const isEarned = earnedAchievements.has(achievement.key);
+                  const isSelected =
+                    selectedAchievement.key === achievement.key;
+
+                  return (
+                    <li
+                      key={achievement.key}
+                      data-earned={isEarned || undefined}
+                      data-selected={isSelected || undefined}
+                      aria-label={`${achievement.name}: ${achievement.criteria}. ${
+                        isEarned ? "Earned" : "Locked"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        aria-label={`View ${achievement.name} achievement`}
+                        aria-pressed={isSelected}
+                        onClick={() =>
+                          setSelectedAchievementKey(achievement.key)
+                        }
+                      >
+                        <ReadingJourneyAchievementIcon
+                          achievement={achievement}
+                          className="learner-dashboard__achievement-icon"
+                        />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div
+                className="learner-dashboard__achievement-detail"
+                data-earned={selectedAchievementIsEarned || undefined}
+                aria-live="polite"
+              >
+                <div>
+                  <strong>{selectedAchievement.name}</strong>
+                  <span>
+                    {selectedAchievementIsEarned ? "Earned" : "Locked"}
                   </span>
-                  <strong>{achievement.name}</strong>
-                </li>
-              ))}
-            </ul>
+                </div>
+                <p>{selectedAchievement.criteria}</p>
+              </div>
+            </div>
           </Surface>
         </div>
       </div>

@@ -245,6 +245,14 @@ acknowledgement behavior are defined by
 `READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`. Pages and games must compose
 that shared feature instead of recreating it.
 
+Reading Journey tiles must use the shared permanent pixel-icon mapping. Icons
+render in a theme-variable fake-depth frame, retain crisp nearest-neighbor
+pixels, use a muted grayscale treatment while locked, and show their full
+artwork when earned. Unicode stars, emoji, and repeated placeholder artwork are
+not permitted. The dashboard holder uses a fixed four-by-two recessed black
+badge case; selecting one badge reveals its name, criterion, and earned state
+in the compact detail strip below the grid.
+
 ## Professional Staff Workspace
 
 Staff dashboards use a professional, clean extension of the ReaDirect visual

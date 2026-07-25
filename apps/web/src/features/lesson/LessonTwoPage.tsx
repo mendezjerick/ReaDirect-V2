@@ -4,6 +4,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { AchievementUnlockOverlay } from "../achievements/AchievementUnlockOverlay";
+import { useReadingJourneyAchievementUnlock } from "../achievements/useReadingJourneyAchievementUnlock";
 import {
   playClaraSpeech,
   prepareClaraSpeech,
@@ -154,6 +156,14 @@ export function LessonTwoPage() {
   const submitCommit = useButtonCommit();
   const skipCommit = useButtonCommit();
   const nextCommit = useButtonCommit();
+  const achievementUnlock = useReadingJourneyAchievementUnlock({
+    sourceId: lesson ? `lesson-run:${lesson.run_id}` : null,
+    achievementKey:
+      lesson?.status === "completed"
+        ? (lesson.completion?.achievement_key ?? null)
+        : null,
+    presentationReady: claraReady,
+  });
 
   useEffect(() => {
     if (!session?.token) {
@@ -185,6 +195,7 @@ export function LessonTwoPage() {
       !session?.token ||
       !lesson ||
       !claraReady ||
+      achievementUnlock.pending ||
       (activityPreparation.status !== "ready" && lesson.status !== "completed")
     )
       return;
@@ -265,7 +276,13 @@ export function LessonTwoPage() {
       playbackRef.current?.stop();
       playbackRef.current = null;
     };
-  }, [activityPreparation.status, claraReady, lesson, session?.token]);
+  }, [
+    achievementUnlock.pending,
+    activityPreparation.status,
+    claraReady,
+    lesson,
+    session?.token,
+  ]);
 
   const submit = async () => {
     if (!session?.token || !lesson?.item || !recorder.audio) return;
@@ -369,10 +386,19 @@ export function LessonTwoPage() {
     return (
       <LearnerActivityShell
         overlay={
-          <ClaraSpeechWarmupLoader
-            active={activityPreparation.showRuntimeLoader || guideBusy}
-            modelReady={claraReady}
-          />
+          <>
+            <ClaraSpeechWarmupLoader
+              active={activityPreparation.showRuntimeLoader || guideBusy}
+              modelReady={claraReady}
+            />
+            {achievementUnlock.achievement ? (
+              <AchievementUnlockOverlay
+                achievement={achievementUnlock.achievement}
+                open={achievementUnlock.open}
+                onDismiss={achievementUnlock.dismiss}
+              />
+            ) : null}
+          </>
         }
         eyebrow="Milestone reached"
         title="Lesson 2 Results"

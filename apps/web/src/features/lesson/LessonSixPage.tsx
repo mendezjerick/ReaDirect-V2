@@ -4,6 +4,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { AchievementUnlockOverlay } from "../achievements/AchievementUnlockOverlay";
+import { useReadingJourneyAchievementUnlock } from "../achievements/useReadingJourneyAchievementUnlock";
 import {
   playClaraSpeech,
   prepareClaraSpeech,
@@ -113,6 +115,14 @@ export function LessonSixPage() {
   const submitCommit = useButtonCommit();
   const skipCommit = useButtonCommit();
   const nextCommit = useButtonCommit();
+  const achievementUnlock = useReadingJourneyAchievementUnlock({
+    sourceId: lesson ? `lesson-run:${lesson.run_id}` : null,
+    achievementKey:
+      lesson?.status === "completed"
+        ? (lesson.completion?.achievement_key ?? null)
+        : null,
+    presentationReady: claraReady,
+  });
 
   useEffect(() => {
     if (!session?.token) {
@@ -144,6 +154,7 @@ export function LessonSixPage() {
       !session?.token ||
       !lesson ||
       !claraReady ||
+      achievementUnlock.pending ||
       activityPreparation.status !== "ready" ||
       lesson.support.speech_keys.length === 0 ||
       supportKeyRef.current === lesson.support.sequence_key
@@ -192,7 +203,13 @@ export function LessonSixPage() {
       cancelled = true;
       playbackRef.current?.stop();
     };
-  }, [activityPreparation.status, claraReady, lesson, session?.token]);
+  }, [
+    achievementUnlock.pending,
+    activityPreparation.status,
+    claraReady,
+    lesson,
+    session?.token,
+  ]);
 
   const save = async (action: () => Promise<LessonSixState>) => {
     setBusy(true);
@@ -305,6 +322,13 @@ export function LessonSixPage() {
             active={activityPreparation.showRuntimeLoader || guideBusy}
             modelReady={claraReady}
           />
+          {achievementUnlock.achievement ? (
+            <AchievementUnlockOverlay
+              achievement={achievementUnlock.achievement}
+              open={achievementUnlock.open}
+              onDismiss={achievementUnlock.dismiss}
+            />
+          ) : null}
           {error ? (
             <div className="lesson-error" role="alert">
               <p>{error}</p>

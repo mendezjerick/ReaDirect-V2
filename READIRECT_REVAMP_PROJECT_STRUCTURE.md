@@ -368,9 +368,11 @@ phrases, sentences, and passages while preserving raw ASR evidence. Lesson 6
 choice comprehension never enters this resolver. The seed remains idempotent
 across content revisions.
 
-System Administrator Page Portals currently resolve persisted Diagnostic,
-Lesson 1 through Lesson 6, and Final Assessment checkpoints through
-`LearnerPortalLaunchService`. Lesson destinations create Kristen's completed
+System Administrator Page Portals begin with the normal Learner Dashboard,
+then resolve persisted Diagnostic, Lesson 1 through Lesson 6, and Final
+Assessment checkpoints through `LearnerPortalLaunchService`. The Dashboard
+destination resets Kristen to `before_diagnostic`, creates no activity run,
+and opens `/learner/dashboard`. Lesson destinations create Kristen's completed
 Diagnostic prerequisite and Ready Reader first. Lesson 2 destinations also
 create her completed Lesson 1 prerequisite and Letter Leader before the
 selected `required-lesson-2` run. Lesson 3 destinations additionally create a
