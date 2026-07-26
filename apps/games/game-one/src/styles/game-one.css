@@ -1,12 +1,5 @@
-@font-face {
-  font-family: "GameOnePixel";
-  src: url("../../Ninja Adventure - Asset Pack/Ninja Adventure - Asset Pack/Ui/Font/NormalFont.ttf")
-    format("truetype");
-  font-display: swap;
-}
-
 .game-route {
-  --game-ui-font: "GameOnePixel", system-ui, sans-serif;
+  --game-ui-font: "Pixelify Sans", ui-sans-serif, system-ui, sans-serif;
   --pixel-ink: #13251d;
   --pixel-green: #176b4d;
   --pixel-gold: #facc15;
@@ -3501,7 +3494,7 @@
 .game-route .pixel-reading-panel .question-prompt,
 .game-route .pixel-reading-panel .activity-transition-copy,
 .game-route .heart-recovery-panel > p:not(.story-eyebrow) {
-  font-family: "Trebuchet MS", system-ui, sans-serif;
+  font-family: var(--game-ui-font);
   letter-spacing: 0;
 }
 
