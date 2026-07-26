@@ -185,6 +185,14 @@ const SchoolAdminReportsPage = lazy(() =>
   ),
 );
 
+const SchoolAdminInstructionalInsightsPage = lazy(() =>
+  import("./features/staff-dashboard/SchoolAdminInstructionalInsightsPage").then(
+    (module) => ({
+      default: module.SchoolAdminInstructionalInsightsPage,
+    }),
+  ),
+);
+
 const SchoolAdminTeacherDashboardsPage = lazy(() =>
   import("./features/staff-dashboard/SchoolAdminTeacherDashboardsPage").then(
     (module) => ({
@@ -407,6 +415,10 @@ export function App() {
               <Route
                 path="/staff/school-admin/learners/:learnerId"
                 element={<SchoolAdminLearnerDetailPage />}
+              />
+              <Route
+                path="/staff/school-admin/instructional-insights"
+                element={<SchoolAdminInstructionalInsightsPage />}
               />
               <Route
                 path="/staff/school-admin/reports"

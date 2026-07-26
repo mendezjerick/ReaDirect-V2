@@ -4,9 +4,20 @@ import { useNavigate } from "react-router-dom";
 
 import { MetricCard } from "../../components/staff/MetricCard";
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
 import { StaffDistributionList } from "../../components/staff/StaffDistributionList";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -203,72 +214,59 @@ export function TeacherDashboardPage() {
       }
       workspaceLabel="Teacher"
     >
-      <div className="staff-workspace-page teacher-dashboard">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow={overview?.school.name ?? assignedSchool.name}
           title={`Grade ${gradeLevel} · Section ${section}`}
           description="Review your class, follow assessment progress, and prepare learner activities."
-          badge={<span className="staff-count-badge">Teacher</span>}
+          badge={<StaffBadge>Teacher</StaffBadge>}
         />
 
         {requiresAcknowledgement ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="teacher-assignment-notice"
+          <StaffNotice
+            tone="accent"
+            title={`You are part of Grade ${gradeLevel} Section ${section}`}
             role="status"
             aria-labelledby="teacher-assignment-title"
+            actions={
+              <StaffButton
+                tone="primary"
+                size="compact"
+                committing={acknowledgementCommit.committing}
+                busy={acknowledgementMutation.isPending}
+                busyLabel="Saving"
+                onClick={() =>
+                  acknowledgementCommit.commit(() =>
+                    acknowledgementMutation.mutate(),
+                  )
+                }
+              >
+                Got it
+              </StaffButton>
+            }
           >
-            <div className="teacher-assignment-notice__mark" aria-hidden="true">
-              ✓
-            </div>
-            <div className="teacher-assignment-notice__content">
-              <p>Your class assignment</p>
-              <h2 id="teacher-assignment-title">
-                You are part of Grade {gradeLevel} Section {section}
-              </h2>
-              <span>{assignedSchool.name}</span>
-            </div>
-            <BigButton
-              size="regular"
-              committing={acknowledgementCommit.committing}
-              busy={acknowledgementMutation.isPending}
-              busyLabel="Saving"
-              onClick={() =>
-                acknowledgementCommit.commit(() =>
-                  acknowledgementMutation.mutate(),
-                )
-              }
-            >
-              Got it
-            </BigButton>
+            <span id="teacher-assignment-title">{assignedSchool.name}</span>
             {acknowledgementMutation.isError ? (
-              <p className="teacher-assignment-notice__error" role="alert">
-                {acknowledgementMutation.error.message}
-              </p>
+              <p role="alert">{acknowledgementMutation.error.message}</p>
             ) : null}
-          </Surface>
+          </StaffNotice>
         ) : null}
 
         {overviewQuery.isError ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="staff-dashboard-error"
-            role="alert"
+          <StaffNotice
+            tone="danger"
+            title="The Teacher Dashboard could not be loaded."
+            actions={
+              <StaffButton
+                size="compact"
+                onClick={() => void overviewQuery.refetch()}
+              >
+                Retry
+              </StaffButton>
+            }
           >
-            <div>
-              <strong>The Teacher Dashboard could not be loaded.</strong>
-              <p>Check the API connection, then retry this request.</p>
-            </div>
-            <BigButton
-              variant="secondary"
-              size="regular"
-              onClick={() => void overviewQuery.refetch()}
-            >
-              Retry
-            </BigButton>
-          </Surface>
+            <p>Check the API connection, then retry this request.</p>
+          </StaffNotice>
         ) : null}
 
         <section
@@ -303,142 +301,144 @@ export function TeacherDashboardPage() {
           />
         </section>
 
-        <section className="staff-dashboard-grid staff-dashboard-grid--primary teacher-dashboard__distributions">
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>ReaDirect Assessment</p>
-                <h2>Part 1 Score levels</h2>
-              </div>
-              <span>Your class</span>
-            </header>
+        <StaffContentGrid className="staff-content-grid--three">
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="ReaDirect Assessment"
+              title="Part 1 Score levels"
+              meta={<StaffBadge>Your class</StaffBadge>}
+            />
             {overview ? (
               <StaffDistributionList items={overview.part_one_distribution} />
             ) : (
-              <div className="staff-loading-block" />
+              <StaffState compact title="Loading score levels…" />
             )}
-          </Surface>
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>Diagnostic Assessment</p>
-                <h2>Reading profiles</h2>
-              </div>
-              <span>Your class</span>
-            </header>
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="Diagnostic Assessment"
+              title="Reading profiles"
+              meta={<StaffBadge>Your class</StaffBadge>}
+            />
             {overview ? (
               <StaffDistributionList
                 items={overview.diagnostic_reading_profile_distribution}
               />
             ) : (
-              <div className="staff-loading-block" />
+              <StaffState compact title="Loading reading profiles…" />
             )}
-          </Surface>
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>Final Assessment</p>
-                <h2>Reading profiles</h2>
-              </div>
-              <span>Your class</span>
-            </header>
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="Final Assessment"
+              title="Reading profiles"
+              meta={<StaffBadge>Your class</StaffBadge>}
+            />
             {overview ? (
               <StaffDistributionList
                 items={overview.final_reading_profile_distribution}
               />
             ) : (
-              <div className="staff-loading-block" />
+              <StaffState compact title="Loading reading profiles…" />
             )}
-          </Surface>
-        </section>
+          </StaffCard>
+        </StaffContentGrid>
 
-        <section className="staff-dashboard-grid staff-dashboard-grid--secondary">
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>Learner activity</p>
-                <h2>Recent progress</h2>
-              </div>
-            </header>
-            {overview?.recent_learner_activity.length ? (
-              <ol className="teacher-recent-activity">
-                {overview.recent_learner_activity.map((activity) => (
-                  <li key={activity.id}>
-                    <div className="teacher-recent-activity__summary">
-                      <div>
-                        <strong>{activity.learner_name}</strong>
-                        <span>{activity.learner_code}</span>
-                      </div>
-                      <span
-                        className={[
-                          "teacher-recent-activity__status",
-                          activity.status === "completed"
-                            ? "teacher-recent-activity__status--success"
-                            : "teacher-recent-activity__status--neutral",
-                        ].join(" ")}
-                      >
-                        {activity.status === "completed"
-                          ? "Completed"
-                          : "In progress"}
-                      </span>
-                    </div>
-                    <div className="teacher-recent-activity__details">
-                      <div>
-                        <span>{activity.title}</span>
+        <StaffCard padding="none">
+          <StaffSectionHeader
+            bordered
+            eyebrow="Learner activity"
+            title="Recent progress"
+          />
+          {overview?.recent_learner_activity.length ? (
+            <StaffDataTable
+              accessibleLabel="Recent Learner progress"
+              rows={overview.recent_learner_activity}
+              rowKey={(activity) => activity.id}
+              columns={[
+                {
+                  key: "learner",
+                  label: "Learner",
+                  width: "minmax(12rem, 1.3fr)",
+                  render: (activity) => (
+                    <span className="staff-primary-value">
+                      <strong>{activity.learner_name}</strong>
+                      <small>{activity.learner_code}</small>
+                    </span>
+                  ),
+                },
+                {
+                  key: "activity",
+                  label: "Activity",
+                  render: (activity) => (
+                    <span className="staff-primary-value">
+                      <span>{activity.title}</span>
+                      <small>
                         <time dateTime={activity.occurred_at ?? undefined}>
                           {formatActivityDate(activity.occurred_at)}
                         </time>
-                      </div>
-                      <BigButton
-                        className="teacher-recent-activity__review"
-                        variant="secondary"
-                        size="regular"
-                        committing={activityCommit.committing}
-                        onClick={() =>
-                          activityCommit.commit(() =>
-                            navigate(
-                              `/staff/teacher/learners/${activity.learner_id}`,
-                            ),
-                          )
-                        }
-                      >
-                        Review
-                      </BigButton>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            ) : overview ? (
-              <div className="staff-empty-state">
-                <span aria-hidden="true">0</span>
-                <div>
-                  <strong>No learner activity yet</strong>
-                  <p>Assessment and lesson activity will appear here.</p>
-                </div>
-              </div>
-            ) : (
-              <div className="staff-loading-block" />
-            )}
-          </Surface>
-        </section>
+                      </small>
+                    </span>
+                  ),
+                },
+                {
+                  key: "status",
+                  label: "Status",
+                  width: "auto",
+                  render: (activity) => (
+                    <StaffBadge
+                      tone={
+                        activity.status === "completed" ? "success" : "accent"
+                      }
+                    >
+                      {activity.status === "completed"
+                        ? "Completed"
+                        : "In progress"}
+                    </StaffBadge>
+                  ),
+                },
+                {
+                  key: "action",
+                  label: "Action",
+                  width: "auto",
+                  render: (activity) => (
+                    <StaffButton
+                      size="compact"
+                      committing={activityCommit.committing}
+                      onClick={() =>
+                        activityCommit.commit(() =>
+                          navigate(
+                            `/staff/teacher/learners/${activity.learner_id}`,
+                          ),
+                        )
+                      }
+                    >
+                      Review
+                    </StaffButton>
+                  ),
+                },
+              ]}
+            />
+          ) : overview ? (
+            <StaffState
+              title="No learner activity yet"
+              description="Assessment and lesson activity will appear here."
+            />
+          ) : (
+            <StaffState title="Loading recent progress…" />
+          )}
+        </StaffCard>
 
-        <Surface
-          kind="panel"
-          padding="normal"
-          className="staff-data-card staff-quick-links"
-        >
-          <header className="staff-data-card__header">
-            <div>
-              <p>Class management</p>
-              <h2>Quick actions</h2>
-            </div>
-            <span>Teacher tools</span>
-          </header>
-          <div className="staff-quick-links__grid">
-            <BigButton
-              variant="secondary"
+        <StaffCard>
+          <StaffSectionHeader
+            eyebrow="Class management"
+            title="Quick actions"
+            meta={<StaffBadge>Teacher tools</StaffBadge>}
+          />
+          <div className="staff-action-grid">
+            <StaffButton
               size="regular"
               committing={learnerCommit.committing}
               onClick={() =>
@@ -446,9 +446,8 @@ export function TeacherDashboardPage() {
               }
             >
               Create Learner
-            </BigButton>
-            <BigButton
-              variant="secondary"
+            </StaffButton>
+            <StaffButton
               size="regular"
               committing={importCommit.committing}
               onClick={() =>
@@ -458,9 +457,8 @@ export function TeacherDashboardPage() {
               }
             >
               Import Learners
-            </BigButton>
-            <BigButton
-              variant="secondary"
+            </StaffButton>
+            <StaffButton
               size="regular"
               committing={credentialCommit.committing}
               onClick={() =>
@@ -470,9 +468,8 @@ export function TeacherDashboardPage() {
               }
             >
               Credential Sheets
-            </BigButton>
-            <BigButton
-              variant="secondary"
+            </StaffButton>
+            <StaffButton
               size="regular"
               committing={reportsCommit.committing}
               onClick={() =>
@@ -480,9 +477,8 @@ export function TeacherDashboardPage() {
               }
             >
               Reports
-            </BigButton>
-            <BigButton
-              variant="secondary"
+            </StaffButton>
+            <StaffButton
               size="regular"
               committing={analyticsCommit.committing}
               onClick={() =>
@@ -492,9 +488,8 @@ export function TeacherDashboardPage() {
               }
             >
               Analytics
-            </BigButton>
-            <BigButton
-              variant="secondary"
+            </StaffButton>
+            <StaffButton
               size="regular"
               committing={audioReviewCommit.committing}
               onClick={() =>
@@ -504,10 +499,10 @@ export function TeacherDashboardPage() {
               }
             >
               Audio Review
-            </BigButton>
+            </StaffButton>
           </div>
-        </Surface>
-      </div>
+        </StaffCard>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

@@ -3,8 +3,19 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -88,9 +99,9 @@ export function SchoolAdminLearnerDetailPage() {
       }
       workspaceLabel="School Admin"
     >
-      <div className="staff-workspace-page school-admin-learner-detail-page">
-        <BigButton
-          variant="secondary"
+      <StaffWorkspacePage>
+        <StaffButton
+          tone="secondary"
           size="regular"
           committing={backCommit.committing}
           onClick={() =>
@@ -98,16 +109,17 @@ export function SchoolAdminLearnerDetailPage() {
           }
         >
           Back to Learners
-        </BigButton>
+        </StaffButton>
 
         {detailQuery.isError || validLearnerId === null ? (
-          <Surface kind="notice" padding="normal" role="alert">
-            <h1>Learner unavailable</h1>
-            <p>
-              {detailQuery.error?.message ??
-                "The Learner identifier is invalid."}
-            </p>
-          </Surface>
+          <StaffState
+            tone="danger"
+            role="alert"
+            title="Learner unavailable"
+            description={
+              detailQuery.error?.message ?? "The Learner identifier is invalid."
+            }
+          />
         ) : null}
 
         {detailQuery.data ? (
@@ -119,89 +131,117 @@ export function SchoolAdminLearnerDetailPage() {
                 detailQuery.data.class_context.section ?? "No section"
               } · ${detailQuery.data.class_context.teacher?.username ?? "Teacher unavailable"}`}
               badge={
-                <span className="staff-count-badge">
-                  {detailQuery.data.learner.learner_code}
-                </span>
+                <StaffBadge>{detailQuery.data.learner.learner_code}</StaffBadge>
               }
             />
-            <Surface kind="notice" padding="compact">
-              Read-only persisted evidence. No control on this page can alter
-              the Learner’s assessment, lesson, score, progression, or
-              achievement records.
-            </Surface>
-            <section className="school-admin-learner-summary-grid">
-              <Surface kind="panel" padding="normal">
-                <p className="teacher-learner-card-eyebrow">
-                  Persisted progression
-                </p>
-                <h2>{detailQuery.data.progression.stage_label}</h2>
-                <p>
-                  Current required lesson:{" "}
-                  {detailQuery.data.progression.current_required_lesson_order ??
-                    "Not applicable"}
-                </p>
-              </Surface>
-              <Surface kind="panel" padding="normal">
-                <p className="teacher-learner-card-eyebrow">
-                  Diagnostic Assessment
-                </p>
-                <h2>
-                  {assessmentLabel(detailQuery.data.assessments.diagnostic)}
-                </h2>
-              </Surface>
-              <Surface kind="panel" padding="normal">
-                <p className="teacher-learner-card-eyebrow">Final Assessment</p>
-                <h2>{assessmentLabel(detailQuery.data.assessments.final)}</h2>
-              </Surface>
-            </section>
-            <Surface kind="panel" padding="normal">
-              <header className="staff-section-header">
-                <p>Lesson evidence</p>
-                <h2>Required lesson status</h2>
-                <span>
-                  Counts are taken directly from persisted lesson responses.
-                </span>
-              </header>
-              <div className="school-admin-lesson-summary-list">
-                {detailQuery.data.lessons.map((lesson) => (
-                  <article key={lesson.lesson_key}>
-                    <span>
-                      <strong>
-                        Lesson {lesson.order} · {lesson.title}
-                      </strong>
-                      <small>{lesson.status.replaceAll("_", " ")}</small>
-                    </span>
-                    <span>
-                      {lesson.items_recorded}/{lesson.items_total} items ·{" "}
-                      {lesson.performance.review_recommended} review
-                    </span>
-                  </article>
-                ))}
-              </div>
-            </Surface>
-            <Surface kind="panel" padding="normal">
-              <header className="staff-section-header">
-                <p>Evidence-based follow-up</p>
-                <h2>Saved review recommendations</h2>
-                <span>
-                  No AI-generated or unsupported conclusions are added.
-                </span>
-              </header>
-              <ul className="school-admin-review-summary">
-                {detailQuery.data.recommendations.map((recommendation) => (
-                  <li key={recommendation.key}>
-                    <strong>{recommendation.title}</strong>
-                    <span>{recommendation.reason}</span>
-                  </li>
-                ))}
-              </ul>
-              {detailQuery.data.recommendations.length === 0 ? (
-                <p>No persisted review flags or skipped items.</p>
-              ) : null}
-            </Surface>
+            <StaffNotice tone="accent">
+              <span>
+                Read-only persisted evidence. No control on this page can alter
+                the Learner’s assessment, lesson, score, progression, or
+                achievement records.
+              </span>
+            </StaffNotice>
+            <StaffContentGrid className="staff-content-grid--three">
+              <StaffCard>
+                <StaffSectionHeader
+                  eyebrow="Persisted progression"
+                  title={detailQuery.data.progression.stage_label}
+                  description={`Current required lesson: ${
+                    detailQuery.data.progression
+                      .current_required_lesson_order ?? "Not applicable"
+                  }`}
+                />
+              </StaffCard>
+              <StaffCard>
+                <StaffSectionHeader
+                  eyebrow="Diagnostic Assessment"
+                  title={assessmentLabel(
+                    detailQuery.data.assessments.diagnostic,
+                  )}
+                />
+              </StaffCard>
+              <StaffCard>
+                <StaffSectionHeader
+                  eyebrow="Final Assessment"
+                  title={assessmentLabel(detailQuery.data.assessments.final)}
+                />
+              </StaffCard>
+            </StaffContentGrid>
+            <StaffCard padding="none">
+              <StaffSectionHeader
+                bordered
+                eyebrow="Lesson evidence"
+                title="Required lesson status"
+                description="Counts are taken directly from persisted lesson responses."
+              />
+              <StaffDataTable
+                accessibleLabel="Required lesson status"
+                rows={detailQuery.data.lessons}
+                rowKey={(lesson) => lesson.lesson_key}
+                columns={[
+                  {
+                    key: "lesson",
+                    label: "Lesson",
+                    width: "minmax(14rem, 1.5fr)",
+                    render: (lesson) => (
+                      <span className="staff-primary-value">
+                        <strong>
+                          Lesson {lesson.order} · {lesson.title}
+                        </strong>
+                        <small>{lesson.status.replaceAll("_", " ")}</small>
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "evidence",
+                    label: "Persisted evidence",
+                    render: (lesson) => (
+                      <>
+                        {lesson.items_recorded}/{lesson.items_total} items ·{" "}
+                        {lesson.performance.review_recommended} review
+                      </>
+                    ),
+                  },
+                ]}
+              />
+            </StaffCard>
+            <StaffCard padding="none">
+              <StaffSectionHeader
+                bordered
+                eyebrow="Evidence-based follow-up"
+                title="Saved review recommendations"
+                description="No AI-generated or unsupported conclusions are added."
+              />
+              <StaffDataTable
+                accessibleLabel="Saved review recommendations"
+                rows={detailQuery.data.recommendations}
+                rowKey={(recommendation) => recommendation.key}
+                columns={[
+                  {
+                    key: "recommendation",
+                    label: "Recommendation",
+                    width: "minmax(12rem, 0.8fr)",
+                    render: (recommendation) => (
+                      <strong>{recommendation.title}</strong>
+                    ),
+                  },
+                  {
+                    key: "evidence",
+                    label: "Persisted evidence",
+                    render: (recommendation) => recommendation.reason,
+                  },
+                ]}
+                empty={
+                  <StaffState
+                    compact
+                    title="No persisted review flags or skipped items."
+                  />
+                }
+              />
+            </StaffCard>
           </>
         ) : null}
-      </div>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

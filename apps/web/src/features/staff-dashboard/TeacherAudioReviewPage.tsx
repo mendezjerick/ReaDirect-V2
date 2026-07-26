@@ -3,8 +3,25 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffFactGrid,
+  StaffSelectionButton,
+  StaffSelectionList,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import {
+  StaffSelectControl,
+  StaffTextAreaField,
+} from "../../components/staff/StaffFormControls";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -137,65 +154,61 @@ export function TeacherAudioReviewPage() {
       }
       workspaceLabel="Teacher"
     >
-      <div className="staff-workspace-page teacher-audio-review-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="Assessment review"
           title="Audio Review"
           description="Listen to saved assigned-Learner recordings and add an audited staff-only review without changing learner-flow evidence or scores."
           badge={
-            <span className="staff-count-badge">
+            <StaffBadge tone="warning">
               {reviewQuery.data?.summary.pending ?? 0} pending
-            </span>
+            </StaffBadge>
           }
         />
 
-        <Surface
-          kind="notice"
-          padding="compact"
-          className="teacher-audio-review-boundary"
+        <StaffNotice
+          tone="warning"
+          title="Canonical learner data is protected."
         >
-          <strong>Canonical learner data is protected.</strong>
           <span>
             A saved review is a separate staff annotation. It never overwrites
             the original transcript, decision, score, progression, or Learner
             experience.
           </span>
-        </Surface>
+        </StaffNotice>
 
-        <div className="teacher-audio-review-layout">
-          <Surface kind="panel" padding="none">
-            <header className="staff-section-header staff-section-header--list">
-              <div>
-                <p>Saved recordings</p>
-                <h2>Review queue</h2>
-              </div>
-              <span>{reviewQuery.data?.summary.recordings ?? 0} total</span>
-            </header>
+        <StaffContentGrid className="staff-content-grid--sidebar">
+          <StaffCard padding="none">
+            <StaffSectionHeader
+              bordered
+              eyebrow="Saved recordings"
+              title="Review queue"
+              meta={
+                <StaffBadge>
+                  {reviewQuery.data?.summary.recordings ?? 0} total
+                </StaffBadge>
+              }
+            />
             {reviewQuery.isLoading ? (
-              <div className="staff-account-list-state">
-                Loading recordings…
-              </div>
+              <StaffState title="Loading recordings…" />
             ) : null}
             {reviewQuery.isError ? (
-              <div className="staff-account-list-state" role="alert">
-                Recordings could not be loaded.
-              </div>
+              <StaffState
+                tone="danger"
+                role="alert"
+                title="Recordings could not be loaded."
+              />
             ) : null}
             {reviewQuery.data?.items.length === 0 ? (
-              <div className="staff-empty-state">
-                <span aria-hidden="true">0</span>
-                <div>
-                  <strong>No saved recordings</strong>
-                  <p>Recorded assessment and lesson items will appear here.</p>
-                </div>
-              </div>
+              <StaffState
+                title="No saved recordings"
+                description="Recorded assessment and lesson items will appear here."
+              />
             ) : null}
-            <div className="teacher-audio-review-list">
+            <StaffSelectionList>
               {reviewQuery.data?.items.map((item) => (
-                <button
-                  type="button"
-                  className={item.id === selectedId ? "is-selected" : undefined}
-                  aria-pressed={item.id === selectedId}
+                <StaffSelectionButton
+                  selected={item.id === selectedId}
                   onClick={() => selectItem(item)}
                   key={item.id}
                 >
@@ -207,46 +220,51 @@ export function TeacherAudioReviewPage() {
                     <strong>{item.source_title}</strong>
                     <small>{item.item_key}</small>
                   </span>
-                  <em>{item.latest_review ? "Reviewed" : "Pending"}</em>
-                </button>
+                  <StaffBadge tone={item.latest_review ? "success" : "warning"}>
+                    {item.latest_review ? "Reviewed" : "Pending"}
+                  </StaffBadge>
+                </StaffSelectionButton>
               ))}
-            </div>
-          </Surface>
+            </StaffSelectionList>
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal">
+          <StaffCard>
             {selectedItem ? (
-              <div className="teacher-audio-review-editor">
-                <header className="staff-section-header">
-                  <p>{selectedItem.source_title}</p>
-                  <h2>{selectedItem.learner.full_name}</h2>
-                  <span>
-                    {selectedItem.group_key} · {selectedItem.item_key}
-                  </span>
-                </header>
+              <div className="staff-form-stack staff-form-stack--flush">
+                <StaffSectionHeader
+                  eyebrow={selectedItem.source_title}
+                  title={selectedItem.learner.full_name}
+                  description={
+                    <>
+                      {selectedItem.group_key} · {selectedItem.item_key}
+                    </>
+                  }
+                />
 
-                <dl className="teacher-audio-review-original">
-                  <div>
-                    <dt>Canonical transcript</dt>
-                    <dd>
-                      {selectedItem.original_transcript ?? "Not available"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Canonical decision</dt>
-                    <dd>{selectedItem.original_decision ?? "Not available"}</dd>
-                  </div>
-                </dl>
+                <StaffFactGrid
+                  facts={[
+                    {
+                      label: "Canonical transcript",
+                      value:
+                        selectedItem.original_transcript ?? "Not available",
+                    },
+                    {
+                      label: "Canonical decision",
+                      value: selectedItem.original_decision ?? "Not available",
+                    },
+                  ]}
+                />
 
-                <div className="teacher-audio-review-player">
-                  <BigButton
-                    variant="secondary"
+                <div className="staff-audio-player">
+                  <StaffButton
+                    tone="secondary"
                     size="regular"
                     busy={audioMutation.isPending}
                     busyLabel="Loading recording"
                     onClick={() => audioMutation.mutate(selectedItem)}
                   >
                     Load secure recording
-                  </BigButton>
+                  </StaffButton>
                   {audioUrl ? (
                     <audio controls autoPlay src={audioUrl}>
                       Your browser does not support audio playback.
@@ -257,54 +275,50 @@ export function TeacherAudioReviewPage() {
                   ) : null}
                 </div>
 
-                <label className="teacher-audio-review-field">
-                  <span>Reviewed transcript</span>
-                  <textarea
-                    rows={3}
-                    maxLength={500}
-                    value={reviewedTranscript}
-                    onChange={(event) =>
-                      setReviewedTranscript(event.target.value)
-                    }
-                  />
-                </label>
-                <label className="teacher-audio-review-field">
-                  <span>Reviewed decision</span>
-                  <select
-                    value={reviewedDecision}
-                    onChange={(event) =>
-                      setReviewedDecision(event.target.value as ReviewDecision)
-                    }
-                  >
-                    <option value="CORRECT">Correct</option>
-                    <option value="INCORRECT">Incorrect</option>
-                    <option value="UNSCORABLE">Unscorable</option>
-                    <option value="SKIPPED">Skipped</option>
-                  </select>
-                </label>
-                <label className="teacher-audio-review-field">
-                  <span>Review note (optional)</span>
-                  <textarea
-                    rows={3}
-                    maxLength={1000}
-                    value={notes}
-                    onChange={(event) => setNotes(event.target.value)}
-                  />
-                </label>
+                <StaffTextAreaField
+                  label="Reviewed transcript"
+                  rows={3}
+                  maxLength={500}
+                  value={reviewedTranscript}
+                  onChange={(event) =>
+                    setReviewedTranscript(event.target.value)
+                  }
+                />
+                <StaffSelectControl
+                  label="Reviewed decision"
+                  value={reviewedDecision}
+                  onChange={(event) =>
+                    setReviewedDecision(event.target.value as ReviewDecision)
+                  }
+                >
+                  <option value="CORRECT">Correct</option>
+                  <option value="INCORRECT">Incorrect</option>
+                  <option value="UNSCORABLE">Unscorable</option>
+                  <option value="SKIPPED">Skipped</option>
+                </StaffSelectControl>
+                <StaffTextAreaField
+                  label="Review note (optional)"
+                  rows={3}
+                  maxLength={1000}
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
+                />
                 {saved ? (
-                  <p className="teacher-audio-review-success" role="status">
-                    Staff review saved. Canonical learner records were not
-                    changed.
-                  </p>
+                  <StaffNotice tone="success" role="status">
+                    <span>
+                      Staff review saved. Canonical learner records were not
+                      changed.
+                    </span>
+                  </StaffNotice>
                 ) : null}
                 {reviewMutation.isError ? (
-                  <p className="staff-form-notice--error" role="alert">
-                    {reviewMutation.error.message}
-                  </p>
+                  <StaffNotice tone="danger">
+                    <span>{reviewMutation.error.message}</span>
+                  </StaffNotice>
                 ) : null}
-                <BigButton
-                  className="teacher-audio-review-save"
-                  size="regular"
+                <StaffButton
+                  tone="primary"
+                  size="roomy"
                   disabled={!reviewedTranscript.trim()}
                   committing={saveCommit.committing}
                   busy={reviewMutation.isPending}
@@ -314,22 +328,17 @@ export function TeacherAudioReviewPage() {
                   }
                 >
                   Save staff-only review
-                </BigButton>
+                </StaffButton>
               </div>
             ) : (
-              <div className="staff-empty-state">
-                <span aria-hidden="true">▶</span>
-                <div>
-                  <strong>Select a recording</strong>
-                  <p>
-                    Canonical evidence and review controls will appear here.
-                  </p>
-                </div>
-              </div>
+              <StaffState
+                title="Select a recording"
+                description="Canonical evidence and review controls will appear here."
+              />
             )}
-          </Surface>
-        </div>
-      </div>
+          </StaffCard>
+        </StaffContentGrid>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

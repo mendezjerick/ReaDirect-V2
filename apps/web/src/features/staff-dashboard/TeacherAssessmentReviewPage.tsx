@@ -4,16 +4,21 @@ import { useNavigate } from "react-router-dom";
 
 import { MetricCard } from "../../components/staff/MetricCard";
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
-import {
-  clearStaffSession,
-  loadStaffSession,
-} from "../staff-auth/staffApi";
+import { clearStaffSession, loadStaffSession } from "../staff-auth/staffApi";
 import {
   getTeacherAssessmentReview,
   type TeacherAssessmentType,
@@ -87,10 +92,7 @@ export function TeacherAssessmentReviewPage({
       teacherSession?.staff.id,
     ],
     queryFn: () =>
-      getTeacherAssessmentReview(
-        teacherSession!.staff.id,
-        assessmentType,
-      ),
+      getTeacherAssessmentReview(teacherSession!.staff.id, assessmentType),
     enabled: hasCompleteAssignment,
   });
 
@@ -104,8 +106,8 @@ export function TeacherAssessmentReviewPage({
         >
           <h1>Teacher assignment required</h1>
           <p>
-            Sign in with a Teacher account that has a school, grade, and
-            section assignment.
+            Sign in with a Teacher account that has a school, grade, and section
+            assignment.
           </p>
           <BigButton onClick={() => navigate("/staff/login")}>
             Go to staff login
@@ -119,7 +121,9 @@ export function TeacherAssessmentReviewPage({
     teacherSession.staff.username ?? teacherSession.staff.display_name;
   const metrics = reviewQuery.data?.metrics;
   const isFinal = assessmentType === "final";
-  const assessmentLabel = isFinal ? "Final Assessment" : "Diagnostic Assessment";
+  const assessmentLabel = isFinal
+    ? "Final Assessment"
+    : "Diagnostic Assessment";
   const metricItems = isFinal
     ? [
         { label: "Not ready", value: metrics?.not_ready ?? null },
@@ -158,37 +162,31 @@ export function TeacherAssessmentReviewPage({
       }
       workspaceLabel="Teacher"
     >
-      <div className="staff-workspace-page teacher-assessment-review-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="Assessment review"
           title={assessmentLabel}
           description={`Review each assigned Learner’s latest persisted ${assessmentLabel} readiness, status, and results.`}
           badge={
-            <span className="staff-count-badge">
-              {metrics?.total_learners ?? 0} learners
-            </span>
+            <StaffBadge>{metrics?.total_learners ?? 0} learners</StaffBadge>
           }
         />
 
         {reviewQuery.isError ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="staff-dashboard-error"
-            role="alert"
+          <StaffNotice
+            tone="danger"
+            title={`${assessmentLabel} review could not be loaded.`}
+            actions={
+              <StaffButton
+                size="compact"
+                onClick={() => void reviewQuery.refetch()}
+              >
+                Retry
+              </StaffButton>
+            }
           >
-            <div>
-              <strong>{assessmentLabel} review could not be loaded.</strong>
-              <p>Check the API connection, then retry this request.</p>
-            </div>
-            <BigButton
-              variant="secondary"
-              size="regular"
-              onClick={() => void reviewQuery.refetch()}
-            >
-              Retry
-            </BigButton>
-          </Surface>
+            <p>Check the API connection, then retry this request.</p>
+          </StaffNotice>
         ) : null}
 
         <section
@@ -212,93 +210,111 @@ export function TeacherAssessmentReviewPage({
           ))}
         </section>
 
-        <Surface
-          kind="panel"
-          padding="none"
-          className="staff-account-list-card teacher-assessment-review"
-        >
-          <header className="staff-section-header staff-section-header--list">
-            <div>
-              <p>Your class</p>
-              <h2>Latest {isFinal ? "Final" : "Diagnostic"} results</h2>
-            </div>
-            <span>Alphabetical by Learner</span>
-          </header>
+        <StaffCard padding="none">
+          <StaffSectionHeader
+            bordered
+            eyebrow="Your class"
+            title={`Latest ${isFinal ? "Final" : "Diagnostic"} results`}
+            meta={<StaffBadge>Alphabetical by Learner</StaffBadge>}
+          />
 
           {reviewQuery.isLoading ? (
-            <div className="staff-account-list-state" aria-live="polite">
-              Loading {assessmentLabel} results…
-            </div>
+            <StaffState
+              title={`Loading ${assessmentLabel} results…`}
+              aria-live="polite"
+            />
           ) : null}
 
           {reviewQuery.data?.learners.length === 0 ? (
-            <div className="staff-account-list-state">
-              <strong>No assigned Learners yet.</strong>
-              <span>Learners will appear after their accounts are created.</span>
-            </div>
+            <StaffState
+              title="No assigned Learners yet."
+              description="Learners will appear after their accounts are created."
+            />
           ) : null}
 
           {reviewQuery.data?.learners.length ? (
-            <div className="teacher-assessment-table" role="table">
-              <div className="teacher-assessment-table__header" role="row">
-                <span role="columnheader">Learner</span>
-                <span role="columnheader">Status</span>
-                <span role="columnheader">Part 1 Score</span>
-                <span role="columnheader">Reading profile</span>
-                <span role="columnheader">Skipped</span>
-                <span role="columnheader">Review</span>
-              </div>
-              {reviewQuery.data.learners.map((row) => (
-                <article
-                  className="teacher-assessment-table__row"
-                  role="row"
-                  key={row.learner.id}
-                >
-                  <div role="cell" data-label="Learner">
-                    <strong>{row.learner.full_name}</strong>
-                    <span>{row.learner.learner_code}</span>
-                  </div>
-                  <div role="cell" data-label="Status">
-                    <span
-                      className={`teacher-assessment-status teacher-assessment-status--${row.status}`}
-                    >
-                      {statusLabel(row.status)}
+            <StaffDataTable
+              accessibleLabel={`${assessmentLabel} Learner results`}
+              rows={reviewQuery.data.learners}
+              rowKey={(row) => row.learner.id}
+              columns={[
+                {
+                  key: "learner",
+                  label: "Learner",
+                  width: "minmax(11rem, 1.25fr)",
+                  render: (row) => (
+                    <span className="staff-primary-value">
+                      <strong>{row.learner.full_name}</strong>
+                      <small>{row.learner.learner_code}</small>
                     </span>
-                    <small>{formatDate(row.last_activity_at)}</small>
-                  </div>
-                  <div role="cell" data-label="Part 1 Score">
-                    <strong>{row.part_one_score ?? "—"}</strong>
-                    <span>{row.part_one_level ?? "Not available"}</span>
-                  </div>
-                  <div role="cell" data-label="Reading profile">
-                    {row.final_reading_profile ?? "Not available"}
-                  </div>
-                  <div role="cell" data-label="Skipped">
-                    {row.skipped_items_count}
-                  </div>
-                  <div role="cell" data-label="Review">
-                    <BigButton
-                      className="teacher-assessment-table__review"
-                      variant="secondary"
-                      size="regular"
+                  ),
+                },
+                {
+                  key: "status",
+                  label: "Status",
+                  render: (row) => (
+                    <span className="staff-primary-value">
+                      <StaffBadge
+                        tone={
+                          row.status === "completed"
+                            ? "success"
+                            : row.status === "pending"
+                              ? "warning"
+                              : row.status === "not_ready"
+                                ? "muted"
+                                : "accent"
+                        }
+                      >
+                        {statusLabel(row.status)}
+                      </StaffBadge>
+                      <small>{formatDate(row.last_activity_at)}</small>
+                    </span>
+                  ),
+                },
+                {
+                  key: "part-one",
+                  label: "Part 1 Score",
+                  render: (row) => (
+                    <span className="staff-primary-value">
+                      <strong>{row.part_one_score ?? "—"}</strong>
+                      <small>{row.part_one_level ?? "Not available"}</small>
+                    </span>
+                  ),
+                },
+                {
+                  key: "profile",
+                  label: "Reading profile",
+                  render: (row) => row.final_reading_profile ?? "Not available",
+                },
+                {
+                  key: "skipped",
+                  label: "Skipped",
+                  width: "minmax(4rem, 0.5fr)",
+                  render: (row) => row.skipped_items_count,
+                },
+                {
+                  key: "review",
+                  label: "Review",
+                  width: "auto",
+                  render: (row) => (
+                    <StaffButton
+                      size="compact"
                       committing={reviewCommit.committing}
                       onClick={() =>
                         reviewCommit.commit(() =>
-                          navigate(
-                            `/staff/teacher/learners/${row.learner.id}`,
-                          ),
+                          navigate(`/staff/teacher/learners/${row.learner.id}`),
                         )
                       }
                     >
                       View details
-                    </BigButton>
-                  </div>
-                </article>
-              ))}
-            </div>
+                    </StaffButton>
+                  ),
+                },
+              ]}
+            />
           ) : null}
-        </Surface>
-      </div>
+        </StaffCard>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

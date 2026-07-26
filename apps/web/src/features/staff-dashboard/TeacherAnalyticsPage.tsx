@@ -2,37 +2,25 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { MetricCard } from "../../components/staff/MetricCard";
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { clearStaffSession, loadStaffSession } from "../staff-auth/staffApi";
 import { getTeacherAnalytics } from "./teacherAnalyticsApi";
-
-function EvidenceMetric({
-  label,
-  value,
-  denominator,
-}: {
-  label: string;
-  value: number;
-  denominator?: number;
-}) {
-  return (
-    <article className="teacher-analytics-metric">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>
-        {denominator === undefined
-          ? "Persisted events"
-          : `of ${denominator} recorded items`}
-      </small>
-    </article>
-  );
-}
 
 export function TeacherAnalyticsPage() {
   const navigate = useNavigate();
@@ -82,179 +70,182 @@ export function TeacherAnalyticsPage() {
       }
       workspaceLabel="Teacher"
     >
-      <div className="staff-workspace-page teacher-analytics-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="Assessment review"
           title="Class Analytics"
           description="Deterministic cohort counts from saved learner evidence. Values are separated by outcome and never used to rank Learners."
           badge={
-            <span className="staff-count-badge">
-              {analytics?.cohort_size ?? 0} Learners
-            </span>
+            <StaffBadge>{analytics?.cohort_size ?? 0} Learners</StaffBadge>
           }
         />
 
         {analyticsQuery.isLoading ? (
-          <Surface
-            kind="panel"
-            padding="roomy"
-            className="teacher-report-state"
-          >
-            Loading analytics…
-          </Surface>
+          <StaffState title="Loading analytics…" />
         ) : null}
         {analyticsQuery.isError ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="teacher-report-state"
+          <StaffState
+            tone="danger"
             role="alert"
-          >
-            <strong>Analytics could not be loaded.</strong>
-            <BigButton
-              variant="secondary"
-              size="regular"
-              onClick={() => void analyticsQuery.refetch()}
-            >
-              Retry
-            </BigButton>
-          </Surface>
+            title="Analytics could not be loaded."
+            actionLabel="Retry"
+            onAction={() => void analyticsQuery.refetch()}
+          />
         ) : null}
 
         {analytics ? (
           <>
             <section
-              className="teacher-analytics-metrics"
+              className="staff-metric-grid"
               aria-label="Lesson evidence totals"
             >
-              <EvidenceMetric
+              <MetricCard
                 label="Independent success"
                 value={analytics.lesson_evidence.independent_success}
-                denominator={analytics.lesson_evidence.recorded_items}
+                detail={`of ${analytics.lesson_evidence.recorded_items} recorded items`}
               />
-              <EvidenceMetric
+              <MetricCard
                 label="Supported success"
                 value={analytics.lesson_evidence.supported_success}
-                denominator={analytics.lesson_evidence.recorded_items}
+                detail={`of ${analytics.lesson_evidence.recorded_items} recorded items`}
               />
-              <EvidenceMetric
+              <MetricCard
                 label="Demonstrated"
                 value={analytics.lesson_evidence.demonstrated_items}
-                denominator={analytics.lesson_evidence.recorded_items}
+                detail={`of ${analytics.lesson_evidence.recorded_items} recorded items`}
               />
-              <EvidenceMetric
+              <MetricCard
                 label="Not yet correct"
                 value={analytics.lesson_evidence.not_yet_correct}
-                denominator={analytics.lesson_evidence.recorded_items}
+                detail={`of ${analytics.lesson_evidence.recorded_items} recorded items`}
               />
-              <EvidenceMetric
+              <MetricCard
                 label="Unscorable audio"
                 value={analytics.lesson_evidence.unscorable_recordings}
-                denominator={analytics.lesson_evidence.recorded_items}
+                detail={`of ${analytics.lesson_evidence.recorded_items} recorded items`}
               />
-              <EvidenceMetric
+              <MetricCard
                 label="Review recommended"
                 value={analytics.lesson_evidence.review_recommended}
-                denominator={analytics.lesson_evidence.recorded_items}
+                detail={`of ${analytics.lesson_evidence.recorded_items} recorded items`}
               />
-              <EvidenceMetric
+              <MetricCard
                 label="Technical retries"
                 value={analytics.lesson_evidence.technical_retries}
+                detail="Persisted events"
               />
-              <EvidenceMetric
+              <MetricCard
                 label="Assessment skips"
                 value={
                   analytics.assessment_skips.diagnostic +
                   analytics.assessment_skips.final
                 }
+                detail="Persisted events"
               />
             </section>
 
-            <div className="teacher-analytics-layout">
-              <Surface kind="panel" padding="none">
-                <header className="staff-section-header staff-section-header--list">
-                  <div>
-                    <p>Required lessons</p>
-                    <h2>Completion and support evidence</h2>
-                  </div>
-                  <span>Denominators shown</span>
-                </header>
-                <div className="teacher-analytics-lessons">
-                  {analytics.lesson_breakdown.map((lesson) => (
-                    <article key={lesson.lesson_key}>
-                      <header>
-                        <strong>{lesson.title}</strong>
-                        <span>
-                          {lesson.learners_completed} of {lesson.cohort_size}{" "}
-                          completed
+            <StaffContentGrid>
+              <StaffCard padding="none">
+                <StaffSectionHeader
+                  bordered
+                  eyebrow="Required lessons"
+                  title="Completion and support evidence"
+                  meta={<StaffBadge>Denominators shown</StaffBadge>}
+                />
+                <StaffDataTable
+                  accessibleLabel="Required lesson completion and support evidence"
+                  rows={analytics.lesson_breakdown}
+                  rowKey={(lesson) => lesson.lesson_key}
+                  columns={[
+                    {
+                      key: "lesson",
+                      label: "Lesson",
+                      width: "minmax(12rem, 1.3fr)",
+                      render: (lesson) => (
+                        <span className="staff-primary-value">
+                          <strong>{lesson.title}</strong>
+                          <small>
+                            {lesson.learners_completed} of {lesson.cohort_size}{" "}
+                            completed
+                          </small>
+                          <meter
+                            min={0}
+                            max={Math.max(lesson.cohort_size, 1)}
+                            value={lesson.learners_completed}
+                          >
+                            {lesson.learners_completed} of {lesson.cohort_size}
+                          </meter>
                         </span>
-                      </header>
-                      <meter
-                        min={0}
-                        max={Math.max(lesson.cohort_size, 1)}
-                        value={lesson.learners_completed}
-                      >
-                        {lesson.learners_completed} of {lesson.cohort_size}
-                      </meter>
-                      <dl>
-                        <div>
-                          <dt>Started</dt>
-                          <dd>{lesson.learners_started}</dd>
-                        </div>
-                        <div>
-                          <dt>Recorded items</dt>
-                          <dd>{lesson.recorded_items}</dd>
-                        </div>
-                        <div>
-                          <dt>Independent</dt>
-                          <dd>{lesson.independent_success}</dd>
-                        </div>
-                        <div>
-                          <dt>Supported</dt>
-                          <dd>{lesson.supported_success}</dd>
-                        </div>
-                        <div>
-                          <dt>Review flags</dt>
-                          <dd>{lesson.review_recommended}</dd>
-                        </div>
-                      </dl>
-                    </article>
-                  ))}
-                </div>
-              </Surface>
+                      ),
+                    },
+                    {
+                      key: "started",
+                      label: "Started",
+                      render: (lesson) => lesson.learners_started,
+                    },
+                    {
+                      key: "items",
+                      label: "Recorded items",
+                      render: (lesson) => lesson.recorded_items,
+                    },
+                    {
+                      key: "independent",
+                      label: "Independent",
+                      render: (lesson) => lesson.independent_success,
+                    },
+                    {
+                      key: "supported",
+                      label: "Supported",
+                      render: (lesson) => lesson.supported_success,
+                    },
+                    {
+                      key: "review",
+                      label: "Review flags",
+                      render: (lesson) => lesson.review_recommended,
+                    },
+                  ]}
+                />
+              </StaffCard>
 
-              <Surface kind="panel" padding="normal">
-                <header className="staff-section-header">
-                  <p>Saved diagnoses</p>
-                  <h2>Recurring evidence</h2>
-                  <span>
-                    Counts reflect persisted deterministic diagnosis keys, not
-                    conclusions about a Learner.
-                  </span>
-                </header>
+              <StaffCard padding="none">
+                <StaffSectionHeader
+                  bordered
+                  eyebrow="Saved diagnoses"
+                  title="Recurring evidence"
+                  description="Counts reflect persisted deterministic diagnosis keys, not conclusions about a Learner."
+                />
                 {analytics.diagnoses.length ? (
-                  <ol className="teacher-analytics-diagnoses">
-                    {analytics.diagnoses.map((diagnosis) => (
-                      <li key={diagnosis.diagnosis_key}>
-                        <span>{diagnosis.label}</span>
-                        <strong>{diagnosis.items}</strong>
-                      </li>
-                    ))}
-                  </ol>
+                  <StaffDataTable
+                    accessibleLabel="Recurring saved diagnosis evidence"
+                    rows={analytics.diagnoses}
+                    rowKey={(diagnosis) => diagnosis.diagnosis_key}
+                    columns={[
+                      {
+                        key: "evidence",
+                        label: "Evidence",
+                        render: (diagnosis) => diagnosis.label,
+                      },
+                      {
+                        key: "items",
+                        label: "Items",
+                        width: "auto",
+                        render: (diagnosis) => (
+                          <strong>{diagnosis.items}</strong>
+                        ),
+                      },
+                    ]}
+                  />
                 ) : (
-                  <div className="staff-empty-state">
-                    <span aria-hidden="true">0</span>
-                    <div>
-                      <strong>No saved diagnosis evidence</strong>
-                      <p>No deterministic diagnosis keys are persisted yet.</p>
-                    </div>
-                  </div>
+                  <StaffState
+                    title="No saved diagnosis evidence"
+                    description="No deterministic diagnosis keys are persisted yet."
+                  />
                 )}
-              </Surface>
-            </div>
+              </StaffCard>
+            </StaffContentGrid>
           </>
         ) : null}
-      </div>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

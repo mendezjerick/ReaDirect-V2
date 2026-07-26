@@ -4,7 +4,14 @@ import { useNavigate } from "react-router-dom";
 
 import { MetricCard } from "../../components/staff/MetricCard";
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
+import { StaffSearchField } from "../../components/staff/StaffFormControls";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
 import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
@@ -86,28 +93,30 @@ export function SchoolAdminReportsPage() {
       }
       workspaceLabel="School Admin"
     >
-      <div className="staff-workspace-page school-admin-report-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="Review and reporting"
           title="School Progress Report"
           description="A printable, read-only rollup of persisted class reports."
           badge={
-            <BigButton
-              variant="secondary"
+            <StaffButton
+              tone="secondary"
               size="regular"
               disabled={!report}
               onClick={() => window.print()}
             >
               Print report
-            </BigButton>
+            </StaffButton>
           }
         />
-        <Surface kind="notice" padding="compact">
-          Opening, filtering, or printing this report writes no learner-flow or
-          audit data.
-        </Surface>
+        <StaffNotice tone="accent">
+          <span>
+            Opening, filtering, or printing this report writes no learner-flow
+            or audit data.
+          </span>
+        </StaffNotice>
         {report ? (
-          <div className="school-admin-report-print-region">
+          <div className="staff-print-region">
             <section
               className="staff-metric-grid staff-metric-grid--teacher"
               aria-label="School report summary"
@@ -128,71 +137,110 @@ export function SchoolAdminReportsPage() {
                 />
               ))}
             </section>
-            <Surface kind="panel" padding="none">
-              <header className="staff-section-header staff-section-header--list">
-                <div>
-                  <p>{report.school.name}</p>
-                  <h2>Persisted Learner progress</h2>
-                </div>
-                <label className="school-admin-learner-search">
-                  <span>Search report</span>
-                  <input
-                    type="search"
+            <StaffCard padding="none">
+              <StaffSectionHeader
+                bordered
+                eyebrow={report.school.name}
+                title="Persisted Learner progress"
+                actions={
+                  <StaffSearchField
+                    label="Search report"
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Learner, code, Teacher, or section"
                   />
-                </label>
-              </header>
-              <div className="school-admin-report-table" role="table">
-                {learners.map((learner) => (
-                  <article role="row" key={learner.learner_id}>
-                    <span role="cell">
-                      <strong>{learner.learner_name}</strong>
-                      <small>{learner.learner_code}</small>
-                    </span>
-                    <span role="cell">
-                      Grade {learner.grade_level} · {learner.section}
-                      <small>{learner.teacher.username}</small>
-                    </span>
-                    <span role="cell">
-                      <strong>{learner.stage_label}</strong>
-                      <small>
-                        Diagnostic {learner.diagnostic.status.replace("_", " ")}
-                      </small>
-                    </span>
-                    <span role="cell">
-                      {learner.required_lessons_completed}/6 lessons
-                      <small>
-                        Final {learner.final.status.replace("_", " ")}
-                      </small>
-                    </span>
-                    <span role="cell">
-                      {learner.has_review_evidence
+                }
+              />
+              <StaffDataTable
+                accessibleLabel="Persisted school Learner progress"
+                rows={learners}
+                rowKey={(learner) => learner.learner_id}
+                columns={[
+                  {
+                    key: "learner",
+                    label: "Learner",
+                    width: "minmax(11rem, 1.25fr)",
+                    render: (learner) => (
+                      <span className="staff-primary-value">
+                        <strong>{learner.learner_name}</strong>
+                        <small>{learner.learner_code}</small>
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "class",
+                    label: "Class",
+                    render: (learner) => (
+                      <span className="staff-primary-value">
+                        <span>
+                          Grade {learner.grade_level} · {learner.section}
+                        </span>
+                        <small>{learner.teacher.username}</small>
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "progress",
+                    label: "Progress",
+                    render: (learner) => (
+                      <span className="staff-primary-value">
+                        <strong>{learner.stage_label}</strong>
+                        <small>
+                          Diagnostic{" "}
+                          {learner.diagnostic.status.replace("_", " ")}
+                        </small>
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "lessons",
+                    label: "Lessons",
+                    width: "minmax(8rem, 0.8fr)",
+                    render: (learner) => (
+                      <span className="staff-primary-value">
+                        <span>
+                          {learner.required_lessons_completed}/6 lessons
+                        </span>
+                        <small>
+                          Final {learner.final.status.replace("_", " ")}
+                        </small>
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "evidence",
+                    label: "Review evidence",
+                    render: (learner) =>
+                      learner.has_review_evidence
                         ? `${learner.skipped_items} skips · ${learner.review_recommended_items} flags`
-                        : "No saved flags"}
-                    </span>
-                    <BigButton
-                      variant="secondary"
-                      size="regular"
-                      committing={reviewCommit.committing}
-                      onClick={() =>
-                        reviewCommit.commit(() =>
-                          navigate(
-                            `/staff/school-admin/learners/${learner.learner_id}`,
-                          ),
-                        )
-                      }
-                    >
-                      Review
-                    </BigButton>
-                  </article>
-                ))}
-              </div>
-            </Surface>
+                        : "No saved flags",
+                  },
+                  {
+                    key: "action",
+                    label: "Action",
+                    width: "auto",
+                    render: (learner) => (
+                      <StaffButton
+                        size="compact"
+                        committing={reviewCommit.committing}
+                        onClick={() =>
+                          reviewCommit.commit(() =>
+                            navigate(
+                              `/staff/school-admin/learners/${learner.learner_id}`,
+                            ),
+                          )
+                        }
+                      >
+                        Review
+                      </StaffButton>
+                    ),
+                  },
+                ]}
+              />
+            </StaffCard>
           </div>
         ) : null}
-      </div>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

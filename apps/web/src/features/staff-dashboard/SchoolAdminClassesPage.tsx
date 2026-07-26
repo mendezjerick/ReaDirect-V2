@@ -3,11 +3,25 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffSelectionButton,
+  StaffSelectionList,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffSelectControl } from "../../components/staff/StaffFormControls";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
+import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { clearStaffSession, loadStaffSession } from "../staff-auth/staffApi";
 import {
@@ -98,63 +112,58 @@ export function SchoolAdminClassesPage() {
       }
       workspaceLabel="School Admin"
     >
-      <div className="staff-workspace-page school-admin-classes-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="School management"
           title="Classes"
           description="Each class is the grade-and-section assignment owned by one Teacher account."
           badge={
-            <span className="staff-count-badge">
-              {classesQuery.data?.length ?? 0} classes
-            </span>
+            <StaffBadge>{classesQuery.data?.length ?? 0} classes</StaffBadge>
           }
         />
 
-        <Surface kind="notice" padding="compact">
-          Class assignment changes update the matching Learner account context.
-          Assessment, lesson, score, progression, and achievement records are
-          never changed.
-        </Surface>
+        <StaffNotice tone="accent">
+          <span>
+            Class assignment changes update the matching Learner account
+            context. Assessment, lesson, score, progression, and achievement
+            records are never changed.
+          </span>
+        </StaffNotice>
 
-        <div className="school-admin-class-layout">
-          <Surface kind="panel" padding="none">
-            <header className="staff-section-header staff-section-header--list">
-              <div>
-                <p>Teacher assignments</p>
-                <h2>School classes</h2>
-              </div>
-              <BigButton
-                size="regular"
-                variant="secondary"
-                committing={createCommit.committing}
-                onClick={() =>
-                  createCommit.commit(() =>
-                    navigate("/staff/school-admin/teachers"),
-                  )
-                }
-              >
-                Create class with Teacher
-              </BigButton>
-            </header>
-            {classesQuery.data?.length === 0 ? (
-              <div className="staff-empty-state">
-                <span aria-hidden="true">0</span>
-                <div>
-                  <strong>No classes yet</strong>
-                  <p>Create a Teacher account with a grade and section.</p>
-                </div>
-              </div>
-            ) : null}
-            <div className="school-admin-class-list">
-              {classesQuery.data?.map((schoolClass) => (
-                <button
-                  type="button"
-                  key={schoolClass.id}
-                  className={
-                    selected?.id === schoolClass.id ? "is-selected" : undefined
+        <StaffContentGrid className="staff-content-grid--sidebar">
+          <StaffCard padding="none">
+            <StaffSectionHeader
+              bordered
+              eyebrow="Teacher assignments"
+              title="School classes"
+              actions={
+                <StaffButton
+                  size="compact"
+                  tone="secondary"
+                  committing={createCommit.committing}
+                  onClick={() =>
+                    createCommit.commit(() =>
+                      navigate("/staff/school-admin/teachers"),
+                    )
                   }
+                >
+                  Create class with Teacher
+                </StaffButton>
+              }
+            />
+            {classesQuery.data?.length === 0 ? (
+              <StaffState
+                compact
+                title="No classes yet"
+                description="Create a Teacher account with a grade and section."
+              />
+            ) : null}
+            <StaffSelectionList>
+              {classesQuery.data?.map((schoolClass) => (
+                <StaffSelectionButton
+                  key={schoolClass.id}
+                  selected={selected?.id === schoolClass.id}
                   onClick={() => selectClass(schoolClass)}
-                  aria-pressed={selected?.id === schoolClass.id}
                 >
                   <span>
                     <strong>
@@ -168,15 +177,15 @@ export function SchoolAdminClassesPage() {
                     {schoolClass.active_learner_count} active ·{" "}
                     {schoolClass.learner_count} total
                   </span>
-                </button>
+                </StaffSelectionButton>
               ))}
-            </div>
-          </Surface>
+            </StaffSelectionList>
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal">
+          <StaffCard>
             {selected ? (
               <form
-                className="school-admin-class-form"
+                className="staff-form-stack staff-form-stack--flush"
                 onSubmit={(event) => {
                   event.preventDefault();
                   const assignment = {
@@ -187,72 +196,70 @@ export function SchoolAdminClassesPage() {
                   saveCommit.commit(() => updateMutation.mutate(assignment));
                 }}
               >
-                <header className="staff-section-header">
-                  <p>Class assignment</p>
-                  <h2>{selected.username ?? selected.teacher_name}</h2>
-                  <span>
-                    Assigned Learners remain with this Teacher after the class
-                    context is updated.
-                  </span>
-                </header>
-                <label>
-                  <span>Grade level</span>
-                  <select
-                    value={gradeLevel}
-                    onChange={(event) =>
-                      setGradeLevel(Number(event.target.value))
-                    }
-                  >
-                    {[1, 2, 3, 4, 5, 6].map((grade) => (
-                      <option value={grade} key={grade}>
-                        Grade {grade}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span>Section</span>
-                  <input
-                    required
-                    maxLength={80}
-                    value={section}
-                    onChange={(event) => setSection(event.target.value)}
-                  />
-                </label>
+                <StaffSectionHeader
+                  eyebrow="Class assignment"
+                  title={selected.username ?? selected.teacher_name}
+                  description={
+                    <>
+                      Assigned Learners remain with this Teacher after the class
+                      context is updated.
+                    </>
+                  }
+                />
+                <StaffSelectControl
+                  label="Grade level"
+                  value={gradeLevel}
+                  onChange={(event) =>
+                    setGradeLevel(Number(event.target.value))
+                  }
+                >
+                  {[1, 2, 3, 4, 5, 6].map((grade) => (
+                    <option value={grade} key={grade}>
+                      Grade {grade}
+                    </option>
+                  ))}
+                </StaffSelectControl>
+                <TextField
+                  label="Section"
+                  required
+                  maxLength={80}
+                  value={section}
+                  onChange={(event) => setSection(event.target.value)}
+                />
                 {updateMutation.isSuccess ? (
-                  <p className="staff-form-notice" role="status">
-                    Class assignment updated. Learner-flow records were not
-                    changed.
-                  </p>
+                  <StaffNotice tone="success" role="status">
+                    <span>
+                      Class assignment updated. Learner-flow records were not
+                      changed.
+                    </span>
+                  </StaffNotice>
                 ) : null}
                 {updateMutation.isError ? (
-                  <p className="staff-form-notice--error" role="alert">
-                    {updateMutation.error.message}
-                  </p>
+                  <StaffNotice tone="danger">
+                    <span>{updateMutation.error.message}</span>
+                  </StaffNotice>
                 ) : null}
-                <BigButton
+                <StaffButton
                   type="submit"
-                  size="regular"
+                  size="roomy"
+                  tone="primary"
                   disabled={!section.trim()}
                   busy={updateMutation.isPending}
                   busyLabel="Saving class"
                   committing={saveCommit.committing}
                 >
                   Save class assignment
-                </BigButton>
+                </StaffButton>
               </form>
             ) : (
-              <div className="staff-empty-state">
-                <span aria-hidden="true">CL</span>
-                <div>
-                  <strong>Select a class</strong>
-                  <p>Its assignment controls will appear here.</p>
-                </div>
-              </div>
+              <StaffState
+                title="Select a class"
+                description="Its assignment controls will appear here."
+              />
             )}
-          </Surface>
-        </div>
-      </div>
+          </StaffCard>
+        </StaffContentGrid>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

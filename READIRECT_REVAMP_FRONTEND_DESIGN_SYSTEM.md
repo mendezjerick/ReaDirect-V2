@@ -278,6 +278,33 @@ After staff login, dashboards must retain these ReaDirect foundations:
 - Clear warm accents, navy structure, rounded geometry, and accessible status
   colors.
 
+System Administrator, School Administrator, and Teacher pages must compose the
+same shared professional staff component family. The shared contracts are:
+
+- `StaffShell`, `StaffWorkspacePage`, and `StaffPageHeader` for workspace
+  framing, the shared System Administrator page rhythm, and identity.
+- `StaffButton`, `StaffCard`, `StaffBadge`, `MetricCard`, and
+  `StaffSectionHeader` for actions, surfaces, status, totals, and hierarchy.
+- `StaffNotice` and `StaffState` for feedback, loading, error, and empty states.
+- `StaffDataTable` for desktop data grids that become labeled stacked rows
+  below the wide staff breakpoint.
+- `StaffTextAreaField`, `StaffSearchField`, `StaffSelectControl`,
+  `StaffCheckbox`, and `StaffFileField` for professional staff inputs.
+- `StaffFactGrid`, `StaffContentGrid`, `StaffSelectionList`,
+  `StaffSelectionButton`, and `StaffDisclosure` for repeated content patterns.
+
+Role pages may own business copy, data selection, and genuinely unique feature
+composition. They must not create `teacher-*` or `school-admin-*` visual
+component systems, role-prefixed copies of shared containers, handcrafted
+tables, or parallel button and status treatments. A repeated System
+Administrator visual pattern must first become a shared staff component, then
+be consumed unchanged by all staff roles that need it.
+
+`StaffWorkspacePage` owns the vertical spacing between top-level dashboard
+sections. Role dashboards must not recreate that rhythm with page-local margins
+or allow adjacent cards, notices, metric grids, and content grids to collapse
+together.
+
 Professional dashboard adjustments are required:
 
 - Use smaller radii, tighter spacing, and denser information layouts than
@@ -320,6 +347,13 @@ game screen.
 - School reports preserve school, Teacher, grade, and section context in both
   screen and print layouts. Filtering and printing must not create report
   records or audit events.
+- Instructional Insights is a dedicated Review and reporting route immediately
+  above Reports in the sidebar. Keep its school summary, face-to-face teaching
+  priorities, assessment skips, lesson signals, and class context in separate
+  shared staff surfaces so the report workspace remains uncluttered.
+- Every instructional priority displays its persisted affected-Learner and
+  evidence counts. Use the API's deterministic wording; do not add browser-side
+  scoring, AI conclusions, or controls that apply recommendations to Learners.
 - Teacher Dashboard Review uses a Teacher picker beside the selected class
   overview at wide widths and stacks them on mobile. Keep a visible
   `No impersonation` boundary and provide no Teacher-only mutations.

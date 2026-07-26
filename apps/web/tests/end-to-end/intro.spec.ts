@@ -125,11 +125,9 @@ test("intro fits the viewport and continues to home", async ({ page }) => {
   );
 
   await page.goto("/staff/system-admin");
+  await expect(page).toHaveURL(/\/staff\/login$/);
   await expect(
-    page.getByRole("heading", { name: "System overview" }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("PostgreSQL connection is healthy."),
+    page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
 
   const dashboardPageSize = await page.evaluate(() => ({

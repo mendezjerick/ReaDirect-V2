@@ -2,19 +2,23 @@ import type { ReactNode } from "react";
 
 interface MetricCardProps {
   label: string;
-  value: number | null;
-  icon: ReactNode;
+  value: ReactNode;
+  icon?: ReactNode;
+  detail?: ReactNode;
 }
 
-export function MetricCard({ label, value, icon }: MetricCardProps) {
+export function MetricCard({ label, value, icon, detail }: MetricCardProps) {
   return (
     <article className="staff-metric-card">
-      <div className="staff-metric-card__icon" aria-hidden="true">
-        {icon}
-      </div>
+      {icon ? (
+        <div className="staff-metric-card__icon" aria-hidden="true">
+          {icon}
+        </div>
+      ) : null}
       <div>
         <p>{label}</p>
         <strong>{value ?? "—"}</strong>
+        {detail ? <small>{detail}</small> : null}
       </div>
     </article>
   );

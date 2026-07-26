@@ -121,6 +121,80 @@ const schoolReportSchema = z.object({
   learners: z.array(schoolReportLearnerSchema),
 });
 
+const instructionalInsightPrioritySchema = z.object({
+  rank: z.number().int().positive(),
+  key: z.string(),
+  title: z.string(),
+  topic: z.string(),
+  reason: z.string(),
+  affected_learners: z.number().int().nonnegative(),
+  evidence_items: z.number().int().nonnegative(),
+  assessment_skips: z.number().int().nonnegative(),
+  lesson_skips: z.number().int().nonnegative(),
+  review_recommended_items: z.number().int().nonnegative(),
+  affected_classes: z.number().int().nonnegative(),
+});
+
+const schoolAdminInstructionalInsightsSchema = z.object({
+  school: z.object({
+    id: z.number().int().positive(),
+    name: z.string(),
+  }),
+  generated_at: z.string(),
+  read_only: z.literal(true),
+  rules_version: z.literal("school-instructional-insights-v1"),
+  summary: z.object({
+    active_learners: z.number().int().nonnegative(),
+    learners_with_evidence: z.number().int().nonnegative(),
+    assessment_skips: z.number().int().nonnegative(),
+    lesson_skips: z.number().int().nonnegative(),
+    review_recommended_items: z.number().int().nonnegative(),
+    teaching_priorities: z.number().int().nonnegative(),
+  }),
+  priorities: z.array(instructionalInsightPrioritySchema),
+  assessment_breakdown: z.array(
+    z.object({
+      task_key: z.string(),
+      title: z.string(),
+      topic_key: z.string(),
+      diagnostic_skips: z.number().int().nonnegative(),
+      final_skips: z.number().int().nonnegative(),
+      affected_learners: z.number().int().nonnegative(),
+    }),
+  ),
+  lesson_breakdown: z.array(
+    z.object({
+      lesson_key: z.string(),
+      order: z.number().int().min(1).max(6),
+      title: z.string(),
+      topic_key: z.string(),
+      skipped_items: z.number().int().nonnegative(),
+      review_recommended_items: z.number().int().nonnegative(),
+      affected_learners: z.number().int().nonnegative(),
+    }),
+  ),
+  class_breakdown: z.array(
+    z.object({
+      key: z.string(),
+      teacher: z
+        .object({
+          id: z.number().int().positive(),
+          name: z.string(),
+          username: z.string().nullable(),
+        })
+        .nullable(),
+      grade_level: z.number().int().min(1).max(6).nullable(),
+      section: z.string().nullable(),
+      cohort_size: z.number().int().nonnegative(),
+      assessment_skips: z.number().int().nonnegative(),
+      lesson_skips: z.number().int().nonnegative(),
+      review_recommended_items: z.number().int().nonnegative(),
+      affected_learners: z.number().int().nonnegative(),
+      evidence_items: z.number().int().nonnegative(),
+    }),
+  ),
+});
+
 const distributionSchema = z.array(
   z.object({
     label: z.string(),
@@ -180,6 +254,9 @@ export type SchoolAdminProfile = z.infer<typeof schoolProfileSchema>;
 export type SchoolAdminClass = z.infer<typeof schoolClassSchema>;
 export type SchoolAdminLearner = z.infer<typeof schoolLearnerSchema>;
 export type SchoolAdminReport = z.infer<typeof schoolReportSchema>;
+export type SchoolAdminInstructionalInsights = z.infer<
+  typeof schoolAdminInstructionalInsightsSchema
+>;
 export type SchoolAdminTeacherDashboard = z.infer<
   typeof teacherDashboardReviewSchema
 >;
@@ -326,6 +403,21 @@ export async function getSchoolAdminReport(
   }
 
   return schoolReportSchema.parse(await response.json());
+}
+
+export async function getSchoolAdminInstructionalInsights(
+  staffUserId: number,
+): Promise<SchoolAdminInstructionalInsights> {
+  const response = await staffFetch(
+    `/api/staff/school-admin/${staffUserId}/instructional-insights`,
+    { headers: { Accept: "application/json" } },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+
+  return schoolAdminInstructionalInsightsSchema.parse(await response.json());
 }
 
 export async function getSchoolAdminTeacherDashboard(

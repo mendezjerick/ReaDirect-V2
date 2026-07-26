@@ -4,9 +4,20 @@ import { useNavigate } from "react-router-dom";
 
 import { MetricCard } from "../../components/staff/MetricCard";
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
 import { StaffDistributionList } from "../../components/staff/StaffDistributionList";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -138,48 +149,39 @@ export function SchoolAdminDashboardPage() {
       }
       workspaceLabel="School Admin"
     >
-      <div className="staff-workspace-page school-admin-dashboard">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="School workspace"
           title={overview?.school.name ?? assignedSchool.name}
           description="Manage your school, prepare Teacher accounts, and follow learner activity."
-          badge={<span className="staff-count-badge">School Admin</span>}
+          badge={<StaffBadge>School Admin</StaffBadge>}
         />
 
         {overviewQuery.isError ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="staff-dashboard-error"
-            role="alert"
+          <StaffNotice
+            tone="danger"
+            title="The school dashboard could not be loaded."
+            actions={
+              <StaffButton
+                size="compact"
+                onClick={() => void overviewQuery.refetch()}
+              >
+                Retry
+              </StaffButton>
+            }
           >
-            <div>
-              <strong>The school dashboard could not be loaded.</strong>
-              <p>Check the API connection, then retry this request.</p>
-            </div>
-            <BigButton
-              variant="secondary"
-              size="regular"
-              onClick={() => void overviewQuery.refetch()}
-            >
-              Retry
-            </BigButton>
-          </Surface>
+            <p>Check the API connection, then retry this request.</p>
+          </StaffNotice>
         ) : null}
 
         {(overview?.requires_credential_setup ??
         schoolAdminSession.staff.requires_credential_setup) ? (
-          <Surface
-            kind="notice"
-            padding="compact"
-            className="school-admin-credential-notice"
-          >
-            <strong>Temporary credentials are active.</strong>
+          <StaffNotice tone="warning" title="Temporary credentials are active.">
             <span>
               Account credential conversion is separate from school workspace
               management. Your current authenticated session remains valid.
             </span>
-          </Surface>
+          </StaffNotice>
         ) : null}
 
         <section
@@ -204,77 +206,77 @@ export function SchoolAdminDashboardPage() {
           />
         </section>
 
-        <section className="staff-dashboard-grid school-admin-dashboard__grid">
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>ReaDirect Assessment</p>
-                <h2>Part 1 Score levels</h2>
-              </div>
-              <span>School scope</span>
-            </header>
+        <StaffContentGrid className="staff-content-grid--two">
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="ReaDirect Assessment"
+              title="Part 1 Score levels"
+              meta={<StaffBadge>School scope</StaffBadge>}
+            />
             {overview ? (
               <StaffDistributionList items={overview.part_one_distribution} />
             ) : (
-              <div className="staff-loading-block" />
+              <StaffState compact title="Loading score levels…" />
             )}
-          </Surface>
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>Learner activity</p>
-                <h2>Recent assessments</h2>
-              </div>
-            </header>
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="Learner activity"
+              title="Recent assessments"
+            />
             {overview?.recent_assessment_activity.length ? (
-              <div className="school-admin-recent-assessments">
-                {overview.recent_assessment_activity.map((activity) => (
-                  <article key={activity.id}>
-                    <span>
-                      <strong>{activity.learner_name}</strong>
-                      <small>
-                        {activity.learner_code} ·{" "}
-                        {activity.teacher_username ?? "Teacher unavailable"}
-                      </small>
-                    </span>
-                    <span>
-                      <strong>{activity.assessment_label}</strong>
-                      <small>
-                        {activity.status.replaceAll("_", " ")} ·{" "}
-                        {formatAssessmentDate(activity.occurred_at)}
-                      </small>
-                    </span>
-                  </article>
-                ))}
-              </div>
+              <StaffDataTable
+                accessibleLabel="Recent assessment activity"
+                rows={overview.recent_assessment_activity}
+                rowKey={(activity) => activity.id}
+                columns={[
+                  {
+                    key: "learner",
+                    label: "Learner",
+                    render: (activity) => (
+                      <span className="staff-primary-value">
+                        <strong>{activity.learner_name}</strong>
+                        <small>
+                          {activity.learner_code} ·{" "}
+                          {activity.teacher_username ?? "Teacher unavailable"}
+                        </small>
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "assessment",
+                    label: "Assessment",
+                    render: (activity) => (
+                      <span className="staff-primary-value">
+                        <strong>{activity.assessment_label}</strong>
+                        <small>
+                          {activity.status.replaceAll("_", " ")} ·{" "}
+                          {formatAssessmentDate(activity.occurred_at)}
+                        </small>
+                      </span>
+                    ),
+                  },
+                ]}
+              />
             ) : (
-              <div className="staff-empty-state">
-                <span aria-hidden="true">0</span>
-                <div>
-                  <strong>No assessment activity yet</strong>
-                  <p>Persisted school Learner activity will appear here.</p>
-                </div>
-              </div>
+              <StaffState
+                title="No assessment activity yet"
+                description="Persisted school Learner activity will appear here."
+              />
             )}
-          </Surface>
-        </section>
+          </StaffCard>
+        </StaffContentGrid>
 
-        <Surface
-          kind="panel"
-          padding="normal"
-          className="staff-data-card staff-quick-links"
-        >
-          <header className="staff-data-card__header">
-            <div>
-              <p>School management</p>
-              <h2>Quick actions</h2>
-            </div>
-            <span>School tools</span>
-          </header>
-          <div className="staff-quick-links__grid">
-            <BigButton
-              variant="secondary"
+        <StaffCard>
+          <StaffSectionHeader
+            eyebrow="School management"
+            title="Quick actions"
+            meta={<StaffBadge>School tools</StaffBadge>}
+          />
+          <div className="staff-action-grid">
+            <StaffButton
+              tone="secondary"
               size="regular"
               committing={teacherCommit.committing}
               onClick={() =>
@@ -284,7 +286,7 @@ export function SchoolAdminDashboardPage() {
               }
             >
               Create Teacher
-            </BigButton>
+            </StaffButton>
             {[
               ["School Profile", "/staff/school-admin/profile"],
               ["Manage Learners", "/staff/school-admin/learners"],
@@ -292,19 +294,19 @@ export function SchoolAdminDashboardPage() {
               ["School Reports", "/staff/school-admin/reports"],
               ["Teacher Dashboards", "/staff/school-admin/teacher-dashboards"],
             ].map(([label, route]) => (
-              <BigButton
-                variant="secondary"
+              <StaffButton
+                tone="secondary"
                 size="regular"
                 key={label}
                 committing={toolCommit.committing}
                 onClick={() => toolCommit.commit(() => navigate(route))}
               >
                 {label}
-              </BigButton>
+              </StaffButton>
             ))}
           </div>
-        </Surface>
-      </div>
+        </StaffCard>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

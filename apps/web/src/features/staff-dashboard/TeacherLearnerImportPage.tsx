@@ -3,8 +3,20 @@ import { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
+import { StaffFileField } from "../../components/staff/StaffFormControls";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -123,127 +135,138 @@ export function TeacherLearnerImportPage() {
       }
       workspaceLabel="Teacher"
     >
-      <div className="staff-workspace-page teacher-import-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="Class management"
           title="Import Learners"
           description="Create up to 100 Learner accounts from one validated CSV. Every account inherits your school, grade, and section."
-          badge={<span className="staff-count-badge">CSV roster</span>}
+          badge={<StaffBadge>CSV roster</StaffBadge>}
         />
 
         {credentials ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="teacher-import-credentials"
-            role="status"
-          >
-            <header>
-              <p>Import complete</p>
-              <h2>Save these credentials now</h2>
-              <span>
-                Passwords are shown only in this confirmation. Print or save
-                them before dismissing it.
-              </span>
-            </header>
-            <div className="teacher-import-credentials__table" role="table">
-              {credentials.map((credential) => (
-                <div role="row" key={credential.id}>
-                  <strong role="cell">{credential.full_name}</strong>
-                  <span role="cell">{credential.learner_code}</span>
-                  <span role="cell">{credential.temporary_password}</span>
-                </div>
-              ))}
-            </div>
-            <BigButton
-              variant="secondary"
+          <StaffCard tone="success" role="status">
+            <StaffSectionHeader
+              eyebrow="Import complete"
+              title="Save these credentials now"
+              description="Passwords are shown only in this confirmation. Print or save them before dismissing it."
+            />
+            <StaffDataTable
+              accessibleLabel="Imported Learner credentials"
+              rows={credentials}
+              rowKey={(credential) => credential.id}
+              columns={[
+                {
+                  key: "learner",
+                  label: "Learner",
+                  render: (credential) => (
+                    <strong>{credential.full_name}</strong>
+                  ),
+                },
+                {
+                  key: "code",
+                  label: "Learner Code",
+                  render: (credential) => credential.learner_code,
+                },
+                {
+                  key: "password",
+                  label: "Temporary password",
+                  render: (credential) => credential.temporary_password,
+                },
+              ]}
+            />
+            <StaffButton
+              tone="secondary"
               size="regular"
               onClick={() => setCredentials(null)}
             >
               Credentials saved
-            </BigButton>
-          </Surface>
+            </StaffButton>
+          </StaffCard>
         ) : null}
 
-        <div className="teacher-import-layout">
-          <Surface kind="panel" padding="normal">
-            <header className="staff-section-header">
-              <p>CSV file</p>
-              <h2>Select a roster</h2>
-              <span>
-                Required columns are first_name, middle_name, and last_name.
-                Keep suffix and lrn columns even when their values are blank.
-              </span>
-            </header>
-            <div className="teacher-import-controls">
-              <label className="teacher-import-file">
-                <span>Roster CSV</span>
-                <input
-                  type="file"
-                  accept=".csv,text/csv"
-                  disabled={!assignmentReady || importMutation.isPending}
-                  onChange={(event) => void readFile(event)}
-                />
-              </label>
-              <BigButton
-                variant="quiet"
+        <StaffContentGrid className="staff-content-grid--two">
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="CSV file"
+              title="Select a roster"
+              description="Required columns are first_name, middle_name, and last_name. Keep suffix and lrn columns even when their values are blank."
+            />
+            <div className="staff-form-stack">
+              <StaffFileField
+                label="Roster CSV"
+                accept=".csv,text/csv"
+                disabled={!assignmentReady || importMutation.isPending}
+                onChange={(event) => void readFile(event)}
+              />
+              <StaffButton
+                tone="quiet"
                 size="regular"
                 onClick={downloadTemplate}
               >
                 Download template
-              </BigButton>
+              </StaffButton>
             </div>
             {fileName ? (
-              <p className="teacher-import-file-name">{fileName}</p>
+              <StaffNotice>
+                <span>{fileName}</span>
+              </StaffNotice>
             ) : null}
             {fileError ? (
-              <p className="staff-form-notice--error" role="alert">
-                {fileError}
-              </p>
+              <StaffNotice tone="danger">
+                <span>{fileError}</span>
+              </StaffNotice>
             ) : null}
             {importMutation.isError ? (
-              <p className="staff-form-notice--error" role="alert">
-                {importMutation.error.message}
-              </p>
+              <StaffNotice tone="danger">
+                <span>{importMutation.error.message}</span>
+              </StaffNotice>
             ) : null}
-          </Surface>
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal">
-            <header className="staff-section-header">
-              <p>Validated preview</p>
-              <h2>
-                {rows.length
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="Validated preview"
+              title={
+                rows.length
                   ? `${rows.length} Learners ready`
-                  : "No roster selected"}
-              </h2>
-              <span>
-                The import is all-or-nothing. Invalid rows create no accounts.
-              </span>
-            </header>
+                  : "No roster selected"
+              }
+              description="The import is all-or-nothing. Invalid rows create no accounts."
+            />
             {rows.length ? (
-              <ol className="teacher-import-preview">
-                {rows.slice(0, 8).map((row, index) => (
-                  <li key={`${row.first_name}-${row.last_name}-${index}`}>
-                    <strong>
-                      {row.first_name} {row.middle_name} {row.last_name}{" "}
-                      {row.suffix}
-                    </strong>
-                    <span>{row.lrn || "No LRN"}</span>
-                  </li>
-                ))}
-              </ol>
+              <StaffDataTable
+                accessibleLabel="Validated Learner import preview"
+                rows={rows.slice(0, 8).map((row, index) => ({ ...row, index }))}
+                rowKey={(row) =>
+                  `${row.first_name}-${row.last_name}-${row.index}`
+                }
+                columns={[
+                  {
+                    key: "learner",
+                    label: "Learner",
+                    render: (row) => (
+                      <strong>
+                        {row.first_name} {row.middle_name} {row.last_name}{" "}
+                        {row.suffix}
+                      </strong>
+                    ),
+                  },
+                  {
+                    key: "lrn",
+                    label: "LRN",
+                    render: (row) => row.lrn || "No LRN",
+                  },
+                ]}
+              />
             ) : (
-              <div className="staff-empty-state">
-                <span aria-hidden="true">CSV</span>
-                <div>
-                  <strong>Choose the completed template</strong>
-                  <p>A validated preview will appear before import.</p>
-                </div>
-              </div>
+              <StaffState
+                title="Choose the completed template"
+                description="A validated preview will appear before import."
+              />
             )}
-            <BigButton
-              className="teacher-import-submit"
-              size="regular"
+            <StaffButton
+              tone="primary"
+              size="roomy"
               disabled={!rows.length || !assignmentReady}
               committing={importCommit.committing}
               busy={importMutation.isPending}
@@ -254,10 +277,10 @@ export function TeacherLearnerImportPage() {
               }}
             >
               Import {rows.length || ""} Learners
-            </BigButton>
-          </Surface>
-        </div>
-      </div>
+            </StaffButton>
+          </StaffCard>
+        </StaffContentGrid>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

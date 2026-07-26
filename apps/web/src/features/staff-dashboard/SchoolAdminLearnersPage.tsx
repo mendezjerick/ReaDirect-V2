@@ -3,8 +3,17 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
+import { StaffSearchField } from "../../components/staff/StaffFormControls";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -82,83 +91,110 @@ export function SchoolAdminLearnersPage() {
       }
       workspaceLabel="School Admin"
     >
-      <div className="staff-workspace-page school-admin-learners-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="School management"
           title="Learners"
           description="Review standard Learners assigned anywhere in your school."
           badge={
-            <span className="staff-count-badge">
-              {learnersQuery.data?.length ?? 0} Learners
-            </span>
+            <StaffBadge>{learnersQuery.data?.length ?? 0} Learners</StaffBadge>
           }
         />
-        <Surface kind="notice" padding="compact">
-          This directory is read-only. Portal-system Learners, including KW000,
-          are always excluded.
-        </Surface>
-        <Surface kind="panel" padding="none">
-          <header className="staff-section-header staff-section-header--list">
-            <div>
-              <p>School roster</p>
-              <h2>Learner directory</h2>
-            </div>
-            <label className="school-admin-learner-search">
-              <span>Search Learners</span>
-              <input
-                type="search"
+        <StaffNotice tone="accent">
+          <span>
+            This directory is read-only. Portal-system Learners, including
+            KW000, are always excluded.
+          </span>
+        </StaffNotice>
+        <StaffCard padding="none">
+          <StaffSectionHeader
+            bordered
+            eyebrow="School roster"
+            title="Learner directory"
+            actions={
+              <StaffSearchField
+                label="Search Learners"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Name, code, section, or Teacher"
               />
-            </label>
-          </header>
+            }
+          />
           {learnersQuery.isError ? (
-            <p className="staff-account-list-state" role="alert">
-              The school Learner directory could not be loaded.
-            </p>
+            <StaffState
+              compact
+              tone="danger"
+              role="alert"
+              title="The school Learner directory could not be loaded."
+            />
           ) : null}
-          <div className="school-admin-learner-table" role="table">
-            {learners.map((learner) => (
-              <div role="row" key={learner.id}>
-                <span role="cell">
-                  <strong>{learner.full_name}</strong>
-                  <small>{learner.learner_code}</small>
-                </span>
-                <span role="cell">
-                  Grade {learner.grade_level ?? "—"} ·{" "}
-                  {learner.section ?? "No section"}
-                </span>
-                <span role="cell">
-                  {learner.teacher?.username ?? "Teacher unavailable"}
-                </span>
-                <span role="cell">{stageLabel(learner.progress_stage)}</span>
-                <BigButton
-                  variant="secondary"
-                  size="regular"
-                  committing={reviewCommit.committing}
-                  onClick={() =>
-                    reviewCommit.commit(() =>
-                      navigate(`/staff/school-admin/learners/${learner.id}`),
-                    )
-                  }
-                >
-                  Review
-                </BigButton>
-              </div>
-            ))}
-          </div>
-          {!learnersQuery.isLoading && learners.length === 0 ? (
-            <div className="staff-empty-state">
-              <span aria-hidden="true">0</span>
-              <div>
-                <strong>No matching Learners</strong>
-                <p>Only standard Learners in this school can appear.</p>
-              </div>
-            </div>
-          ) : null}
-        </Surface>
-      </div>
+          <StaffDataTable
+            accessibleLabel="School Learner directory"
+            rows={learners}
+            rowKey={(learner) => learner.id}
+            columns={[
+              {
+                key: "learner",
+                label: "Learner",
+                width: "minmax(12rem, 1.4fr)",
+                render: (learner) => (
+                  <span className="staff-primary-value">
+                    <strong>{learner.full_name}</strong>
+                    <small>{learner.learner_code}</small>
+                  </span>
+                ),
+              },
+              {
+                key: "class",
+                label: "Class",
+                render: (learner) => (
+                  <>
+                    Grade {learner.grade_level ?? "—"} ·{" "}
+                    {learner.section ?? "No section"}
+                  </>
+                ),
+              },
+              {
+                key: "teacher",
+                label: "Teacher",
+                render: (learner) =>
+                  learner.teacher?.username ?? "Teacher unavailable",
+              },
+              {
+                key: "stage",
+                label: "Progress",
+                render: (learner) => stageLabel(learner.progress_stage),
+              },
+              {
+                key: "action",
+                label: "Action",
+                width: "auto",
+                render: (learner) => (
+                  <StaffButton
+                    size="compact"
+                    committing={reviewCommit.committing}
+                    onClick={() =>
+                      reviewCommit.commit(() =>
+                        navigate(`/staff/school-admin/learners/${learner.id}`),
+                      )
+                    }
+                  >
+                    Review
+                  </StaffButton>
+                ),
+              },
+            ]}
+            empty={
+              !learnersQuery.isLoading ? (
+                <StaffState
+                  title="No matching Learners"
+                  description="Only standard Learners in this school can appear."
+                />
+              ) : null
+            }
+          />
+        </StaffCard>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

@@ -5,10 +5,15 @@ import { useNavigate } from "react-router-dom";
 import { StaffDistributionList } from "../../components/staff/StaffDistributionList";
 import { MetricCard } from "../../components/staff/MetricCard";
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
-import { BigButton } from "../../components/ui/BigButton";
-import { Surface } from "../../components/ui/Surface";
+import { StaffState } from "../../components/staff/StaffState";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import {
   clearStaffSession,
@@ -110,35 +115,29 @@ export function SystemAdminDashboardPage() {
       onExit={exitStaffView}
       brandIcon={<StaffBrandIcon />}
     >
-      <div className="staff-workspace-page system-admin-dashboard">
+      <StaffWorkspacePage className="system-admin-dashboard">
         <StaffPageHeader
           eyebrow="Development workspace"
           title="System overview"
           description="Monitor ReaDirect and prepare schools for reading activities."
-          badge={
-            <span className="staff-environment-badge">Local development</span>
-          }
+          badge={<StaffBadge tone="accent">Local development</StaffBadge>}
         />
 
         {overviewQuery.isError ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="staff-dashboard-error"
-            role="alert"
+          <StaffNotice
+            tone="danger"
+            title="The dashboard API is unavailable."
+            actions={
+              <StaffButton
+                tone="secondary"
+                onClick={() => void overviewQuery.refetch()}
+              >
+                Retry
+              </StaffButton>
+            }
           >
-            <div>
-              <strong>The dashboard API is unavailable.</strong>
-              <p>Start ReaDirect again, then retry this request.</p>
-            </div>
-            <BigButton
-              variant="secondary"
-              size="regular"
-              onClick={() => void overviewQuery.refetch()}
-            >
-              Retry
-            </BigButton>
-          </Surface>
+            Start ReaDirect again, then retry this request.
+          </StaffNotice>
         ) : null}
 
         <section
@@ -168,11 +167,7 @@ export function SystemAdminDashboardPage() {
           />
         </section>
 
-        <Surface
-          kind="panel"
-          padding="normal"
-          className="staff-data-card staff-speech-setting"
-        >
+        <StaffCard className="staff-data-card staff-speech-setting">
           <div className="staff-speech-setting__copy">
             <p className="staff-speech-setting__eyebrow">Speech processing</p>
             <div className="staff-speech-setting__title-row">
@@ -235,15 +230,14 @@ export function SystemAdminDashboardPage() {
                 </p>
               </div>
               <div className="staff-setting-confirmation__actions">
-                <BigButton
-                  variant="quiet"
-                  size="regular"
+                <StaffButton
+                  tone="quiet"
                   onClick={() => setRequestedNoiseReduction(null)}
                 >
                   Cancel
-                </BigButton>
-                <BigButton
-                  size="regular"
+                </StaffButton>
+                <StaffButton
+                  tone="primary"
                   busy={noiseReductionMutation.isPending}
                   busyLabel="Saving setting"
                   committing={settingCommit.committing}
@@ -254,7 +248,7 @@ export function SystemAdminDashboardPage() {
                   }
                 >
                   Confirm change
-                </BigButton>
+                </StaffButton>
               </div>
             </div>
           ) : null}
@@ -273,54 +267,43 @@ export function SystemAdminDashboardPage() {
               Speech processing setting updated.
             </p>
           ) : null}
-        </Surface>
+        </StaffCard>
 
         <section className="staff-dashboard-grid staff-dashboard-grid--primary">
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>ReaDirect Assessment</p>
-                <h2>Part 1 Score levels</h2>
-              </div>
-              <span>All learners</span>
-            </header>
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="ReaDirect Assessment"
+              title="Part 1 Score levels"
+              meta={<StaffBadge tone="neutral">All learners</StaffBadge>}
+            />
             {overview ? (
               <StaffDistributionList items={overview.part_one_distribution} />
             ) : (
-              <div
-                className="staff-loading-block"
-                aria-label="Loading levels"
-              />
+              <StaffState compact title="Loading levels…" aria-live="polite" />
             )}
-          </Surface>
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>ReaDirect Assessment</p>
-                <h2>Final reading profiles</h2>
-              </div>
-              <span>All learners</span>
-            </header>
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="ReaDirect Assessment"
+              title="Final reading profiles"
+              meta={<StaffBadge tone="neutral">All learners</StaffBadge>}
+            />
             {overview ? (
               <StaffDistributionList
                 items={overview.reading_profile_distribution}
               />
             ) : (
-              <div
-                className="staff-loading-block"
-                aria-label="Loading profiles"
+              <StaffState
+                compact
+                title="Loading profiles…"
+                aria-live="polite"
               />
             )}
-          </Surface>
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>Environment</p>
-                <h2>System health</h2>
-              </div>
-            </header>
+          <StaffCard>
+            <StaffSectionHeader eyebrow="Environment" title="System health" />
             <div className="staff-health-list">
               {overview?.system_health.map((item) => (
                 <div className="staff-health-item" key={item.service}>
@@ -338,35 +321,29 @@ export function SystemAdminDashboardPage() {
                     {item.status === "online" ? "Online" : "Not configured"}
                   </span>
                 </div>
-              )) ?? <div className="staff-loading-block" />}
+              )) ?? <StaffState compact title="Loading system health…" />}
             </div>
-          </Surface>
+          </StaffCard>
         </section>
 
         <section className="staff-dashboard-grid staff-dashboard-grid--secondary">
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>Learner activity</p>
-                <h2>Recent assessments</h2>
-              </div>
-            </header>
-            <div className="staff-empty-state">
-              <span aria-hidden="true">0</span>
-              <div>
-                <strong>No assessment activity yet</strong>
-                <p>Completed learner assessments will appear here.</p>
-              </div>
-            </div>
-          </Surface>
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="Learner activity"
+              title="Recent assessments"
+            />
+            <StaffState
+              compact
+              title="No assessment activity yet"
+              description="Completed learner assessments will appear here."
+            />
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal" className="staff-data-card">
-            <header className="staff-data-card__header">
-              <div>
-                <p>Administration</p>
-                <h2>Recent actions</h2>
-              </div>
-            </header>
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="Administration"
+              title="Recent actions"
+            />
             <div className="staff-action-list">
               {overview?.recent_actions.map((action) => (
                 <article className="staff-action-item" key={action.id}>
@@ -381,11 +358,11 @@ export function SystemAdminDashboardPage() {
                     </p>
                   </div>
                 </article>
-              )) ?? <div className="staff-loading-block" />}
+              )) ?? <StaffState compact title="Loading recent actions…" />}
             </div>
-          </Surface>
+          </StaffCard>
         </section>
-      </div>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

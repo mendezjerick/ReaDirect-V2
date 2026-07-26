@@ -4,9 +4,22 @@ import { useNavigate } from "react-router-dom";
 
 import { MetricCard } from "../../components/staff/MetricCard";
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffSelectionButton,
+  StaffSelectionList,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
 import { StaffDistributionList } from "../../components/staff/StaffDistributionList";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -91,34 +104,32 @@ export function SchoolAdminTeacherDashboardsPage() {
       }
       workspaceLabel="School Admin"
     >
-      <div className="staff-workspace-page school-admin-teacher-dashboard-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="Review and reporting"
           title="Teacher Dashboards"
           description="Open a read-only class overview for a Teacher assigned to your school."
-          badge={<span className="staff-count-badge">No impersonation</span>}
+          badge={<StaffBadge tone="warning">No impersonation</StaffBadge>}
         />
-        <Surface kind="notice" padding="compact">
-          You remain signed in as the School Administrator. This review cannot
-          acknowledge the Teacher’s assignment or change any learner-flow data.
-        </Surface>
-        <div className="school-admin-teacher-dashboard-layout">
-          <Surface kind="panel" padding="none">
-            <header className="staff-section-header staff-section-header--list">
-              <div>
-                <p>School staff</p>
-                <h2>Select a Teacher</h2>
-              </div>
-            </header>
-            <div className="school-admin-teacher-picker">
+        <StaffNotice tone="warning">
+          <span>
+            You remain signed in as the School Administrator. This review cannot
+            acknowledge the Teacher’s assignment or change any learner-flow
+            data.
+          </span>
+        </StaffNotice>
+        <StaffContentGrid className="staff-content-grid--sidebar">
+          <StaffCard padding="none">
+            <StaffSectionHeader
+              bordered
+              eyebrow="School staff"
+              title="Select a Teacher"
+            />
+            <StaffSelectionList>
               {teachersQuery.data?.map((teacher) => (
-                <button
-                  type="button"
+                <StaffSelectionButton
                   key={teacher.id}
-                  className={
-                    teacher.id === selectedTeacherId ? "is-selected" : undefined
-                  }
-                  aria-pressed={teacher.id === selectedTeacherId}
+                  selected={teacher.id === selectedTeacherId}
                   onClick={() => setSelectedTeacherId(teacher.id)}
                 >
                   <span>
@@ -127,23 +138,27 @@ export function SchoolAdminTeacherDashboardsPage() {
                       Grade {teacher.grade_level} · {teacher.section}
                     </small>
                   </span>
-                  <span>{teacher.is_active ? "Active" : "Inactive"}</span>
-                </button>
+                  <StaffBadge tone={teacher.is_active ? "success" : "muted"}>
+                    {teacher.is_active ? "Active" : "Inactive"}
+                  </StaffBadge>
+                </StaffSelectionButton>
               ))}
-            </div>
-          </Surface>
-          <div className="school-admin-teacher-dashboard-content">
+            </StaffSelectionList>
+          </StaffCard>
+          <StaffContentGrid>
             {dashboard ? (
               <>
-                <Surface kind="panel" padding="normal">
-                  <header className="staff-section-header">
-                    <p>Teacher class</p>
-                    <h2>{dashboard.teacher.username}</h2>
-                    <span>
-                      Grade {dashboard.teacher.grade_level} ·{" "}
-                      {dashboard.teacher.section}
-                    </span>
-                  </header>
+                <StaffCard>
+                  <StaffSectionHeader
+                    eyebrow="Teacher class"
+                    title={dashboard.teacher.username}
+                    description={
+                      <>
+                        Grade {dashboard.teacher.grade_level} ·{" "}
+                        {dashboard.teacher.section}
+                      </>
+                    }
+                  />
                   <section
                     className="staff-metric-grid staff-metric-grid--teacher"
                     aria-label="Teacher class summary"
@@ -171,86 +186,96 @@ export function SchoolAdminTeacherDashboardsPage() {
                       />
                     ))}
                   </section>
-                </Surface>
-                <div className="school-admin-teacher-distributions">
-                  <Surface kind="panel" padding="normal">
-                    <header className="staff-data-card__header">
-                      <div>
-                        <p>Diagnostic</p>
-                        <h2>Part 1 levels</h2>
-                      </div>
-                    </header>
+                </StaffCard>
+                <StaffContentGrid className="staff-content-grid--two">
+                  <StaffCard>
+                    <StaffSectionHeader
+                      eyebrow="Diagnostic"
+                      title="Part 1 levels"
+                    />
                     <StaffDistributionList
                       items={dashboard.overview.part_one_distribution}
                     />
-                  </Surface>
-                  <Surface kind="panel" padding="normal">
-                    <header className="staff-data-card__header">
-                      <div>
-                        <p>Final Assessment</p>
-                        <h2>Reading profiles</h2>
-                      </div>
-                    </header>
+                  </StaffCard>
+                  <StaffCard>
+                    <StaffSectionHeader
+                      eyebrow="Final Assessment"
+                      title="Reading profiles"
+                    />
                     <StaffDistributionList
                       items={
                         dashboard.overview.final_reading_profile_distribution
                       }
                     />
-                  </Surface>
-                </div>
-                <Surface kind="panel" padding="none">
-                  <header className="staff-section-header staff-section-header--list">
-                    <div>
-                      <p>Class report</p>
-                      <h2>Persisted Learner progress</h2>
-                    </div>
-                  </header>
-                  <div className="school-admin-teacher-review-list">
-                    {dashboard.report.learners.map((learner) => (
-                      <article key={learner.learner_id}>
-                        <span>
-                          <strong>{learner.learner_name}</strong>
-                          <small>{learner.learner_code}</small>
-                        </span>
-                        <span>{learner.stage_label}</span>
-                        <span>
-                          {learner.required_lessons_completed}/6 lessons
-                        </span>
-                        <BigButton
-                          variant="secondary"
-                          size="regular"
-                          committing={reviewCommit.committing}
-                          onClick={() =>
-                            reviewCommit.commit(() =>
-                              navigate(
-                                `/staff/school-admin/learners/${learner.learner_id}`,
-                              ),
-                            )
-                          }
-                        >
-                          Review
-                        </BigButton>
-                      </article>
-                    ))}
-                  </div>
-                </Surface>
+                  </StaffCard>
+                </StaffContentGrid>
+                <StaffCard padding="none">
+                  <StaffSectionHeader
+                    bordered
+                    eyebrow="Class report"
+                    title="Persisted Learner progress"
+                  />
+                  <StaffDataTable
+                    accessibleLabel="Teacher class Learner progress"
+                    rows={dashboard.report.learners}
+                    rowKey={(learner) => learner.learner_id}
+                    columns={[
+                      {
+                        key: "learner",
+                        label: "Learner",
+                        width: "minmax(12rem, 1.5fr)",
+                        render: (learner) => (
+                          <span className="staff-primary-value">
+                            <strong>{learner.learner_name}</strong>
+                            <small>{learner.learner_code}</small>
+                          </span>
+                        ),
+                      },
+                      {
+                        key: "stage",
+                        label: "Progress",
+                        render: (learner) => learner.stage_label,
+                      },
+                      {
+                        key: "lessons",
+                        label: "Lessons",
+                        width: "minmax(7rem, 0.7fr)",
+                        render: (learner) =>
+                          `${learner.required_lessons_completed}/6 lessons`,
+                      },
+                      {
+                        key: "action",
+                        label: "Action",
+                        width: "auto",
+                        render: (learner) => (
+                          <StaffButton
+                            size="compact"
+                            committing={reviewCommit.committing}
+                            onClick={() =>
+                              reviewCommit.commit(() =>
+                                navigate(
+                                  `/staff/school-admin/learners/${learner.learner_id}`,
+                                ),
+                              )
+                            }
+                          >
+                            Review
+                          </StaffButton>
+                        ),
+                      },
+                    ]}
+                  />
+                </StaffCard>
               </>
             ) : (
-              <Surface kind="panel" padding="normal">
-                <div className="staff-empty-state">
-                  <span aria-hidden="true">TD</span>
-                  <div>
-                    <strong>Select a Teacher dashboard</strong>
-                    <p>
-                      Its read-only overview and class report will appear here.
-                    </p>
-                  </div>
-                </div>
-              </Surface>
+              <StaffState
+                title="Select a Teacher dashboard"
+                description="Its read-only overview and class report will appear here."
+              />
             )}
-          </div>
-        </div>
-      </div>
+          </StaffContentGrid>
+        </StaffContentGrid>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

@@ -89,6 +89,10 @@ export const schoolAdminNavigationGroups: StaffNavigationGroup[] = [
   {
     label: "Review and reporting",
     items: [
+      {
+        label: "Instructional Insights",
+        to: "/staff/school-admin/instructional-insights",
+      },
       { label: "Reports", to: "/staff/school-admin/reports" },
       {
         label: "Teacher dashboards",

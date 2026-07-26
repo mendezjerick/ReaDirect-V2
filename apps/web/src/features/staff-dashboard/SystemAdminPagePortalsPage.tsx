@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
 import { BigButton } from "../../components/ui/BigButton";
@@ -108,7 +109,7 @@ export function SystemAdminPagePortalsPage() {
       }
       brandIcon={<StaffBrandIcon />}
     >
-      <div className="staff-workspace-page staff-page-portals">
+      <StaffWorkspacePage className="staff-page-portals">
         <StaffPageHeader
           eyebrow="Operations"
           title="Page portals"
@@ -344,7 +345,7 @@ export function SystemAdminPagePortalsPage() {
             </p>
           </Surface>
         </div>
-      </div>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }
