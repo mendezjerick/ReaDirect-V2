@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { AboutReaDirectDialog } from "./AboutReaDirectDialog";
 
 function BookIcon() {
   return (
@@ -21,6 +23,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const learnerLoginCommit = useButtonCommit();
   const staffLoginCommit = useButtonCommit();
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   const openLearnerLogin = () => {
     learnerLoginCommit.commit(() => navigate("/learner/login"));
@@ -59,6 +62,20 @@ export function HomePage() {
           Staff login
         </BigButton>
       </section>
+
+      <button
+        type="button"
+        className="home-page__about-trigger"
+        aria-haspopup="dialog"
+        aria-expanded={aboutOpen}
+        onClick={() => setAboutOpen(true)}
+      >
+        About ReaDirect
+      </button>
+
+      {aboutOpen ? (
+        <AboutReaDirectDialog onClose={() => setAboutOpen(false)} />
+      ) : null}
     </main>
   );
 }
