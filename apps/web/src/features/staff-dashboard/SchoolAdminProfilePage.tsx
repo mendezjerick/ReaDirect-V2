@@ -4,7 +4,17 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffFactGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
 import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
@@ -118,43 +128,47 @@ export function SchoolAdminProfilePage() {
       }
       workspaceLabel="School Admin"
     >
-      <div className="staff-workspace-page school-admin-profile-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="School management"
           title="School Profile"
           description="Review the school identity used across your staff and Learner records."
-          badge={<span className="staff-count-badge">School scoped</span>}
+          badge={<StaffBadge>School scoped</StaffBadge>}
         />
 
-        <div className="school-admin-profile-layout">
-          <Surface kind="panel" padding="normal">
-            <header className="staff-section-header">
-              <p>School identity</p>
-              <h2>{profileQuery.data?.name ?? administrator.school.name}</h2>
-              <span>
-                Renaming the school updates its displayed identity only. Learner
-                progress and activity records are not changed.
-              </span>
-            </header>
-            <dl className="school-admin-profile-facts">
-              <div>
-                <dt>Teachers</dt>
-                <dd>{profileQuery.data?.teachers ?? "—"}</dd>
-              </div>
-              <div>
-                <dt>Standard Learners</dt>
-                <dd>{profileQuery.data?.learners ?? "—"}</dd>
-              </div>
-            </dl>
-          </Surface>
+        <StaffContentGrid className="staff-content-grid--two">
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="School identity"
+              title={profileQuery.data?.name ?? administrator.school.name}
+              description={
+                <>
+                  Renaming the school updates its displayed identity only.
+                  Learner progress and activity records are not changed.
+                </>
+              }
+            />
+            <StaffFactGrid
+              facts={[
+                {
+                  label: "Teachers",
+                  value: profileQuery.data?.teachers ?? "—",
+                },
+                {
+                  label: "Standard Learners",
+                  value: profileQuery.data?.learners ?? "—",
+                },
+              ]}
+            />
+          </StaffCard>
 
-          <Surface kind="panel" padding="normal">
-            <header className="staff-section-header">
-              <p>Permitted change</p>
-              <h2>School name</h2>
-              <span>Use the school’s complete official display name.</span>
-            </header>
-            <form className="school-admin-profile-form" onSubmit={submit}>
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="Permitted change"
+              title="School name"
+              description="Use the school’s complete official display name."
+            />
+            <form className="staff-form-stack" onSubmit={submit}>
               <TextField
                 label="School name"
                 required
@@ -168,29 +182,30 @@ export function SchoolAdminProfilePage() {
                 })}
               />
               {profileMutation.isSuccess ? (
-                <p className="staff-form-notice" role="status">
-                  School profile updated.
-                </p>
+                <StaffNotice tone="success" role="status">
+                  <span>School profile updated.</span>
+                </StaffNotice>
               ) : null}
               {profileMutation.isError ? (
-                <p className="staff-form-notice--error" role="alert">
-                  {profileMutation.error.message}
-                </p>
+                <StaffNotice tone="danger">
+                  <span>{profileMutation.error.message}</span>
+                </StaffNotice>
               ) : null}
-              <BigButton
+              <StaffButton
                 type="submit"
-                size="regular"
+                size="roomy"
+                tone="primary"
                 disabled={!isDirty}
                 busy={profileMutation.isPending}
                 busyLabel="Saving profile"
                 committing={saveCommit.committing}
               >
                 Save school profile
-              </BigButton>
+              </StaffButton>
             </form>
-          </Surface>
-        </div>
-      </div>
+          </StaffCard>
+        </StaffContentGrid>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

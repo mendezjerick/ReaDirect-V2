@@ -3,16 +3,25 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffDisclosure,
+  StaffFactGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
-import {
-  clearStaffSession,
-  loadStaffSession,
-} from "../staff-auth/staffApi";
+import { clearStaffSession, loadStaffSession } from "../staff-auth/staffApi";
 import {
   getTeacherLearnerDetail,
   type TeacherLearnerAssessment,
@@ -52,165 +61,182 @@ interface AssessmentSummaryProps {
   assessment: TeacherLearnerAssessment | null;
 }
 
-function AssessmentSummary({
-  label,
-  assessment,
-}: AssessmentSummaryProps) {
+function AssessmentSummary({ label, assessment }: AssessmentSummaryProps) {
   return (
-    <Surface
-      kind="panel"
-      padding="normal"
-      className="teacher-learner-assessment-card"
-    >
-      <header>
-        <div>
-          <p>ReaDirect Assessment</p>
-          <h2>{label}</h2>
-        </div>
-        <span
-          className={`teacher-learner-status teacher-learner-status--${
-            assessment?.status ?? "not-started"
-          }`}
-        >
-          {assessment ? humanize(assessment.status) : "Not started"}
-        </span>
-      </header>
+    <StaffCard>
+      <StaffSectionHeader
+        eyebrow="ReaDirect Assessment"
+        title={label}
+        meta={
+          <StaffBadge
+            tone={
+              assessment?.status === "completed"
+                ? "success"
+                : assessment
+                  ? "accent"
+                  : "muted"
+            }
+          >
+            {assessment ? humanize(assessment.status) : "Not started"}
+          </StaffBadge>
+        }
+      />
 
       {assessment ? (
         <>
-          <dl className="teacher-learner-score-grid">
-            <div>
-              <dt>Part 1 Score</dt>
-              <dd>{score(assessment.part_one_score, "/30")}</dd>
-            </div>
-            <div>
-              <dt>Part 1 level</dt>
-              <dd>{assessment.part_one_level ?? "Pending"}</dd>
-            </div>
-            <div>
-              <dt>Reading accuracy</dt>
-              <dd>{score(assessment.reading_accuracy_percent, "%")}</dd>
-            </div>
-            <div>
-              <dt>Comprehension</dt>
-              <dd>
-                {assessment.comprehension_score === null
-                  ? "—"
-                  : `${assessment.comprehension_score}/5`}
-              </dd>
-            </div>
-            <div>
-              <dt>Final score</dt>
-              <dd>{score(assessment.final_reading_score, "/100")}</dd>
-            </div>
-            <div>
-              <dt>Reading profile</dt>
-              <dd>{assessment.final_reading_profile ?? "Pending"}</dd>
-            </div>
-          </dl>
+          <StaffFactGrid
+            facts={[
+              {
+                label: "Part 1 Score",
+                value: score(assessment.part_one_score, "/30"),
+              },
+              {
+                label: "Part 1 level",
+                value: assessment.part_one_level ?? "Pending",
+              },
+              {
+                label: "Reading accuracy",
+                value: score(assessment.reading_accuracy_percent, "%"),
+              },
+              {
+                label: "Comprehension",
+                value:
+                  assessment.comprehension_score === null
+                    ? "—"
+                    : `${assessment.comprehension_score}/5`,
+              },
+              {
+                label: "Final score",
+                value: score(assessment.final_reading_score, "/100"),
+              },
+              {
+                label: "Reading profile",
+                value: assessment.final_reading_profile ?? "Pending",
+              },
+            ]}
+          />
 
-          <div className="teacher-learner-task-scores">
-            <span>Task 1A: {score(assessment.task_scores.task_1a, "/10")}</span>
-            <span>Task 2A: {score(assessment.task_scores.task_2a, "/10")}</span>
-            <span>Task 2B: {score(assessment.task_scores.task_2b, "/10")}</span>
+          <div className="staff-badge-row">
+            <StaffBadge>
+              Task 1A: {score(assessment.task_scores.task_1a, "/10")}
+            </StaffBadge>
+            <StaffBadge>
+              Task 2A: {score(assessment.task_scores.task_2a, "/10")}
+            </StaffBadge>
+            <StaffBadge>
+              Task 2B: {score(assessment.task_scores.task_2b, "/10")}
+            </StaffBadge>
           </div>
 
-          <footer>
-            <span>{assessment.responses_recorded} responses recorded</span>
-            <span>{assessment.skipped_items} skipped</span>
-            <span>Completed {formatDate(assessment.completed_at)}</span>
-          </footer>
+          <div className="staff-badge-row">
+            <StaffBadge>
+              {assessment.responses_recorded} responses recorded
+            </StaffBadge>
+            <StaffBadge tone={assessment.skipped_items ? "warning" : "muted"}>
+              {assessment.skipped_items} skipped
+            </StaffBadge>
+            <StaffBadge>
+              Completed {formatDate(assessment.completed_at)}
+            </StaffBadge>
+          </div>
         </>
       ) : (
-        <p className="teacher-learner-empty-copy">
-          No persisted {label.toLowerCase()} run is available.
-        </p>
+        <StaffState
+          compact
+          title={`No persisted ${label.toLowerCase()} run is available.`}
+        />
       )}
-    </Surface>
+    </StaffCard>
   );
 }
 
 function LessonItemEvidence({ item }: { item: TeacherLearnerLessonItem }) {
   return (
-    <article className="teacher-learner-item">
-      <header>
-        <div>
-          <span>
-            {humanize(item.mission_key)} · Item {item.item_order}
-          </span>
-          <h4>{item.target_label}</h4>
-        </div>
-        <span
-          className={`teacher-learner-status teacher-learner-status--${
-            item.review_recommended ? "review" : "recorded"
-          }`}
-        >
-          {item.review_recommended ? "Review recommended" : humanize(item.outcome)}
-        </span>
-      </header>
+    <StaffCard depth="flat">
+      <StaffSectionHeader
+        eyebrow={`${humanize(item.mission_key)} · Item ${item.item_order}`}
+        title={item.target_label}
+        meta={
+          <StaffBadge tone={item.review_recommended ? "warning" : "neutral"}>
+            {item.review_recommended
+              ? "Review recommended"
+              : humanize(item.outcome)}
+          </StaffBadge>
+        }
+      />
 
-      <dl className="teacher-learner-item-facts">
-        <div>
-          <dt>Final transcript</dt>
-          <dd>{item.final_transcript ?? "Not persisted for this item type"}</dd>
-        </div>
-        <div>
-          <dt>Outcome</dt>
-          <dd>{humanize(item.outcome)}</dd>
-        </div>
-        <div>
-          <dt>Academic attempts</dt>
-          <dd>{item.academic_attempt_count}</dd>
-        </div>
-        <div>
-          <dt>Technical retries</dt>
-          <dd>{item.technical_retry_count}</dd>
-        </div>
-        <div>
-          <dt>Highest scaffold</dt>
-          <dd>{humanize(item.highest_scaffold_used)}</dd>
-        </div>
-        <div>
-          <dt>Saved observation</dt>
-          <dd>{humanize(item.diagnosis_key)}</dd>
-        </div>
-      </dl>
+      <StaffFactGrid
+        facts={[
+          {
+            label: "Final transcript",
+            value: item.final_transcript ?? "Not persisted for this item type",
+          },
+          { label: "Outcome", value: humanize(item.outcome) },
+          {
+            label: "Academic attempts",
+            value: item.academic_attempt_count,
+          },
+          {
+            label: "Technical retries",
+            value: item.technical_retry_count,
+          },
+          {
+            label: "Highest scaffold",
+            value: humanize(item.highest_scaffold_used),
+          },
+          {
+            label: "Saved observation",
+            value: humanize(item.diagnosis_key),
+          },
+        ]}
+      />
 
       {item.attempts.length > 0 ? (
-        <div className="teacher-learner-attempts">
-          <h5>Attempt evidence</h5>
-          <ol>
-            {item.attempts.map((attempt) => (
-              <li
-                className={
-                  attempt.incorrect
-                    ? "teacher-learner-attempt teacher-learner-attempt--incorrect"
-                    : "teacher-learner-attempt"
-                }
-                key={attempt.attempt_id}
-              >
-                <div>
+        <StaffDataTable
+          accessibleLabel="Attempt evidence"
+          rows={item.attempts}
+          rowKey={(attempt) => attempt.attempt_id}
+          columns={[
+            {
+              key: "attempt",
+              label: "Attempt",
+              width: "minmax(10rem, 0.8fr)",
+              render: (attempt) => (
+                <span className="staff-primary-value">
                   <strong>
                     Attempt {attempt.attempt_sequence} ·{" "}
                     {humanize(attempt.attempt_kind)}
                   </strong>
-                  <span>{humanize(attempt.classification)}</span>
-                </div>
-                <p>
-                  {attempt.final_transcript ??
-                    attempt.selected_response ??
-                    "No final transcript or selected answer was persisted."}
-                </p>
-                <small>
-                  Scaffold: {humanize(attempt.scaffold_level)}
-                  {attempt.incorrect ? " · Clear incorrect attempt" : ""}
-                </small>
-              </li>
-            ))}
-          </ol>
-        </div>
+                  <small>{humanize(attempt.classification)}</small>
+                </span>
+              ),
+            },
+            {
+              key: "response",
+              label: "Saved response",
+              render: (attempt) =>
+                attempt.final_transcript ??
+                attempt.selected_response ??
+                "No final transcript or selected answer was persisted.",
+            },
+            {
+              key: "support",
+              label: "Support",
+              render: (attempt) => (
+                <span className="staff-primary-value">
+                  <span>Scaffold: {humanize(attempt.scaffold_level)}</span>
+                  {attempt.incorrect ? (
+                    <StaffBadge tone="danger">
+                      Clear incorrect attempt
+                    </StaffBadge>
+                  ) : null}
+                </span>
+              ),
+            },
+          ]}
+        />
       ) : null}
-    </article>
+    </StaffCard>
   );
 }
 
@@ -218,78 +244,76 @@ function LessonEvidence({ lesson }: { lesson: TeacherLearnerLesson }) {
   const recorded = lesson.status !== "not_started";
 
   return (
-    <details
-      className="teacher-learner-lesson"
+    <StaffDisclosure
+      eyebrow={`Lesson ${lesson.order}`}
+      title={lesson.title}
       open={lesson.performance.review_recommended > 0}
+      status={
+        <StaffBadge
+          tone={
+            lesson.status === "completed"
+              ? "success"
+              : lesson.status === "not_started"
+                ? "muted"
+                : "accent"
+          }
+        >
+          {humanize(lesson.status)}
+        </StaffBadge>
+      }
+      meta={
+        recorded
+          ? `${lesson.items_recorded}/${lesson.items_total} items recorded`
+          : "No run"
+      }
     >
-      <summary>
-        <div className="teacher-learner-lesson__identity">
-          <span>Lesson {lesson.order}</span>
-          <strong>{lesson.title}</strong>
-        </div>
-        <div className="teacher-learner-lesson__summary">
-          <span
-            className={`teacher-learner-status teacher-learner-status--${lesson.status.replace("_", "-")}`}
-          >
-            {humanize(lesson.status)}
-          </span>
-          <small>
-            {recorded
-              ? `${lesson.items_recorded}/${lesson.items_total} items recorded`
-              : "No run"}
-          </small>
-        </div>
-      </summary>
+      <StaffFactGrid
+        facts={[
+          {
+            label: "Independent",
+            value: lesson.performance.independent_correct,
+          },
+          {
+            label: "Supported",
+            value: lesson.performance.supported_correct,
+          },
+          {
+            label: "Demonstrated",
+            value: lesson.performance.demonstrated,
+          },
+          {
+            label: "Not yet correct",
+            value: lesson.performance.not_yet_correct,
+          },
+          { label: "Skipped", value: lesson.performance.skipped },
+          {
+            label: "Practice attempts",
+            value: lesson.performance.practice_attempts,
+          },
+          {
+            label: "Technical retries",
+            value: lesson.performance.technical_retries,
+          },
+          {
+            label: "Review items",
+            value: lesson.performance.review_recommended,
+          },
+        ]}
+      />
 
-      <div className="teacher-learner-lesson__body">
-        <dl className="teacher-learner-performance-grid">
-          <div>
-            <dt>Independent</dt>
-            <dd>{lesson.performance.independent_correct}</dd>
-          </div>
-          <div>
-            <dt>Supported</dt>
-            <dd>{lesson.performance.supported_correct}</dd>
-          </div>
-          <div>
-            <dt>Demonstrated</dt>
-            <dd>{lesson.performance.demonstrated}</dd>
-          </div>
-          <div>
-            <dt>Not yet correct</dt>
-            <dd>{lesson.performance.not_yet_correct}</dd>
-          </div>
-          <div>
-            <dt>Skipped</dt>
-            <dd>{lesson.performance.skipped}</dd>
-          </div>
-          <div>
-            <dt>Practice attempts</dt>
-            <dd>{lesson.performance.practice_attempts}</dd>
-          </div>
-          <div>
-            <dt>Technical retries</dt>
-            <dd>{lesson.performance.technical_retries}</dd>
-          </div>
-          <div>
-            <dt>Review items</dt>
-            <dd>{lesson.performance.review_recommended}</dd>
-          </div>
-        </dl>
-
-        {lesson.items.length > 0 ? (
-          <div className="teacher-learner-items">
-            {lesson.items.map((item) => (
-              <LessonItemEvidence item={item} key={item.response_id} />
-            ))}
-          </div>
-        ) : (
-          <p className="teacher-learner-empty-copy">
-            No persisted item evidence is available for this lesson.
-          </p>
-        )}
-      </div>
-    </details>
+      {lesson.items.length > 0 ? (
+        <StaffContentGrid>
+          {lesson.items.map((item) => (
+            <LessonItemEvidence item={item} key={item.response_id} />
+          ))}
+        </StaffContentGrid>
+      ) : (
+        <StaffState
+          compact
+          title="No persisted item evidence is available for this lesson."
+        />
+      )}
+    </StaffDisclosure>
   );
 }
 
@@ -364,63 +388,48 @@ export function TeacherLearnerDetailPage() {
       }
       workspaceLabel="Teacher"
     >
-      <div className="staff-workspace-page teacher-learner-detail-page">
-        <div className="teacher-learner-detail-toolbar">
-          <BigButton
-            variant="secondary"
-            size="regular"
-            committing={backCommit.committing}
-            onClick={() =>
-              backCommit.commit(() => navigate("/staff/teacher/learners"))
-            }
-          >
-            Back to Learners
-          </BigButton>
-        </div>
+      <StaffWorkspacePage>
+        <StaffButton
+          tone="secondary"
+          size="regular"
+          committing={backCommit.committing}
+          onClick={() =>
+            backCommit.commit(() => navigate("/staff/teacher/learners"))
+          }
+        >
+          Back to Learners
+        </StaffButton>
 
         {validLearnerId === null ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="teacher-learner-load-state"
+          <StaffState
+            tone="danger"
             role="alert"
-          >
-            <h1>Learner unavailable</h1>
-            <p>The Learner identifier in this address is invalid.</p>
-          </Surface>
+            title="Learner unavailable"
+            description="The Learner identifier in this address is invalid."
+          />
         ) : null}
 
         {validLearnerId !== null && detailQuery.isLoading ? (
-          <div
-            className="teacher-learner-load-state"
+          <StaffState
+            title="Loading Learner workspace…"
             aria-live="polite"
             aria-busy="true"
-          >
-            Loading Learner workspace…
-          </div>
+          />
         ) : null}
 
         {detailQuery.isError ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="teacher-learner-load-state"
+          <StaffState
+            tone="danger"
             role="alert"
-          >
-            <h1>Learner workspace unavailable</h1>
-            <p>
-              {detailQuery.error instanceof Error
+            title="Learner workspace unavailable"
+            description={
+              detailQuery.error instanceof Error
                 ? detailQuery.error.message
-                : "The Learner workspace could not be loaded."}
-            </p>
-            <BigButton
-              variant="secondary"
-              size="regular"
-              onClick={() => void detailQuery.refetch()}
-            >
-              Retry
-            </BigButton>
-          </Surface>
+                : "The Learner workspace could not be loaded."
+            }
+            actionLabel="Retry"
+            onAction={() => void detailQuery.refetch()}
+          />
         ) : null}
 
         {detailQuery.data ? (
@@ -432,87 +441,81 @@ export function TeacherLearnerDetailPage() {
                 detailQuery.data.class_context.grade_level ?? "—"
               } · ${detailQuery.data.class_context.section ?? "Section not recorded"}`}
               badge={
-                <span className="staff-count-badge">
-                  {detailQuery.data.learner.learner_code}
-                </span>
+                <StaffBadge>{detailQuery.data.learner.learner_code}</StaffBadge>
               }
             />
 
-            <section
-              className="teacher-learner-context-grid"
+            <StaffContentGrid
+              className="staff-content-grid--two"
               aria-label="Learner identity and progression"
             >
-              <Surface kind="panel" padding="normal">
-                <p className="teacher-learner-card-eyebrow">Identity</p>
-                <dl className="teacher-learner-context-list">
-                  <div>
-                    <dt>Learner Code</dt>
-                    <dd>{detailQuery.data.learner.learner_code}</dd>
-                  </div>
-                  <div>
-                    <dt>LRN</dt>
-                    <dd>{detailQuery.data.learner.lrn ?? "Not entered"}</dd>
-                  </div>
-                  <div>
-                    <dt>Account</dt>
-                    <dd>
-                      {detailQuery.data.learner.is_active
+              <StaffCard>
+                <StaffSectionHeader
+                  eyebrow="Learner context"
+                  title="Identity"
+                />
+                <StaffFactGrid
+                  facts={[
+                    {
+                      label: "Learner Code",
+                      value: detailQuery.data.learner.learner_code,
+                    },
+                    {
+                      label: "LRN",
+                      value: detailQuery.data.learner.lrn ?? "Not entered",
+                    },
+                    {
+                      label: "Account",
+                      value: detailQuery.data.learner.is_active
                         ? "Active"
-                        : "Inactive"}
-                    </dd>
-                  </div>
-                </dl>
-              </Surface>
+                        : "Inactive",
+                    },
+                  ]}
+                />
+              </StaffCard>
 
-              <Surface kind="panel" padding="normal">
-                <p className="teacher-learner-card-eyebrow">
-                  Persisted progression
-                </p>
-                <h2>{detailQuery.data.progression.stage_label}</h2>
-                <dl className="teacher-learner-context-list">
-                  <div>
-                    <dt>Diagnostic completed</dt>
-                    <dd>
-                      {formatDate(
+              <StaffCard>
+                <StaffSectionHeader
+                  eyebrow="Persisted progression"
+                  title={detailQuery.data.progression.stage_label}
+                />
+                <StaffFactGrid
+                  facts={[
+                    {
+                      label: "Diagnostic completed",
+                      value: formatDate(
                         detailQuery.data.progression.diagnostic_completed_at,
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Final completed</dt>
-                    <dd>
-                      {formatDate(
+                      ),
+                    },
+                    {
+                      label: "Final completed",
+                      value: formatDate(
                         detailQuery.data.progression
                           .final_assessment_completed_at,
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Last confirmed</dt>
-                    <dd>
-                      {formatDate(
+                      ),
+                    },
+                    {
+                      label: "Last confirmed",
+                      value: formatDate(
                         detailQuery.data.progression.last_confirmed_at,
-                      )}
-                    </dd>
-                  </div>
-                </dl>
-              </Surface>
-            </section>
+                      ),
+                    },
+                  ]}
+                />
+              </StaffCard>
+            </StaffContentGrid>
 
             <section
-              className="teacher-learner-section"
+              className="staff-content-section"
               aria-labelledby="learner-assessments-title"
             >
-              <header className="teacher-learner-section__header">
-                <div>
-                  <p>Assessment evidence</p>
-                  <h2 id="learner-assessments-title">
-                    Diagnostic and Final Assessment
-                  </h2>
-                </div>
-                <span>Read-only persisted summaries</span>
-              </header>
-              <div className="teacher-learner-assessment-grid">
+              <StaffSectionHeader
+                eyebrow="Assessment evidence"
+                title="Diagnostic and Final Assessment"
+                id="learner-assessments-title"
+                meta={<StaffBadge>Read-only persisted summaries</StaffBadge>}
+              />
+              <StaffContentGrid className="staff-content-grid--two">
                 <AssessmentSummary
                   label="Diagnostic Assessment"
                   assessment={detailQuery.data.assessments.diagnostic}
@@ -521,99 +524,124 @@ export function TeacherLearnerDetailPage() {
                   label="Final Assessment"
                   assessment={detailQuery.data.assessments.final}
                 />
-              </div>
+              </StaffContentGrid>
             </section>
 
             {detailQuery.data.skipped_assessment_items.length > 0 ? (
               <section
-                className="teacher-learner-section"
+                className="staff-content-section"
                 aria-labelledby="skipped-assessment-title"
               >
-                <header className="teacher-learner-section__header">
-                  <div>
-                    <p>Saved skips</p>
-                    <h2 id="skipped-assessment-title">
-                      Skipped assessment items
-                    </h2>
-                  </div>
-                </header>
-                <div className="teacher-learner-skip-list">
-                  {detailQuery.data.skipped_assessment_items.map((item) => (
-                    <article
-                      key={`${item.assessment_type}:${item.task_key}:${item.item_key}`}
-                    >
-                      <div>
-                        <strong>
-                          {item.assessment_label} · {item.task_label}
-                        </strong>
-                        <span>
-                          Item {item.item_order}: {item.item_label}
-                        </span>
-                      </div>
-                      <small>{formatDate(item.recorded_at)}</small>
-                    </article>
-                  ))}
-                </div>
+                <StaffSectionHeader
+                  eyebrow="Saved skips"
+                  title="Skipped assessment items"
+                  id="skipped-assessment-title"
+                />
+                <StaffCard padding="none">
+                  <StaffDataTable
+                    accessibleLabel="Skipped assessment items"
+                    rows={detailQuery.data.skipped_assessment_items}
+                    rowKey={(item) =>
+                      `${item.assessment_type}:${item.task_key}:${item.item_key}`
+                    }
+                    columns={[
+                      {
+                        key: "item",
+                        label: "Assessment item",
+                        render: (item) => (
+                          <span className="staff-primary-value">
+                            <strong>
+                              {item.assessment_label} · {item.task_label}
+                            </strong>
+                            <small>
+                              Item {item.item_order}: {item.item_label}
+                            </small>
+                          </span>
+                        ),
+                      },
+                      {
+                        key: "recorded",
+                        label: "Recorded",
+                        width: "auto",
+                        render: (item) => formatDate(item.recorded_at),
+                      },
+                    ]}
+                  />
+                </StaffCard>
               </section>
             ) : null}
 
             <section
-              className="teacher-learner-section"
+              className="staff-content-section"
               aria-labelledby="learner-lessons-title"
             >
-              <header className="teacher-learner-section__header">
-                <div>
-                  <p>Lesson evidence</p>
-                  <h2 id="learner-lessons-title">
-                    Completion and performance
-                  </h2>
-                </div>
-                <span>Open a lesson to inspect saved item evidence</span>
-              </header>
-              <div className="teacher-learner-lessons">
+              <StaffSectionHeader
+                eyebrow="Lesson evidence"
+                title="Completion and performance"
+                id="learner-lessons-title"
+                meta={
+                  <StaffBadge>
+                    Open a lesson to inspect saved item evidence
+                  </StaffBadge>
+                }
+              />
+              <StaffContentGrid>
                 {detailQuery.data.lessons.map((lesson) => (
                   <LessonEvidence lesson={lesson} key={lesson.lesson_key} />
                 ))}
-              </div>
+              </StaffContentGrid>
             </section>
 
             <section
-              className="teacher-learner-section"
+              className="staff-content-section"
               aria-labelledby="learner-recommendations-title"
             >
-              <header className="teacher-learner-section__header">
-                <div>
-                  <p>Evidence-based follow-up</p>
-                  <h2 id="learner-recommendations-title">
-                    Review recommendations
-                  </h2>
-                </div>
-                <span>Derived only from persisted review flags and skips</span>
-              </header>
+              <StaffSectionHeader
+                eyebrow="Evidence-based follow-up"
+                title="Review recommendations"
+                id="learner-recommendations-title"
+                meta={
+                  <StaffBadge>
+                    Derived only from persisted review flags and skips
+                  </StaffBadge>
+                }
+              />
               {detailQuery.data.recommendations.length > 0 ? (
-                <div className="teacher-learner-recommendations">
-                  {detailQuery.data.recommendations.map((recommendation) => (
-                    <article key={recommendation.key}>
-                      <span aria-hidden="true">!</span>
-                      <div>
-                        <h3>{recommendation.title}</h3>
-                        <p>{recommendation.reason}</p>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                <StaffCard padding="none">
+                  <StaffDataTable
+                    accessibleLabel="Review recommendations"
+                    rows={detailQuery.data.recommendations}
+                    rowKey={(recommendation) => recommendation.key}
+                    columns={[
+                      {
+                        key: "recommendation",
+                        label: "Recommendation",
+                        width: "minmax(12rem, 0.8fr)",
+                        render: (recommendation) => (
+                          <h3 className="staff-data-table__title">
+                            {recommendation.title}
+                          </h3>
+                        ),
+                      },
+                      {
+                        key: "evidence",
+                        label: "Persisted evidence",
+                        render: (recommendation) => recommendation.reason,
+                      },
+                    ]}
+                  />
+                </StaffCard>
               ) : (
-                <Surface kind="panel" padding="normal">
-                  <p className="teacher-learner-empty-copy">
-                    No persisted review flags or skipped items are available.
-                    ReaDirect does not infer additional conclusions.
-                  </p>
-                </Surface>
+                <StaffState
+                  compact
+                  title="No persisted review flags or skipped items are available."
+                  description="ReaDirect does not infer additional conclusions."
+                />
               )}
             </section>
           </>
         ) : null}
-      </div>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

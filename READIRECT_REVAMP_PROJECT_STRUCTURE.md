@@ -243,6 +243,44 @@ Every game is governed by:
 
 Contains the React learner application, teacher interface, Live2D character integration, PixiJS effects, lesson screens, assessment screens, microphone controls, and frontend API communication.
 
+Professional presentation shared by every authenticated staff role belongs
+under:
+
+```text
+apps/web/src/components/staff/StaffBadge.tsx
+apps/web/src/components/staff/StaffButton.tsx
+apps/web/src/components/staff/StaffCard.tsx
+apps/web/src/components/staff/StaffContentPatterns.tsx
+apps/web/src/components/staff/StaffDataTable.tsx
+apps/web/src/components/staff/StaffFormControls.tsx
+apps/web/src/components/staff/StaffNotice.tsx
+apps/web/src/components/staff/StaffSectionHeader.tsx
+apps/web/src/components/staff/StaffState.tsx
+apps/web/src/components/staff/StaffShell.tsx
+```
+
+System Administrator, School Administrator, and Teacher feature pages compose
+these contracts. Role feature directories own queries, mutations, business
+copy, and page composition, but not parallel visual primitives or
+role-prefixed design CSS. Shared responsive staff styling remains in
+`apps/web/src/styles/index.css`; it must not alter learner-flow routes,
+components, or feature styles.
+
+Cross-boundary regressions are guarded by:
+
+```text
+apps/web/tests/LearnerFlowBoundary.test.ts
+apps/web/tests/StaffDesignTokenImports.test.ts
+apps/api/tests/Feature/LearnerRouteBoundaryTest.php
+```
+
+These tests preserve the first-successful-build learner route contract, reject
+staff dependencies inside learner feature directories, require the global
+Tailwind and ReaDirect token imports, and prevent Laravel's staff authentication
+or role middleware from enclosing learner API routes. An intentional learner
+flow change must update the applicable source of truth and its contract test in
+the same slice.
+
 The System Administrator frontend also owns the IsoLetter Sandbox, True
 Sandbox, and Equivalence Book workspaces. True Sandbox consumes its selectable
 assessment and lesson speech-target catalog through Laravel; React must never
@@ -259,11 +297,14 @@ dashboard and Laravel boundaries:
 apps/api/app/Http/Controllers/SchoolAdminClassController.php
 apps/api/app/Http/Controllers/SchoolAdminLearnerController.php
 apps/api/app/Http/Controllers/SchoolAdminReportController.php
+apps/api/app/Http/Controllers/SchoolAdminInstructionalInsightsController.php
 apps/api/app/Http/Controllers/SchoolAdminTeacherDashboardController.php
 apps/api/app/Http/Controllers/SchoolAdminWorkspaceController.php
+apps/api/app/Services/SchoolAdminInstructionalInsightsService.php
 apps/api/app/Services/SchoolAdminOverviewService.php
 apps/api/app/Services/SchoolAdminReportService.php
 apps/web/src/features/staff-dashboard/SchoolAdminClassesPage.tsx
+apps/web/src/features/staff-dashboard/SchoolAdminInstructionalInsightsPage.tsx
 apps/web/src/features/staff-dashboard/SchoolAdminLearnerDetailPage.tsx
 apps/web/src/features/staff-dashboard/SchoolAdminLearnersPage.tsx
 apps/web/src/features/staff-dashboard/SchoolAdminProfilePage.tsx
@@ -278,6 +319,12 @@ before applying `school_id` scope. Learner queries additionally require
 services only after the school scope is resolved. Class assignment updates own
 staff and Learner account context only; they must not call assessment, lesson,
 progression, scoring, or achievement writers.
+
+`SchoolAdminInstructionalInsightsService` is the read-only school instructional
+aggregation boundary. It owns the versioned assessment-task and required-lesson
+topic map, uses only the latest persisted runs for active standard Learners, and
+returns aggregate skip and saved-review evidence without transcripts or
+learner-flow writes.
 
 The read-only Teacher Learner Detail workspace belongs under:
 

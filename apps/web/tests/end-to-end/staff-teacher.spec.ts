@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 const teacherSession = {
+  token: "teacher-e2e-session-token".repeat(2),
+  session: { expires_at: "2099-01-01T00:00:00Z" },
   staff: {
     id: 3,
     username: "teacher-test",
@@ -23,6 +25,16 @@ test("Teacher login opens the assigned class dashboard", async ({ page }) => {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(teacherSession),
+    });
+  });
+  await page.route("**/api/staff/session", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        staff: teacherSession.staff,
+        session: teacherSession.session,
+      }),
     });
   });
   await page.route("**/api/staff/teacher/3/overview", async (route) => {
@@ -112,25 +124,21 @@ test("Teacher login opens the assigned class dashboard", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Grade 1 · Section Maple" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", {
+  const assignmentNotice = page
+    .getByRole("heading", {
       name: "You are part of Grade 1 Section Maple",
-    }),
-  ).toBeVisible();
+      level: 2,
+    })
+    .locator("xpath=ancestor::*[contains(@class, 'staff-card')][1]");
+  await expect(assignmentNotice).toBeVisible();
   await expect(
-    page
-      .locator(".teacher-assignment-notice__content")
-      .getByText("Northfield Elementary School"),
+    assignmentNotice.getByText("Northfield Elementary School", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("AI services")).toHaveCount(0);
   await expect(page.getByText("School profile")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Got it" }).click();
-  await expect(
-    page.getByRole("heading", {
-      name: "You are part of Grade 1 Section Maple",
-    }),
-  ).toHaveCount(0);
+  await expect(assignmentNotice).toHaveCount(0);
 
   await page.getByRole("button", { name: "Create Learner" }).click();
   await expect(page).toHaveURL(/\/staff\/teacher\/learners$/);
@@ -146,11 +154,16 @@ test("Teacher login opens the assigned class dashboard", async ({ page }) => {
       name: "Save Dorothy Gale Wright's credentials",
     }),
   ).toBeVisible();
+  const credentialCard = page
+    .getByRole("heading", {
+      name: "Save Dorothy Gale Wright's credentials",
+    })
+    .locator("xpath=ancestor::*[contains(@class, 'staff-card')][1]");
   await expect(
-    page.locator(".learner-credentials-card").getByText("AA000"),
+    credentialCard.getByText("AA000", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.locator(".learner-credentials-card").getByText("apple123"),
+    credentialCard.getByText("apple123", { exact: true }),
   ).toBeVisible();
 
   if ((page.viewportSize()?.width ?? 0) < 1024) {

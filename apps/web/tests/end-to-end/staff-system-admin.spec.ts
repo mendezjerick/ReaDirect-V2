@@ -11,9 +11,40 @@ const schoolAdministrator = {
   created_at: "2026-07-20T10:00:00+00:00",
 };
 
+const systemAdminSession = {
+  token: "system-admin-e2e-session-token".repeat(2),
+  session: { expires_at: "2099-01-01T00:00:00Z" },
+  staff: {
+    id: 1,
+    username: "system-admin-test",
+    email: null,
+    display_name: "System Administrator",
+    role: "system_admin",
+    school: null,
+    requires_school_setup: false,
+    requires_credential_setup: false,
+  },
+};
+
 test("System Admin navigation and account creation adapt to the viewport", async ({
   page,
 }) => {
+  await page.addInitScript((session) => {
+    window.sessionStorage.setItem(
+      "readirect.staff-session",
+      JSON.stringify(session),
+    );
+  }, systemAdminSession);
+  await page.route("**/api/staff/session", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        staff: systemAdminSession.staff,
+        session: systemAdminSession.session,
+      }),
+    });
+  });
   await page.route(
     "**/api/staff/system-admin/school-administrators",
     async (route) => {

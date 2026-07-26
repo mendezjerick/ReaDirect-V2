@@ -3,8 +3,20 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffFactGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffCheckbox } from "../../components/staff/StaffFormControls";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -92,198 +104,175 @@ export function TeacherCredentialSheetsPage() {
       }
       workspaceLabel="Teacher"
     >
-      <div className="staff-workspace-page teacher-credential-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="Class management"
           title="Credential Sheets"
           description="Issue printable sign-in credentials for up to 50 active Learners assigned to your class."
-          badge={
-            <span className="staff-count-badge">
-              {selectedIds.length} selected
-            </span>
-          }
+          badge={<StaffBadge>{selectedIds.length} selected</StaffBadge>}
         />
 
         {credentials ? (
-          <Surface
-            kind="panel"
-            padding="normal"
-            className="teacher-credential-sheet"
-            role="status"
-          >
-            <header className="teacher-credential-sheet__header">
-              <div>
-                <p>New credentials</p>
-                <h2>
-                  Grade {teacher.grade_level} · {teacher.section}
-                </h2>
-                <span>
-                  Existing sessions were signed out. These passwords are shown
-                  only on this sheet.
-                </span>
-              </div>
-              <div className="teacher-credential-sheet__actions">
-                <BigButton
-                  variant="secondary"
-                  size="regular"
-                  onClick={() => window.print()}
-                >
-                  Print sheet
-                </BigButton>
-                <BigButton
-                  variant="quiet"
-                  size="regular"
-                  onClick={() => {
-                    setCredentials(null);
-                    setSelectedIds([]);
-                  }}
-                >
-                  Credentials saved
-                </BigButton>
-              </div>
-            </header>
-            <div className="teacher-credential-sheet__grid">
+          <StaffCard className="staff-print-region" role="status">
+            <StaffSectionHeader
+              eyebrow="New credentials"
+              title={`Grade ${teacher.grade_level} · ${teacher.section}`}
+              description="Existing sessions were signed out. These passwords are shown only on this sheet."
+              actions={
+                <>
+                  <StaffButton
+                    tone="secondary"
+                    size="regular"
+                    onClick={() => window.print()}
+                  >
+                    Print sheet
+                  </StaffButton>
+                  <StaffButton
+                    tone="quiet"
+                    size="regular"
+                    onClick={() => {
+                      setCredentials(null);
+                      setSelectedIds([]);
+                    }}
+                  >
+                    Credentials saved
+                  </StaffButton>
+                </>
+              }
+            />
+            <StaffContentGrid className="staff-content-grid--two">
               {credentials.map((credential) => (
-                <article key={credential.id}>
-                  <strong>{credential.full_name}</strong>
-                  <dl>
-                    <div>
-                      <dt>Learner Code</dt>
-                      <dd>{credential.learner_code}</dd>
-                    </div>
-                    <div>
-                      <dt>Password</dt>
-                      <dd>{credential.temporary_password}</dd>
-                    </div>
-                  </dl>
-                </article>
+                <StaffCard depth="flat" tone="muted" key={credential.id}>
+                  <StaffSectionHeader title={credential.full_name} />
+                  <StaffFactGrid
+                    facts={[
+                      {
+                        label: "Learner Code",
+                        value: credential.learner_code,
+                      },
+                      {
+                        label: "Password",
+                        value: credential.temporary_password,
+                      },
+                    ]}
+                  />
+                </StaffCard>
               ))}
-            </div>
-          </Surface>
+            </StaffContentGrid>
+          </StaffCard>
         ) : (
-          <Surface
-            kind="panel"
-            padding="none"
-            className="staff-account-list-card"
-          >
-            <header className="staff-section-header staff-section-header--list">
-              <div>
-                <p>Assigned class</p>
-                <h2>Select Learners</h2>
-              </div>
-              <span>Maximum 50</span>
-            </header>
+          <StaffCard padding="none">
+            <StaffSectionHeader
+              bordered
+              eyebrow="Assigned class"
+              title="Select Learners"
+              meta={<StaffBadge>Maximum 50</StaffBadge>}
+            />
             {learnersQuery.isLoading ? (
-              <div className="staff-account-list-state">Loading Learners…</div>
+              <StaffState title="Loading Learners…" />
             ) : null}
             {learnersQuery.isError ? (
-              <div className="staff-account-list-state" role="alert">
-                Learners could not be loaded.
-              </div>
+              <StaffState
+                tone="danger"
+                role="alert"
+                title="Learners could not be loaded."
+              />
             ) : null}
             {activeLearners.length ? (
-              <div className="teacher-credential-select-list">
-                <label className="teacher-credential-select-all">
-                  <input
-                    type="checkbox"
-                    checked={
-                      activeLearners.length > 0 &&
-                      selectedIds.length === Math.min(activeLearners.length, 50)
-                    }
-                    onChange={(event) =>
-                      setSelectedIds(
-                        event.target.checked
-                          ? activeLearners
-                              .slice(0, 50)
-                              .map((learner) => learner.id)
-                          : [],
-                      )
-                    }
-                  />
-                  <span>Select all active Learners</span>
-                </label>
+              <div className="staff-checkbox-list">
+                <StaffCheckbox
+                  label="Select all active Learners"
+                  checked={
+                    activeLearners.length > 0 &&
+                    selectedIds.length === Math.min(activeLearners.length, 50)
+                  }
+                  onChange={(event) =>
+                    setSelectedIds(
+                      event.target.checked
+                        ? activeLearners
+                            .slice(0, 50)
+                            .map((learner) => learner.id)
+                        : [],
+                    )
+                  }
+                />
                 {activeLearners.map((learner) => (
-                  <label key={learner.id}>
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(learner.id)}
-                      disabled={
-                        selectedIds.length >= 50 &&
-                        !selectedIds.includes(learner.id)
-                      }
-                      onChange={() => toggleLearner(learner.id)}
-                    />
-                    <span>
-                      <strong>{learner.full_name}</strong>
-                      <small>{learner.learner_code}</small>
-                    </span>
-                  </label>
+                  <StaffCheckbox
+                    key={learner.id}
+                    label={learner.full_name}
+                    description={learner.learner_code}
+                    checked={selectedIds.includes(learner.id)}
+                    disabled={
+                      selectedIds.length >= 50 &&
+                      !selectedIds.includes(learner.id)
+                    }
+                    onChange={() => toggleLearner(learner.id)}
+                  />
                 ))}
               </div>
             ) : null}
-            <div className="teacher-credential-submit">
+            <StaffNotice
+              title="Password rotation"
+              actions={
+                <StaffButton
+                  tone="primary"
+                  size="regular"
+                  disabled={!selectedIds.length}
+                  onClick={() => setConfirming(true)}
+                >
+                  Prepare credential sheet
+                </StaffButton>
+              }
+            >
               <p>
                 Issuing a sheet replaces the selected passwords and signs those
                 Learners out. Progress is not changed.
               </p>
-              <BigButton
-                size="regular"
-                disabled={!selectedIds.length}
-                onClick={() => setConfirming(true)}
-              >
-                Prepare credential sheet
-              </BigButton>
-            </div>
-          </Surface>
+            </StaffNotice>
+          </StaffCard>
         )}
 
         {confirming && !credentials ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="learner-password-reset-confirmation"
+          <StaffNotice
+            tone="warning"
+            title={`Replace passwords for ${selectedIds.length} Learners?`}
             role="group"
             aria-label="Confirm credential sheet"
-          >
-            <div>
-              <p>Credential rotation</p>
-              <h2>Replace passwords for {selectedIds.length} Learners?</h2>
-              <span>
-                Their current passwords will stop working and their active
-                sessions will be signed out. Learning progress is preserved.
-              </span>
-              {issueMutation.isError ? (
-                <strong
-                  className="learner-password-reset-confirmation__error"
-                  role="alert"
+            actions={
+              <>
+                <StaffButton
+                  tone="quiet"
+                  size="regular"
+                  disabled={issueMutation.isPending || issueCommit.committing}
+                  onClick={() => setConfirming(false)}
                 >
-                  {issueMutation.error.message}
-                </strong>
-              ) : null}
-            </div>
-            <div className="learner-password-reset-confirmation__actions">
-              <BigButton
-                variant="quiet"
-                size="regular"
-                disabled={issueMutation.isPending || issueCommit.committing}
-                onClick={() => setConfirming(false)}
-              >
-                Cancel
-              </BigButton>
-              <BigButton
-                variant="secondary"
-                size="regular"
-                committing={issueCommit.committing}
-                busy={issueMutation.isPending}
-                busyLabel="Issuing credentials"
-                onClick={() => issueCommit.commit(() => issueMutation.mutate())}
-              >
-                Confirm and issue
-              </BigButton>
-            </div>
-          </Surface>
+                  Cancel
+                </StaffButton>
+                <StaffButton
+                  tone="secondary"
+                  size="regular"
+                  committing={issueCommit.committing}
+                  busy={issueMutation.isPending}
+                  busyLabel="Issuing credentials"
+                  onClick={() =>
+                    issueCommit.commit(() => issueMutation.mutate())
+                  }
+                >
+                  Confirm and issue
+                </StaffButton>
+              </>
+            }
+          >
+            <span>
+              Their current passwords will stop working and their active
+              sessions will be signed out. Learning progress is preserved.
+            </span>
+            {issueMutation.isError ? (
+              <strong role="alert">{issueMutation.error.message}</strong>
+            ) : null}
+          </StaffNotice>
         ) : null}
-      </div>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

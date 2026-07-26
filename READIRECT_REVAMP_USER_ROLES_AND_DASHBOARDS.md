@@ -262,6 +262,7 @@ School Administrator controls include:
 - Classes.
 - Learner records.
 - Teacher dashboard access for school-scoped learner review.
+- Instructional Insights for school-scoped face-to-face teaching priorities.
 
 The School Administrator workspaces use these security and data rules:
 
@@ -283,6 +284,17 @@ The School Administrator workspaces use these security and data rules:
   assigned to the school. Reports use persisted evidence, add no snapshots or
   conclusions, and write no learner-flow or audit data when opened, filtered,
   or printed.
+- Instructional Insights is a separate protected workspace listed immediately
+  above Reports. It aggregates only active standard Learners in the
+  authenticated administrator's school and only each Learner's latest
+  assessment and required-lesson runs. It excludes `KW000`, portal-system
+  Learners, inactive Learners, and other schools before aggregation.
+- Instructional Insights uses the versioned deterministic
+  `school-instructional-insights-v1` topic map. A face-to-face priority requires
+  an explicit persisted assessment skip, an explicit persisted lesson-item
+  skip, or a saved lesson `review_recommended` flag. The response states the
+  affected-Learner and evidence counts and never sends transcripts, generates
+  unsupported conclusions, or mutates learner-flow or audit data.
 - Teacher Dashboard Review is a read-only School Administrator view of an
   in-school Teacher's overview and class report. It does not create a Teacher
   session, impersonate the Teacher, acknowledge the Teacher assignment, or
@@ -629,6 +641,9 @@ management screens.
 
 ## Dashboard Data Rules
 
+- System Administrator, School Administrator, and Teacher dashboards use one
+  shared professional staff component system. Role scope changes the permitted
+  data and actions, not the visual primitives or responsive behavior.
 - Staff dashboards show aggregate counts and distributions for the role scope.
 - System Administrator data is global.
 - School Administrator data is school-scoped.

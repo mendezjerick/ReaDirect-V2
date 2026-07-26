@@ -1,6 +1,6 @@
 import { useState, type PropsWithChildren, type ReactNode } from "react";
 
-import { BigButton } from "../ui/BigButton";
+import { StaffButton } from "./StaffButton";
 import { StaffNavigation } from "./SystemAdminNavigation";
 import {
   systemAdminNavigationGroups,
@@ -62,15 +62,15 @@ export function StaffShell({
         <StaffNavigation groups={navigationGroups} />
         {account}
 
-        <BigButton
+        <StaffButton
           className="staff-sidebar__exit"
-          variant="secondary"
+          tone="secondary"
           size="regular"
           committing={exitCommitting}
           onClick={onExit}
         >
           Exit staff view
-        </BigButton>
+        </StaffButton>
       </aside>
 
       <div className="staff-shell__content">
@@ -98,15 +98,15 @@ export function StaffShell({
             </span>
           </div>
 
-          <BigButton
+          <StaffButton
             className="staff-mobile-header__exit"
-            variant="quiet"
+            tone="quiet"
             size="regular"
             committing={exitCommitting}
             onClick={onExit}
           >
             Exit
-          </BigButton>
+          </StaffButton>
         </header>
 
         {mobileMenuOpen ? (
@@ -139,15 +139,15 @@ export function StaffShell({
                 onNavigate={() => setMobileMenuOpen(false)}
               />
               {account}
-              <BigButton
+              <StaffButton
                 className="staff-sidebar__exit"
-                variant="secondary"
+                tone="secondary"
                 size="regular"
                 committing={exitCommitting}
                 onClick={onExit}
               >
                 Exit staff view
-              </BigButton>
+              </StaffButton>
             </aside>
           </>
         ) : null}

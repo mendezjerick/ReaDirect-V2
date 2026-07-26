@@ -4,8 +4,10 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
-import { BigButton } from "../../components/ui/BigButton";
-import { Surface } from "../../components/ui/Surface";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import { StaffNotice } from "../../components/staff/StaffNotice";
+import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import {
@@ -48,52 +50,40 @@ export function SchoolAdminSetupPage() {
 
   if (!session || session.staff.role !== "school_admin") {
     return (
-      <main className="staff-school-setup-page">
-        <Surface
-          kind="frame"
-          padding="compact"
-          className="staff-school-setup-card"
-        >
-          <Surface kind="panel" padding="roomy">
-            <div className="staff-setup-access-message">
-              <h1>School Administrator sign-in required</h1>
-              <p>Sign in with the temporary credentials created for you.</p>
-              <BigButton
-                committing={navigationCommit.committing}
-                onClick={returnToLogin}
-              >
-                Go to staff login
-              </BigButton>
-            </div>
-          </Surface>
-        </Surface>
+      <main className="staff-session-required-page">
+        <StaffCard padding="roomy" className="staff-session-required">
+          <h1>School Administrator sign-in required</h1>
+          <p>Sign in with the temporary credentials created for you.</p>
+          <StaffButton
+            tone="primary"
+            size="roomy"
+            committing={navigationCommit.committing}
+            onClick={returnToLogin}
+          >
+            Go to staff login
+          </StaffButton>
+        </StaffCard>
       </main>
     );
   }
 
   if (!session.staff.requires_school_setup && session.staff.school) {
     return (
-      <main className="staff-school-setup-page">
-        <Surface
-          kind="frame"
-          padding="compact"
-          className="staff-school-setup-card"
-        >
-          <Surface kind="panel" padding="roomy">
-            <div className="staff-setup-access-message">
-              <h1>{session.staff.school.name}</h1>
-              <p>Your school setup is already complete.</p>
-              <BigButton
-                committing={navigationCommit.committing}
-                onClick={() =>
-                  navigationCommit.commit(() => navigate("/staff/school-admin"))
-                }
-              >
-                Open dashboard
-              </BigButton>
-            </div>
-          </Surface>
-        </Surface>
+      <main className="staff-session-required-page">
+        <StaffCard padding="roomy" className="staff-session-required">
+          <h1>{session.staff.school.name}</h1>
+          <p>Your school setup is already complete.</p>
+          <StaffButton
+            tone="primary"
+            size="roomy"
+            committing={navigationCommit.committing}
+            onClick={() =>
+              navigationCommit.commit(() => navigate("/staff/school-admin"))
+            }
+          >
+            Open dashboard
+          </StaffButton>
+        </StaffCard>
       </main>
     );
   }
@@ -109,87 +99,61 @@ export function SchoolAdminSetupPage() {
 
   return (
     <main
-      className="staff-school-setup-page"
-      aria-labelledby="school-setup-title"
+      className="staff-session-required-page"
       data-route-focus
       tabIndex={-1}
     >
-      <Surface
-        kind="frame"
-        padding="compact"
-        className="staff-school-setup-card"
-      >
-        <Surface kind="panel" padding="roomy">
-          <header className="staff-school-setup-card__header">
-            <div className="staff-school-setup-card__mark">
-              <StaffBrandIcon />
-            </div>
-            <div>
-              <p className="staff-page-header__eyebrow">First-time setup</p>
-              <h1 id="school-setup-title">Tell us your school</h1>
-              <p>
-                Your dashboard and future Teacher accounts will use this school
-                assignment.
-              </p>
-            </div>
-          </header>
+      <StaffCard padding="roomy" className="staff-session-required">
+        <StaffPageHeader
+          eyebrow="First-time setup"
+          title="Tell us your school"
+          description="Your dashboard and future Teacher accounts will use this school assignment."
+          badge={<StaffBrandIcon />}
+        />
 
-          <Surface
-            kind="notice"
-            padding="compact"
-            className="staff-school-setup-card__account"
+        <StaffNotice title="Signed in account">
+          <strong>{session.staff.username}</strong>
+        </StaffNotice>
+
+        <form className="staff-form-stack" onSubmit={submitSchool}>
+          <TextField
+            label="School name"
+            type="text"
+            autoComplete="organization"
+            placeholder="Enter the complete school name"
+            required
+            error={errors.school_name?.message}
+            {...register("school_name", {
+              required: "Enter your school name.",
+              minLength: {
+                value: 2,
+                message: "Use at least 2 characters.",
+              },
+            })}
+          />
+
+          {setupMutation.isError ? (
+            <StaffNotice tone="danger">
+              {setupMutation.error.message}
+            </StaffNotice>
+          ) : null}
+
+          <StaffButton
+            tone="primary"
+            size="roomy"
+            type="submit"
+            committing={continueCommit.committing}
+            busy={setupMutation.isPending}
+            busyLabel="Saving school"
           >
-            Signed in as <strong>{session.staff.username}</strong>
-          </Surface>
+            Continue to dashboard
+          </StaffButton>
+        </form>
 
-          <form className="staff-school-setup-form" onSubmit={submitSchool}>
-            <TextField
-              label="School name"
-              type="text"
-              autoComplete="organization"
-              placeholder="Enter the complete school name"
-              required
-              error={errors.school_name?.message}
-              {...register("school_name", {
-                required: "Enter your school name.",
-                minLength: {
-                  value: 2,
-                  message: "Use at least 2 characters.",
-                },
-              })}
-            />
-
-            {setupMutation.isError ? (
-              <Surface
-                kind="notice"
-                padding="compact"
-                className="staff-form-notice staff-form-notice--error"
-                role="alert"
-              >
-                {setupMutation.error.message}
-              </Surface>
-            ) : null}
-
-            <BigButton
-              className="staff-school-setup-form__submit"
-              type="submit"
-              committing={continueCommit.committing}
-              busy={setupMutation.isPending}
-              busyLabel="Saving school"
-            >
-              Continue to dashboard
-            </BigButton>
-          </form>
-
-          <button
-            className="staff-school-setup-card__sign-out"
-            type="button"
-            onClick={returnToLogin}
-          >
-            Use a different staff account
-          </button>
-        </Surface>
-      </Surface>
+        <StaffButton tone="quiet" size="compact" onClick={returnToLogin}>
+          Use a different staff account
+        </StaffButton>
+      </StaffCard>
     </main>
   );
 }

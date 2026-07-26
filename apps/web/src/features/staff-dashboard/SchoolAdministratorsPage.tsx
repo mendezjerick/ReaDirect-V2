@@ -4,10 +4,19 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
-import { BigButton } from "../../components/ui/BigButton";
-import { Surface } from "../../components/ui/Surface";
+import { StaffState } from "../../components/staff/StaffState";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import {
@@ -79,34 +88,25 @@ export function SchoolAdministratorsPage() {
       }
       brandIcon={<StaffBrandIcon />}
     >
-      <div className="staff-workspace-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="People and schools"
           title="School administrators"
           description="Create the temporary credentials a School Administrator uses for their first sign-in."
           badge={
-            <span className="staff-count-badge">
-              {accountsQuery.data?.length ?? 0} accounts
-            </span>
+            <StaffBadge>{accountsQuery.data?.length ?? 0} accounts</StaffBadge>
           }
         />
 
-        <div className="staff-account-layout">
-          <Surface
-            kind="panel"
-            padding="normal"
-            className="staff-account-create-card"
-          >
-            <header className="staff-section-header">
-              <p>New account</p>
-              <h2>Create School Administrator</h2>
-              <span>
-                Email and school details are completed by the administrator
-                after their first sign-in.
-              </span>
-            </header>
+        <StaffContentGrid className="staff-content-grid--sidebar">
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="New account"
+              title="Create School Administrator"
+              description="Email and school details are completed by the administrator after their first sign-in."
+            />
 
-            <form className="staff-account-form" onSubmit={submitAccount}>
+            <form className="staff-form-stack" onSubmit={submitAccount}>
               <TextField
                 label="Username"
                 type="text"
@@ -152,121 +152,121 @@ export function SchoolAdministratorsPage() {
               />
 
               {createMutation.isError ? (
-                <Surface
-                  kind="notice"
-                  padding="compact"
-                  className="staff-form-notice staff-form-notice--error"
-                  role="alert"
-                >
+                <StaffNotice tone="danger">
                   {createMutation.error.message}
-                </Surface>
+                </StaffNotice>
               ) : null}
 
               {createMutation.isSuccess ? (
-                <Surface
-                  kind="notice"
-                  padding="compact"
-                  className="staff-form-notice staff-form-notice--success"
+                <StaffNotice
+                  tone="success"
+                  title="Account created."
                   role="status"
                 >
-                  <strong>Account created.</strong>
                   <span>
                     {createMutation.data.username} can now use the temporary
                     credentials to sign in.
                   </span>
-                </Surface>
+                </StaffNotice>
               ) : null}
 
-              <BigButton
-                className="staff-account-form__submit"
-                size="regular"
+              <StaffButton
+                tone="primary"
+                size="roomy"
                 type="submit"
                 committing={createCommit.committing}
                 busy={createMutation.isPending}
                 busyLabel="Creating account"
               >
                 Create account
-              </BigButton>
+              </StaffButton>
             </form>
-          </Surface>
+          </StaffCard>
 
-          <Surface
-            kind="panel"
-            padding="none"
-            className="staff-account-list-card"
-          >
-            <header className="staff-section-header staff-section-header--list">
-              <div>
-                <p>Account directory</p>
-                <h2>School Administrators</h2>
-              </div>
-              <span>Newest first</span>
-            </header>
+          <StaffCard padding="none">
+            <StaffSectionHeader
+              bordered
+              eyebrow="Account directory"
+              title="School Administrators"
+              meta={<StaffBadge tone="neutral">Newest first</StaffBadge>}
+            />
 
             {accountsQuery.isLoading ? (
-              <div className="staff-account-list-state" aria-live="polite">
-                Loading accounts…
-              </div>
+              <StaffState
+                compact
+                aria-live="polite"
+                title="Loading accounts…"
+              />
             ) : null}
 
             {accountsQuery.isError ? (
-              <div className="staff-account-list-state" role="alert">
-                <strong>Accounts could not be loaded.</strong>
-                <BigButton
-                  variant="secondary"
-                  size="regular"
-                  onClick={() => void accountsQuery.refetch()}
-                >
-                  Retry
-                </BigButton>
-              </div>
+              <StaffState
+                compact
+                tone="danger"
+                role="alert"
+                title="Accounts could not be loaded."
+                actionLabel="Retry"
+                onAction={() => void accountsQuery.refetch()}
+              />
             ) : null}
 
             {accountsQuery.data?.length === 0 ? (
-              <div className="staff-account-list-state">
-                <strong>No School Administrators yet.</strong>
-                <span>The first account you create will appear here.</span>
-              </div>
+              <StaffState
+                compact
+                title="No School Administrators yet."
+                description="The first account you create will appear here."
+              />
             ) : null}
 
             {accountsQuery.data && accountsQuery.data.length > 0 ? (
-              <div className="staff-account-table" role="table">
-                <div className="staff-account-table__header" role="row">
-                  <span role="columnheader">Account</span>
-                  <span role="columnheader">School</span>
-                  <span role="columnheader">Setup</span>
-                  <span role="columnheader">Created</span>
-                </div>
-                {accountsQuery.data.map((account) => (
-                  <article
-                    className="staff-account-table__row"
-                    role="row"
-                    key={account.id}
-                  >
-                    <div role="cell" data-label="Account">
-                      <strong>{account.username}</strong>
-                      <span>{account.display_name}</span>
-                    </div>
-                    <div role="cell" data-label="School">
-                      {account.school ?? "Not entered"}
-                    </div>
-                    <div role="cell" data-label="Setup">
-                      <span className="staff-setup-badge">
+              <StaffDataTable
+                accessibleLabel="School administrator accounts"
+                rows={accountsQuery.data}
+                rowKey={(account) => account.id}
+                columns={[
+                  {
+                    key: "account",
+                    label: "Account",
+                    width: "minmax(12rem, 1.4fr)",
+                    render: (account) => (
+                      <span className="staff-data-table__primary">
+                        <strong>{account.username}</strong>
+                        <small>{account.display_name}</small>
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "school",
+                    label: "School",
+                    width: "minmax(10rem, 1.2fr)",
+                    render: (account) => account.school ?? "Not entered",
+                  },
+                  {
+                    key: "setup",
+                    label: "Setup",
+                    render: (account) => (
+                      <StaffBadge
+                        tone={
+                          account.requires_school_setup ? "warning" : "success"
+                        }
+                      >
                         {account.requires_school_setup
                           ? "School required"
                           : "Complete"}
-                      </span>
-                    </div>
-                    <div role="cell" data-label="Created">
-                      {formatCreatedDate(account.created_at)}
-                    </div>
-                  </article>
-                ))}
-              </div>
+                      </StaffBadge>
+                    ),
+                  },
+                  {
+                    key: "created",
+                    label: "Created",
+                    render: (account) => formatCreatedDate(account.created_at),
+                  },
+                ]}
+              />
             ) : null}
-          </Surface>
-        </div>
-      </div>
+          </StaffCard>
+        </StaffContentGrid>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

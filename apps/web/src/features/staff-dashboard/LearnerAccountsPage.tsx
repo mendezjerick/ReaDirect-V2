@@ -4,8 +4,23 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import {
+  StaffContentGrid,
+  StaffFactGrid,
+  StaffWorkspacePage,
+} from "../../components/staff/StaffContentPatterns";
+import {
+  StaffDataTable,
+  type StaffDataColumn,
+} from "../../components/staff/StaffDataTable";
+import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -168,6 +183,72 @@ export function LearnerAccountsPage() {
   });
   const accountLabel =
     teacherSession.staff.username ?? teacherSession.staff.display_name;
+  const learnerColumns: StaffDataColumn<LearnerAccount>[] = [
+    {
+      key: "learner",
+      label: "Learner",
+      width: "minmax(11rem, 1.5fr)",
+      render: (learner) => (
+        <span className="staff-data-table__primary">
+          <strong>{learner.full_name}</strong>
+          <small>Created {formatCreatedDate(learner.created_at)}</small>
+        </span>
+      ),
+    },
+    {
+      key: "code",
+      label: "Code",
+      width: "minmax(7rem, 0.8fr)",
+      render: (learner) => <strong>{learner.learner_code}</strong>,
+    },
+    {
+      key: "assignment",
+      label: "Assignment",
+      width: "minmax(9rem, 1fr)",
+      render: (learner) => `Grade ${learner.grade_level} · ${learner.section}`,
+    },
+    {
+      key: "lrn",
+      label: "LRN",
+      width: "minmax(7rem, 0.9fr)",
+      render: (learner) => learner.lrn ?? "Not entered",
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      width: "minmax(12rem, 1.2fr)",
+      cellClassName: "staff-data-table__actions",
+      render: (learner) => (
+        <>
+          <StaffButton
+            tone="secondary"
+            size="compact"
+            committing={openLearnerCommit.committing}
+            onClick={() =>
+              openLearnerCommit.commit(() =>
+                navigate(`/staff/teacher/learners/${learner.id}`),
+              )
+            }
+          >
+            View progress
+          </StaffButton>
+          <StaffButton
+            tone="quiet"
+            size="compact"
+            aria-label={`Reset password for ${learner.full_name}`}
+            onClick={() => {
+              setCreatedLearner(null);
+              setResetCredentials(null);
+              setPasswordResetTarget(learner);
+              resetPasswordMutation.reset();
+            }}
+          >
+            Reset password
+          </StaffButton>
+        </>
+      ),
+    },
+  ];
 
   return (
     <StaffShell
@@ -186,168 +267,151 @@ export function LearnerAccountsPage() {
       }
       workspaceLabel="Teacher"
     >
-      <div className="staff-workspace-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="Class management"
           title="Learners"
           description={`Create Learner accounts for Grade ${assignedGrade} Section ${assignedSection}. School and class assignment are automatic.`}
           badge={
-            <span className="staff-count-badge">
-              {learnersQuery.data?.length ?? 0} learners
-            </span>
+            <StaffBadge>{learnersQuery.data?.length ?? 0} learners</StaffBadge>
           }
         />
 
         {createdLearner ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="learner-credentials-card"
+          <StaffCard
+            tone="success"
             role="status"
             aria-labelledby="learner-credentials-title"
           >
-            <div>
-              <p>Account created</p>
-              <h2 id="learner-credentials-title">
-                Save {createdLearner.full_name}&apos;s credentials
-              </h2>
-              <span>
-                The password is shown only in this creation confirmation.
-              </span>
-            </div>
-            <dl className="learner-credentials-card__values">
-              <div>
-                <dt>Learner Code</dt>
-                <dd>{createdLearner.learner_code}</dd>
-              </div>
-              <div>
-                <dt>Password</dt>
-                <dd>{createdLearner.temporary_password}</dd>
-              </div>
-            </dl>
-            <BigButton
-              variant="secondary"
+            <StaffSectionHeader
+              eyebrow="Account created"
+              title={`Save ${createdLearner.full_name}'s credentials`}
+              id="learner-credentials-title"
+              description="The password is shown only in this creation confirmation."
+            />
+            <StaffFactGrid
+              facts={[
+                {
+                  label: "Learner Code",
+                  value: createdLearner.learner_code,
+                },
+                {
+                  label: "Password",
+                  value: createdLearner.temporary_password,
+                },
+              ]}
+            />
+            <StaffButton
+              tone="secondary"
               size="regular"
               onClick={() => setCreatedLearner(null)}
             >
               Credentials saved
-            </BigButton>
-          </Surface>
+            </StaffButton>
+          </StaffCard>
         ) : null}
 
         {resetCredentials ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="learner-credentials-card"
+          <StaffCard
+            tone="success"
             role="status"
             aria-labelledby="learner-reset-credentials-title"
           >
-            <div>
-              <p>Password reset</p>
-              <h2 id="learner-reset-credentials-title">
-                Save {resetCredentials.full_name}&apos;s new credentials
-              </h2>
-              <span>
-                This password is shown only once. Existing Learner sessions have
-                been signed out.
-              </span>
-            </div>
-            <dl className="learner-credentials-card__values">
-              <div>
-                <dt>Learner Code</dt>
-                <dd>{resetCredentials.learner_code}</dd>
-              </div>
-              <div>
-                <dt>New password</dt>
-                <dd>{resetCredentials.temporary_password}</dd>
-              </div>
-            </dl>
-            <BigButton
-              variant="secondary"
+            <StaffSectionHeader
+              eyebrow="Password reset"
+              title={`Save ${resetCredentials.full_name}'s new credentials`}
+              id="learner-reset-credentials-title"
+              description="This password is shown only once. Existing Learner sessions have been signed out."
+            />
+            <StaffFactGrid
+              facts={[
+                {
+                  label: "Learner Code",
+                  value: resetCredentials.learner_code,
+                },
+                {
+                  label: "New password",
+                  value: resetCredentials.temporary_password,
+                },
+              ]}
+            />
+            <StaffButton
+              tone="secondary"
               size="regular"
               onClick={() => setResetCredentials(null)}
             >
               Credentials saved
-            </BigButton>
-          </Surface>
+            </StaffButton>
+          </StaffCard>
         ) : null}
 
         {passwordResetTarget ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="learner-password-reset-confirmation"
+          <StaffNotice
+            tone="warning"
+            title={`Reset the password for ${passwordResetTarget.full_name}?`}
             role="group"
             aria-label={`Confirm password reset for ${passwordResetTarget.full_name}`}
-          >
-            <div>
-              <p>Password reset</p>
-              <h2>Reset the password for {passwordResetTarget.full_name}?</h2>
-              <span>
-                Their old password will stop working immediately and every
-                active Learner session will be signed out. Learning progress
-                will not be changed.
-              </span>
-              {resetPasswordMutation.isError ? (
-                <strong
-                  className="learner-password-reset-confirmation__error"
-                  role="alert"
+            actions={
+              <>
+                <StaffButton
+                  tone="quiet"
+                  size="regular"
+                  disabled={
+                    resetPasswordMutation.isPending ||
+                    resetPasswordCommit.committing
+                  }
+                  onClick={() => {
+                    setPasswordResetTarget(null);
+                    resetPasswordMutation.reset();
+                  }}
                 >
-                  {resetPasswordMutation.error.message}
-                </strong>
-              ) : null}
-            </div>
-            <div className="learner-password-reset-confirmation__actions">
-              <BigButton
-                variant="quiet"
-                size="regular"
-                disabled={
-                  resetPasswordMutation.isPending ||
-                  resetPasswordCommit.committing
-                }
-                onClick={() => {
-                  setPasswordResetTarget(null);
-                  resetPasswordMutation.reset();
-                }}
-              >
-                Cancel
-              </BigButton>
-              <BigButton
-                variant="secondary"
-                size="regular"
-                committing={resetPasswordCommit.committing}
-                busy={resetPasswordMutation.isPending}
-                busyLabel="Resetting password"
-                onClick={() =>
-                  resetPasswordCommit.commit(() =>
-                    resetPasswordMutation.mutate(passwordResetTarget),
-                  )
-                }
-              >
-                Confirm password reset
-              </BigButton>
-            </div>
-          </Surface>
+                  Cancel
+                </StaffButton>
+                <StaffButton
+                  tone="secondary"
+                  size="regular"
+                  committing={resetPasswordCommit.committing}
+                  busy={resetPasswordMutation.isPending}
+                  busyLabel="Resetting password"
+                  onClick={() =>
+                    resetPasswordCommit.commit(() =>
+                      resetPasswordMutation.mutate(passwordResetTarget),
+                    )
+                  }
+                >
+                  Confirm password reset
+                </StaffButton>
+              </>
+            }
+          >
+            <span>
+              Their old password will stop working immediately and every active
+              Learner session will be signed out. Learning progress will not be
+              changed.
+            </span>
+            {resetPasswordMutation.isError ? (
+              <strong role="alert">
+                {resetPasswordMutation.error.message}
+              </strong>
+            ) : null}
+          </StaffNotice>
         ) : null}
 
-        <div className="staff-account-layout">
-          <Surface
-            kind="panel"
-            padding="normal"
-            className="staff-account-create-card"
-          >
-            <header className="staff-section-header">
-              <p>New account</p>
-              <h2>Create Learner</h2>
-              <span>
-                ReaDirect generates the Learner Code and password. Rhine, Grade{" "}
-                {assignedGrade}, and Section {assignedSection} are assigned
-                automatically.
-              </span>
-            </header>
+        <StaffContentGrid className="staff-content-grid--sidebar">
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="New account"
+              title="Create Learner"
+              description={
+                <>
+                  ReaDirect generates the Learner Code and password. Rhine,
+                  Grade {assignedGrade}, and Section {assignedSection} are
+                  assigned automatically.
+                </>
+              }
+            />
 
-            <form className="staff-account-form" onSubmit={submitAccount}>
+            <form className="staff-form-stack" onSubmit={submitAccount}>
               <TextField
                 label="First name"
                 type="text"
@@ -419,141 +483,70 @@ export function LearnerAccountsPage() {
               />
 
               {createMutation.isError ? (
-                <Surface
-                  kind="notice"
-                  padding="compact"
-                  className="staff-form-notice staff-form-notice--error"
-                  role="alert"
-                >
+                <StaffNotice tone="danger">
                   {createMutation.error.message}
-                </Surface>
+                </StaffNotice>
               ) : null}
 
-              <BigButton
-                className="staff-account-form__submit"
-                size="regular"
+              <StaffButton
+                tone="primary"
+                size="roomy"
                 type="submit"
                 committing={createCommit.committing}
                 busy={createMutation.isPending}
                 busyLabel="Creating Learner"
               >
                 Create Learner
-              </BigButton>
+              </StaffButton>
             </form>
-          </Surface>
+          </StaffCard>
 
-          <Surface
-            kind="panel"
-            padding="none"
-            className="staff-account-list-card"
-          >
-            <header className="staff-section-header staff-section-header--list">
-              <div>
-                <p>Your class</p>
-                <h2>Learner directory</h2>
-              </div>
-              <span>Newest first</span>
-            </header>
+          <StaffCard padding="none">
+            <StaffSectionHeader
+              eyebrow="Your class"
+              title="Learner directory"
+              meta={<StaffBadge tone="neutral">Newest first</StaffBadge>}
+              bordered
+            />
 
             {learnersQuery.isLoading ? (
-              <div className="staff-account-list-state" aria-live="polite">
-                Loading Learners…
-              </div>
+              <StaffState
+                compact
+                aria-live="polite"
+                title="Loading Learners…"
+              />
             ) : null}
 
             {learnersQuery.isError ? (
-              <div className="staff-account-list-state" role="alert">
-                <strong>Learners could not be loaded.</strong>
-                <BigButton
-                  variant="secondary"
-                  size="regular"
-                  onClick={() => void learnersQuery.refetch()}
-                >
-                  Retry
-                </BigButton>
-              </div>
+              <StaffState
+                compact
+                tone="danger"
+                role="alert"
+                title="Learners could not be loaded."
+                actionLabel="Retry"
+                onAction={() => void learnersQuery.refetch()}
+              />
             ) : null}
 
             {learnersQuery.data?.length === 0 ? (
-              <div className="staff-account-list-state">
-                <strong>No Learners yet.</strong>
-                <span>The first Learner you create will appear here.</span>
-              </div>
+              <StaffState
+                compact
+                title="No Learners yet."
+                description="The first Learner you create will appear here."
+              />
             ) : null}
 
             {learnersQuery.data && learnersQuery.data.length > 0 ? (
-              <div
-                className="staff-account-table staff-account-table--learners"
-                role="table"
-              >
-                <div className="staff-account-table__header" role="row">
-                  <span role="columnheader">Learner</span>
-                  <span role="columnheader">Code</span>
-                  <span role="columnheader">Assignment</span>
-                  <span role="columnheader">LRN</span>
-                  <span role="columnheader">Actions</span>
-                </div>
-                {learnersQuery.data.map((learner) => (
-                  <article
-                    className="staff-account-table__row"
-                    role="row"
-                    key={learner.id}
-                  >
-                    <div role="cell" data-label="Learner">
-                      <strong>{learner.full_name}</strong>
-                      <span>
-                        Created {formatCreatedDate(learner.created_at)}
-                      </span>
-                    </div>
-                    <div role="cell" data-label="Code">
-                      <strong>{learner.learner_code}</strong>
-                    </div>
-                    <div role="cell" data-label="Assignment">
-                      Grade {learner.grade_level} · {learner.section}
-                    </div>
-                    <div role="cell" data-label="LRN">
-                      {learner.lrn ?? "Not entered"}
-                    </div>
-                    <div
-                      className="staff-account-table__actions"
-                      role="cell"
-                      data-label="Actions"
-                    >
-                      <BigButton
-                        className="staff-account-table__review"
-                        variant="secondary"
-                        size="regular"
-                        committing={openLearnerCommit.committing}
-                        onClick={() =>
-                          openLearnerCommit.commit(() =>
-                            navigate(`/staff/teacher/learners/${learner.id}`),
-                          )
-                        }
-                      >
-                        View progress
-                      </BigButton>
-                      <BigButton
-                        className="staff-account-table__reset"
-                        variant="quiet"
-                        size="regular"
-                        aria-label={`Reset password for ${learner.full_name}`}
-                        onClick={() => {
-                          setCreatedLearner(null);
-                          setResetCredentials(null);
-                          setPasswordResetTarget(learner);
-                          resetPasswordMutation.reset();
-                        }}
-                      >
-                        Reset password
-                      </BigButton>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <StaffDataTable
+                accessibleLabel="Learner directory"
+                columns={learnerColumns}
+                rows={learnersQuery.data}
+                rowKey={(learner) => learner.id}
+              />
             ) : null}
-          </Surface>
-        </div>
-      </div>
+          </StaffCard>
+        </StaffContentGrid>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }

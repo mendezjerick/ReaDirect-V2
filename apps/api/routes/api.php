@@ -12,6 +12,7 @@ use App\Http\Controllers\LearnerLessonThreeController;
 use App\Http\Controllers\LearnerLessonTwoController;
 use App\Http\Controllers\LearnerTtsController;
 use App\Http\Controllers\SchoolAdminClassController;
+use App\Http\Controllers\SchoolAdminInstructionalInsightsController;
 use App\Http\Controllers\SchoolAdministratorController;
 use App\Http\Controllers\SchoolAdminLearnerController;
 use App\Http\Controllers\SchoolAdminReportController;
@@ -72,6 +73,7 @@ Route::prefix('staff')->group(function (): void {
             Route::get('/{staffUser}/learners', [SchoolAdminLearnerController::class, 'index']);
             Route::get('/{staffUser}/learners/{learner}', [SchoolAdminLearnerController::class, 'show'])
                 ->whereNumber('learner');
+            Route::get('/{staffUser}/instructional-insights', [SchoolAdminInstructionalInsightsController::class, 'show']);
             Route::get('/{staffUser}/reports', [SchoolAdminReportController::class, 'show']);
             Route::get('/{staffUser}/teacher-dashboards/{teacher}', [SchoolAdminTeacherDashboardController::class, 'show'])
                 ->whereNumber('teacher');

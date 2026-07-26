@@ -4,8 +4,16 @@ import { useNavigate } from "react-router-dom";
 
 import { MetricCard } from "../../components/staff/MetricCard";
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { StaffBadge } from "../../components/staff/StaffBadge";
+import { StaffButton } from "../../components/staff/StaffButton";
+import { StaffCard } from "../../components/staff/StaffCard";
+import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
+import { StaffSearchField } from "../../components/staff/StaffFormControls";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
+import { StaffState } from "../../components/staff/StaffState";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -93,59 +101,46 @@ export function TeacherReportsPage() {
       }
       workspaceLabel="Teacher"
     >
-      <div className="staff-workspace-page teacher-report-page">
+      <StaffWorkspacePage>
         <StaffPageHeader
           eyebrow="Assessment review"
           title="Class Progress Report"
           description="A printable, read-only class record built from saved assessment, lesson, and progression evidence."
           badge={
-            <BigButton
-              variant="secondary"
+            <StaffButton
+              tone="secondary"
               size="regular"
               disabled={!report}
               onClick={() => window.print()}
             >
               Print report
-            </BigButton>
+            </StaffButton>
           }
         />
 
-        {reportQuery.isLoading ? (
-          <Surface
-            kind="panel"
-            padding="roomy"
-            className="teacher-report-state"
-          >
-            Loading report…
-          </Surface>
-        ) : null}
+        {reportQuery.isLoading ? <StaffState title="Loading report…" /> : null}
         {reportQuery.isError ? (
-          <Surface
-            kind="notice"
-            padding="normal"
-            className="teacher-report-state"
+          <StaffState
+            tone="danger"
             role="alert"
-          >
-            <strong>The report could not be loaded.</strong>
-            <BigButton
-              variant="secondary"
-              size="regular"
-              onClick={() => void reportQuery.refetch()}
-            >
-              Retry
-            </BigButton>
-          </Surface>
+            title="The report could not be loaded."
+            actionLabel="Retry"
+            onAction={() => void reportQuery.refetch()}
+          />
         ) : null}
 
         {report ? (
-          <div className="teacher-report-print-region">
-            <header className="teacher-report-print-header">
-              <h2>{report.class_context.school.name}</h2>
-              <p>
-                Grade {report.class_context.grade_level} ·{" "}
-                {report.class_context.section}
-              </p>
-            </header>
+          <div className="staff-print-region">
+            <StaffSectionHeader
+              eyebrow="Class progress report"
+              title={report.class_context.school.name}
+              description={
+                <>
+                  Grade {report.class_context.grade_level} ·{" "}
+                  {report.class_context.section}
+                </>
+              }
+            />
             <section
               className="staff-metric-grid staff-metric-grid--teacher"
               aria-label="Report summary"
@@ -177,72 +172,92 @@ export function TeacherReportsPage() {
               />
             </section>
 
-            <Surface
-              kind="panel"
-              padding="none"
-              className="teacher-report-card"
-            >
-              <div className="teacher-report-toolbar">
-                <label>
-                  <span>Find Learner</span>
-                  <input
-                    type="search"
+            <StaffCard padding="none">
+              <StaffSectionHeader
+                bordered
+                eyebrow="Persisted evidence"
+                title="Learner progress"
+                meta={<StaffBadge>{filteredLearners.length} rows</StaffBadge>}
+                actions={
+                  <StaffSearchField
+                    label="Find Learner"
                     value={search}
                     placeholder="Name or Learner Code"
                     onChange={(event) => setSearch(event.target.value)}
                   />
-                </label>
-                <span>{filteredLearners.length} rows</span>
-              </div>
-              <div className="teacher-report-table" role="table">
-                <div className="teacher-report-table__header" role="row">
-                  <span>Learner</span>
-                  <span>Stage</span>
-                  <span>Diagnostic</span>
-                  <span>Lessons</span>
-                  <span>Final</span>
-                  <span>Review</span>
-                  <span aria-hidden="true" />
-                </div>
-                {filteredLearners.map((learner) => (
-                  <article
-                    className="teacher-report-table__row"
-                    role="row"
-                    key={learner.learner_id}
-                  >
-                    <div data-label="Learner">
-                      <strong>{learner.learner_name}</strong>
-                      <span>{learner.learner_code}</span>
-                    </div>
-                    <div data-label="Stage">{learner.stage_label}</div>
-                    <div data-label="Diagnostic">
-                      <strong>
-                        {assessmentLabel(learner.diagnostic.status)}
-                      </strong>
-                      <span>
-                        {learner.diagnostic.score ?? "—"} ·{" "}
-                        {learner.diagnostic.profile ?? "No profile"}
+                }
+              />
+              <StaffDataTable
+                accessibleLabel="Teacher class progress report"
+                rows={filteredLearners}
+                rowKey={(learner) => learner.learner_id}
+                columns={[
+                  {
+                    key: "learner",
+                    label: "Learner",
+                    width: "minmax(10rem, 1.2fr)",
+                    render: (learner) => (
+                      <span className="staff-primary-value">
+                        <strong>{learner.learner_name}</strong>
+                        <small>{learner.learner_code}</small>
                       </span>
-                    </div>
-                    <div data-label="Lessons">
-                      {learner.required_lessons_completed} of 6
-                    </div>
-                    <div data-label="Final">
-                      <strong>{assessmentLabel(learner.final.status)}</strong>
-                      <span>
-                        {learner.final.score ?? "—"} ·{" "}
-                        {learner.final.profile ?? "No profile"}
+                    ),
+                  },
+                  {
+                    key: "stage",
+                    label: "Stage",
+                    render: (learner) => learner.stage_label,
+                  },
+                  {
+                    key: "diagnostic",
+                    label: "Diagnostic",
+                    render: (learner) => (
+                      <span className="staff-primary-value">
+                        <strong>
+                          {assessmentLabel(learner.diagnostic.status)}
+                        </strong>
+                        <small>
+                          {learner.diagnostic.score ?? "—"} ·{" "}
+                          {learner.diagnostic.profile ?? "No profile"}
+                        </small>
                       </span>
-                    </div>
-                    <div data-label="Review">
-                      {learner.has_review_evidence
+                    ),
+                  },
+                  {
+                    key: "lessons",
+                    label: "Lessons",
+                    width: "minmax(5rem, 0.6fr)",
+                    render: (learner) =>
+                      `${learner.required_lessons_completed} of 6`,
+                  },
+                  {
+                    key: "final",
+                    label: "Final",
+                    render: (learner) => (
+                      <span className="staff-primary-value">
+                        <strong>{assessmentLabel(learner.final.status)}</strong>
+                        <small>
+                          {learner.final.score ?? "—"} ·{" "}
+                          {learner.final.profile ?? "No profile"}
+                        </small>
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "review",
+                    label: "Review",
+                    render: (learner) =>
+                      learner.has_review_evidence
                         ? `${learner.skipped_items} skips · ${learner.review_recommended_items} flags`
-                        : "No saved flags"}
-                    </div>
-                    <div className="teacher-report-table__action">
-                      <BigButton
-                        variant="secondary"
-                        size="regular"
+                        : "No saved flags",
+                  },
+                  {
+                    key: "action",
+                    label: "Action",
+                    width: "auto",
+                    render: (learner) => (
+                      <StaffButton
+                        size="compact"
                         committing={reviewCommit.committing}
                         onClick={() =>
                           reviewCommit.commit(() =>
@@ -253,15 +268,15 @@ export function TeacherReportsPage() {
                         }
                       >
                         Review
-                      </BigButton>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </Surface>
+                      </StaffButton>
+                    ),
+                  },
+                ]}
+              />
+            </StaffCard>
           </div>
         ) : null}
-      </div>
+      </StaffWorkspacePage>
     </StaffShell>
   );
 }
