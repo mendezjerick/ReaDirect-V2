@@ -59,6 +59,11 @@ final class Learner extends Model
         return $this->hasOne(LearnerProgressState::class);
     }
 
+    public function gameProfile(): HasOne
+    {
+        return $this->hasOne(GameProfile::class);
+    }
+
     public function sessions(): HasMany
     {
         return $this->hasMany(LearnerSession::class);

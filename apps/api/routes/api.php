@@ -4,6 +4,8 @@ use App\Http\Controllers\LearnerAssessmentPartOneController;
 use App\Http\Controllers\LearnerAssessmentPartTwoController;
 use App\Http\Controllers\LearnerAuthController;
 use App\Http\Controllers\LearnerClaraListeningController;
+use App\Http\Controllers\LearnerGameProfileController;
+use App\Http\Controllers\LearnerGameSaveController;
 use App\Http\Controllers\LearnerLessonFiveController;
 use App\Http\Controllers\LearnerLessonFourController;
 use App\Http\Controllers\LearnerLessonOneController;
@@ -111,6 +113,14 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/login', [LearnerAuthController::class, 'store']);
     Route::get('/session', [LearnerAuthController::class, 'show']);
     Route::post('/logout', [LearnerAuthController::class, 'destroy']);
+    Route::get('/games/profile', [LearnerGameProfileController::class, 'show']);
+    Route::post('/games/profile', [LearnerGameProfileController::class, 'store']);
+    Route::get('/games/{gameKey}/save', [LearnerGameSaveController::class, 'show'])
+        ->where('gameKey', '[a-z0-9]+(?:-[a-z0-9]+)*');
+    Route::put('/games/{gameKey}/save', [LearnerGameSaveController::class, 'update'])
+        ->where('gameKey', '[a-z0-9]+(?:-[a-z0-9]+)*');
+    Route::post('/games/{gameKey}/new-game', [LearnerGameSaveController::class, 'reset'])
+        ->where('gameKey', '[a-z0-9]+(?:-[a-z0-9]+)*');
     Route::get('/tts/activity-manifest', [LearnerTtsController::class, 'activityManifest']);
     Route::post('/tts/activity-readiness', [LearnerTtsController::class, 'activityReadiness']);
     Route::post('/tts/speech/{speechKey}', [LearnerTtsController::class, 'speech']);
