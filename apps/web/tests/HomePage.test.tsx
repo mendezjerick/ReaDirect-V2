@@ -44,6 +44,28 @@ describe("HomePage", () => {
     expect(within(actions).queryByRole("link")).not.toBeInTheDocument();
   });
 
+  it("opens the supplied About ReaDirect content from the bottom action", () => {
+    renderHome();
+
+    fireEvent.click(screen.getByRole("button", { name: "About ReaDirect" }));
+
+    const dialog = screen.getByRole("dialog", { name: "About ReaDirect" });
+    expect(dialog).toBeVisible();
+    expect(within(dialog).getByText("Mission")).toBeVisible();
+    expect(within(dialog).getByText("Vision")).toBeVisible();
+    expect(within(dialog).getByText("Jerick E. Mendez")).toBeVisible();
+    expect(
+      within(dialog).getByAltText("Nick Narry S. Mendoza"),
+    ).toHaveAttribute("src", "/assets/profile/nick.png");
+
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: "Close About ReaDirect",
+      }),
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   it("shows the staff button press before opening staff login", () => {
     vi.useFakeTimers();
 
