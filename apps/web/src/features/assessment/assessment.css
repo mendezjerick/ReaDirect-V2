@@ -580,12 +580,12 @@
 
 .assessment-result__level {
   margin: 0;
-  border: 2px solid var(--color-action-primary-depth);
-  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-result-label-border);
+  border-radius: 0.35rem;
   padding: 0.35rem 1rem;
-  color: var(--color-text-on-action);
-  background: var(--color-action-primary);
-  box-shadow: 0 4px 0 var(--color-action-primary-depth);
+  color: var(--color-result-label-text);
+  background: var(--color-result-label-surface);
+  box-shadow: 0 4px 0 var(--color-result-label-depth);
   font-size: var(--font-learner-prompt);
   text-align: center;
   text-transform: uppercase;
@@ -738,6 +738,18 @@
   min-height: 0;
   align-content: center;
   gap: clamp(0.45rem, 1.5vh, 0.75rem);
+}
+
+.assessment-passage--fitted {
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+}
+
+.assessment-passage--fitted p {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .assessment-passage__heading {
@@ -1242,7 +1254,7 @@
   }
 
   .assessment-part-two--task-3a .assessment-recorder__control {
-    width: clamp(8.5rem, 36vw, 10rem);
+    width: var(--assessment-responsive-recorder-size);
   }
 
   .assessment-part-two--task-3b .assessment-recorder-panel {
@@ -1255,6 +1267,49 @@
 
   .assessment-story-choice button {
     min-height: clamp(5.5rem, 13svh, 7rem);
+  }
+}
+
+@media (max-width: 47.999rem) and (orientation: portrait) {
+  .assessment-page.learner-flow-page:has(
+      .assessment-recorder-panel .assessment-recorder
+    ) {
+    --assessment-responsive-recorder-size: min(
+      clamp(8.5rem, 36vw, 10rem),
+      24svh
+    );
+    --assessment-responsive-recorder-reserve: 5.5rem;
+
+    grid-template-rows:
+      auto
+      minmax(0, 1fr)
+      calc(
+        var(--assessment-responsive-recorder-size) +
+          var(--assessment-responsive-recorder-reserve)
+      )
+      auto;
+  }
+
+  .assessment-page.learner-flow-page:has(
+      .assessment-recorder-panel .assessment-recorder
+    )
+    .assessment-item-panel:not(.assessment-item-panel--result) {
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-recorder-panel:has(.assessment-recorder) {
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-recorder-panel
+    .assessment-recorder__control {
+    width: var(--assessment-responsive-recorder-size);
   }
 }
 
@@ -1379,6 +1434,152 @@
 
   .assessment-story-choice button {
     min-height: 6rem;
+  }
+}
+
+@media (max-width: 22rem) and (orientation: portrait),
+  (max-width: 47.999rem) and (max-height: 46rem) and (orientation: portrait) {
+  .assessment-page.learner-flow-page {
+    --font-panel-title: clamp(1.4rem, 6vw, 1.75rem);
+    --font-learner-prompt: clamp(1.25rem, 5.5vw, 1.6rem);
+    --font-button-large: clamp(1.15rem, 5vw, 1.45rem);
+    --font-body-large: clamp(1rem, 4.6vw, 1.25rem);
+    --font-body: clamp(0.92rem, 4.2vw, 1.15rem);
+    --font-support: clamp(0.75rem, 3.6vw, 0.95rem);
+    --assessment-responsive-recorder-size: min(clamp(7rem, 31vw, 8rem), 20svh);
+    --assessment-responsive-recorder-reserve: 4rem;
+
+    gap: clamp(0.25rem, 0.9svh, 0.45rem);
+    padding: max(0.4rem, env(safe-area-inset-top))
+      max(0.4rem, env(safe-area-inset-right))
+      max(0.4rem, env(safe-area-inset-bottom))
+      max(0.4rem, env(safe-area-inset-left));
+  }
+
+  .assessment-page.learner-flow-page .assessment-header {
+    width: 100%;
+    min-height: clamp(2.65rem, 7.5svh, 3.25rem);
+    border-width: 1px;
+    padding: 0.28rem 0.5rem;
+    box-shadow: 0 3px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page .assessment-header h1 {
+    font-size: clamp(1.2rem, 5.4vw, 1.5rem);
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-item-panel:not(.assessment-item-panel--result) {
+    width: 98%;
+    min-height: clamp(6.5rem, 19svh, 8.5rem);
+    padding: clamp(0.38rem, 1svh, 0.55rem) clamp(0.5rem, 2.4vw, 0.75rem);
+    box-shadow: 0 4px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page.assessment-part-two--task-3a
+    .assessment-item-panel {
+    width: 98%;
+    min-height: clamp(7.25rem, 27svh, 10.5rem);
+    padding-inline: clamp(0.45rem, 2vw, 0.65rem);
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-recorder-panel:has(.assessment-recorder) {
+    width: min(92%, 24rem);
+    height: auto;
+    min-height: calc(var(--assessment-responsive-recorder-size) + 4rem);
+    padding: clamp(0.35rem, 0.9svh, 0.55rem);
+    box-shadow: 0 4px 0 var(--color-activity-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-recorder-panel
+    .assessment-recorder__control {
+    width: var(
+      --assessment-responsive-recorder-size,
+      min(clamp(7rem, 31vw, 8rem), 20svh)
+    );
+    border-width: 3px;
+    padding: 0.45rem;
+    box-shadow: 0 6px 0 var(--color-action-primary-depth);
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-recorder__control:not(:disabled):active,
+  .assessment-page.learner-flow-page
+    .assessment-recorder__control[data-state="recording"] {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 var(--color-action-primary-depth);
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-recorder-panel
+    .assessment-recorder__control:disabled {
+    box-shadow: 0 6px 0 var(--color-button-unavailable-depth);
+  }
+
+  .assessment-page.learner-flow-page .assessment-recorder__icon,
+  .assessment-page.learner-flow-page .assessment-recorder__icon svg {
+    width: clamp(1.8rem, 8vw, 2.3rem);
+    height: clamp(1.8rem, 8vw, 2.3rem);
+  }
+
+  .assessment-page.learner-flow-page .assessment-recorder__review-slot {
+    min-height: 1rem;
+    margin-top: 0.28rem;
+  }
+
+  .assessment-page.learner-flow-page .assessment-recorder__retry {
+    min-height: 1.75rem;
+    padding: 0.1rem 0.45rem;
+  }
+
+  .assessment-page.learner-flow-page .assessment-recorder__error {
+    min-height: 0.75rem;
+  }
+
+  .assessment-page.learner-flow-page .assessment-action-dock {
+    width: 100%;
+    min-height: clamp(8.25rem, 23svh, 10rem);
+    grid-template-columns: minmax(0, 1fr) clamp(5.25rem, 24vw, 6.25rem);
+    border-width: 1px;
+    padding: 0.42rem;
+    box-shadow: 0 4px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page .assessment-clara {
+    bottom: 0.1rem;
+    left: 0.2rem;
+    width: min(clamp(8.5rem, 46vw, 10.5rem), 21svh);
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-action-slot[data-assessment-action-split] {
+    gap: 0.35rem;
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-action-slot[data-assessment-action-split]
+    .big-button {
+    padding-block: 0.28rem;
+  }
+
+  .assessment-page.learner-flow-page .assessment-action-slot .big-button__icon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .assessment-page.learner-flow-page .assessment-passage {
+    gap: clamp(0.25rem, 0.8svh, 0.4rem);
+  }
+
+  .assessment-page.learner-flow-page .assessment-passage__heading strong {
+    border-width: 1px;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .assessment-page.learner-flow-page .assessment-passage p {
+    line-height: 1.35;
   }
 }
 

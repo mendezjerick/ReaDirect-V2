@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
@@ -22,6 +22,7 @@ import { useAudioRecorder } from "../assessment/useAudioRecorder";
 import { LearnerActivityResult } from "../learner-activity/LearnerActivityResult";
 import { LearnerActivityShell } from "../learner-activity/LearnerActivityShell";
 import { PassageReadingResult } from "../learner-activity/PassageReadingResult";
+import { useFittedPassageText } from "../learner-activity/useFittedPassageText";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import {
   prepareLessonDemonstration,
@@ -74,7 +75,6 @@ type SpokenTextLessonPageProps = {
   api: SpokenTextLessonApi;
 };
 
-const LESSON_FIVE_PASSAGE_MIN_FONT_PX = 16;
 const LESSON_FIVE_PASSAGE_MAX_FONT_PX = 23;
 
 function LessonFivePassage({
@@ -86,75 +86,15 @@ function LessonFivePassage({
   passage: string;
   remainingSeconds: number;
 }) {
-  const passageRef = useRef<HTMLElement>(null);
-  const textRef = useRef<HTMLParagraphElement>(null);
-  const [fontSize, setFontSize] = useState(LESSON_FIVE_PASSAGE_MAX_FONT_PX);
-
-  useLayoutEffect(() => {
-    const passageElement = passageRef.current;
-    const textElement = textRef.current;
-
-    if (!passageElement || !textElement) return;
-
-    let animationFrame = 0;
-    let disposed = false;
-
-    const fitPassage = () => {
-      animationFrame = 0;
-      if (disposed || textElement.clientHeight <= 0) return;
-
-      let lowerBound = LESSON_FIVE_PASSAGE_MIN_FONT_PX;
-      let upperBound = LESSON_FIVE_PASSAGE_MAX_FONT_PX;
-      let fittedSize = lowerBound;
-
-      for (let attempt = 0; attempt < 8; attempt += 1) {
-        const candidate = (lowerBound + upperBound) / 2;
-        textElement.style.fontSize = `${candidate}px`;
-
-        const fits =
-          textElement.scrollHeight <= textElement.clientHeight + 1 &&
-          textElement.scrollWidth <= textElement.clientWidth + 1;
-
-        if (fits) {
-          fittedSize = candidate;
-          lowerBound = candidate;
-        } else {
-          upperBound = candidate;
-        }
-      }
-
-      textElement.style.fontSize = "";
-      setFontSize(Math.floor(fittedSize * 10) / 10);
-    };
-
-    const scheduleFit = () => {
-      if (animationFrame) window.cancelAnimationFrame(animationFrame);
-      animationFrame = window.requestAnimationFrame(fitPassage);
-    };
-
-    const resizeObserver =
-      typeof ResizeObserver === "undefined"
-        ? null
-        : new ResizeObserver(scheduleFit);
-
-    resizeObserver?.observe(passageElement);
-    window.addEventListener("resize", scheduleFit);
-    void document.fonts?.ready.then(scheduleFit);
-    scheduleFit();
-
-    return () => {
-      disposed = true;
-      if (animationFrame) window.cancelAnimationFrame(animationFrame);
-      resizeObserver?.disconnect();
-      window.removeEventListener("resize", scheduleFit);
-      textElement.style.fontSize = "";
-    };
-  }, [passage]);
+  const { passageRef, textRef, fontSize } = useFittedPassageText(
+    passage,
+    LESSON_FIVE_PASSAGE_MAX_FONT_PX,
+  );
 
   return (
     <article
       ref={passageRef}
-      className="assessment-passage lesson-five-passage"
+      className="assessment-passage assessment-passage--fitted lesson-five-passage"
     >
       <div className="assessment-passage__heading">
         <span>{title}</span>

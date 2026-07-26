@@ -32,6 +32,8 @@
   --color-action-primary-depth: #1d3760;
   --color-action-secondary: #ffffff;
   --color-action-secondary-hover: #f1f6ff;
+  --color-result-label-surface: #57555b;
+  --color-result-label-text: #ffffff;
 
   --color-success: #247451;
   --color-success-soft: #e8f6ef;
