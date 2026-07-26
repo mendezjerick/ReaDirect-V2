@@ -23,6 +23,7 @@ import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPr
 import { ClaraStage } from "../intro/ClaraStage";
 import { LearnerActivityResult } from "../learner-activity/LearnerActivityResult";
 import { PassageReadingResult } from "../learner-activity/PassageReadingResult";
+import { useFittedPassageText } from "../learner-activity/useFittedPassageText";
 import { PointerTrail } from "../intro/PointerTrail";
 import { VectorCursor } from "../intro/VectorCursor";
 import { ComprehensionChoiceGrid } from "../learner-activity/ComprehensionChoiceGrid";
@@ -145,11 +146,16 @@ function PassageItem({
   remainingSeconds: number;
 }) {
   const reduceMotion = useReducedMotion();
+  const passage =
+    state.item?.kind === "passage" ? state.item.authored_pages[0] : "";
+  const { passageRef, textRef, fontSize } = useFittedPassageText(passage, 21.6);
+
   if (state.item?.kind !== "passage") return null;
 
   return (
     <motion.article
-      className="assessment-passage"
+      ref={passageRef}
+      className="assessment-passage assessment-passage--fitted"
       initial={reduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.3 }}
@@ -158,7 +164,9 @@ function PassageItem({
         <span>{state.item.title}</span>
         <strong>{remainingSeconds}s</strong>
       </div>
-      <p>{state.item.authored_pages[0]}</p>
+      <p ref={textRef} style={{ fontSize: `${fontSize}px` }}>
+        {passage}
+      </p>
     </motion.article>
   );
 }

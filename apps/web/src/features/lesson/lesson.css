@@ -499,10 +499,15 @@
 
 @media (max-width: 47.999rem) {
   .lesson-five-page {
+    --assessment-responsive-recorder-size: min(42vw, 9.75rem);
+
     grid-template-rows:
       auto
       minmax(0, 1fr)
-      minmax(11.75rem, 22svh)
+      calc(
+        var(--assessment-responsive-recorder-size) +
+          var(--assessment-responsive-recorder-reserve, 5.5rem)
+      )
       auto;
   }
 
@@ -524,20 +529,25 @@
   .lesson-five-page .assessment-recorder-panel {
     width: min(86%, 27rem);
     height: 100%;
-    min-height: 11.75rem;
+    min-height: 0;
   }
 
   .lesson-five-page .assessment-recorder__control {
-    width: min(42vw, 9.75rem);
+    width: var(--assessment-responsive-recorder-size);
   }
 }
 
 @media (max-width: 47.999rem) and (max-height: 50rem) {
   .lesson-five-page {
+    --assessment-responsive-recorder-size: min(39vw, 9rem);
+
     grid-template-rows:
       auto
       minmax(0, 1fr)
-      minmax(11rem, 22svh)
+      calc(
+        var(--assessment-responsive-recorder-size) +
+          var(--assessment-responsive-recorder-reserve, 5.5rem)
+      )
       auto;
   }
 
@@ -547,11 +557,11 @@
   }
 
   .lesson-five-page .assessment-recorder-panel {
-    min-height: 11rem;
+    min-height: 0;
   }
 
   .lesson-five-page .assessment-recorder__control {
-    width: min(39vw, 9rem);
+    width: var(--assessment-responsive-recorder-size);
   }
 
   .lesson-five-page .assessment-action-dock {
@@ -560,6 +570,57 @@
 
   .lesson-five-page .assessment-clara {
     width: clamp(11rem, 52vw, 12rem);
+  }
+}
+
+@media (max-width: 22rem) and (orientation: portrait),
+  (max-width: 47.999rem) and (max-height: 46rem) and (orientation: portrait) {
+  .lesson-five-page {
+    --assessment-responsive-recorder-size: min(clamp(7rem, 31vw, 8rem), 20svh);
+    --assessment-responsive-recorder-reserve: 4rem;
+
+    grid-template-rows:
+      auto
+      minmax(0, 1fr)
+      calc(
+        var(--assessment-responsive-recorder-size) +
+          var(--assessment-responsive-recorder-reserve)
+      )
+      auto;
+  }
+
+  .lesson-five-page .lesson-five-passage-panel {
+    width: 98%;
+    min-height: 0;
+    padding: clamp(0.35rem, 0.8svh, 0.5rem);
+  }
+
+  .lesson-five-page .lesson-five-passage {
+    gap: clamp(0.22rem, 0.7svh, 0.35rem);
+    padding: clamp(0.4rem, 0.9svh, 0.6rem);
+    box-shadow: 0 4px 0 var(--color-frame-depth);
+  }
+
+  .lesson-five-page .lesson-five-passage .assessment-passage__heading {
+    padding-bottom: 0.22rem;
+  }
+
+  .lesson-five-page .assessment-recorder-panel {
+    width: min(92%, 24rem);
+    height: auto;
+    min-height: calc(var(--assessment-responsive-recorder-size) + 4rem);
+  }
+
+  .lesson-five-page .assessment-recorder__control {
+    width: var(--assessment-responsive-recorder-size);
+  }
+
+  .lesson-five-page .assessment-action-dock {
+    min-height: clamp(8.25rem, 23svh, 10rem);
+  }
+
+  .lesson-five-page .assessment-clara {
+    width: min(clamp(8.5rem, 46vw, 10.5rem), 21svh);
   }
 }
 

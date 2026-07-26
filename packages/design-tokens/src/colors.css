@@ -63,6 +63,20 @@
   --color-action-skip-border: #bca9a9;
   --color-action-skip-depth: #d8c5c5;
 
+  /* Informational result labels */
+  --color-result-label-surface: #83c2d2;
+  --color-result-label-border: color-mix(
+    in srgb,
+    var(--color-result-label-surface) 74%,
+    #000000
+  );
+  --color-result-label-depth: color-mix(
+    in srgb,
+    var(--color-result-label-surface) 54%,
+    #000000
+  );
+  --color-result-label-text: #ffffff;
+
   /* Recessed learner achievement case */
   --color-achievement-holder-rim: #493a55;
   --color-achievement-holder-depth: #211927;
