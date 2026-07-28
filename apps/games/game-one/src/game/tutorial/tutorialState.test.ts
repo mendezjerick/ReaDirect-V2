@@ -32,6 +32,8 @@ describe("first-use tutorial state", () => {
   it("allows only the mission event highlighted by each tutorial step", () => {
     expect(tutorialAllowsMissionEvent("interaction", "ACTIVATE_INTERACTION")).toBe(true);
     expect(tutorialAllowsMissionEvent("interaction", "REQUEST_HELP")).toBe(false);
+    expect(tutorialAllowsMissionEvent("continueQuestions", "CONTINUE_AFTER_ACTION")).toBe(true);
+    expect(tutorialAllowsMissionEvent("continueQuestions", "ANSWER_LATER")).toBe(false);
     expect(tutorialAllowsMissionEvent("answerLater", "ANSWER_LATER")).toBe(true);
     expect(tutorialAllowsMissionEvent("answerLater", "SUBMIT_ANSWER")).toBe(false);
   });

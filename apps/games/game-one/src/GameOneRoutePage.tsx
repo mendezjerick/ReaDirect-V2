@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./styles/game-one.css";
+import "./game/layout/game-layout.css";
 import { createKaplayGame, type KaplayGameController } from "./game/kaplay/createKaplayGame";
 import type { Direction } from "./game/input/gameInput";
 import { MovementControls } from "./game/input/MovementControls";
@@ -64,6 +65,10 @@ import {
   type HydratedGameOneProgress
 } from "./game/persistence/gameOneSaveContract";
 import { GameOneSaveCoordinator } from "./game/persistence/GameOneSaveCoordinator";
+import { clampInteractionPromptPosition } from "./game/layout/gameViewport";
+import { useResponsiveInputReset } from "./game/layout/useResponsiveInputReset";
+import { OrientationNotice } from "./game/layout/OrientationNotice";
+import { GameModalFocusManager } from "./game/layout/GameModalFocusManager";
 
 type GameStatus = "loading" | "ready" | "error";
 type PauseReason = "manual" | "document-hidden" | "exit-dialog";
@@ -212,6 +217,11 @@ function GameOneSession({
   });
   const [movementControlMode, setMovementControlMode] = useState<MovementControlMode>(loadMovementControlPreference);
   const [keyboardDirections, setKeyboardDirections] = useState<ReadonlySet<Direction>>(() => new Set());
+  const clearResponsiveInput = useCallback(() => {
+    controllerRef.current?.clearInput();
+    setKeyboardDirections(new Set());
+  }, []);
+  const portrait = useResponsiveInputReset(clearResponsiveInput);
   const [random] = useState(createSessionRandom);
   const [preparedMissionState] = useState(initialProgress.mission);
   const [missionState, dispatchMission] = useReducer(missionReducer, preparedMissionState);
@@ -268,9 +278,13 @@ function GameOneSession({
     interactionPromptPositionRef.current = position;
     const prompt = interactionPromptRef.current;
     if (!prompt || !position) return;
-    prompt.style.left = `${clamp(position.x, 0.08, 0.92) * 100}%`;
-    const minimumY = window.innerHeight <= 500 ? 0.36 : 0.16;
-    prompt.style.top = `${clamp(position.y, minimumY, 0.9) * 100}%`;
+    const bounds = containerRef.current?.getBoundingClientRect();
+    const clamped = clampInteractionPromptPosition(position, {
+      width: bounds?.width ?? window.innerWidth,
+      height: bounds?.height ?? window.innerHeight
+    });
+    prompt.style.left = `${clamped.x * 100}%`;
+    prompt.style.top = `${clamped.y * 100}%`;
   }, []);
 
   useEffect(() => {
@@ -295,6 +309,9 @@ function GameOneSession({
       dispatchTutorial({ type: "COMPLETE_STEP", step: "readAgain" });
     } else if (tutorialState.step === "choice" && event.type === "CONTINUE_AFTER_ACTION") {
       dispatchTutorial({ type: "COMPLETE_STEP", step: "choice" });
+      dispatchTutorial({ type: "COMPLETE_STEP", step: "continueQuestions" });
+    } else if (tutorialState.step === "continueQuestions" && event.type === "CONTINUE_AFTER_ACTION") {
+      dispatchTutorial({ type: "COMPLETE_STEP", step: "continueQuestions" });
     } else if (tutorialState.step === "answerLater" && event.type === "CONFIRM_ANSWER_LATER") {
       dispatchTutorial({ type: "COMPLETE_STEP", step: "answerLater" });
     }
@@ -306,6 +323,17 @@ function GameOneSession({
       dispatchTutorial({ type: "COMPLETE_STEP", step: "interaction" });
     }
   }, [missionState.activeDialogue, tutorialState.active, tutorialState.step]);
+
+  useEffect(() => {
+    if (
+      tutorialState.active &&
+      tutorialState.step === "choice" &&
+      missionState.stage === "missionActionFeedback" &&
+      missionState.actionStatus === "correct"
+    ) {
+      dispatchTutorial({ type: "COMPLETE_STEP", step: "choice" });
+    }
+  }, [missionState.actionStatus, missionState.stage, tutorialState.active, tutorialState.step]);
 
   const setPauseReason = useCallback((reason: PauseReason, active: boolean) => {
     setPauseReasons((current) => {
@@ -684,27 +712,28 @@ function GameOneSession({
 
   return (
     <main lang={missionState.language} className="game-route">
+      <GameModalFocusManager />
       <section
         aria-label={`${copy.gameTitle} ${copy.gameHost}`}
         className="game-route__stage"
       >
-        <header className="game-route__header">
-          <div className="game-route__heading">
-            <p className="game-route__phase-label">
+        <header className="game-topbar">
+          <div className="game-brand">
+            <p className="game-phase-label">
               {copy.phaseLabel}
             </p>
-            <h1 className="game-route__title">
+            <h1 className="game-title">
               <span className="game-title-short">{copy.shortTitle}</span>
               <span className="game-title-full">{copy.gameTitle}</span>
             </h1>
           </div>
-          <div className="game-route__header-actions">
+          <div className="game-system-controls">
             <button
               type="button"
               onClick={openLanguageSelection}
               disabled={tutorialState.active}
               aria-label={`${copy.changeLanguage}: ${missionState.language === "en" ? "English" : "Filipino"}`}
-              className="game-route__header-button game-language-button"
+              className="game-system-button game-language-button"
             >
               <span className="game-language-label-full">{missionState.language === "en" ? "English" : "Filipino"}</span>
               <span className="game-language-label-short" aria-hidden="true">{missionState.language === "en" ? "EN" : "FIL"}</span>
@@ -713,7 +742,7 @@ function GameOneSession({
               type="button"
               onClick={() => setAudioSettingsOpen(true)}
               disabled={tutorialState.active}
-              className="game-route__header-button"
+              className="game-system-button"
             >
               {copy.sound}
             </button>
@@ -721,7 +750,7 @@ function GameOneSession({
               type="button"
               onClick={() => setPauseReason("manual", true)}
               disabled={status !== "ready" || missionState.activityCompleted || tutorialState.active}
-              className="game-route__header-button game-route__header-button--light"
+              className="game-system-button game-system-button--primary"
             >
               {copy.pause}
             </button>
@@ -729,7 +758,7 @@ function GameOneSession({
               type="button"
               onClick={openExitDialog}
               disabled={tutorialState.active}
-              className="game-route__header-button game-route__header-button--transparent"
+              className="game-system-button"
             >
               {copy.exit}
             </button>
@@ -1011,17 +1040,25 @@ function GameOneSession({
             }}
           />
         )}
+
+        <OrientationNotice
+          hidden={status !== "ready" || missionOverlayOpen || isPaused || tutorialState.active}
+          language={missionState.language}
+          portrait={portrait}
+          onContinue={clearResponsiveInput}
+          onExit={openExitDialog}
+        />
       </section>
 
       {exitDialogOpen && (
-        <div className="game-route__exit-layer">
+        <div className="game-modal-layer exit-dialog-layer fixed inset-0 z-[70] grid place-items-center bg-black/70 p-6">
           <div
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="exit-title"
             aria-describedby="exit-description"
-            className="game-route__exit-dialog"
+            className="game-modal-panel exit-dialog-panel w-full max-w-md rounded-lg bg-white p-6 text-[#13251d] shadow-2xl"
           >
             <h2 id="exit-title" className="game-route__exit-title">
               {copy.exitTitle}
@@ -1033,14 +1070,14 @@ function GameOneSession({
               <button
                 type="button"
                 onClick={closeExitDialog}
-                className="game-route__exit-button game-route__exit-button--cancel"
+                className="game-modal-secondary min-h-12 rounded-md border-2 border-[#176b4d] px-5 font-extrabold text-[#176b4d]"
               >
                 {copy.keepPlaying}
               </button>
               <button
                 type="button"
                 onClick={() => void exitToLobby()}
-                className="game-route__exit-button game-route__exit-button--confirm"
+                className="game-modal-primary min-h-12 rounded-md bg-[#176b4d] px-5 font-extrabold text-white"
               >
                 {copy.exitDashboard}
               </button>
@@ -1067,11 +1104,11 @@ function StatusOverlay({
     <div
       role={role}
       aria-live={role === "alert" ? "assertive" : "polite"}
-      className="game-route__status-overlay"
+      className="game-status-overlay"
     >
-      <div className="game-route__status-content">
-        <h2 className="game-route__status-title">{title}</h2>
-        <p className="game-route__status-message">{text}</p>
+      <div className="game-status-panel">
+        <h2>{title}</h2>
+        <p>{text}</p>
         {children}
       </div>
     </div>
@@ -1103,8 +1140,4 @@ function keyboardDirection(key: string) {
   if (key === "ArrowDown" || key === "s") return { x: 0, y: 1 };
   if (key === "ArrowLeft" || key === "a") return { x: -1, y: 0 };
   return { x: 1, y: 0 };
-}
-
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.min(maximum, Math.max(minimum, value));
 }

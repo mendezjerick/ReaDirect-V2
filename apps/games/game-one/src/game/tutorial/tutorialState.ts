@@ -10,6 +10,7 @@ export const TUTORIAL_STEPS = [
   "reading",
   "readAgain",
   "choice",
+  "continueQuestions",
   "answerLater",
   "ready"
 ] as const;
@@ -112,6 +113,7 @@ export function tutorialAllowsMissionEvent(step: TutorialStep, eventType: string
     case "reading": return ["START_READING", "PREVIOUS_READING_PAGE", "NEXT_READING_PAGE", "FINISH_STORY", "BEGIN_MISSION_ACTION"].includes(eventType);
     case "readAgain": return eventType === "OPEN_STORY_REVIEW" || eventType === "CLOSE_STORY_REVIEW";
     case "choice": return ["SUBMIT_MISSION_ACTION", "CONTINUE_AFTER_ACTION", "START_QUESTIONS"].includes(eventType);
+    case "continueQuestions": return eventType === "CONTINUE_AFTER_ACTION";
     case "answerLater": return ["START_QUESTIONS", "SELECT_ANSWER", "ANSWER_LATER", "CANCEL_ANSWER_LATER", "CONFIRM_ANSWER_LATER"].includes(eventType);
     case "ready": return false;
   }
