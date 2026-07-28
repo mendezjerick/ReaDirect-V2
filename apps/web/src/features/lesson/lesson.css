@@ -569,12 +569,12 @@
   }
 
   .lesson-five-page .assessment-clara {
-    width: clamp(11rem, 52vw, 12rem);
+    --assessment-clara-max-size: 12rem;
   }
 }
 
 @media (max-width: 22rem) and (orientation: portrait),
-  (max-width: 47.999rem) and (max-height: 46rem) and (orientation: portrait) {
+  (max-width: 47.999rem) and (max-height: 48rem) and (orientation: portrait) {
   .lesson-five-page {
     --assessment-responsive-recorder-size: min(clamp(7rem, 31vw, 8rem), 20svh);
     --assessment-responsive-recorder-reserve: 4rem;
@@ -616,11 +616,15 @@
   }
 
   .lesson-five-page .assessment-action-dock {
-    min-height: clamp(8.25rem, 23svh, 10rem);
+    height: var(--assessment-action-dock-height);
+    min-height: 0;
+    max-height: var(--assessment-action-dock-height);
   }
 
   .lesson-five-page .assessment-clara {
-    width: min(clamp(8.5rem, 46vw, 10.5rem), 21svh);
+    --assessment-clara-max-size: calc(
+      var(--assessment-action-dock-height) - 1rem
+    );
   }
 }
 

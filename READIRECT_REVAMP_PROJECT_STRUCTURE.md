@@ -11,6 +11,14 @@ ReaDirect-V2/
 |   |   |   |-- tests/
 |   |   |   |-- package.json
 |   |   |   \-- README.md
+|   |   |-- game-zero/
+|   |   |   |-- src/
+|   |   |   |-- backend/
+|   |   |   |-- assets/
+|   |   |   |-- tests/
+|   |   |   |-- GAME_DESIGN.md
+|   |   |   |-- composer.json
+|   |   |   \-- package.json
 |   |   |-- game-one/
 |   |   |   |-- src/
 |   |   |   |-- backend/
@@ -35,6 +43,7 @@ ReaDirect-V2/
 |   |   |       |-- backgrounds/
 |   |   |       |-- illustrations/
 |   |   |       |-- icons/
+|   |   |       |-- profile/
 |   |   |       |-- audio/
 |   |   |       |   |-- music/
 |   |   |       |   |-- sound-effects/
@@ -108,6 +117,8 @@ ReaDirect-V2/
 |   |   |-- vocabulary/
 |   |   |-- rewards/
 |   |   \-- source/
+|   |
+|   |-- profile/
 |   |
 |   |-- icons/
 |   |   |-- source/
@@ -207,8 +218,8 @@ rules are defined by
 
 ### apps/games
 
-Contains the owner-controlled game lobby and at most two independently developed
-game modules. These folders are source packages compiled into apps/web and,
+Contains the owner-controlled game lobby and three independently developed game
+modules. These folders are source packages compiled into apps/web and,
 when accepted, locally loaded Laravel packages used by apps/api. They are not
 separate deployments, databases, schemas, domains, iframes, or microfrontends.
 
@@ -217,6 +228,7 @@ The required slots are:
 ~~~text
 apps/games/
 |-- lobby/
+|-- game-zero/
 |-- game-one/
 \-- game-two/
 ~~~
@@ -228,10 +240,10 @@ achievement feature defined by
 `READIRECT_REVAMP_ACHIEVEMENT_SYSTEM_STANDARD.md`; it does not own a private
 queue or overlay.
 
-Each contributor repository root must match its assigned game-one or game-two
-directory exactly. Each game contains its React frontend, selected KAPLAY or
-PixiJS runtime, Laravel package, migrations, tests, runtime assets, editable
-asset sources, licenses, and completed GAME_DESIGN.md.
+Each contributor repository root must match its assigned game-zero, game-one,
+or game-two directory exactly. Each game contains its React frontend, selected
+KAPLAY or PixiJS runtime, Laravel package, migrations, tests, runtime assets,
+editable asset sources, licenses, and completed GAME_DESIGN.md.
 
 Every game is governed by:
 
@@ -242,6 +254,20 @@ Every game is governed by:
 ### `apps/web`
 
 Contains the React learner application, teacher interface, Live2D character integration, PixiJS effects, lesson screens, assessment screens, microphone controls, and frontend API communication.
+
+The public Home page owns its compact About entry point and institutional
+content under:
+
+```text
+apps/web/src/features/home/HomePage.tsx
+apps/web/src/features/home/AboutReaDirectDialog.tsx
+apps/web/tests/HomePage.test.tsx
+```
+
+The About dialog is page-local because its content and interaction are unique
+to Home. If another route later needs the same dialog contract, the reusable
+overlay and profile-card presentation must be promoted to shared components
+instead of copied.
 
 Professional presentation shared by every authenticated staff role belongs
 under:
@@ -640,6 +666,7 @@ Examples include:
 
 - PSD, Krita, SVG, and Cubism source files
 - High-resolution backgrounds and illustrations
+- Original development-team portraits under `assets/profile/`
 - Original videos
 - Uncompressed music and sound effects
 - Voice reference recordings
@@ -652,12 +679,26 @@ The `apps/web/public/assets/` directory contains only optimized files that the b
 Examples include:
 
 - WebP, AVIF, SVG, or optimized PNG images
+- Browser-ready development-team portraits under
+  `apps/web/public/assets/profile/`
 - OGG, MP3, or WebM audio
 - MP4 or WebM videos
 - Live2D runtime model files
 - Web fonts
 
-The browser-ready assets are derived from the master assets. Editable source files must not be placed in the public directory.
+The browser-ready assets are derived from the master assets. Editable source
+files must not be placed in the public directory. For the Home About dialog,
+`assets/profile/` is the master source and
+`apps/web/public/assets/profile/` contains the browser-served copies referenced
+by `/assets/profile/<file>`.
+
+The current Home About portrait mapping is:
+
+| Master source | Browser-served copy |
+|---|---|
+| `assets/profile/jerick.png` | `apps/web/public/assets/profile/jerick.png` |
+| `assets/profile/nick.png` | `apps/web/public/assets/profile/nick.png` |
+| `assets/profile/victor.jpg` | `apps/web/public/assets/profile/victor.jpg` |
 
 ### Self-contained game-module assets
 
@@ -833,6 +874,14 @@ ReaDirect-V2/
 |   |   |   |-- tests/
 |   |   |   |-- package.json
 |   |   |   \-- README.md
+|   |   |-- game-zero/
+|   |   |   |-- src/
+|   |   |   |-- backend/
+|   |   |   |-- assets/
+|   |   |   |-- tests/
+|   |   |   |-- GAME_DESIGN.md
+|   |   |   |-- composer.json
+|   |   |   \-- package.json
 |   |   |-- game-one/
 |   |   |   |-- src/
 |   |   |   |-- backend/

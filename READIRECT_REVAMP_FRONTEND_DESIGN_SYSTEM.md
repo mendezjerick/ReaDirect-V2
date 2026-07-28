@@ -153,19 +153,24 @@ Pixel typography is a mandatory part of the learner design language, not a
 page-specific decoration.
 
 - Jersey 20 is the default interface face from the Intro through Home, learner
-  sign-in, dashboard, assessments, lessons, Game Lobby, and games.
+  sign-in, dashboard, assessments, lessons, and Game Lobby. Game One is the
+  documented route-scoped exception and uses the shared self-hosted Pixelify
+  Sans face for its interface.
 - Learner headings, buttons, badges, navigation, short instructions, and status
   labels use Jersey 20 through shared semantic font variables.
 - Keep Jersey 20 deliberately large. Its minimum primary-button size is `30px`;
   reducing it to conventional dashboard sizes breaks the intended design.
-- Use only one pixel family in the rendered interface. Pixelify Sans is a local
-  loading fallback, not a second decorative font to mix into a page.
+- Use only one pixel family in a rendered route. Pixelify Sans is the local
+  loading fallback outside Game One; inside Game One it is the sole interface
+  pixel family and must not be mixed with Jersey 20.
 - Authored reading content switches to Lexend so children evaluate clean
   letterforms rather than stylized pixel glyphs.
 - Authenticated staff workspaces remain professional Lexend interfaces and do
   not inherit learner pixel typography.
 - Font selection and scale must be applied through shared page scopes and
-  tokens, never through page-local literal family names.
+  tokens, never through page-local literal family names. The only current
+  exception is Game One's `.game-route`-scoped `--game-ui-font` declaration,
+  which is governed by the Game Integration Boundary Standard.
 
 ## Big And Simple Rules
 
@@ -209,6 +214,66 @@ This rule applies to all learner routes, including future assessments and
 lessons. The artwork supports the visual identity; containers carry the
 information.
 
+## Home About ReaDirect
+
+Home provides a compact `About ReaDirect` trigger centered at the bottom of the
+viewport. It is a supporting action, not a third primary navigation choice.
+It therefore remains visually smaller and quieter than `Let's Read` and
+`Staff login`, stays outside the main Home action group, and must not alter the
+position or hierarchy of those two actions.
+
+Activating the trigger opens the page-local `AboutReaDirectDialog`:
+
+- The overlay uses `role="dialog"`, `aria-modal="true"`, and an accessible name.
+- A visible close control receives initial focus. Escape and backdrop activation
+  also close the dialog.
+- The Home composition stays fixed behind the overlay and does not reflow.
+- The dialog is centered, width-limited, and height-limited. Only its content
+  region may scroll when the supplied institutional copy exceeds the viewport.
+- The trigger remains horizontally centered at the bottom across supported Home
+  viewport sizes and must not compete with or overlap the main actions.
+- Long-form copy uses the reading family. Section labels, facts, controls, and
+  team-card labels use the learner interface family.
+- The development team appears as three consistent portrait cards containing
+  only the person's professional photograph, name, and role. The cards remain
+  in one row when the available width permits and retain readable wrapping on
+  narrow phones.
+
+The dialog owns the approved About, mission, vision, acknowledgments, research
+information, development-team, and disclaimer copy. It must not introduce
+learner progress, authentication, or navigation state. Its required institutional
+facts are:
+
+| Field | Required value |
+|---|---|
+| Research title | READIRECT: An AI-Based Oral Reading and Comprehension Learning Support Intervention Using Automatic Speech Recognition under the DepEd ARAL Program |
+| Application | ReaDirect |
+| Technology | Artificial Intelligence (AI) and Automatic Speech Recognition (ASR) |
+| Institution | College of Computer Studies |
+| Application version | Version 1.0 |
+
+Acknowledgments identify Dr. Orlando T. Valverde, Chief, Curriculum
+Implementation Division (CID), and Ms. Mia V. Villarica, DIT, Associate Dean,
+College of Computer Studies, together with participating schools,
+administrators, teachers, and learners. The team-card records are:
+
+| Portrait | Name | Role |
+|---|---|---|
+| `jerick.png` | Jerick E. Mendez | Lead Developer |
+| `nick.png` | Nick Narry S. Mendoza | Developer |
+| `victor.jpg` | Victor P. De Mesa Jr. | Developer |
+
+The disclaimer must state that ReaDirect is a research-based supplementary
+learning support intervention and that its findings do not necessarily express
+official Department of Education policy, position, or endorsement.
+
+The implementation and contract test live at:
+
+```text
+apps/web/src/features/home/AboutReaDirectDialog.tsx
+apps/web/tests/HomePage.test.tsx
+```
+
 ## Learner Dashboard Action Hierarchy
 
 The Learner Dashboard has one dominant primary-action slot above its secondary
@@ -232,6 +297,21 @@ Lesson use the same primary component and geometry. Continue Lesson resumes the
 latest persisted save state belonging to the authenticated learner or verified
 guest rather than restarting the lesson.
 
+At tablet and desktop dimensions of at least `768px` wide and `600px` tall,
+the primary action expands into its available grid row and receives a modestly
+wider action column. This large-screen enhancement must not alter the phone
+button geometry, including short landscape-phone viewports.
+
+Lesson and assessment activity shells use the same large-screen guard. Their
+header and displayed item span one shared outer width as separate framed cards,
+followed by a sliced lower row with Clara on the left, the protected recorder
+and Retry card in the center, and learner actions on the right. The three lower
+cards are real non-overlapping grid siblings separated by a small background
+gap; each keeps the approved rounded border, surface, and fake depth. Short
+prompts keep a snug content row; passage content receives its own non-scrolling
+height allocation. These rules are shared by assessment and lesson routes and
+do not change phone composition.
+
 The Games action is clearly visible but smaller and visually secondary. It must
 not appear before, overlap, or compete with the required learning action.
 
@@ -249,9 +329,12 @@ Reading Journey tiles must use the shared permanent pixel-icon mapping. Icons
 render in a theme-variable fake-depth frame, retain crisp nearest-neighbor
 pixels, use a muted grayscale treatment while locked, and show their full
 artwork when earned. Unicode stars, emoji, and repeated placeholder artwork are
-not permitted. The dashboard holder uses a fixed four-by-two recessed black
-badge case; selecting one badge reveals its name, criterion, and earned state
-in the compact detail strip below the grid.
+not permitted. The dashboard holder uses a recessed black badge case. Phones
+retain the fixed four-by-two grid. Tablet and desktop viewports with at least
+`768px` width and `600px` height use one snug eight-by-one row; the height guard
+keeps short landscape-phone viewports on the phone grid. Selecting one badge
+reveals its name, criterion, and earned state in the compact detail strip below
+the grid.
 
 ## Professional Staff Workspace
 
@@ -514,14 +597,15 @@ blocky pixel forms reinforce the vector-game language and remain visible on
 small screens. The approved roles are:
 
 - **Jersey 20** for the Intro, Home, learner sign-in, learner dashboard,
-  learner-facing navigation, Game Lobby, game chrome, headings, short prompts,
-  badges, support labels, and button labels.
+  learner-facing navigation, Game Lobby, headings, short prompts, badges,
+  support labels, and button labels outside Game One.
 - **Lexend** for authored letters, words, phrases, sentences, passages,
   comprehension text, longer instructions, form-heavy staff content, tables,
   and dense professional interfaces.
 - **Fredoka** only for the ReaDirect brand and short high-level titles inside
   the professional staff workspace.
-- **Pixelify Sans** as the first local fallback if Jersey 20 cannot load.
+- **Pixelify Sans** as Game One's route-scoped interface face and as the first
+  local fallback if Jersey 20 cannot load elsewhere.
 - `ui-monospace`, `ui-rounded`, `system-ui`, and `sans-serif` only as final
   platform fallbacks appropriate to the role.
 
@@ -546,14 +630,16 @@ Font families and the learner type scale are semantic variables owned by
 `packages/design-tokens`. Components must use `--font-pixel-family`,
 `--font-display-family`, `--font-reading-family`, `--font-interface-family`, and
 the approved type-scale variables. Literal family stacks are allowed only in
-the token definition and required `@font-face` declarations.
+the token definition, required `@font-face` declarations, and Game One's
+documented `.game-route`-scoped `--game-ui-font` exception.
 
 The shared `learner-typography-page` scope applies the learner family and scale
 without adding a background. The Intro uses this scope. The shared
 `learner-flow-page` scope applies the same typography plus the themed responsive
 background. Home, learner sign-in, learner dashboards, assessments, lessons,
 the Game Lobby, and learner game routes use `learner-flow-page`. Page-local CSS
-must not redefine the default learner font stack.
+must not redefine the default learner font stack except for Game One's approved
+route-scoped Pixelify Sans override.
 
 Store browser-ready files in:
 
@@ -640,8 +726,11 @@ Recommended fluid values:
 ### Typography rules
 
 - Use sentence case for buttons and headings.
-- Jersey 20 is the default on every learner-facing interface, including Intro.
+- Jersey 20 is the default on every learner-facing interface, including Intro,
+  except for the documented Game One route.
 - Do not replace Jersey 20 page by page or hard-code a learner font family.
+  Game One alone may declare its approved Pixelify Sans stack through
+  `.game-route`'s `--game-ui-font`.
 - Use Lexend for authored reading targets, passages, comprehension content,
   sustained instructions, and authenticated staff workspace content.
 - Do not use the pixel face as a reason to reduce the approved learner sizes.
@@ -654,10 +743,13 @@ Recommended fluid values:
 - Keep text left-aligned unless a short prompt is intentionally centered.
 - Never place important text directly over a detailed illustration.
 - Do not justify passages.
-- Lesson 5's fixed 50-word continuous passage is the only authored-reading
-  fitting exception: measure its real text area and fit Lexend from `16px` to
-  `23px`. Keep its recorder row protected; never flatten the recorder, paginate
-  the passage, or add an internal scrollbar to make the composition fit.
+- Assessment passage reading and Lesson 5's fixed continuous passage use the
+  shared authored-reading fitting exception: measure the real text area after
+  font loading and viewport changes and fit Lexend no lower than `14px`.
+  Recover passage space by scaling the surrounding dock, character, recorder,
+  buttons, gaps, and padding together. Keep the recorder and Retry reserve
+  protected; never paginate the passage or add an internal scrollbar to make
+  the composition fit.
 
 ## Design Tokens
 
@@ -1383,6 +1475,15 @@ The required primary implementation viewport remains `390 x 844`.
 - Keep page gutters between `12px` and `16px`.
 - Reduce decorative frame padding before reducing content padding.
 - Allow header badges to wrap below the title if text becomes crowded.
+- Assessment and lesson headers use a shared three-zone layout: a compact
+  tactile Home control at the far left, a flexible title region, and a
+  content-sized progress region. The Home control uses semantic theme colors,
+  the shared fake-depth language, visible focus, and navigates to
+  `/learner/dashboard` after the standard press commit.
+- Compact-height speech layouts are content-aware. Non-passage prompt panels
+  shrink to the flexible remainder required by their short content, allowing
+  the recorder and Clara dock to grow together. Pages containing the semantic
+  passage component retain the passage-first height allocation.
 - Stack control groups when either column would become narrower than its
   content.
 - Avoid fixed widths copied from desktop mockups.

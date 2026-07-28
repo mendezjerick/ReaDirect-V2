@@ -10,6 +10,14 @@ interface LobbyLocationState {
 
 const gameSlots = [
   {
+    key: "game-zero",
+    title: "Game Zero",
+    description: "Step into a new reading adventure.",
+    label: "New",
+    route: "/learner/games/game-zero",
+    accessibleName: "Open Game Zero",
+  },
+  {
     key: "game-one",
     title: "Letter Quest",
     description: "Spot the letters and keep your streak going.",
@@ -29,6 +37,11 @@ const gameSlots = [
 
 function GameSymbol({ index }: { index: number }) {
   return index === 0 ? (
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M32 9 38 23 53 25 42 36 45 51 32 44 19 51 22 36 11 25 26 23 32 9Z" />
+      <path d="M25 31h14M32 24v14" />
+    </svg>
+  ) : index === 1 ? (
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <path d="M13 48V16h18c8 0 14 5 14 13s-6 13-14 13H22" />
       <path d="M22 24h9c3 0 5 2 5 5s-2 5-5 5h-9M49 14v10M44 19h10" />
@@ -153,7 +166,7 @@ export function GameLobbyPage() {
                   <p className="game-lobby__eyebrow">Pick your challenge</p>
                   <h2 id="available-games-title">Ready to play?</h2>
                 </div>
-                <span>2 games</span>
+                <span>{gameSlots.length} games</span>
               </div>
 
               <div className="game-lobby__game-grid">

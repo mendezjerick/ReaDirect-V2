@@ -21,6 +21,7 @@ behavior of:
 - the learner dashboard;
 - lessons or assessments;
 - staff or administrator pages;
+- Game Zero;
 - Game Two;
 - shared transitions, typography, controls, backgrounds, or design tokens.
 
@@ -35,6 +36,7 @@ Game One implementation work must not modify:
 
 ```text
 apps/games/lobby/**
+apps/games/game-zero/**
 apps/games/game-two/**
 packages/design-tokens/**
 apps/web/src/styles/**
@@ -153,9 +155,25 @@ it must capture the previous value and restore it during teardown. Persistent
 visual behavior belongs on `.game-route`, not on `document.body` or
 `document.documentElement`.
 
-Game One may use a module-owned font only when the font file is stored inside
-the Game One directory, the font family has a Game One-specific name, and the
-font is applied only beneath `.game-route`.
+Game One uses the application's self-hosted `Pixelify Sans` face as its one
+approved host-provided typography exception. The module declares the following
+stack only on `.game-route` and consumes it through `var(--game-ui-font)`:
+
+```css
+.game-route {
+  --game-ui-font: "Pixelify Sans", ui-sans-serif, system-ui, sans-serif;
+}
+```
+
+This exception does not permit Game One to add an application-level
+`@font-face`, edit shared design tokens, load a remote font, or apply Pixelify
+Sans outside `.game-route`. Game One menus, dialogs, touch chrome, short
+prompts, reading-panel questions, and transition copy use this one route-scoped
+family consistently.
+
+If Game One later replaces Pixelify Sans with a module-owned font, the font file
+must be stored inside the Game One directory, the family must have a
+Game One-specific name, and it must remain applied only beneath `.game-route`.
 
 ## Asset Containment
 
@@ -262,8 +280,8 @@ game_profiles
 game_saves
 ```
 
-Game One and Game Two normally use separate rows identified by `game_id`, not
-separate generic save tables.
+Game Zero, Game One, and Game Two normally use separate rows identified by
+`game_id`, not separate generic save tables.
 
 The ownership chain is:
 
@@ -347,6 +365,7 @@ In particular:
 Before Game One can be activated, verification must prove:
 
 - `apps/games/lobby/**` has a zero-file diff;
+- `apps/games/game-zero/**` has a zero-file diff;
 - `apps/games/game-two/**` has a zero-file diff;
 - `packages/design-tokens/**` has a zero-file diff;
 - `apps/web/src/styles/**` has a zero-file diff;
@@ -355,6 +374,9 @@ Before Game One can be activated, verification must prove:
 - no `node_modules`, build output, coverage output, or TypeScript build metadata
   was copied;
 - every Game One CSS selector passes the design-isolation rules;
+- Game One's `--game-ui-font` remains declared only on `.game-route`, resolves
+  to the host's self-hosted Pixelify Sans face, and does not create a second
+  application-level font declaration;
 - loading and leaving Game One does not change lobby or dashboard screenshots;
 - route teardown stops game loops, audio, speech, timers, listeners, and input;
 - lobby to Game One to lobby navigation works;

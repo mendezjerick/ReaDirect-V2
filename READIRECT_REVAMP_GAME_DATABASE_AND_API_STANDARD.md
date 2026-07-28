@@ -1,9 +1,9 @@
 # ReaDirect Game Database and API Standard
 
-This standard defines how the lobby, game-one, and game-two persist player
-identity, sessions, saves, progression, results, leaderboards, and achievements.
-It is mandatory because independently developed game data must merge into the
-main ReaDirect PostgreSQL database without manual reconstruction.
+This standard defines how the lobby, game-zero, game-one, and game-two persist
+player identity, sessions, saves, progression, results, leaderboards, and
+achievements. It is mandatory because independently developed game data must
+merge into the main ReaDirect PostgreSQL database without manual reconstruction.
 
 The cross-feature achievement catalog, Reading Journey criteria, shared queue,
 and presentation contract are defined by
@@ -137,7 +137,7 @@ may add operational fields, but they must preserve these meanings.
 - id: internal key.
 - game_key: permanent lowercase kebab-case key, globally unique.
 - display_title: learner-facing title.
-- slot: game-one or game-two, unique while active.
+- slot: game-zero, game-one, or game-two, unique while active.
 - engine: kaplay or pixi.
 - contract_version: supported module contract.
 - current_ruleset_version: active ranking rules.

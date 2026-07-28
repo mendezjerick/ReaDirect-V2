@@ -9,6 +9,7 @@ import type {
 import { ClaraStage } from "../intro/ClaraStage";
 import { PointerTrail } from "../intro/PointerTrail";
 import { VectorCursor } from "../intro/VectorCursor";
+import { LearnerActivityHomeButton } from "./LearnerActivityHomeButton";
 
 interface LearnerActivityShellProps {
   className?: string;
@@ -65,11 +66,14 @@ export function LearnerActivityShell({
       <PointerTrail />
       <VectorCursor />
       <header className="assessment-header">
-        <div>
+        <LearnerActivityHomeButton />
+        <div className="assessment-header__copy">
           <p>{eyebrow}</p>
           <h1>{title}</h1>
         </div>
-        {headerAside}
+        {headerAside ? (
+          <div className="assessment-header__aside">{headerAside}</div>
+        ) : null}
       </header>
 
       <section className={`assessment-item-panel ${itemPanelClassName}`.trim()}>
@@ -79,62 +83,68 @@ export function LearnerActivityShell({
         {itemPanelAccessory}
       </section>
 
-      {recorderContent !== undefined ? (
-        <section
-          className="assessment-recorder-panel"
-          aria-label={recorderAriaLabel}
-        >
-          {recorderContent}
-        </section>
-      ) : null}
-
-      <footer className="assessment-action-dock">
-        <div className="assessment-clara">
-          <ClaraStage
-            emotion={claraEmotion}
-            behavior={claraBehavior}
-            cue={claraCue}
-            speaking={claraSpeaking}
-            speechLevel={claraSpeechLevel}
-            onLoadStateChange={(state) => onClaraReadyChange(state === "ready")}
-          />
-        </div>
-
-        <div
-          className="assessment-action-slot"
-          data-assessment-action-split={secondaryAction ? true : undefined}
-        >
-          <motion.div
-            className="assessment-action-primary"
-            layout={!reduceMotion}
-            transition={{
-              duration: reduceMotion ? 0 : 0.26,
-              ease: "easeOut",
-            }}
+      <section className="assessment-interaction-strip">
+        {recorderContent !== undefined ? (
+          <section
+            className="assessment-recorder-panel"
+            aria-label={recorderAriaLabel}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={primaryActionKey}
-                className="assessment-action-transition"
-                initial={
-                  reduceMotion ? false : { opacity: 0, scale: 0.94, y: 8 }
-                }
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={
-                  reduceMotion ? undefined : { opacity: 0, scale: 0.97, y: -6 }
-                }
-                transition={{
-                  duration: reduceMotion ? 0 : 0.2,
-                  ease: "easeOut",
-                }}
-              >
-                {primaryAction}
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-          {secondaryAction}
-        </div>
-      </footer>
+            {recorderContent}
+          </section>
+        ) : null}
+
+        <footer className="assessment-action-dock">
+          <div className="assessment-clara">
+            <ClaraStage
+              emotion={claraEmotion}
+              behavior={claraBehavior}
+              cue={claraCue}
+              speaking={claraSpeaking}
+              speechLevel={claraSpeechLevel}
+              onLoadStateChange={(state) =>
+                onClaraReadyChange(state === "ready")
+              }
+            />
+          </div>
+
+          <div
+            className="assessment-action-slot"
+            data-assessment-action-split={secondaryAction ? true : undefined}
+          >
+            <motion.div
+              className="assessment-action-primary"
+              layout={!reduceMotion}
+              transition={{
+                duration: reduceMotion ? 0 : 0.26,
+                ease: "easeOut",
+              }}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={primaryActionKey}
+                  className="assessment-action-transition"
+                  initial={
+                    reduceMotion ? false : { opacity: 0, scale: 0.94, y: 8 }
+                  }
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={
+                    reduceMotion
+                      ? undefined
+                      : { opacity: 0, scale: 0.97, y: -6 }
+                  }
+                  transition={{
+                    duration: reduceMotion ? 0 : 0.2,
+                    ease: "easeOut",
+                  }}
+                >
+                  {primaryAction}
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
+            {secondaryAction}
+          </div>
+        </footer>
+      </section>
     </main>
   );
 }

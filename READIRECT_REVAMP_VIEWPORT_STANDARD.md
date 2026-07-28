@@ -24,8 +24,8 @@ The following viewports must be tested throughout development:
 
 | Viewport | Purpose |
 |---|---|
-| 360 x 800 | Small mobile baseline |
-| 390 x 844 | Primary mobile development viewport |
+| 360 x 740 | Priority mobile development and compact-height baseline |
+| 390 x 844 | Standard mobile development viewport |
 | 412 x 915 | Large mobile viewport |
 | 768 x 1024 | Tablet viewport |
 | 1366 x 768 | Standard desktop viewport |
@@ -34,7 +34,7 @@ The following viewports must be tested throughout development:
 The primary working viewport is:
 
 ```text
-390 x 844
+360 x 740
 ```
 
 ## Simultaneous Viewport Development
@@ -44,7 +44,7 @@ During frontend development, the mobile and desktop views must remain open and v
 Recommended setup:
 
 ```text
-Left window: 390 x 844 mobile viewport
+Left window: 360 x 740 mobile viewport
 Right window: 1366 x 768 desktop viewport
 ```
 
@@ -55,6 +55,16 @@ Every major interface change must be checked in both views before the task is co
 The default CSS must target mobile devices.
 
 Desktop and tablet layouts must be added through progressive enhancement using responsive breakpoints.
+
+Learner Dashboard achievement enhancement:
+
+- Phone layouts retain the four-by-two achievement grid.
+- Tablet, iPad, and desktop layouts use a single eight-by-one achievement row.
+- Apply that row only when the viewport is at least `768px` wide and `600px`
+  tall so short landscape-phone viewports are not changed.
+- Under the same tablet/desktop guard, the primary learning action may fill a
+  taller and slightly wider grid region. Phone primary-action dimensions remain
+  unchanged.
 
 Required approach:
 
@@ -152,7 +162,14 @@ The character must:
 - Avoid covering lesson controls
 - Avoid being clipped during normal expressions and gestures
 - Remain large enough for the learner to see facial reactions
-- Reposition instead of shrinking excessively
+- Shrink and grow within the assigned container before any edge can clip
+- Use the assigned container's inner height as the character's maximum height
+
+On assessment and lesson action docks, the available character region begins at
+the dock's left inner edge and ends at the button column's left edge. Clara must
+be centered within that region, not offset from the viewport or centered across
+the full dock. The character region, Clara stage, and button column share one
+bounded dock-height budget.
 
 Recommended behavior:
 
@@ -166,6 +183,27 @@ Character and activity may share a wider layout
 Desktop:
 Character and activity may use a side-by-side layout
 ```
+
+For learner lesson and assessment activity pages, tablet and desktop viewports
+of at least `768px` wide and `600px` tall use the same unified rectangular
+workspace:
+
+```text
+header
+displayed item
+Clara | recorder and Retry | actions
+```
+
+The header and displayed item remain separate full-width ReaDirect cards. The
+lower row uses three non-overlapping sibling cards with a small consistent gap:
+Clara, recorder and Retry, then actions. Each card owns its border, radius,
+surface, and fake depth. Short item rows remain content-sized so Clara and the
+recorder can grow into the available lower row. Clara is centered from her
+card's real edges and stops at the calibrated large-desktop crop ceiling before
+a tall monitor can enlarge her Live2D stage past its safe framing. A semantic
+passage is the exception and receives the height needed to keep its complete
+authored text visible without scrolling. The height guard keeps this
+enhancement from changing phone and short landscape-phone layouts.
 
 ## Background and Media Rules
 
@@ -287,7 +325,7 @@ Automated viewport testing must use Playwright.
 Important screens must have reference screenshots for:
 
 ```text
-360 x 800
+360 x 740
 390 x 844
 412 x 915
 768 x 1024
@@ -325,8 +363,8 @@ At minimum, test:
 
 A learner-facing feature is not complete unless:
 
-1. It works correctly at 390 x 844.
-2. It remains usable at 360 x 800.
+1. It works correctly at the priority 360 x 740 viewport.
+2. It remains usable at 390 x 844.
 3. It adapts correctly at 412 x 915.
 4. It remains functional at tablet size.
 5. It remains visually organized at desktop size.

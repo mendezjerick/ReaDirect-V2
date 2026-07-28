@@ -35,11 +35,11 @@
 .assessment-header {
   position: relative;
   z-index: 3;
-  display: flex;
+  display: grid;
   width: min(100%, 42rem);
   min-height: 3.75rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
   justify-self: center;
   border: 2px solid var(--color-border-warm);
@@ -47,6 +47,14 @@
   padding: 0.42rem 0.72rem;
   background: var(--color-surface-panel);
   box-shadow: 0 4px 0 var(--color-frame-depth);
+}
+
+.assessment-header__copy {
+  min-width: 0;
+}
+
+.assessment-header__aside {
+  min-width: 0;
 }
 
 .assessment-header p,
@@ -65,6 +73,52 @@
   margin-top: 0.08rem;
   font-size: clamp(1.65rem, 7vw, var(--font-panel-title));
   line-height: 0.92;
+}
+
+.assessment-home-button {
+  display: grid;
+  width: clamp(2.35rem, 10vw, 2.75rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  color: var(--color-text-primary);
+  background: var(--color-action-secondary);
+  box-shadow: 0 4px 0 var(--color-border-warm);
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+.assessment-home-button:hover:not(:disabled) {
+  background: var(--color-action-secondary-hover);
+}
+
+.assessment-home-button:active:not(:disabled),
+.assessment-home-button[data-press-state="committing"] {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--color-border-warm);
+}
+
+.assessment-home-button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.assessment-home-button:disabled {
+  cursor: default;
+}
+
+.assessment-home-button svg {
+  width: 58%;
+  height: 58%;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.25;
 }
 
 .assessment-progress {
@@ -107,6 +161,10 @@
   justify-self: center;
   overflow: hidden;
   border-radius: var(--radius-panel);
+}
+
+.assessment-interaction-strip {
+  display: contents;
 }
 
 .assessment-item-panel {
@@ -419,6 +477,8 @@
 }
 
 .assessment-action-dock {
+  --assessment-clara-max-size: 12.25rem;
+
   position: relative;
   z-index: 3;
   display: grid;
@@ -436,17 +496,24 @@
 }
 
 .assessment-clara {
-  position: absolute;
-  bottom: 0.25rem;
-  left: 0.55rem;
+  position: relative;
   z-index: 1;
-  width: clamp(10.75rem, 50vw, 12.25rem);
-  aspect-ratio: 1;
+  display: grid;
+  width: 100%;
+  height: calc(100% - 0.45rem);
+  min-width: 0;
+  min-height: 0;
+  grid-column: 1;
+  grid-row: 1;
+  place-items: end center;
+  align-self: start;
+  overflow: hidden;
   pointer-events: none;
 }
 
 .assessment-clara .clara-stage {
-  width: 100%;
+  width: min(100%, var(--assessment-clara-max-size));
+  max-height: 100%;
 }
 
 .assessment-action-slot {
@@ -1234,9 +1301,7 @@
   }
 
   .assessment-clara {
-    bottom: 0.15rem;
-    left: 0.35rem;
-    width: clamp(12rem, 60vw, 14.5rem);
+    --assessment-clara-max-size: 14.5rem;
   }
 
   .assessment-action-slot {
@@ -1358,11 +1423,7 @@
   }
 
   .assessment-clara {
-    top: auto;
-    bottom: 0.3rem;
-    left: 0.4rem;
-    width: min(62%, 15rem);
-    transform: none;
+    --assessment-clara-max-size: 15rem;
   }
 
   .assessment-part-two--story-selection .assessment-item-panel,
@@ -1416,11 +1477,7 @@
   }
 
   .assessment-clara {
-    top: auto;
-    bottom: 0.15rem;
-    left: 0.25rem;
-    width: min(58%, 11rem);
-    transform: none;
+    --assessment-clara-max-size: 11rem;
   }
 
   .assessment-recorder__control {
@@ -1438,7 +1495,7 @@
 }
 
 @media (max-width: 22rem) and (orientation: portrait),
-  (max-width: 47.999rem) and (max-height: 46rem) and (orientation: portrait) {
+  (max-width: 47.999rem) and (max-height: 48rem) and (orientation: portrait) {
   .assessment-page.learner-flow-page {
     --font-panel-title: clamp(1.4rem, 6vw, 1.75rem);
     --font-learner-prompt: clamp(1.25rem, 5.5vw, 1.6rem);
@@ -1448,6 +1505,7 @@
     --font-support: clamp(0.75rem, 3.6vw, 0.95rem);
     --assessment-responsive-recorder-size: min(clamp(7rem, 31vw, 8rem), 20svh);
     --assessment-responsive-recorder-reserve: 4rem;
+    --assessment-action-dock-height: clamp(9rem, 23svh, 10.5rem);
 
     gap: clamp(0.25rem, 0.9svh, 0.45rem);
     padding: max(0.4rem, env(safe-area-inset-top))
@@ -1456,12 +1514,51 @@
       max(0.4rem, env(safe-area-inset-left));
   }
 
+  .assessment-page.learner-flow-page:has(
+      .assessment-recorder-panel .assessment-recorder
+    ) {
+    --assessment-responsive-recorder-size: min(clamp(7rem, 31vw, 8rem), 20svh);
+    --assessment-responsive-recorder-reserve: 4rem;
+  }
+
+  /*
+   * Short speech prompts should not inherit the passage-sized content row.
+   * Their unused stage height is reassigned to the recorder and Clara dock.
+   * Passage pages opt out through their semantic content, so this remains
+   * shared across assessment and lesson routes without route-specific sizing.
+   */
+  .assessment-page.learner-flow-page:has(
+      .assessment-recorder-panel .assessment-recorder
+    ):not(:has(.assessment-passage)) {
+    --assessment-responsive-recorder-size: min(
+      clamp(9rem, 42vw, 9.5rem),
+      22svh
+    );
+    --assessment-responsive-recorder-reserve: 4rem;
+    --assessment-action-dock-height: clamp(13.5rem, 35svh, 16.25rem);
+  }
+
   .assessment-page.learner-flow-page .assessment-header {
     width: 100%;
     min-height: clamp(2.65rem, 7.5svh, 3.25rem);
+    gap: clamp(0.32rem, 1.6vw, 0.45rem);
     border-width: 1px;
     padding: 0.28rem 0.5rem;
     box-shadow: 0 3px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page .assessment-home-button {
+    width: clamp(2.1rem, 9.5vw, 2.35rem);
+    border-width: 1px;
+    box-shadow: 0 3px 0 var(--color-border-warm);
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-home-button:active:not(:disabled),
+  .assessment-page.learner-flow-page
+    .assessment-home-button[data-press-state="committing"] {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--color-border-warm);
   }
 
   .assessment-page.learner-flow-page .assessment-header h1 {
@@ -1540,17 +1637,30 @@
 
   .assessment-page.learner-flow-page .assessment-action-dock {
     width: 100%;
-    min-height: clamp(8.25rem, 23svh, 10rem);
+    height: var(--assessment-action-dock-height);
+    min-height: 0;
+    max-height: var(--assessment-action-dock-height);
     grid-template-columns: minmax(0, 1fr) clamp(5.25rem, 24vw, 6.25rem);
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
     border-width: 1px;
     padding: 0.42rem;
     box-shadow: 0 4px 0 var(--color-frame-depth);
   }
 
   .assessment-page.learner-flow-page .assessment-clara {
-    bottom: 0.1rem;
-    left: 0.2rem;
-    width: min(clamp(8.5rem, 46vw, 10.5rem), 21svh);
+    --assessment-clara-max-size: calc(
+      var(--assessment-action-dock-height) - 1rem
+    );
+
+    height: auto;
+    align-self: stretch;
+  }
+
+  .assessment-page.learner-flow-page .assessment-action-slot {
+    height: auto;
+    min-height: 0;
+    align-self: stretch;
   }
 
   .assessment-page.learner-flow-page
@@ -1561,7 +1671,8 @@
   .assessment-page.learner-flow-page
     .assessment-action-slot[data-assessment-action-split]
     .big-button {
-    padding-block: 0.28rem;
+    min-height: 0;
+    padding-block: 0.2rem;
   }
 
   .assessment-page.learner-flow-page .assessment-action-slot .big-button__icon {
@@ -1580,6 +1691,285 @@
 
   .assessment-page.learner-flow-page .assessment-passage p {
     line-height: 1.35;
+  }
+}
+
+/*
+ * Tablet and desktop learner activities share one compact workspace instead of
+ * four floating cards. The 37.5rem height guard deliberately leaves phone and
+ * short landscape-phone composition to the mobile rules above.
+ */
+@media (min-width: 48rem) and (min-height: 37.5rem) {
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel) {
+    --assessment-large-item-height: clamp(9.5rem, 24svh, 12rem);
+    --assessment-large-dock-height: clamp(18rem, 48svh, 25rem);
+    --assessment-large-center-width: 40%;
+
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows:
+      auto
+      var(--assessment-large-item-height)
+      var(--assessment-large-dock-height);
+    align-content: center;
+    gap: 0;
+    padding: max(0.75rem, env(safe-area-inset-top))
+      max(1.5rem, env(safe-area-inset-right))
+      max(0.75rem, env(safe-area-inset-bottom))
+      max(1.5rem, env(safe-area-inset-left));
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-passage) {
+    --assessment-large-item-height: clamp(12.5rem, 27svh, 16rem);
+    --assessment-large-dock-height: clamp(16rem, 38svh, 19rem);
+  }
+
+  .assessment-page.learner-flow-page.lesson-five-page:has(
+      .assessment-recorder-panel
+    ) {
+    --assessment-large-item-height: clamp(16rem, 38svh, 21rem);
+    --assessment-large-dock-height: clamp(15rem, 34svh, 18rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-header,
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-item-panel,
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-dock {
+    width: min(100%, 70rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-header {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 4rem;
+    border-radius: var(--radius-frame) var(--radius-frame) 0 0;
+    box-shadow: none;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-item-panel:not(.assessment-item-panel--result) {
+    grid-column: 1;
+    grid-row: 2;
+    width: min(100%, 70rem);
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    border: 2px solid var(--color-border-warm);
+    border-top: 0;
+    border-radius: 0;
+    padding: clamp(0.65rem, 1.4svh, 0.9rem) clamp(1rem, 2.5vw, 1.75rem);
+    box-shadow: none;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-dock {
+    --assessment-clara-max-size: calc(
+      var(--assessment-large-dock-height) - 1rem
+    );
+
+    grid-column: 1;
+    grid-row: 3;
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    grid-template-columns:
+      minmax(0, 7fr)
+      minmax(16rem, 8fr)
+      minmax(9rem, 5fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    overflow: hidden;
+    border: 2px solid var(--color-border-warm);
+    border-top: 0;
+    border-radius: 0 0 var(--radius-frame) var(--radius-frame);
+    padding: 0;
+    background: var(--color-surface-panel);
+    box-shadow: 0 6px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-clara {
+    --assessment-clara-max-size: calc(
+      var(--assessment-large-dock-height) - 1rem
+    );
+
+    grid-column: 1;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    border-right: 2px solid var(--color-border-warm);
+    padding: 0.5rem 0.5rem 0;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-clara
+    .clara-stage {
+    width: min(100%, var(--assessment-clara-max-size), 22rem);
+    max-height: 100%;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-recorder-panel {
+    z-index: 4;
+    grid-column: 1;
+    grid-row: 3;
+    width: min(var(--assessment-large-center-width), 28rem);
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    justify-self: start;
+    margin-left: 35%;
+    border: 0;
+    border-right: 2px solid var(--color-border-warm);
+    border-left: 2px solid var(--color-border-warm);
+    border-radius: 0;
+    padding: clamp(0.55rem, 1.2svh, 0.8rem);
+    background: var(--color-activity-frame);
+    box-shadow: none;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-slot {
+    grid-column: 3;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    padding: clamp(0.55rem, 1.2svh, 0.8rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-recorder__control {
+    width: min(29svh, 14rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-passage)
+    .assessment-recorder__control {
+    width: min(21svh, 10rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-passage)
+    .assessment-passage {
+    width: min(100%, 50rem);
+  }
+
+  .assessment-page.learner-flow-page.lesson-five-page .lesson-five-passage {
+    width: min(100%, 44rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-passage)
+    .assessment-passage
+    p {
+    font-size: clamp(1rem, 1.75vw, 1.35rem);
+  }
+}
+
+/*
+ * The large-screen interaction row uses real sibling slices. This prevents the
+ * recorder surface from overlapping Clara's grid area and gives every region
+ * the same framed-card language as the rest of the learner flow.
+ */
+@media (min-width: 48rem) and (min-height: 37.5rem) {
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel) {
+    --assessment-large-panel-gap: clamp(0.65rem, 1.5svh, 0.9rem);
+    --assessment-large-slice-gap: clamp(0.65rem, 1.2vw, 0.9rem);
+
+    gap: var(--assessment-large-panel-gap);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-header,
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-item-panel,
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-interaction-strip {
+    width: min(100%, 70rem);
+    justify-self: center;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-header {
+    border-radius: var(--radius-panel);
+    box-shadow: 0 4px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-item-panel:not(.assessment-item-panel--result) {
+    border: 2px solid var(--color-border-soft);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 6px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-interaction-strip {
+    grid-column: 1;
+    grid-row: 3;
+    display: grid;
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    grid-template-columns:
+      minmax(0, 7fr)
+      minmax(16rem, 8fr)
+      minmax(9rem, 5fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: var(--assessment-large-slice-gap);
+    align-items: stretch;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-dock {
+    display: contents;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-clara {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    overflow: hidden;
+    border: 2px solid var(--color-border-warm);
+    border-radius: var(--radius-frame);
+    padding: 0.5rem 0.5rem 0;
+    background: var(--color-surface-panel);
+    box-shadow: 0 6px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-recorder-panel {
+    z-index: 2;
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    justify-self: stretch;
+    margin-left: 0;
+    border: 3px solid var(--color-border-warm);
+    border-radius: var(--radius-frame);
+    padding: clamp(0.55rem, 1.2svh, 0.8rem);
+    background: var(--color-activity-frame);
+    box-shadow: 0 7px 0 var(--color-activity-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-slot {
+    grid-column: 3;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    overflow: hidden;
+    border: 2px solid var(--color-border-warm);
+    border-radius: var(--radius-frame);
+    padding: clamp(0.55rem, 1.2svh, 0.8rem);
+    background: var(--color-surface-panel);
+    box-shadow: 0 6px 0 var(--color-frame-depth);
   }
 }
 

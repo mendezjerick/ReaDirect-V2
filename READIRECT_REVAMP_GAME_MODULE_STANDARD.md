@@ -1,7 +1,7 @@
 # ReaDirect Game Module Standard
 
-This standard defines how the game lobby and at most two independently developed
-games connect to ReaDirect. It is mandatory for the owner-controlled lobby,
+This standard defines how the game lobby and three independently developed games
+connect to ReaDirect. It is mandatory for the owner-controlled lobby, game-zero,
 game-one, game-two, and every contributor repository.
 
 The central catalog, account-level award rules, shared queue, gallery, and
@@ -23,10 +23,11 @@ Learner or verified-guest dashboard
            Game Lobby
                 |
         +-------+-------+
-        |               |
-        v               v
- game-one menu     game-two menu
-        |               |
+        |       |       |
+        v       v       v
+ game-zero  game-one  game-two
+    menu       menu       menu
+        |       |       |
         +-------+-------+
                 |
                 v
@@ -57,6 +58,9 @@ apps/games/
 |   |-- tests/
 |   |-- package.json
 |   \-- README.md
+|
+|-- game-zero/
+|   \-- same required structure as game-one
 |
 |-- game-one/
 |   |-- src/
@@ -166,7 +170,7 @@ export interface GameAchievementProposal {
 
 export interface GameManifest {
   contractVersion: 1;
-  slot: "game-one" | "game-two";
+  slot: "game-zero" | "game-one" | "game-two";
   gameKey: string;
   displayTitle: string;
   routeSegment: string;
@@ -245,12 +249,12 @@ The lobby owns:
 
 - Required game-username onboarding before play.
 - The owner-controlled game registry.
-- Zero, one, or two available game cards.
+- Zero, one, two, or three available game cards.
 - Separate learner and verified-guest leaderboard views.
 - Queued first-time achievement presentation.
 - Navigation back to the learner-facing dashboard.
 
-One game profile and username applies across the entire lobby and both games.
+One game profile and username applies across the entire lobby and all games.
 The base username:
 
 - Is required before a player can start a game.
@@ -572,7 +576,7 @@ sequence.
 
 ## Contributor Workflow
 
-1. Start from the assigned game-one or game-two skeleton.
+1. Start from the assigned game-zero, game-one, or game-two skeleton.
 2. Keep the contributor repository root identical to the slot root.
 3. Complete GAME_DESIGN.md.
 4. Assign a permanent game key before database migrations.

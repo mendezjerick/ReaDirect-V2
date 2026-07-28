@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 
 const PASSAGE_FIT_ATTEMPTS = 10;
 
-export const RESPONSIVE_PASSAGE_MIN_FONT_PX = 1;
+export const RESPONSIVE_PASSAGE_MIN_FONT_PX = 14;
 
 export function findLargestFittingFontSize(
   minFontSize: number,

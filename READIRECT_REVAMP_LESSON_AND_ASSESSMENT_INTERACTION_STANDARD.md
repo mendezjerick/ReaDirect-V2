@@ -51,8 +51,9 @@ Authority boundaries:
    desktop.
 2. Every activity page must fit within the current safe viewport using
    `100svh`, safe-area insets, and responsive layout constraints.
-3. Ma'am Clara must always remain visible. On mobile she is anchored at the
-   lower-left and must never float at the middle-right of the activity.
+3. Ma'am Clara must always remain visible. On mobile she is centered inside the
+   lower action dock's character region, bounded by the dock's left inner edge
+   and the button column's left edge.
 4. Every Clara viewport uses the approved square passport crop.
 5. Clara's default instruction dialogue is audio-only. A permanent dialogue
    text box must not consume activity space.
@@ -83,6 +84,10 @@ Authority boundaries:
     fetch every remaining line or speculate across a score-dependent assessment
     branch. If the next cue is not ready on entry, use the shared TTS cube loader
     under the mandatory Clara-loader priority.
+16. Every assessment and lesson activity header starts with the shared Home
+    control. It returns directly to `/learner/dashboard`, uses the standard
+    tactile commit, and must remain visible without crowding the title or
+    progress at the priority `360 x 740` viewport.
 
 ## Required Lesson Intro Gate
 
@@ -178,7 +183,8 @@ The activity shell uses three stable regions:
 ```text
 auto                 Header and progress
 minmax(0, 1fr)       Displayed activity item
-auto                 Recorder, Clara, Submit, and navigation
+protected fixed row  Recorder and Retry review space
+bounded fixed row    Clara, Submit, and navigation
 ```
 
 The page itself uses:
@@ -212,7 +218,15 @@ Long passages use authored pages, not scrolling.
 
 Mobile rules:
 
-- Clara stays at the lower-left.
+- The activity header uses three content-aware columns: compact Home control,
+  flexible title copy, and content-sized progress. Home is always the leftmost
+  control and uses an accessible `Back to dashboard` name.
+- Clara occupies the dock's left grid column and is centered between the dock's
+  left inner edge and the button column.
+- Clara is not absolutely offset. Her square stage shrinks or grows from both
+  the character-column width and the dock's inner height.
+- The action dock, Clara stage, and button stack use one shared responsive
+  height budget. Clara's maximum height is the dock's inner height.
 - The circular recorder stays horizontally centered.
 - Skip or Next stays at the lower-right.
 - Submit remains visually stronger than Skip.
@@ -221,25 +235,58 @@ Mobile rules:
 - At very narrow widths, Submit may sit directly beneath the recorder while
   Clara and Skip or Next remain in their corners.
 - Clara must not overlap the recorder, Submit, displayed item, or navigation.
+- The compact-height rules include the priority `360 x 740` viewport and must
+  not create a breakpoint cliff immediately below or above it.
+- On compact-height speech pages, short letters, words, phrases, and sentences
+  use only the item-panel height their content needs. The remaining vertical
+  budget enlarges the recorder and Clara dock together. A semantic passage
+  container is the explicit exception because its full authored text owns the
+  flexible content row.
 
-### Desktop composition
+### Tablet and desktop composition
 
 ```text
-┌──────────────────┬─────────────────────────────────────┐
-│                  │ Exit        Progress                │
-│                  ├─────────────────────────────────────┤
-│                  │                                     │
-│      Clara       │          DISPLAYED ITEM             │
-│                  │                                     │
-│                  ├─────────────────────────────────────┤
-│                  │       ◯                             │
-│                  │  RECORD / PLAY       Submit   Skip  │
-└──────────────────┴─────────────────────────────────────┘
++---------------------------------------------------------+
+| Home  Lesson or assessment                     Progress |
++---------------------------------------------------------+
+|                                                         |
+|                    DISPLAYED ITEM                       |
+|                                                         |
++---------------------------------------------------------+
+
++------------------+  +--------------------+  +-----------+
+|                  |  |                    |  |           |
+|      Clara       |  |  RECORD / PLAY     |  |  Submit   |
+|                  |  |      Retry         |  |   Skip    |
+|                  |  |                    |  |           |
++------------------+  +--------------------+  +-----------+
 ```
 
-Desktop may give Clara a dedicated left region. The recorder remains centered
-within the learner's activity region rather than centered across the entire
-browser width.
+At viewports of at least `768px` wide and `600px` tall, tablet and desktop use
+the same sliced activity workspace. The header and displayed-item region share
+one outer width but remain separate ReaDirect cards. The lower interaction row
+uses three real sibling cards with a small, consistent background gap between
+them. Every card retains the approved border, corner radius, surface color, and
+fake depth instead of relying on one overlapping panel to imitate dividers.
+
+The lower strip assigns Clara the left region, the recorder and Retry review
+slot the center region, and Submit plus Skip or Next the right region. Clara
+scales from both the left-region width and the strip's inner height, with a
+calibrated large-desktop ceiling that preserves her approved Live2D passport
+crop on tall monitors. Her stage is centered from the actual left-card edges.
+The recorder remains centered inside its protected middle card, so Retry can
+appear without clipping, covering Clara's card, or blocking the recorder.
+
+Short letters, words, phrases, and sentences use a content-sized displayed-item
+row and return the remaining scale to Clara and the recorder. Passage pages are
+the semantic exception: their displayed-item row receives the space required
+to keep the complete authored passage visible without scrolling. Lesson 5 may
+use a slightly taller passage allocation because its reading card includes an
+instruction line and an inner passage frame.
+
+This large-screen composition is progressive enhancement only. Phone
+composition, including short landscape-phone viewports, remains governed by
+the mobile rules.
 
 ## Text As The Interactive Material
 

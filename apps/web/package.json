@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@readirect/design-tokens": "workspace:*",
+    "@readirect/game-zero": "workspace:*",
     "@readirect/game-lobby": "workspace:*",
     "@readirect/game-one": "workspace:*",
     "@readirect/game-two": "workspace:*",
