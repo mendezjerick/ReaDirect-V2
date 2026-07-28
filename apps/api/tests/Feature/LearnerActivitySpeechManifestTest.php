@@ -114,17 +114,17 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonCount(47, 'published_speech_keys');
     }
 
-    public function test_learn_with_clara_lesson_one_is_published_only(): void
+    public function test_learn_with_clara_letters_is_published_only(): void
     {
         $manifest = app(ActivitySpeechManifestService::class)
-            ->forActivity('learn-with-clara-lesson-1');
+            ->forActivity('learn-with-clara-letters');
 
-        $this->assertSame('learn-with-clara-lesson-1', $manifest['activity']);
+        $this->assertSame('learn-with-clara-letters', $manifest['activity']);
         $this->assertSame(
-            ['learn-with-clara-lesson-1-fixed'],
+            ['learn-with-clara-letters-fixed'],
             $manifest['published_groups'],
         );
-        $this->assertCount(13, $manifest['published_speech_keys']);
+        $this->assertCount(12, $manifest['published_speech_keys']);
         $this->assertSame([], $manifest['runtime_profiles']);
         $this->assertFalse($manifest['requires_runtime']);
     }

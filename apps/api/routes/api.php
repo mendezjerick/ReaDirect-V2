@@ -126,9 +126,9 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/tts/speech/{speechKey}', [LearnerTtsController::class, 'speech']);
     Route::post('/tts/lesson-feedback/{lessonResponse}', [LearnerTtsController::class, 'lessonFeedback']);
     Route::post('/tts/lesson-demonstration/{lessonResponse}', [LearnerTtsController::class, 'lessonDemonstration']);
-    Route::post('/learn-with-clara/lesson-1/start', [LearnerClaraListeningController::class, 'start']);
-    Route::post('/learn-with-clara/lesson-1/advance', [LearnerClaraListeningController::class, 'advance']);
-    Route::post('/learn-with-clara/lesson-1/restart', [LearnerClaraListeningController::class, 'restart']);
+    Route::post('/learn-with-clara/letters/start', [LearnerClaraListeningController::class, 'start']);
+    Route::post('/learn-with-clara/letters/advance', [LearnerClaraListeningController::class, 'advance']);
+    Route::post('/learn-with-clara/letters/restart', [LearnerClaraListeningController::class, 'restart']);
     Route::post('/lessons/lesson-1/start', [LearnerLessonOneController::class, 'start']);
     Route::get('/lessons/lesson-1/{lessonRun}', [LearnerLessonOneController::class, 'show']);
     Route::post('/lessons/lesson-1/{lessonRun}/submit', [LearnerLessonOneController::class, 'submit']);

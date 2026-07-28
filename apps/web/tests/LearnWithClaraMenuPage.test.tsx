@@ -8,6 +8,14 @@ vi.mock("../src/features/intro/ClaraStage", () => ({
   ClaraStage: () => <figure aria-label="Ma'am Clara" />,
 }));
 
+const claraAudioMocks = vi.hoisted(() => ({
+  unlock: vi.fn(),
+}));
+
+vi.mock("../src/features/clara-audio/claraSpeech", () => ({
+  unlockClaraAudio: claraAudioMocks.unlock,
+}));
+
 const learnerSession = {
   token: "learner-token",
   learner: {
@@ -43,6 +51,10 @@ function renderMenu(authenticated = true) {
           element={<LearnWithClaraMenuPage />}
         />
         <Route path="/learner/dashboard" element={<div>Dashboard route</div>} />
+        <Route
+          path="/learner/learn-with-clara/letters"
+          element={<div>Letters class route</div>}
+        />
         <Route path="/learner/login" element={<div>Learner login route</div>} />
       </Routes>
     </MemoryRouter>,
@@ -98,6 +110,15 @@ describe("LearnWithClaraMenuPage", () => {
     expect(
       screen.getByRole("heading", { name: "What should we practice?" }),
     ).toBeVisible();
+  });
+
+  it("opens the complete Letters class from the Letters choice", () => {
+    renderMenu();
+
+    fireEvent.click(screen.getByRole("button", { name: /^Letters/ }));
+
+    expect(claraAudioMocks.unlock).toHaveBeenCalledOnce();
+    expect(screen.getByText("Letters class route")).toBeInTheDocument();
   });
 
   it("returns to the learner dashboard", () => {

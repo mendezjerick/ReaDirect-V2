@@ -16,7 +16,7 @@ const expectedLearnerRoutes = [
   "/learner/games/game-one",
   "/learner/games/game-two",
   "/learner/learn-with-clara",
-  "/learner/learn-with-clara/lesson-1",
+  "/learner/learn-with-clara/letters",
   "/learner/lesson-intro",
   "/learner/lessons/1",
   "/learner/lessons/2",

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LearnerClaraListeningSession;
 use App\Services\LearnerSessionResolver;
-use App\Services\LearnWithClaraLessonOneFlow;
+use App\Services\LearnWithClaraLettersFlow;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +14,7 @@ final class LearnerClaraListeningController extends Controller
 {
     public function __construct(
         private readonly LearnerSessionResolver $sessions,
-        private readonly LearnWithClaraLessonOneFlow $flow,
+        private readonly LearnWithClaraLettersFlow $flow,
     ) {}
 
     public function start(Request $request): JsonResponse
@@ -23,15 +23,25 @@ final class LearnerClaraListeningController extends Controller
         $listeningSession = LearnerClaraListeningSession::query()->firstOrCreate(
             [
                 'learner_id' => $learnerSession->learner_id,
-                'lesson_key' => 'lesson-1',
+                'lesson_key' => 'letters',
             ],
             [
-                'chapter_key' => 'chapter-1',
-                'scene_key' => LearnWithClaraLessonOneFlow::START_SCENE,
+                'chapter_key' => 'letter-names-a-e',
+                'scene_key' => LearnWithClaraLettersFlow::START_SCENE,
                 'heard_story_keys' => [],
                 'status' => LearnerClaraListeningSession::STATUS_ACTIVE,
             ],
         );
+
+        if (! $this->flow->hasScene($listeningSession->scene_key)) {
+            $listeningSession->forceFill([
+                'chapter_key' => 'letter-names-a-e',
+                'scene_key' => LearnWithClaraLettersFlow::START_SCENE,
+                'story_branch' => null,
+                'status' => LearnerClaraListeningSession::STATUS_ACTIVE,
+                'chapter_completed_at' => null,
+            ])->save();
+        }
 
         return response()->json($this->serialize($listeningSession));
     }
@@ -41,14 +51,14 @@ final class LearnerClaraListeningController extends Controller
         $learnerSession = $this->sessions->resolve($request);
         $validated = $request->validate([
             'scene_key' => ['required', 'string', 'max:80'],
-            'action' => ['required', 'string', 'in:continue,tell_more,keep_learning'],
+            'action' => ['required', 'string', 'in:continue'],
         ]);
 
         try {
             $listeningSession = DB::transaction(function () use ($learnerSession, $validated): LearnerClaraListeningSession {
                 $checkpoint = LearnerClaraListeningSession::query()
                     ->where('learner_id', $learnerSession->learner_id)
-                    ->where('lesson_key', 'lesson-1')
+                    ->where('lesson_key', 'letters')
                     ->lockForUpdate()
                     ->firstOrFail();
 
@@ -58,25 +68,12 @@ final class LearnerClaraListeningController extends Controller
                     'That companion-class scene is no longer active.',
                 );
 
-                $nextScene = $this->flow->nextScene(
-                    $checkpoint->scene_key,
-                    $validated['action'],
-                );
-                $heardStories = $checkpoint->heard_story_keys ?? [];
-                if ($checkpoint->scene_key === 'chapter-1-story-opening') {
-                    $heardStories[] = LearnWithClaraLessonOneFlow::STORY_KEY;
-                    $heardStories = array_values(array_unique($heardStories));
-                }
-
-                $completed = $nextScene === 'chapter-1-complete';
+                $nextScene = $this->flow->nextScene($checkpoint->scene_key);
+                $completed = $nextScene === LearnWithClaraLettersFlow::COMPLETION_SCENE;
                 $checkpoint->forceFill([
                     'scene_key' => $nextScene,
-                    'story_branch' => $checkpoint->scene_key === 'chapter-1-story-opening'
-                        ? $validated['action']
-                        : $checkpoint->story_branch,
-                    'heard_story_keys' => $heardStories,
                     'status' => $completed
-                        ? LearnerClaraListeningSession::STATUS_CHAPTER_COMPLETE
+                        ? LearnerClaraListeningSession::STATUS_LETTERS_COMPLETE
                         : LearnerClaraListeningSession::STATUS_ACTIVE,
                     'chapter_completed_at' => $completed ? now() : $checkpoint->chapter_completed_at,
                 ])->save();
@@ -95,11 +92,11 @@ final class LearnerClaraListeningController extends Controller
         $learnerSession = $this->sessions->resolve($request);
         $listeningSession = LearnerClaraListeningSession::query()
             ->where('learner_id', $learnerSession->learner_id)
-            ->where('lesson_key', 'lesson-1')
+            ->where('lesson_key', 'letters')
             ->firstOrFail();
         $listeningSession->forceFill([
-            'chapter_key' => 'chapter-1',
-            'scene_key' => LearnWithClaraLessonOneFlow::START_SCENE,
+            'chapter_key' => 'letter-names-a-e',
+            'scene_key' => LearnWithClaraLettersFlow::START_SCENE,
             'story_branch' => null,
             'visit_count' => $listeningSession->visit_count + 1,
             'status' => LearnerClaraListeningSession::STATUS_ACTIVE,
@@ -119,8 +116,6 @@ final class LearnerClaraListeningController extends Controller
             'lesson_key' => $session->lesson_key,
             'chapter_key' => $session->chapter_key,
             'status' => $session->status,
-            'story_branch' => $session->story_branch,
-            'heard_story_keys' => $session->heard_story_keys ?? [],
             'visit_count' => $session->visit_count,
             'scene' => [
                 'key' => $session->scene_key,

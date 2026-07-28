@@ -563,8 +563,8 @@ catalog contains Lesson Intro, every fixed Part 1 instruction and ordinal cue,
 all fixed Part 2 prompts and questions, the Diagnostic and Final Assessment
 completion lines, and
 51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, 33 fixed Lesson 3 lines, 33
-fixed Lesson 4 lines, 9 fixed Lesson 5 lines, 47 fixed Lesson 6 lines, and 13
-fixed companion-class lines. Its 253 published rows are grouped under
+fixed Lesson 4 lines, 9 fixed Lesson 5 lines, 47 fixed Lesson 6 lines, and 7
+dedicated companion-class story lines. Its 247 published rows are grouped under
 `sh/lesson-intro/`, `sh/part-1/`, `sh/part-2/`, `sh/completion/`, and
 `sh/lessons/` for human review. Laravel verifies the catalog status, file
 existence, and SHA-256 checksum before returning audio. Browser code must never
@@ -1135,18 +1135,20 @@ learner-web application boundaries:
 ```text
 apps/api/app/Http/Controllers/LearnerClaraListeningController.php
 apps/api/app/Models/LearnerClaraListeningSession.php
-apps/api/app/Services/LearnWithClaraLessonOneFlow.php
+apps/api/app/Services/LearnWithClaraLettersFlow.php
 apps/api/database/migrations/2026_07_23_000018_create_learner_clara_listening_sessions_table.php
 apps/web/src/features/learn-with-clara/LearnWithClaraMenuPage.tsx
-apps/web/src/features/learn-with-clara/LearnWithClaraLessonOnePage.tsx
-apps/web/src/features/learn-with-clara/LearnWithClaraStoryVignette.tsx
+apps/web/src/features/learn-with-clara/LearnWithClaraLettersPage.tsx
+apps/web/src/features/learn-with-clara/LearnWithClaraLetterParade.tsx
 apps/web/src/features/learn-with-clara/learn-with-clara-menu.css
-apps/web/src/features/learn-with-clara/learnWithClaraApi.ts
-apps/web/src/features/learn-with-clara/learnWithClaraGreeting.ts
-apps/web/src/features/learn-with-clara/learn-with-clara.css
+apps/web/src/features/learn-with-clara/learnWithClaraLettersApi.ts
+apps/web/src/features/learn-with-clara/learn-with-clara-letters.css
 ```
 
 Published companion-class audio remains under
 `apps/api/storage/app/private/tts/catalog/sh/learn-with-clara/`. Its listening
 checkpoint table is intentionally separate from academic lesson runs,
-assessment attempts, mastery records, and progression.
+assessment attempts, mastery records, and progression. The menu exposes the
+planned skill set, while the implemented Letters route owns the server-backed
+Little-Letter Parade story, interactive A-E matching, and listening-and-echo
+class.

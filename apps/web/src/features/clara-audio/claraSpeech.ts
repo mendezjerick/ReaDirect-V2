@@ -1,5 +1,5 @@
 const speechRequests = new Map<string, Promise<Blob>>();
-const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260724-9";
+const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260728-11";
 const LESSON_SIX_SPEECH_DELIVERY_VERSION = "lesson-6-content-alignment-v2";
 let audioContext: AudioContext | null = null;
 
@@ -52,19 +52,13 @@ type LessonSixSpeechKey =
   | `lesson-6-${"question" | "guided" | "demo" | "correct"}-${string}`;
 
 export type ClaraSpeechKey =
-  | "learn-with-clara-lesson-1-greeting-morning"
-  | "learn-with-clara-lesson-1-greeting-afternoon"
-  | "learn-with-clara-lesson-1-greeting-evening"
-  | "learn-with-clara-lesson-1-pair-a"
-  | "learn-with-clara-lesson-1-pair-b"
-  | "learn-with-clara-lesson-1-pair-c"
-  | "learn-with-clara-lesson-1-pair-d"
-  | "learn-with-clara-lesson-1-pair-e"
-  | "learn-with-clara-lesson-1-story-name-opening"
-  | "learn-with-clara-lesson-1-story-name-detail"
-  | "learn-with-clara-lesson-1-story-name-close"
-  | "learn-with-clara-lesson-1-story-name-return"
-  | "learn-with-clara-lesson-1-chapter-1-complete"
+  | "learn-with-clara-letters-parade-opening"
+  | "learn-with-clara-letters-find-a"
+  | "learn-with-clara-letters-find-b"
+  | "learn-with-clara-letters-find-c"
+  | "learn-with-clara-letters-find-d"
+  | "learn-with-clara-letters-find-e"
+  | "learn-with-clara-letters-parade-finale"
   | "lesson-intro"
   | "assessment-final-complete"
   | "lesson-1-mission-1"

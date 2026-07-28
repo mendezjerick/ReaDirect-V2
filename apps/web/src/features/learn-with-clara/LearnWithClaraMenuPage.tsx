@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Surface } from "../../components/ui/Surface";
+import { unlockClaraAudio } from "../clara-audio/claraSpeech";
 import { ClaraStage } from "../intro/ClaraStage";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import "./learn-with-clara-menu.css";
@@ -110,6 +111,16 @@ export function LearnWithClaraMenuPage() {
     return null;
   }
 
+  const chooseTopic = (topic: ClaraTopicKey) => {
+    if (topic === "letters") {
+      unlockClaraAudio();
+      navigate("/learner/learn-with-clara/letters");
+      return;
+    }
+
+    setSelectedTopic(topic);
+  };
+
   return (
     <main
       className="clara-menu learner-flow-page"
@@ -176,7 +187,7 @@ export function LearnWithClaraMenuPage() {
                   type="button"
                   aria-pressed={selectedTopic === topic.key}
                   data-selected={selectedTopic === topic.key ? "" : undefined}
-                  onClick={() => setSelectedTopic(topic.key)}
+                  onClick={() => chooseTopic(topic.key)}
                 >
                   <span className="clara-menu__topic-icon">
                     <TopicIcon topic={topic.key} />
