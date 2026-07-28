@@ -45,7 +45,7 @@ final class LearnerRouteBoundaryTest extends TestCase
             'api/learners/assessments/part-two/current',
             'api/learners/assessments/final/part-one/start',
             'api/learners/assessments/final/part-two/current',
-            'api/learners/learn-with-clara/lesson-1/start',
+            'api/learners/learn-with-clara/letters/start',
             'api/learners/lessons/lesson-1/start',
             'api/learners/lessons/lesson-2/start',
             'api/learners/lessons/lesson-3/start',

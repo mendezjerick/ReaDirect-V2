@@ -15,9 +15,9 @@ Implementation status: published catalog delivery is active for Lesson Intro,
 all 32 fixed Part 1 assessment lines, 15 unique fixed Part 2 and completion
 lines (14 required by each assessment type), 51 fixed Lesson 1 lines, 19 fixed
 Lesson 2 lines, 33 fixed Lesson 3 lines, 33 fixed Lesson 4 lines, 9 fixed
-Lesson 5 lines, 47 fixed Lesson 6 lines, and 13 published
-`Learn with Ma'am Clara` lines. PostgreSQL holds one published
-`clara-sh-v1` voice version and 253 speech metadata rows; Laravel verifies and
+Lesson 5 lines, 47 fixed Lesson 6 lines, and 7 dedicated published
+`Learn with Ma'am Clara` story lines. PostgreSQL holds one published
+`clara-sh-v1` voice version and 247 speech metadata rows; Laravel verifies and
 returns their private WAVs without calling VoxCPM2. Response-owned dynamic
 final-transcript feedback is active for Lessons 1 through 4. Lesson 2 also
 uses a response-owned target-word demonstration. Lesson 3 instead uses one of
@@ -528,11 +528,14 @@ Current implementation:
 - Lesson 5 declares no runtime profile. Its instruction, technical recovery,
   completion, and six possible passage-review responses are fixed catalog
   speech. It does not speak the transcript or demonstrate the passage.
-- `Learn with Ma'am Clara` Lesson 1 declares the published-only
-  `learn-with-clara-lesson-1-fixed` group and no runtime profiles. Its current
-  Chapter 1 catalog contains three time-aware greetings, five letter-pair
-  teaching lines, three authored story lines, one return-to-letters bridge,
-  and one completion line.
+- The implemented `Learn with Ma'am Clara` Letters class declares the
+  published-only `learn-with-clara-letters-fixed` group and no runtime
+  profiles. Its twelve-key manifest uses seven dedicated Little-Letter Parade
+  clips plus the five approved `lesson-1-letter-demo-A` through
+  `lesson-1-letter-demo-E` teacher demonstrations. Its welcome screen does not
+  autoplay speech; the learner's Start or Continue action unlocks audio before
+  the story opening. Retired time-aware greeting, name-writing story, and
+  mission clips are not part of this activity manifest.
 - The companion class may prefetch its server-declared possible-next speech
   keys, but every fetched file must still pass catalog publication and
   integrity validation. A missing companion-class line fails closed and must

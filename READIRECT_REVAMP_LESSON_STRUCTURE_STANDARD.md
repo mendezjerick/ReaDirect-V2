@@ -1105,9 +1105,17 @@ prerequisites with their achievements, and use the real Lesson 5 run ID.
 a required lesson or assessment. Any authenticated learner may open it before
 or after the Diagnostic Assessment.
 
-Its checkpoints, story choices, visit count, and completion state are stored
-separately from required lesson runs. They must never change lesson unlocks,
-assessment scores, mastery evidence, achievements, or teacher analytics.
-Chapter 1 uses five short big-and-small-letter moments and authored published
-speech only. It has no recorder, ASR submission, academic attempt, or runtime
-TTS fallback.
+Its checkpoint, visit count, and completion state are stored separately from
+required lesson runs. They must never change lesson unlocks, assessment
+scores, mastery evidence, achievements, or teacher analytics.
+
+The menu offers Letters, Words, Phrases, Sentences, and Comprehension, with no
+passage choice. Only Letters currently opens a complete session. That class is
+one authored `Little-Letter Parade` story in which learners find the
+lowercase partner for uppercase A-E, watch each pair join an accumulating
+animated parade, listen to Clara model the shared letter name, and receive an
+explicit learner-controlled echo pause before `Next Stop`. Incorrect visual
+choices receive a gentle retry without scoring. Searches and echo pauses do
+not auto-advance. The class has no recorder, ASR submission, academic attempt,
+or runtime TTS fallback. The complete contract lives in
+`READIRECT_REVAMP_LEARN_WITH_CLARA_STANDARD.md`.

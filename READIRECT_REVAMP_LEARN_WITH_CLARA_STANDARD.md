@@ -1,26 +1,26 @@
 # ReaDirect Revamp: Learn with Ma'am Clara Standard
 
-This document is the source of truth for the learner-dashboard feature named
-`Learn with Ma'am Clara`.
+This document is the source of truth for the optional learner-dashboard
+feature named `Learn with Ma'am Clara`.
 
-The experience is a listening-only companion class. It is separate from the
-required recording lesson, assessment scoring, and academic mastery evidence.
+## Product Boundary
 
-## Current Implementation Status
+`Learn with Ma'am Clara` is a set of short listening-and-speaking practice
+classes. It is separate from required lessons, assessments, academic mastery,
+and achievement progression.
 
-Development is intentionally paused after the Chapter 1 companion-class
-foundation. The implemented Chapter 1 remains available to learners, and a
-new short-class menu now establishes the future entry point for five reading
-skill sessions. The sessions behind that menu remain deferred while
-higher-priority learner-flow work continues.
+It is always available to an authenticated learner, including before the
+Diagnostic Assessment. Its checkpoints must never change assessment scores,
+required-lesson progression, mastery evidence, achievements, or teacher
+analytics.
 
-When development resumes, continue from the persisted scene contract,
-published-only speech catalog, and shared SVG vignette foundation documented
-here. Do not replace or duplicate these systems.
+The experience does not use ASR, a recorder, or response scoring. Clara models
+a target, the learner says it aloud without recording, and the learner chooses
+when to continue.
 
-## Dashboard Placement
+## Dashboard and Menu
 
-The learner dashboard order is mandatory:
+The learner dashboard order is:
 
 ```text
 Required reading activity
@@ -29,263 +29,229 @@ Learn with Ma'am Clara
 Achievements
 ```
 
-The feature is always available to an authenticated learner, including before
-the Diagnostic Assessment. It is optional and does not change assessment
-content, scores, or progression.
-
-- `Start Class` opens the short-class menu.
-- The menu offers exactly `Letters`, `Words`, `Phrases`, `Sentences`, and
-  `Comprehension`. It does not offer a passage class.
-- Choosing a skill currently confirms the selection without starting or
-  changing any persisted session. Future slices may connect each choice to one
-  complete short listening session.
-- `Continue Class` resumes a listening checkpoint.
-- `Listen Again` restarts a completed chapter without clearing heard-story
-  history.
-
-## Experience Identity
-
-Ma'am Clara must feel like a present, consistent person rather than a sequence
-of instructional recordings.
-
-The approved structure combines:
-
-- Short teaching moments
-- Time-aware greetings
-- Brief personal stories
-- Harmless humor and mistakes
-- Optional two-choice reactions
-- Natural pauses
-- Remembered authored stories
-
-This is not an unrestricted chatbot. Every spoken line and every branch is
-authored, reviewed, pre-generated, published, and seeded.
-
-## Lesson 1 Scope
-
-Lesson 1 contains three listening chapters:
-
-1. Big and small letters
-2. First letters in words
-3. Missing first letters
-
-Each chapter has exactly five short explanations:
+The dashboard action opens `/learner/learn-with-clara`. The menu contains
+exactly:
 
 ```text
-Chapter 1: 5 letter-pair explanations
-Chapter 2: 5 first-letter explanations
-Chapter 3: 5 missing-letter explanations
-Total:    15 teaching explanations
+Letters
+Words
+Phrases
+Sentences
+Comprehension
 ```
 
-The complete experience uses fifteen unique letter targets. Teaching language
-must use the shared isolated-letter pronunciation map.
+There is no passage choice. Only `Letters` currently opens a class. The
+remaining choices must not create checkpoints until their complete sessions
+are implemented.
 
-## Chapter Rhythm
+## The Little-Letter Parade
 
-The default chapter rhythm is:
+The Letters choice opens:
 
 ```text
-Time-aware or returning greeting
-        |
-        v
-Two short teaching items
-        |
-        v
-One Clara story
-        |
-        v
-Optional two-button reaction
-        |
-        v
-Three short teaching items
-        |
-        v
-Short chapter closing
+/learner/learn-with-clara/letters
 ```
 
-The feature should be mostly Clara's stories and presence. Teaching
-explanations must be brief and must not become lectures.
+The retired `/learner/learn-with-clara/lesson-1` route and its name-writing
+story interface must not be restored.
 
-Teaching explanations form a continuous listening sequence. After one
-explanation finishes, the next teaching item begins automatically following a
-short natural pause. Replay and Continue buttons must not interrupt these
-explanations.
-
-The paired mid-session choice buttons are reserved for authored story moments.
-After a learner chooses `Tell me more`, Clara continues the remaining story
-parts automatically. `Keep learning` returns directly to the teaching
-sequence.
-
-Stories must have an actual beginning, development, and ending. A complete
-optional continuation should normally span several published clips and
-approximately 30 to 40 seconds of calm speech. Story audio must use deliberate
-child-friendly pacing and must not sound like a rapid instruction clip.
-
-Every story scene must replace plain title-only item content with a small
-authored vector vignette synchronized at the scene level:
-
-- Opening establishes the story's visual problem.
-- Optional detail visibly develops it.
-- Closing resolves it.
-- A return scene clears the story and restores the teaching target.
-
-The vignette must use React, Motion for React, inline SVG, shared theme
-variables, and the existing item frame. It must not introduce raster story
-artwork, a new animation package, or a second canvas runtime. Reduced-motion
-mode presents the final static composition for each scene.
-
-After every story path, including `Keep learning`, Clara must speak an explicit
-published bridge such as `Now, let us go back to our letters` before the next
-teaching explanation begins.
-
-## Initial Story Families
-
-The approved initial story families are:
-
-- A funny classroom moment
-- Clara learning to write her name
-- A missing pencil or notebook
-- A rainy reading day
-- A harmless mistake Clara corrected
-- A small animal interrupting her reading
-
-Stories may rotate across visits. An unheard story is preferred, and the same
-story must not repeat twice in succession.
-
-Clara may refer back to a story only when the learner has actually heard it.
-
-## Interface
-
-The page must reuse the shared intro composition:
-
-- Non-scrollable learner viewport
-- The approved Clara crop and global interaction behavior
-- The learner's active themed background
-- The teaching item in the original ReaDirect title position above Clara
-- Shared buttons and design tokens
-- No recorder and no ASR
-
-The short-class menu is a separate responsive learner page that:
-
-- Keeps the approved Clara runtime visibly present.
-- Reuses the learner background, surfaces, depth, type, and focus tokens.
-- Provides a dashboard-return control.
-- Presents the five skill choices as real buttons with a visible selected
-  state and polite confirmation.
-- Does not create listening checkpoints, academic evidence, or progression
-  changes until a complete session is implemented behind a choice.
-
-Speech starts only after Clara's model is ready.
-
-During a teaching item, the item display supplies the visual interaction:
-
-- Every active item is displayed inside a shared vector-like frame with fake
-  panel depth so it remains readable over themed backgrounds.
-- Letter pairs are the dominant visual element. They must use most of the
-  frame's safe interior instead of appearing as ordinary heading text.
-- Letter pairs move gently together.
-- A first letter receives a brief highlight or bounce.
-- A missing letter fills the blank after Clara reveals it.
-- Reduced-motion mode uses opacity and color changes instead of movement.
-
-## Time-Aware Greeting Contract
-
-The learner device's local hour selects a published greeting:
-
-| Local time | Greeting period |
-| --- | --- |
-| 05:00-11:59 | Morning |
-| 12:00-16:59 | Afternoon |
-| 17:00-04:59 | Evening |
-
-Time-aware lines remain pre-generated. The browser selects a speech key; it
-never submits the current time as unrestricted TTS text.
-
-## Speech Delivery
-
-The activity speech key is:
+The implemented Letters class is one continuous story named
+`The Little-Letter Parade`. Uppercase A-E are ready to march, but a playful
+gust scatters their lowercase partners. Clara and the learner visit five
+animated parade stops to reunite each pair:
 
 ```text
-learn-with-clara-lesson-1
+Apple Arch    -> A a -> ay
+Balloon Float -> B b -> bee
+Curved Banner -> C c -> see
+Drum Cart     -> D d -> dee
+Final Wagon   -> E e -> ee
+```
+
+Each stop follows this learner-controlled rhythm:
+
+```text
+Clara narrates the next parade problem
+        |
+        v
+Learner finds and taps the matching lowercase letter
+        |
+        v
+The correct pair visibly joins the accumulating parade
+        |
+        v
+Clara models the shared letter name
+        |
+        v
+Learner says the name during an explicit "Your turn" pause
+        |
+        v
+Learner chooses Next Stop
+```
+
+An incorrect lowercase choice gently wiggles and stays in the scene. It does
+not create a score, attempt, or penalty. Clara gives a short visual-text hint
+and waits for another choice. Only the correct visual choice moves the story
+forward.
+
+The story must not auto-advance through a learner search or echo pause. Short
+narration and animation beats may play automatically inside the active scene,
+but every meaningful transition remains learner controlled.
+
+After E, `Next Stop` becomes `Start the Parade`. Completion animates all five
+pairs marching together and offers:
+
+- `Play Again`, which restarts at the story opening.
+- `Back to Classes`, which returns to the Clara menu.
+
+## Interface and Animation
+
+The page reuses the learner's active theme, shared surfaces, fake depth,
+typography, buttons, focus treatment, and approved Clara runtime.
+
+Its responsive composition contains:
+
+- A compact header with a back control and A-E story progress.
+- A Clara teacher surface with live narration status and the current action.
+- A lesson surface containing one continuous animated parade world.
+- A welcome visual, story opening, five find scenes, five teaching scenes, and
+  a parade finale.
+
+The parade world is authored inline SVG driven by Motion for React. It
+includes animated wind, bunting, clouds, hills, five distinct parade props,
+uppercase characters, interactive lowercase choices, an accumulating row of
+found pairs, and a confetti finale. Clara's expression changes across story,
+search, demonstration, and celebration states.
+
+The uppercase and lowercase forms remain visually dominant during each
+teaching beat. The pronunciation badge appears when Clara models the shared
+letter name.
+
+Reduced-motion mode shows the final static composition of each scene without
+depending on movement for meaning.
+
+At the priority `360 x 740` viewport, the active story, Clara, learner action,
+and interactive choices must remain visible without page scrolling. Tablet
+and desktop layouts place Clara beside the story while retaining the same
+hierarchy and controls.
+
+## Audio Activation
+
+The welcome screen does not autoplay speech. It presents the server-backed
+Start or Continue action immediately after the checkpoint loads. That explicit
+learner action unlocks browser audio before the story opening or resumed scene,
+so direct navigation and refresh cannot trap the learner behind an autoplay
+restriction.
+
+Speech waits for Clara's model-ready signal. The client may prefetch only the
+server-declared possible-next speech key.
+
+## Published Speech
+
+The activity manifest key is:
+
+```text
+learn-with-clara-letters
 ```
 
 Its published group is:
 
 ```text
-learn-with-clara-lesson-1-fixed
+learn-with-clara-letters-fixed
 ```
 
-The activity declares no runtime Vox profiles. Missing or modified published
-audio must fail closed with a retry state and must never fall back to runtime
-generation.
+It declares no runtime Vox profiles. Every line is an authored, approved,
+published WAV. A missing or invalid published file fails closed with a retry
+state and never falls through to runtime generation.
 
-The current greeting keys are:
+The class uses these twelve published speech keys:
 
 ```text
-learn-with-clara-lesson-1-greeting-morning
-learn-with-clara-lesson-1-greeting-afternoon
-learn-with-clara-lesson-1-greeting-evening
+learn-with-clara-letters-parade-opening
+learn-with-clara-letters-find-a
+learn-with-clara-letters-find-b
+learn-with-clara-letters-find-c
+learn-with-clara-letters-find-d
+learn-with-clara-letters-find-e
+learn-with-clara-letters-parade-finale
+lesson-1-letter-demo-A
+lesson-1-letter-demo-B
+lesson-1-letter-demo-C
+lesson-1-letter-demo-D
+lesson-1-letter-demo-E
 ```
 
-## Progress and Safety Boundaries
+The seven dedicated story clips live under:
 
-Listening checkpoints must remain separate from:
+```text
+apps/api/storage/app/private/tts/catalog/sh/learn-with-clara/letters/parade/
+```
 
-- Assessment scores
-- Lesson response outcomes
-- Mastery evidence
-- Required lesson unlocking
-- Achievement unlock criteria
-- Teacher performance analytics
+The five demonstrations are intentionally reused from the approved required
+Lesson 1 catalog because they already model each letter with:
 
-Ma'am Clara must not:
+```text
+The letter name is {spoken form}. Listen: {spoken form}. Now you try.
+```
 
-- Guilt a learner for leaving
-- Encourage secrecy
-- Ask for private personal information
-- Claim to be human
-- Create emotional dependency
-- Pretend to remember unstored events
+Browser code requests stable speech keys only. It does not submit synthesis
+text or storage paths.
 
-Her role is warm, playful, professionally safe teacher companionship.
+## Server Checkpoint Contract
 
-## Implementation Slices
+Laravel owns the story sequence and validates every transition. The learner
+web client uses:
 
-### Slice 1: Entry and presence foundation
+```text
+POST /api/learners/learn-with-clara/letters/start
+POST /api/learners/learn-with-clara/letters/advance
+POST /api/learners/learn-with-clara/letters/restart
+```
 
-Implemented:
+The persisted checkpoint uses:
 
-- Dashboard card between Games and Achievements
-- Always-available authenticated learner entry
-- Responsive short-class menu with Letters, Words, Phrases, Sentences, and
-  Comprehension choices
-- Lesson 1 learner route
-- Shared intro-stage composition
-- Morning, afternoon, and evening greeting selection
-- Three approved greeting WAVs in the published catalog
-- Clara-ready speech gate
-- Published-only activity manifest
+```text
+lesson_key:  letters
+chapter_key: letter-names-a-e
+status:      active | letters-complete
+```
 
-### Slice 2: Chapter 1 companion class
+The scene sequence is:
 
-Implemented:
+```text
+parade-opening
+  -> find-a -> teach-a
+  -> find-b -> teach-b
+  -> find-c -> teach-c
+  -> find-d -> teach-d
+  -> find-e -> teach-e
+  -> parade-finale
+```
 
-- Server-authoritative Chapter 1 scene state machine
-- Five letter-pair moments using `A` through `E`
-- Clara learning to write her name story
-- Optional `Tell me more` and `Keep learning` branch
-- Current and possible-next published-clip prefetch
-- Server-side checkpoint persistence
-- Refresh and return resume behavior
-- Automatic explanation-to-explanation progression
-- Story-only `Tell me more` and `Keep learning` controls
-- A published return-to-letters bridge on every story exit
-- Four responsive SVG vignette states for the story opening, detail, closing,
-  and return
-- Reduced-motion static story compositions
-- `Listen Again` and dashboard-return completion controls
-- Separate listening completion with no academic side effects
+`advance` accepts only the current server scene plus the controlled
+`continue` action. A stale scene is rejected. Refreshing or returning resumes
+the saved story scene. Restarting increments the visit count and returns to
+`parade-opening`.
 
-Deferred slices add Chapters 2 and 3, story rotation, returning greetings, and
-the final companion-class completion state.
+Retired `letters-a` through `letters-complete` drill checkpoints are
+normalized to `parade-opening` on their next start request.
+
+The existing `learner_clara_listening_sessions` table remains separate from
+required lesson runs and assessment attempts. Historical story fields may
+remain nullable for schema compatibility. The current parade is one authored
+path rather than an optional branch.
+
+## Clara Safety
+
+Clara must remain warm, playful, and professionally safe. She must not:
+
+- Guilt a learner for leaving.
+- Encourage secrecy.
+- Ask for private personal information.
+- Claim to be human.
+- Create emotional dependency.
+- Pretend to remember unstored events.
+
+Future Words, Phrases, Sentences, and Comprehension classes must follow this
+same optional, published-speech, learner-controlled boundary unless an
+approved source-of-truth slice explicitly changes it.

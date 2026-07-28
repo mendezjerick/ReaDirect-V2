@@ -9,7 +9,7 @@ final class LearnerClaraListeningSession extends Model
 {
     public const STATUS_ACTIVE = 'active';
 
-    public const STATUS_CHAPTER_COMPLETE = 'chapter-1-complete';
+    public const STATUS_LETTERS_COMPLETE = 'letters-complete';
 
     protected $fillable = [
         'learner_id',
