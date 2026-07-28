@@ -98,7 +98,7 @@ function renderDashboard(stage = "before_diagnostic") {
             />
             <Route path="/learner/games" element={<div>Lobby route</div>} />
             <Route
-              path="/learner/learn-with-clara/lesson-1"
+              path="/learner/learn-with-clara"
               element={<div>Learn with Clara route</div>}
             />
             <Route

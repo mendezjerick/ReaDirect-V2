@@ -38,6 +38,14 @@ const LearnWithClaraLessonOnePage = lazy(() =>
   ),
 );
 
+const LearnWithClaraMenuPage = lazy(() =>
+  import("./features/learn-with-clara/LearnWithClaraMenuPage").then(
+    (module) => ({
+      default: module.LearnWithClaraMenuPage,
+    }),
+  ),
+);
+
 const AssessmentPartOnePage = lazy(() =>
   import("./features/assessment/AssessmentPartOnePage").then((module) => ({
     default: module.AssessmentPartOnePage,
@@ -307,6 +315,10 @@ export function App() {
               element={<LearnerDashboardPage />}
             />
             <Route path="/learner/lesson-intro" element={<LessonIntroPage />} />
+            <Route
+              path="/learner/learn-with-clara"
+              element={<LearnWithClaraMenuPage />}
+            />
             <Route
               path="/learner/learn-with-clara/lesson-1"
               element={<LearnWithClaraLessonOnePage />}

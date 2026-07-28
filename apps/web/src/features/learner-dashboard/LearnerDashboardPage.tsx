@@ -143,9 +143,7 @@ export function LearnerDashboardPage() {
     }
 
     unlockClaraAudio();
-    learnWithClaraCommit.commit(() =>
-      navigate("/learner/learn-with-clara/lesson-1"),
-    );
+    learnWithClaraCommit.commit(() => navigate("/learner/learn-with-clara"));
   };
 
   const openNextReadingActivity = () => {
@@ -350,7 +348,7 @@ export function LearnerDashboardPage() {
                 <h2>Learn with Ma&apos;am Clara</h2>
               </div>
             </div>
-            <p>Ma&apos;am Clara has letters and little stories to share.</p>
+            <p>Choose a short class in letters, words, and reading.</p>
             <BigButton
               className="learner-dashboard__clara-action"
               aria-label="Learn with Ma'am Clara"

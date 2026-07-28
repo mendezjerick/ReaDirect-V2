@@ -9,9 +9,10 @@ required recording lesson, assessment scoring, and academic mastery evidence.
 ## Current Implementation Status
 
 Development is intentionally paused after the Chapter 1 companion-class
-foundation. The implemented Chapter 1 remains available to learners, but
-Chapters 2 and 3 are deferred while higher-priority learner-flow work
-continues.
+foundation. The implemented Chapter 1 remains available to learners, and a
+new short-class menu now establishes the future entry point for five reading
+skill sessions. The sessions behind that menu remain deferred while
+higher-priority learner-flow work continues.
 
 When development resumes, continue from the persisted scene contract,
 published-only speech catalog, and shared SVG vignette foundation documented
@@ -32,7 +33,12 @@ The feature is always available to an authenticated learner, including before
 the Diagnostic Assessment. It is optional and does not change assessment
 content, scores, or progression.
 
-- `Start Class` opens Lesson 1.
+- `Start Class` opens the short-class menu.
+- The menu offers exactly `Letters`, `Words`, `Phrases`, `Sentences`, and
+  `Comprehension`. It does not offer a passage class.
+- Choosing a skill currently confirms the selection without starting or
+  changing any persisted session. Future slices may connect each choice to one
+  complete short listening session.
 - `Continue Class` resumes a listening checkpoint.
 - `Listen Again` restarts a completed chapter without clearing heard-story
   history.
@@ -160,6 +166,16 @@ The page must reuse the shared intro composition:
 - Shared buttons and design tokens
 - No recorder and no ASR
 
+The short-class menu is a separate responsive learner page that:
+
+- Keeps the approved Clara runtime visibly present.
+- Reuses the learner background, surfaces, depth, type, and focus tokens.
+- Provides a dashboard-return control.
+- Presents the five skill choices as real buttons with a visible selected
+  state and polite confirmation.
+- Does not create listening checkpoints, academic evidence, or progression
+  changes until a complete session is implemented behind a choice.
+
 Speech starts only after Clara's model is ready.
 
 During a teaching item, the item display supplies the visual interaction:
@@ -242,6 +258,8 @@ Implemented:
 
 - Dashboard card between Games and Achievements
 - Always-available authenticated learner entry
+- Responsive short-class menu with Letters, Words, Phrases, Sentences, and
+  Comprehension choices
 - Lesson 1 learner route
 - Shared intro-stage composition
 - Morning, afternoon, and evening greeting selection
