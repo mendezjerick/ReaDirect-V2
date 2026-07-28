@@ -13,6 +13,7 @@ import {
   GameLobbySkeletonProvider,
   RequireSkeletonGameProfile,
 } from "@readirect/game-lobby";
+import { GameZeroRoutePage } from "@readirect/game-zero";
 import { GameTwoRoutePage } from "@readirect/game-two";
 import { GameOneHostPage } from "../src/features/game-one/GameOneHostPage";
 
@@ -122,6 +123,14 @@ function renderGameRoutes(initialRoute = "/learner/games") {
         <Routes>
           <Route path="/learner/games" element={<GameLobbyPage />} />
           <Route
+            path="/learner/games/game-zero"
+            element={
+              <RequireSkeletonGameProfile>
+                <GameZeroRoutePage />
+              </RequireSkeletonGameProfile>
+            }
+          />
+          <Route
             path="/learner/games/game-one"
             element={
               <RequireSkeletonGameProfile>
@@ -154,7 +163,28 @@ function createUsername(username = "Reader7") {
   fireEvent.click(screen.getByRole("button", { name: "Enter the Lobby" }));
 }
 
-describe("authenticated Game One route flow", () => {
+describe("authenticated game lobby route flow", () => {
+  it("lists Game Zero first and opens its reserved route", async () => {
+    renderGameRoutes();
+    createUsername();
+
+    const gameButtons = await screen.findAllByRole("button", {
+      name: /^Open Game/,
+    });
+    expect(
+      gameButtons.map((button) => button.getAttribute("aria-label")),
+    ).toEqual(["Open Game Zero", "Open Game One", "Open Game Two"]);
+
+    fireEvent.click(gameButtons[0]);
+    expect(
+      await screen.findByRole("heading", { name: "Game Zero" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Back to Lobby" }));
+    expect(
+      await screen.findByRole("heading", { name: "Ready to play?" }),
+    ).toBeInTheDocument();
+  });
+
   it("requires a lobby profile when Game One is opened directly", async () => {
     renderGameRoutes("/learner/games/game-one");
 
@@ -190,6 +220,9 @@ describe("authenticated Game One route flow", () => {
 
     createUsername();
     expect(await screen.findByText(/^Reader7#\d{4}$/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Open Game Zero" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Open Game One" }),
     ).toBeInTheDocument();

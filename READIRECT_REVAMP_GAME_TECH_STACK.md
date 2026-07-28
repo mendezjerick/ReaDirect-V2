@@ -1,8 +1,8 @@
 # ReaDirect Game Technology Stack
 
 This standard narrows the global ReaDirect technology stack for game
-development. It applies to the game lobby, game-one, game-two, contributor
-repositories, game-specific Laravel code, and game-specific tests.
+development. It applies to the game lobby, game-zero, game-one, game-two,
+contributor repositories, game-specific Laravel code, and game-specific tests.
 
 Only technologies named here and in READIRECT_REVAMP_TECH_STACK.md may be used.
 Contributors must not add, replace, or substitute a runtime, engine, framework,
