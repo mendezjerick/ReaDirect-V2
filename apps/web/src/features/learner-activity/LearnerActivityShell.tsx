@@ -9,6 +9,7 @@ import type {
 import { ClaraStage } from "../intro/ClaraStage";
 import { PointerTrail } from "../intro/PointerTrail";
 import { VectorCursor } from "../intro/VectorCursor";
+import { LearnerActivityHomeButton } from "./LearnerActivityHomeButton";
 
 interface LearnerActivityShellProps {
   className?: string;
@@ -65,11 +66,14 @@ export function LearnerActivityShell({
       <PointerTrail />
       <VectorCursor />
       <header className="assessment-header">
-        <div>
+        <LearnerActivityHomeButton />
+        <div className="assessment-header__copy">
           <p>{eyebrow}</p>
           <h1>{title}</h1>
         </div>
-        {headerAside}
+        {headerAside ? (
+          <div className="assessment-header__aside">{headerAside}</div>
+        ) : null}
       </header>
 
       <section className={`assessment-item-panel ${itemPanelClassName}`.trim()}>

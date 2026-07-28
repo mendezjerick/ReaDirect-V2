@@ -725,10 +725,13 @@ Recommended fluid values:
 - Keep text left-aligned unless a short prompt is intentionally centered.
 - Never place important text directly over a detailed illustration.
 - Do not justify passages.
-- Lesson 5's fixed 50-word continuous passage is the only authored-reading
-  fitting exception: measure its real text area and fit Lexend from `16px` to
-  `23px`. Keep its recorder row protected; never flatten the recorder, paginate
-  the passage, or add an internal scrollbar to make the composition fit.
+- Assessment passage reading and Lesson 5's fixed continuous passage use the
+  shared authored-reading fitting exception: measure the real text area after
+  font loading and viewport changes and fit Lexend no lower than `14px`.
+  Recover passage space by scaling the surrounding dock, character, recorder,
+  buttons, gaps, and padding together. Keep the recorder and Retry reserve
+  protected; never paginate the passage or add an internal scrollbar to make
+  the composition fit.
 
 ## Design Tokens
 
@@ -1454,6 +1457,15 @@ The required primary implementation viewport remains `390 x 844`.
 - Keep page gutters between `12px` and `16px`.
 - Reduce decorative frame padding before reducing content padding.
 - Allow header badges to wrap below the title if text becomes crowded.
+- Assessment and lesson headers use a shared three-zone layout: a compact
+  tactile Home control at the far left, a flexible title region, and a
+  content-sized progress region. The Home control uses semantic theme colors,
+  the shared fake-depth language, visible focus, and navigates to
+  `/learner/dashboard` after the standard press commit.
+- Compact-height speech layouts are content-aware. Non-passage prompt panels
+  shrink to the flexible remainder required by their short content, allowing
+  the recorder and Clara dock to grow together. Pages containing the semantic
+  passage component retain the passage-first height allocation.
 - Stack control groups when either column would become narrower than its
   content.
 - Avoid fixed widths copied from desktop mockups.

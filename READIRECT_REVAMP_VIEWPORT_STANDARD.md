@@ -24,8 +24,8 @@ The following viewports must be tested throughout development:
 
 | Viewport | Purpose |
 |---|---|
-| 360 x 800 | Small mobile baseline |
-| 390 x 844 | Primary mobile development viewport |
+| 360 x 740 | Priority mobile development and compact-height baseline |
+| 390 x 844 | Standard mobile development viewport |
 | 412 x 915 | Large mobile viewport |
 | 768 x 1024 | Tablet viewport |
 | 1366 x 768 | Standard desktop viewport |
@@ -34,7 +34,7 @@ The following viewports must be tested throughout development:
 The primary working viewport is:
 
 ```text
-390 x 844
+360 x 740
 ```
 
 ## Simultaneous Viewport Development
@@ -44,7 +44,7 @@ During frontend development, the mobile and desktop views must remain open and v
 Recommended setup:
 
 ```text
-Left window: 390 x 844 mobile viewport
+Left window: 360 x 740 mobile viewport
 Right window: 1366 x 768 desktop viewport
 ```
 
@@ -152,7 +152,14 @@ The character must:
 - Avoid covering lesson controls
 - Avoid being clipped during normal expressions and gestures
 - Remain large enough for the learner to see facial reactions
-- Reposition instead of shrinking excessively
+- Shrink and grow within the assigned container before any edge can clip
+- Use the assigned container's inner height as the character's maximum height
+
+On assessment and lesson action docks, the available character region begins at
+the dock's left inner edge and ends at the button column's left edge. Clara must
+be centered within that region, not offset from the viewport or centered across
+the full dock. The character region, Clara stage, and button column share one
+bounded dock-height budget.
 
 Recommended behavior:
 
@@ -287,7 +294,7 @@ Automated viewport testing must use Playwright.
 Important screens must have reference screenshots for:
 
 ```text
-360 x 800
+360 x 740
 390 x 844
 412 x 915
 768 x 1024
@@ -325,8 +332,8 @@ At minimum, test:
 
 A learner-facing feature is not complete unless:
 
-1. It works correctly at 390 x 844.
-2. It remains usable at 360 x 800.
+1. It works correctly at the priority 360 x 740 viewport.
+2. It remains usable at 390 x 844.
 3. It adapts correctly at 412 x 915.
 4. It remains functional at tablet size.
 5. It remains visually organized at desktop size.

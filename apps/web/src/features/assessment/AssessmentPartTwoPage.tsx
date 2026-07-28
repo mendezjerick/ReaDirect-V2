@@ -22,6 +22,7 @@ import {
 import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPreparation";
 import { ClaraStage } from "../intro/ClaraStage";
 import { LearnerActivityResult } from "../learner-activity/LearnerActivityResult";
+import { LearnerActivityHomeButton } from "../learner-activity/LearnerActivityHomeButton";
 import { PassageReadingResult } from "../learner-activity/PassageReadingResult";
 import { useFittedPassageText } from "../learner-activity/useFittedPassageText";
 import { PointerTrail } from "../intro/PointerTrail";
@@ -693,11 +694,14 @@ export function AssessmentPartTwoPage({
       <PointerTrail />
       <VectorCursor />
       <header className="assessment-header">
-        <div>
+        <LearnerActivityHomeButton />
+        <div className="assessment-header__copy">
           <p>{pageCopy.eyebrow}</p>
           <h1>{pageCopy.title}</h1>
         </div>
-        <ProgressRail state={state} />
+        <div className="assessment-header__aside">
+          <ProgressRail state={state} />
+        </div>
       </header>
 
       <section

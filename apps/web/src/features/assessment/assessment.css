@@ -35,11 +35,11 @@
 .assessment-header {
   position: relative;
   z-index: 3;
-  display: flex;
+  display: grid;
   width: min(100%, 42rem);
   min-height: 3.75rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
   justify-self: center;
   border: 2px solid var(--color-border-warm);
@@ -47,6 +47,14 @@
   padding: 0.42rem 0.72rem;
   background: var(--color-surface-panel);
   box-shadow: 0 4px 0 var(--color-frame-depth);
+}
+
+.assessment-header__copy {
+  min-width: 0;
+}
+
+.assessment-header__aside {
+  min-width: 0;
 }
 
 .assessment-header p,
@@ -65,6 +73,52 @@
   margin-top: 0.08rem;
   font-size: clamp(1.65rem, 7vw, var(--font-panel-title));
   line-height: 0.92;
+}
+
+.assessment-home-button {
+  display: grid;
+  width: clamp(2.35rem, 10vw, 2.75rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  color: var(--color-text-primary);
+  background: var(--color-action-secondary);
+  box-shadow: 0 4px 0 var(--color-border-warm);
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+.assessment-home-button:hover:not(:disabled) {
+  background: var(--color-action-secondary-hover);
+}
+
+.assessment-home-button:active:not(:disabled),
+.assessment-home-button[data-press-state="committing"] {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--color-border-warm);
+}
+
+.assessment-home-button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.assessment-home-button:disabled {
+  cursor: default;
+}
+
+.assessment-home-button svg {
+  width: 58%;
+  height: 58%;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.25;
 }
 
 .assessment-progress {
@@ -419,6 +473,8 @@
 }
 
 .assessment-action-dock {
+  --assessment-clara-max-size: 12.25rem;
+
   position: relative;
   z-index: 3;
   display: grid;
@@ -436,17 +492,24 @@
 }
 
 .assessment-clara {
-  position: absolute;
-  bottom: 0.25rem;
-  left: 0.55rem;
+  position: relative;
   z-index: 1;
-  width: clamp(10.75rem, 50vw, 12.25rem);
-  aspect-ratio: 1;
+  display: grid;
+  width: 100%;
+  height: calc(100% - 0.45rem);
+  min-width: 0;
+  min-height: 0;
+  grid-column: 1;
+  grid-row: 1;
+  place-items: end center;
+  align-self: start;
+  overflow: hidden;
   pointer-events: none;
 }
 
 .assessment-clara .clara-stage {
-  width: 100%;
+  width: min(100%, var(--assessment-clara-max-size));
+  max-height: 100%;
 }
 
 .assessment-action-slot {
@@ -1234,9 +1297,7 @@
   }
 
   .assessment-clara {
-    bottom: 0.15rem;
-    left: 0.35rem;
-    width: clamp(12rem, 60vw, 14.5rem);
+    --assessment-clara-max-size: 14.5rem;
   }
 
   .assessment-action-slot {
@@ -1358,11 +1419,7 @@
   }
 
   .assessment-clara {
-    top: auto;
-    bottom: 0.3rem;
-    left: 0.4rem;
-    width: min(62%, 15rem);
-    transform: none;
+    --assessment-clara-max-size: 15rem;
   }
 
   .assessment-part-two--story-selection .assessment-item-panel,
@@ -1416,11 +1473,7 @@
   }
 
   .assessment-clara {
-    top: auto;
-    bottom: 0.15rem;
-    left: 0.25rem;
-    width: min(58%, 11rem);
-    transform: none;
+    --assessment-clara-max-size: 11rem;
   }
 
   .assessment-recorder__control {
@@ -1438,7 +1491,7 @@
 }
 
 @media (max-width: 22rem) and (orientation: portrait),
-  (max-width: 47.999rem) and (max-height: 46rem) and (orientation: portrait) {
+  (max-width: 47.999rem) and (max-height: 48rem) and (orientation: portrait) {
   .assessment-page.learner-flow-page {
     --font-panel-title: clamp(1.4rem, 6vw, 1.75rem);
     --font-learner-prompt: clamp(1.25rem, 5.5vw, 1.6rem);
@@ -1448,6 +1501,7 @@
     --font-support: clamp(0.75rem, 3.6vw, 0.95rem);
     --assessment-responsive-recorder-size: min(clamp(7rem, 31vw, 8rem), 20svh);
     --assessment-responsive-recorder-reserve: 4rem;
+    --assessment-action-dock-height: clamp(9rem, 23svh, 10.5rem);
 
     gap: clamp(0.25rem, 0.9svh, 0.45rem);
     padding: max(0.4rem, env(safe-area-inset-top))
@@ -1456,12 +1510,51 @@
       max(0.4rem, env(safe-area-inset-left));
   }
 
+  .assessment-page.learner-flow-page:has(
+      .assessment-recorder-panel .assessment-recorder
+    ) {
+    --assessment-responsive-recorder-size: min(clamp(7rem, 31vw, 8rem), 20svh);
+    --assessment-responsive-recorder-reserve: 4rem;
+  }
+
+  /*
+   * Short speech prompts should not inherit the passage-sized content row.
+   * Their unused stage height is reassigned to the recorder and Clara dock.
+   * Passage pages opt out through their semantic content, so this remains
+   * shared across assessment and lesson routes without route-specific sizing.
+   */
+  .assessment-page.learner-flow-page:has(
+      .assessment-recorder-panel .assessment-recorder
+    ):not(:has(.assessment-passage)) {
+    --assessment-responsive-recorder-size: min(
+      clamp(9rem, 42vw, 9.5rem),
+      22svh
+    );
+    --assessment-responsive-recorder-reserve: 4rem;
+    --assessment-action-dock-height: clamp(13.5rem, 35svh, 16.25rem);
+  }
+
   .assessment-page.learner-flow-page .assessment-header {
     width: 100%;
     min-height: clamp(2.65rem, 7.5svh, 3.25rem);
+    gap: clamp(0.32rem, 1.6vw, 0.45rem);
     border-width: 1px;
     padding: 0.28rem 0.5rem;
     box-shadow: 0 3px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page .assessment-home-button {
+    width: clamp(2.1rem, 9.5vw, 2.35rem);
+    border-width: 1px;
+    box-shadow: 0 3px 0 var(--color-border-warm);
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-home-button:active:not(:disabled),
+  .assessment-page.learner-flow-page
+    .assessment-home-button[data-press-state="committing"] {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--color-border-warm);
   }
 
   .assessment-page.learner-flow-page .assessment-header h1 {
@@ -1540,17 +1633,30 @@
 
   .assessment-page.learner-flow-page .assessment-action-dock {
     width: 100%;
-    min-height: clamp(8.25rem, 23svh, 10rem);
+    height: var(--assessment-action-dock-height);
+    min-height: 0;
+    max-height: var(--assessment-action-dock-height);
     grid-template-columns: minmax(0, 1fr) clamp(5.25rem, 24vw, 6.25rem);
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
     border-width: 1px;
     padding: 0.42rem;
     box-shadow: 0 4px 0 var(--color-frame-depth);
   }
 
   .assessment-page.learner-flow-page .assessment-clara {
-    bottom: 0.1rem;
-    left: 0.2rem;
-    width: min(clamp(8.5rem, 46vw, 10.5rem), 21svh);
+    --assessment-clara-max-size: calc(
+      var(--assessment-action-dock-height) - 1rem
+    );
+
+    height: auto;
+    align-self: stretch;
+  }
+
+  .assessment-page.learner-flow-page .assessment-action-slot {
+    height: auto;
+    min-height: 0;
+    align-self: stretch;
   }
 
   .assessment-page.learner-flow-page
@@ -1561,7 +1667,8 @@
   .assessment-page.learner-flow-page
     .assessment-action-slot[data-assessment-action-split]
     .big-button {
-    padding-block: 0.28rem;
+    min-height: 0;
+    padding-block: 0.2rem;
   }
 
   .assessment-page.learner-flow-page .assessment-action-slot .big-button__icon {
