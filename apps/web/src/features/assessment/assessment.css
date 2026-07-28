@@ -163,6 +163,10 @@
   border-radius: var(--radius-panel);
 }
 
+.assessment-interaction-strip {
+  display: contents;
+}
+
 .assessment-item-panel {
   width: min(86%, 30rem);
   min-height: clamp(6.75rem, 15svh, 8rem);
@@ -1687,6 +1691,285 @@
 
   .assessment-page.learner-flow-page .assessment-passage p {
     line-height: 1.35;
+  }
+}
+
+/*
+ * Tablet and desktop learner activities share one compact workspace instead of
+ * four floating cards. The 37.5rem height guard deliberately leaves phone and
+ * short landscape-phone composition to the mobile rules above.
+ */
+@media (min-width: 48rem) and (min-height: 37.5rem) {
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel) {
+    --assessment-large-item-height: clamp(9.5rem, 24svh, 12rem);
+    --assessment-large-dock-height: clamp(18rem, 48svh, 25rem);
+    --assessment-large-center-width: 40%;
+
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows:
+      auto
+      var(--assessment-large-item-height)
+      var(--assessment-large-dock-height);
+    align-content: center;
+    gap: 0;
+    padding: max(0.75rem, env(safe-area-inset-top))
+      max(1.5rem, env(safe-area-inset-right))
+      max(0.75rem, env(safe-area-inset-bottom))
+      max(1.5rem, env(safe-area-inset-left));
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-passage) {
+    --assessment-large-item-height: clamp(12.5rem, 27svh, 16rem);
+    --assessment-large-dock-height: clamp(16rem, 38svh, 19rem);
+  }
+
+  .assessment-page.learner-flow-page.lesson-five-page:has(
+      .assessment-recorder-panel
+    ) {
+    --assessment-large-item-height: clamp(16rem, 38svh, 21rem);
+    --assessment-large-dock-height: clamp(15rem, 34svh, 18rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-header,
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-item-panel,
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-dock {
+    width: min(100%, 70rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-header {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 4rem;
+    border-radius: var(--radius-frame) var(--radius-frame) 0 0;
+    box-shadow: none;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-item-panel:not(.assessment-item-panel--result) {
+    grid-column: 1;
+    grid-row: 2;
+    width: min(100%, 70rem);
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    border: 2px solid var(--color-border-warm);
+    border-top: 0;
+    border-radius: 0;
+    padding: clamp(0.65rem, 1.4svh, 0.9rem) clamp(1rem, 2.5vw, 1.75rem);
+    box-shadow: none;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-dock {
+    --assessment-clara-max-size: calc(
+      var(--assessment-large-dock-height) - 1rem
+    );
+
+    grid-column: 1;
+    grid-row: 3;
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    grid-template-columns:
+      minmax(0, 7fr)
+      minmax(16rem, 8fr)
+      minmax(9rem, 5fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    overflow: hidden;
+    border: 2px solid var(--color-border-warm);
+    border-top: 0;
+    border-radius: 0 0 var(--radius-frame) var(--radius-frame);
+    padding: 0;
+    background: var(--color-surface-panel);
+    box-shadow: 0 6px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-clara {
+    --assessment-clara-max-size: calc(
+      var(--assessment-large-dock-height) - 1rem
+    );
+
+    grid-column: 1;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    border-right: 2px solid var(--color-border-warm);
+    padding: 0.5rem 0.5rem 0;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-clara
+    .clara-stage {
+    width: min(100%, var(--assessment-clara-max-size), 22rem);
+    max-height: 100%;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-recorder-panel {
+    z-index: 4;
+    grid-column: 1;
+    grid-row: 3;
+    width: min(var(--assessment-large-center-width), 28rem);
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    justify-self: start;
+    margin-left: 35%;
+    border: 0;
+    border-right: 2px solid var(--color-border-warm);
+    border-left: 2px solid var(--color-border-warm);
+    border-radius: 0;
+    padding: clamp(0.55rem, 1.2svh, 0.8rem);
+    background: var(--color-activity-frame);
+    box-shadow: none;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-slot {
+    grid-column: 3;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    padding: clamp(0.55rem, 1.2svh, 0.8rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-recorder__control {
+    width: min(29svh, 14rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-passage)
+    .assessment-recorder__control {
+    width: min(21svh, 10rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-passage)
+    .assessment-passage {
+    width: min(100%, 50rem);
+  }
+
+  .assessment-page.learner-flow-page.lesson-five-page .lesson-five-passage {
+    width: min(100%, 44rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-passage)
+    .assessment-passage
+    p {
+    font-size: clamp(1rem, 1.75vw, 1.35rem);
+  }
+}
+
+/*
+ * The large-screen interaction row uses real sibling slices. This prevents the
+ * recorder surface from overlapping Clara's grid area and gives every region
+ * the same framed-card language as the rest of the learner flow.
+ */
+@media (min-width: 48rem) and (min-height: 37.5rem) {
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel) {
+    --assessment-large-panel-gap: clamp(0.65rem, 1.5svh, 0.9rem);
+    --assessment-large-slice-gap: clamp(0.65rem, 1.2vw, 0.9rem);
+
+    gap: var(--assessment-large-panel-gap);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-header,
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-item-panel,
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-interaction-strip {
+    width: min(100%, 70rem);
+    justify-self: center;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-header {
+    border-radius: var(--radius-panel);
+    box-shadow: 0 4px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-item-panel:not(.assessment-item-panel--result) {
+    border: 2px solid var(--color-border-soft);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 6px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-interaction-strip {
+    grid-column: 1;
+    grid-row: 3;
+    display: grid;
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    grid-template-columns:
+      minmax(0, 7fr)
+      minmax(16rem, 8fr)
+      minmax(9rem, 5fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: var(--assessment-large-slice-gap);
+    align-items: stretch;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-dock {
+    display: contents;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-clara {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    overflow: hidden;
+    border: 2px solid var(--color-border-warm);
+    border-radius: var(--radius-frame);
+    padding: 0.5rem 0.5rem 0;
+    background: var(--color-surface-panel);
+    box-shadow: 0 6px 0 var(--color-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-recorder-panel {
+    z-index: 2;
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    justify-self: stretch;
+    margin-left: 0;
+    border: 3px solid var(--color-border-warm);
+    border-radius: var(--radius-frame);
+    padding: clamp(0.55rem, 1.2svh, 0.8rem);
+    background: var(--color-activity-frame);
+    box-shadow: 0 7px 0 var(--color-activity-frame-depth);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-slot {
+    grid-column: 3;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    overflow: hidden;
+    border: 2px solid var(--color-border-warm);
+    border-radius: var(--radius-frame);
+    padding: clamp(0.55rem, 1.2svh, 0.8rem);
+    background: var(--color-surface-panel);
+    box-shadow: 0 6px 0 var(--color-frame-depth);
   }
 }
 

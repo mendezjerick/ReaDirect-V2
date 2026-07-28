@@ -297,6 +297,21 @@ Lesson use the same primary component and geometry. Continue Lesson resumes the
 latest persisted save state belonging to the authenticated learner or verified
 guest rather than restarting the lesson.
 
+At tablet and desktop dimensions of at least `768px` wide and `600px` tall,
+the primary action expands into its available grid row and receives a modestly
+wider action column. This large-screen enhancement must not alter the phone
+button geometry, including short landscape-phone viewports.
+
+Lesson and assessment activity shells use the same large-screen guard. Their
+header and displayed item span one shared outer width as separate framed cards,
+followed by a sliced lower row with Clara on the left, the protected recorder
+and Retry card in the center, and learner actions on the right. The three lower
+cards are real non-overlapping grid siblings separated by a small background
+gap; each keeps the approved rounded border, surface, and fake depth. Short
+prompts keep a snug content row; passage content receives its own non-scrolling
+height allocation. These rules are shared by assessment and lesson routes and
+do not change phone composition.
+
 The Games action is clearly visible but smaller and visually secondary. It must
 not appear before, overlap, or compete with the required learning action.
 
@@ -314,9 +329,12 @@ Reading Journey tiles must use the shared permanent pixel-icon mapping. Icons
 render in a theme-variable fake-depth frame, retain crisp nearest-neighbor
 pixels, use a muted grayscale treatment while locked, and show their full
 artwork when earned. Unicode stars, emoji, and repeated placeholder artwork are
-not permitted. The dashboard holder uses a fixed four-by-two recessed black
-badge case; selecting one badge reveals its name, criterion, and earned state
-in the compact detail strip below the grid.
+not permitted. The dashboard holder uses a recessed black badge case. Phones
+retain the fixed four-by-two grid. Tablet and desktop viewports with at least
+`768px` width and `600px` height use one snug eight-by-one row; the height guard
+keeps short landscape-phone viewports on the phone grid. Selecting one badge
+reveals its name, criterion, and earned state in the compact detail strip below
+the grid.
 
 ## Professional Staff Workspace
 

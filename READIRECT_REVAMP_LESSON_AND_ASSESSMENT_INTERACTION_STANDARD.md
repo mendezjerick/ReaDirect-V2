@@ -243,24 +243,50 @@ Mobile rules:
   container is the explicit exception because its full authored text owns the
   flexible content row.
 
-### Desktop composition
+### Tablet and desktop composition
 
 ```text
-┌──────────────────┬─────────────────────────────────────┐
-│                  │ Exit        Progress                │
-│                  ├─────────────────────────────────────┤
-│                  │                                     │
-│      Clara       │          DISPLAYED ITEM             │
-│                  │                                     │
-│                  ├─────────────────────────────────────┤
-│                  │       ◯                             │
-│                  │  RECORD / PLAY       Submit   Skip  │
-└──────────────────┴─────────────────────────────────────┘
++---------------------------------------------------------+
+| Home  Lesson or assessment                     Progress |
++---------------------------------------------------------+
+|                                                         |
+|                    DISPLAYED ITEM                       |
+|                                                         |
++---------------------------------------------------------+
+
++------------------+  +--------------------+  +-----------+
+|                  |  |                    |  |           |
+|      Clara       |  |  RECORD / PLAY     |  |  Submit   |
+|                  |  |      Retry         |  |   Skip    |
+|                  |  |                    |  |           |
++------------------+  +--------------------+  +-----------+
 ```
 
-Desktop may give Clara a dedicated left region. The recorder remains centered
-within the learner's activity region rather than centered across the entire
-browser width.
+At viewports of at least `768px` wide and `600px` tall, tablet and desktop use
+the same sliced activity workspace. The header and displayed-item region share
+one outer width but remain separate ReaDirect cards. The lower interaction row
+uses three real sibling cards with a small, consistent background gap between
+them. Every card retains the approved border, corner radius, surface color, and
+fake depth instead of relying on one overlapping panel to imitate dividers.
+
+The lower strip assigns Clara the left region, the recorder and Retry review
+slot the center region, and Submit plus Skip or Next the right region. Clara
+scales from both the left-region width and the strip's inner height, with a
+calibrated large-desktop ceiling that preserves her approved Live2D passport
+crop on tall monitors. Her stage is centered from the actual left-card edges.
+The recorder remains centered inside its protected middle card, so Retry can
+appear without clipping, covering Clara's card, or blocking the recorder.
+
+Short letters, words, phrases, and sentences use a content-sized displayed-item
+row and return the remaining scale to Clara and the recorder. Passage pages are
+the semantic exception: their displayed-item row receives the space required
+to keep the complete authored passage visible without scrolling. Lesson 5 may
+use a slightly taller passage allocation because its reading card includes an
+instruction line and an inner passage frame.
+
+This large-screen composition is progressive enhancement only. Phone
+composition, including short landscape-phone viewports, remains governed by
+the mobile rules.
 
 ## Text As The Interactive Material
 

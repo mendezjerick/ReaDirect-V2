@@ -56,6 +56,16 @@ The default CSS must target mobile devices.
 
 Desktop and tablet layouts must be added through progressive enhancement using responsive breakpoints.
 
+Learner Dashboard achievement enhancement:
+
+- Phone layouts retain the four-by-two achievement grid.
+- Tablet, iPad, and desktop layouts use a single eight-by-one achievement row.
+- Apply that row only when the viewport is at least `768px` wide and `600px`
+  tall so short landscape-phone viewports are not changed.
+- Under the same tablet/desktop guard, the primary learning action may fill a
+  taller and slightly wider grid region. Phone primary-action dimensions remain
+  unchanged.
+
 Required approach:
 
 ```css
@@ -173,6 +183,27 @@ Character and activity may share a wider layout
 Desktop:
 Character and activity may use a side-by-side layout
 ```
+
+For learner lesson and assessment activity pages, tablet and desktop viewports
+of at least `768px` wide and `600px` tall use the same unified rectangular
+workspace:
+
+```text
+header
+displayed item
+Clara | recorder and Retry | actions
+```
+
+The header and displayed item remain separate full-width ReaDirect cards. The
+lower row uses three non-overlapping sibling cards with a small consistent gap:
+Clara, recorder and Retry, then actions. Each card owns its border, radius,
+surface, and fake depth. Short item rows remain content-sized so Clara and the
+recorder can grow into the available lower row. Clara is centered from her
+card's real edges and stops at the calibrated large-desktop crop ceiling before
+a tall monitor can enlarge her Live2D stage past its safe framing. A semantic
+passage is the exception and receives the height needed to keep its complete
+authored text visible without scrolling. The height guard keeps this
+enhancement from changing phone and short landscape-phone layouts.
 
 ## Background and Media Rules
 

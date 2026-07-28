@@ -731,90 +731,92 @@ export function AssessmentPartTwoPage({
         </section>
       </section>
 
-      {isPassage || isComprehension ? (
-        <section
-          className="assessment-recorder-panel"
-          aria-label={isPassage ? "Voice recorder" : "Answer choices"}
-        >
-          {isPassage ? (
-            <AssessmentRecorder
-              recorder={recorder}
-              unavailable={unavailable}
-              submitAvailableAfterCapture
-              onAudioAction={() => playbackRef.current?.stop()}
-            />
-          ) : state.item?.kind === "comprehension" ? (
-            <ComprehensionChoiceGrid
-              choices={state.item.choices}
-              selectedChoice={selectedChoice}
-              unavailable={unavailable}
-              onSelect={(choice) =>
-                setSelectedChoice(choice as ComprehensionChoice)
-              }
-            />
-          ) : null}
-        </section>
-      ) : null}
-
-      <footer className="assessment-action-dock">
-        <div className="assessment-clara">
-          <ClaraStage
-            emotion={emotion}
-            speaking={guideState === "speaking"}
-            speechLevel={speechLevel}
-            onLoadStateChange={(loadState) =>
-              setClaraReady(loadState === "ready")
-            }
-          />
-        </div>
-        <div
-          className="assessment-action-slot"
-          data-assessment-action-split={canSkip || undefined}
-        >
-          <motion.div
-            className="assessment-action-primary"
-            layout={!reduceMotion}
+      <section className="assessment-interaction-strip">
+        {isPassage || isComprehension ? (
+          <section
+            className="assessment-recorder-panel"
+            aria-label={isPassage ? "Voice recorder" : "Answer choices"}
           >
-            <BigButton
-              variant={
-                canSubmit && !unavailable
-                  ? "primary-vertical"
-                  : "unavailable-vertical"
+            {isPassage ? (
+              <AssessmentRecorder
+                recorder={recorder}
+                unavailable={unavailable}
+                submitAvailableAfterCapture
+                onAudioAction={() => playbackRef.current?.stop()}
+              />
+            ) : state.item?.kind === "comprehension" ? (
+              <ComprehensionChoiceGrid
+                choices={state.item.choices}
+                selectedChoice={selectedChoice}
+                unavailable={unavailable}
+                onSelect={(choice) =>
+                  setSelectedChoice(choice as ComprehensionChoice)
+                }
+              />
+            ) : null}
+          </section>
+        ) : null}
+
+        <footer className="assessment-action-dock">
+          <div className="assessment-clara">
+            <ClaraStage
+              emotion={emotion}
+              speaking={guideState === "speaking"}
+              speechLevel={speechLevel}
+              onLoadStateChange={(loadState) =>
+                setClaraReady(loadState === "ready")
               }
-              leadingIcon={
-                <AssessmentDockActionIcon
-                  kind={isResult || isCompletion ? "next" : "submit"}
-                />
-              }
-              disabled={!canSubmit || unavailable}
-              busy={saveAction !== null && saveAction !== "skip"}
-              busyLabel={isCompletion ? "Finishing" : "Saving"}
-              committing={submitCommit.committing}
-              onClick={() => submitCommit.commit(submitCurrent)}
+            />
+          </div>
+          <div
+            className="assessment-action-slot"
+            data-assessment-action-split={canSkip || undefined}
+          >
+            <motion.div
+              className="assessment-action-primary"
+              layout={!reduceMotion}
             >
-              {isPassageResult
-                ? "Next"
-                : isPartTwoResult
-                  ? "Continue"
-                  : isCompletion
-                    ? "My reading path"
-                    : "Submit"}
-            </BigButton>
-          </motion.div>
-          {canSkip ? (
-            <BigButton
-              variant="skip-vertical"
-              disabled={skipUnavailable}
-              busy={saveAction === "skip"}
-              busyLabel="Skipping"
-              committing={skipCommit.committing}
-              onClick={() => skipCommit.commit(skipCurrent)}
-            >
-              Skip
-            </BigButton>
-          ) : null}
-        </div>
-      </footer>
+              <BigButton
+                variant={
+                  canSubmit && !unavailable
+                    ? "primary-vertical"
+                    : "unavailable-vertical"
+                }
+                leadingIcon={
+                  <AssessmentDockActionIcon
+                    kind={isResult || isCompletion ? "next" : "submit"}
+                  />
+                }
+                disabled={!canSubmit || unavailable}
+                busy={saveAction !== null && saveAction !== "skip"}
+                busyLabel={isCompletion ? "Finishing" : "Saving"}
+                committing={submitCommit.committing}
+                onClick={() => submitCommit.commit(submitCurrent)}
+              >
+                {isPassageResult
+                  ? "Next"
+                  : isPartTwoResult
+                    ? "Continue"
+                    : isCompletion
+                      ? "My reading path"
+                      : "Submit"}
+              </BigButton>
+            </motion.div>
+            {canSkip ? (
+              <BigButton
+                variant="skip-vertical"
+                disabled={skipUnavailable}
+                busy={saveAction === "skip"}
+                busyLabel="Skipping"
+                committing={skipCommit.committing}
+                onClick={() => skipCommit.commit(skipCurrent)}
+              >
+                Skip
+              </BigButton>
+            ) : null}
+          </div>
+        </footer>
+      </section>
 
       {activityPreparation.status === "error" ? (
         <div className="assessment-save-error" role="alert">
