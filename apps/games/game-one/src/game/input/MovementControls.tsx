@@ -76,7 +76,7 @@ export function MovementControls({
         disabled={disabled}
         onClick={() => setSettingsOpen((open) => !open)}
       >
-        <span aria-hidden="true">⚙</span>
+        <span className="movement-settings-icon" aria-hidden="true" />
       </button>
       {settingsOpen && (
         <div id="movement-control-menu" className="movement-control-menu" role="group" aria-label={copy.movementControlType}>
@@ -172,7 +172,7 @@ function DirectionalPad({
   };
 
   const activeDirections = new Set([...keyboardDirections, ...pointerDirections]);
-  const button = (direction: Direction, label: string, symbol: string) => (
+  const button = (direction: Direction, label: string) => (
     <button
       type="button"
       aria-label={label}
@@ -187,20 +187,23 @@ function DirectionalPad({
       onPointerLeave={(event) => releasePointer(event.pointerId)}
       onContextMenu={(event) => event.preventDefault()}
     >
-      <span aria-hidden="true">{symbol}</span>
+      <span
+        aria-hidden="true"
+        className={`movement-direction-icon movement-direction-icon--${direction}`}
+      />
     </button>
   );
 
   return (
     <div className="movement-dpad" data-control-mode="dpad">
       <span aria-hidden="true" />
-      {button("up", copy.moveUp, "▲")}
+      {button("up", copy.moveUp)}
       <span aria-hidden="true" />
-      {button("left", copy.moveLeft, "◀")}
+      {button("left", copy.moveLeft)}
       <div aria-hidden="true" className="movement-dpad-center">+</div>
-      {button("right", copy.moveRight, "▶")}
+      {button("right", copy.moveRight)}
       <span aria-hidden="true" />
-      {button("down", copy.moveDown, "▼")}
+      {button("down", copy.moveDown)}
       <span aria-hidden="true" />
     </div>
   );

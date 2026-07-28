@@ -88,6 +88,44 @@ describe("focused tutorial overlay", () => {
     expect(tutorialTarget("answerLater", false)).toContain(".activity-intro-panel");
   });
 
+  it("retargets Answer Later to its confirmation button", () => {
+    expect(tutorialTarget("answerLater", false)).toContain('[data-tutorial="save-for-later"]');
+  });
+
+  it("targets Continue to Questions after the mission choice is correct", () => {
+    expect(tutorialTarget("continueQuestions", false)).toBe('[data-tutorial="continue-questions"]');
+  });
+
+  it("keeps the final Start Adventure panel centered without targeting itself", () => {
+    render(<TutorialOverlay {...props(tutorialState("ready"))} />);
+    expect(document.querySelector(".tutorial-narrator")).toHaveClass("is-ready");
+    expect(document.querySelector(".tutorial-spotlight")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Start Adventure/i })).toBeVisible();
+  });
+
+  it("places choice help outside the full activity panel", async () => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 1920 });
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      if (this.classList.contains("answer-choice")) return new DOMRect(330, 390, 620, 82);
+      if (this.getAttribute("role") === "dialog") return new DOMRect(320, 150, 1280, 690);
+      return new DOMRect(0, 0, 0, 0);
+    });
+
+    render(
+      <div className="mission-overlay">
+        <section role="dialog">
+          <button className="answer-choice">Choice A</button>
+        </section>
+        <TutorialOverlay {...props(tutorialState("choice"))} />
+      </div>
+    );
+
+    await waitFor(() => expect(document.querySelector(".tutorial-narrator")).toHaveClass("is-side", "is-right"));
+    const narrator = document.querySelector<HTMLElement>(".tutorial-narrator");
+    expect(Number.parseFloat(narrator?.style.left ?? "0")).toBeGreaterThanOrEqual(1612);
+  });
+
   it("advances the focused navigation lessons and keeps them skippable", async () => {
     const user = userEvent.setup();
     const onAdvance = vi.fn();

@@ -176,7 +176,8 @@ function createWebAudioBackend(): AudioBackend {
   let effects: GainNode | null = null;
   let ambienceGain: GainNode | null = null;
   let musicGain: GainNode | null = null;
-  let ambienceOscillator: OscillatorNode | null = null;
+  let ambienceSource: AudioBufferSourceNode | null = null;
+  let ambienceBuffer: AudioBuffer | null = null;
   let currentAmbience: SoundDefinition | null = null;
   let currentMusic: MusicDefinition | null = null;
   let musicTimer: number | null = null;
@@ -202,6 +203,19 @@ function createWebAudioBackend(): AudioBackend {
     applyChannelVolumes();
     return context;
   };
+  const getAmbienceBuffer = (audio: AudioContext) => {
+    if (ambienceBuffer) return ambienceBuffer;
+    const buffer = audio.createBuffer(1, audio.sampleRate * 3, audio.sampleRate);
+    const samples = buffer.getChannelData(0);
+    let smoothed = 0;
+    for (let index = 0; index < samples.length; index += 1) {
+      const whiteNoise = Math.random() * 2 - 1;
+      smoothed += (whiteNoise - smoothed) * 0.08;
+      samples[index] = smoothed * 0.65;
+    }
+    ambienceBuffer = buffer;
+    return buffer;
+  };
   const applyMaster = () => {
     if (!context || !master) return;
     const level = paused ? 0 : masterVolume * (ducked ? 0.28 : 1);
@@ -226,15 +240,15 @@ function createWebAudioBackend(): AudioBackend {
     if (!frequency) return;
     const oscillator = context.createOscillator();
     const envelope = context.createGain();
-    oscillator.type = "triangle";
+    oscillator.type = "sine";
     oscillator.frequency.setValueAtTime(frequency, context.currentTime);
     envelope.gain.setValueAtTime(0.0001, context.currentTime);
-    envelope.gain.exponentialRampToValueAtTime(currentMusic.baseVolume, context.currentTime + 0.04);
-    envelope.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.42);
+    envelope.gain.exponentialRampToValueAtTime(currentMusic.baseVolume * 0.75, context.currentTime + 0.08);
+    envelope.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.48);
     oscillator.connect(envelope);
     envelope.connect(musicGain);
     oscillator.start();
-    oscillator.stop(context.currentTime + 0.44);
+    oscillator.stop(context.currentTime + 0.5);
   };
   const startMusicLoop = () => {
     stopMusicLoop();
@@ -263,21 +277,26 @@ function createWebAudioBackend(): AudioBackend {
       const audio = ensure();
       if (!ambienceGain) return;
       currentAmbience = definition;
-      const old = ambienceOscillator;
+      const old = ambienceSource;
       if (old) {
         ambienceGain.gain.linearRampToValueAtTime(0, audio.currentTime + 0.35);
         old.stop(audio.currentTime + 0.36);
-        ambienceOscillator = null;
+        ambienceSource = null;
       }
       if (!definition) return;
-      const oscillator = audio.createOscillator();
-      oscillator.type = "sine";
-      oscillator.frequency.value = definition.frequency;
+      const source = audio.createBufferSource();
+      const filter = audio.createBiquadFilter();
+      source.buffer = getAmbienceBuffer(audio);
+      source.loop = true;
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(definition.id === "ambience-water" ? 1100 : 720, audio.currentTime);
+      filter.Q.setValueAtTime(0.35, audio.currentTime);
       ambienceGain.gain.setValueAtTime(0, audio.currentTime + 0.36);
       ambienceGain.gain.linearRampToValueAtTime(definition.baseVolume * sfxVolume, audio.currentTime + definition.fadeMs / 1000 + 0.36);
-      oscillator.connect(ambienceGain);
-      oscillator.start(audio.currentTime + 0.36);
-      ambienceOscillator = oscillator;
+      source.connect(filter);
+      filter.connect(ambienceGain);
+      source.start(audio.currentTime + 0.36);
+      ambienceSource = source;
     },
     music(definition) {
       ensure();
@@ -298,8 +317,9 @@ function createWebAudioBackend(): AudioBackend {
     },
     stopAll() {
       stopMusicLoop();
-      ambienceOscillator?.stop();
-      ambienceOscillator = null;
+      ambienceSource?.stop();
+      ambienceSource = null;
+      ambienceBuffer = null;
       void context?.close().catch(() => undefined);
       context = null;
     }

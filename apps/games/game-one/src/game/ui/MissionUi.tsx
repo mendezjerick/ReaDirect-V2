@@ -225,7 +225,7 @@ export function MissionActionOverlay({ state, dispatch }: { state: MissionState;
         </div>
         <footer className="question-footer">
           <button type="button" onClick={() => dispatch({ type: "REQUEST_HELP" })} className="question-secondary">{copy.help}</button>
-          {isCorrect && <button type="button" onClick={() => dispatch({ type: "CONTINUE_AFTER_ACTION" })} className="story-primary">{copy.continueQuestions}</button>}
+          {isCorrect && <button type="button" data-tutorial="continue-questions" onClick={() => dispatch({ type: "CONTINUE_AFTER_ACTION" })} className="story-primary">{copy.continueQuestions}</button>}
         </footer>
       </section>
     </div>
@@ -353,7 +353,7 @@ export function DeferredQuestionOverlay({ state, dispatch }: { state: MissionSta
         <p>{copy.deferHelp}</p>
         <div className="completion-actions">
           <button type="button" onClick={() => dispatch({ type: "CANCEL_ANSWER_LATER" })} className="question-secondary">{copy.keepAnswering}</button>
-          <button type="button" autoFocus onClick={() => dispatch({ type: "CONFIRM_ANSWER_LATER" })} className="story-primary">{copy.saveLater}</button>
+          <button type="button" autoFocus data-tutorial="save-for-later" onClick={() => dispatch({ type: "CONFIRM_ANSWER_LATER" })} className="story-primary">{copy.saveLater}</button>
         </div>
       </section>
     </div>
@@ -601,7 +601,7 @@ function ReadingHearts({ hearts, language }: { hearts: number; language: Mission
   return (
     <div className="reading-hearts" role="img" aria-label={`${hearts} ${copy.heartsRemaining}`} title={copy.readingHearts}>
       {Array.from({ length: READING_HEARTS_TOTAL }, (_, index) => (
-        <span key={index} className={`reading-heart ${index < hearts ? "is-full" : "is-empty"}`} aria-hidden="true">♥</span>
+        <span key={index} className={`reading-heart ${index < hearts ? "is-full" : "is-empty"}`} aria-hidden="true">{"\u2665"}</span>
       ))}
     </div>
   );
