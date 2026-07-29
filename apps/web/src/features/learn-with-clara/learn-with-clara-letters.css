@@ -450,8 +450,7 @@
   stroke-width: 3;
 }
 
-.parade-story__station-label,
-.parade-story__name-label {
+.parade-story__station-label {
   fill: var(--color-text-secondary);
   font-family: var(--font-display-family);
   font-weight: 700;
@@ -486,24 +485,6 @@
   stroke: var(--color-success);
   stroke-dasharray: 8 8;
   stroke-width: 7;
-}
-
-.parade-story__name-badge {
-  fill: var(--color-action-primary);
-  stroke: var(--color-action-primary-depth);
-  stroke-width: 4;
-}
-
-.parade-story__name-label {
-  fill: var(--color-text-on-action);
-  font-size: 10px;
-}
-
-.parade-story__name-value {
-  fill: var(--color-text-on-action);
-  font-family: var(--font-reading-family);
-  font-size: 21px;
-  font-weight: 800;
 }
 
 .parade-story__arch {

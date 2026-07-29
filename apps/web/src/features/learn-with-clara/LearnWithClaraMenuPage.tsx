@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 import { Surface } from "../../components/ui/Surface";
 import { unlockClaraAudio } from "../clara-audio/claraSpeech";
-import { ClaraStage } from "../intro/ClaraStage";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import "./learn-with-clara-menu.css";
 
@@ -147,69 +146,49 @@ export function LearnWithClaraMenuPage() {
           </span>
         </Surface>
 
-        <div className="clara-menu__content">
-          <Surface className="clara-menu__guide" kind="frame" padding="none">
-            <div className="clara-menu__clara-wrap">
-              <ClaraStage emotion="happy" behavior="encouraging" />
+        <Surface className="clara-menu__lessons" kind="panel" padding="compact">
+          <div className="clara-menu__lesson-heading">
+            <div>
+              <p className="clara-menu__eyebrow">Choose your lesson</p>
+              <h2>Pick a reading skill</h2>
             </div>
-            <div className="clara-menu__welcome">
-              <p className="clara-menu__eyebrow">A short class, just for you</p>
-              <h2>Let&apos;s learn together!</h2>
-              <p>
-                Choose one reading skill. Ma&apos;am Clara will stay with you
-                from start to finish.
-              </p>
-            </div>
-          </Surface>
+            <span>5 choices</span>
+          </div>
 
-          <Surface
-            className="clara-menu__lessons"
-            kind="panel"
-            padding="compact"
+          <div
+            className="clara-menu__topic-grid"
+            role="group"
+            aria-label="Reading skills"
           >
-            <div className="clara-menu__lesson-heading">
-              <div>
-                <p className="clara-menu__eyebrow">Choose your lesson</p>
-                <h2>Pick a reading skill</h2>
-              </div>
-              <span>5 choices</span>
-            </div>
+            {claraTopics.map((topic) => (
+              <button
+                key={topic.key}
+                className="clara-menu__topic"
+                type="button"
+                aria-pressed={selectedTopic === topic.key}
+                data-selected={selectedTopic === topic.key ? "" : undefined}
+                onClick={() => chooseTopic(topic.key)}
+              >
+                <span className="clara-menu__topic-icon">
+                  <TopicIcon topic={topic.key} />
+                </span>
+                <span className="clara-menu__topic-copy">
+                  <strong>{topic.label}</strong>
+                  <span>{topic.description}</span>
+                </span>
+                <span className="clara-menu__topic-arrow" aria-hidden="true">
+                  →
+                </span>
+              </button>
+            ))}
+          </div>
 
-            <div
-              className="clara-menu__topic-grid"
-              role="group"
-              aria-label="Reading skills"
-            >
-              {claraTopics.map((topic) => (
-                <button
-                  key={topic.key}
-                  className="clara-menu__topic"
-                  type="button"
-                  aria-pressed={selectedTopic === topic.key}
-                  data-selected={selectedTopic === topic.key ? "" : undefined}
-                  onClick={() => chooseTopic(topic.key)}
-                >
-                  <span className="clara-menu__topic-icon">
-                    <TopicIcon topic={topic.key} />
-                  </span>
-                  <span className="clara-menu__topic-copy">
-                    <strong>{topic.label}</strong>
-                    <span>{topic.description}</span>
-                  </span>
-                  <span className="clara-menu__topic-arrow" aria-hidden="true">
-                    →
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <p className="clara-menu__status" aria-live="polite">
-              {selectedTopicLabel
-                ? `${selectedTopicLabel} is ready for your class with Ma'am Clara.`
-                : "Choose a lesson for your short class with Ma'am Clara."}
-            </p>
-          </Surface>
-        </div>
+          <p className="clara-menu__status" aria-live="polite">
+            {selectedTopicLabel
+              ? `${selectedTopicLabel} is ready for your class with Ma'am Clara.`
+              : "Choose a lesson for your short class with Ma'am Clara."}
+          </p>
+        </Surface>
       </div>
     </main>
   );

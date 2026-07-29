@@ -4,10 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LearnWithClaraMenuPage } from "../src/features/learn-with-clara/LearnWithClaraMenuPage";
 
-vi.mock("../src/features/intro/ClaraStage", () => ({
-  ClaraStage: () => <figure aria-label="Ma'am Clara" />,
-}));
-
 const claraAudioMocks = vi.hoisted(() => ({
   unlock: vi.fn(),
 }));
@@ -73,7 +69,7 @@ describe("LearnWithClaraMenuPage", () => {
     expect(
       screen.getByRole("heading", { name: "What should we practice?" }),
     ).toBeVisible();
-    expect(screen.getByLabelText("Ma'am Clara")).toBeVisible();
+    expect(screen.queryByLabelText("Ma'am Clara")).not.toBeInTheDocument();
 
     const choices = screen.getByRole("group", {
       name: "Reading skills",
