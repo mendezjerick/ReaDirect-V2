@@ -44,6 +44,11 @@ There is no passage choice. Only `Letters` currently opens a class. The
 remaining choices must not create checkpoints until their complete sessions
 are implemented.
 
+The menu is a direct selection surface and must not mount `ClaraStage`, play
+Clara speech, or show a separate Clara welcome panel. Clara loads only after
+the learner enters an implemented class, preventing the Live2D model from
+loading once for selection and immediately again for the lesson.
+
 ## The Little-Letter Parade
 
 The Letters choice opens:
@@ -61,11 +66,11 @@ gust scatters their lowercase partners. Clara and the learner visit five
 animated parade stops to reunite each pair:
 
 ```text
-Apple Arch    -> A a -> ay
-Balloon Float -> B b -> bee
-Curved Banner -> C c -> see
-Drum Cart     -> D d -> dee
-Final Wagon   -> E e -> ee
+Apple Arch    -> A a
+Balloon Float -> B b
+Curved Banner -> C c
+Drum Cart     -> D d
+Final Wagon   -> E e
 ```
 
 Each stop follows this learner-controlled rhythm:
@@ -124,8 +129,8 @@ found pairs, and a confetti finale. Clara's expression changes across story,
 search, demonstration, and celebration states.
 
 The uppercase and lowercase forms remain visually dominant during each
-teaching beat. The pronunciation badge appears when Clara models the shared
-letter name.
+teaching beat. Clara models the shared letter name through speech; the story
+canvas must not repeat it in a separate pronunciation badge.
 
 Reduced-motion mode shows the final static composition of each scene without
 depending on movement for meaning.
@@ -196,6 +201,9 @@ The letter name is {spoken form}. Listen: {spoken form}. Now you try.
 
 Browser code requests stable speech keys only. It does not submit synthesis
 text or storage paths.
+
+The parade opening and all five find prompts use the same `question` reference
+profile so the story keeps one consistent Clara voice and delivery.
 
 ## Server Checkpoint Contract
 

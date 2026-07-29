@@ -418,38 +418,6 @@ function ActiveLetterScene({
         </motion.text>
       )}
 
-      {teaching ? (
-        <motion.g
-          initial={reduceMotion ? false : { scale: 0 }}
-          animate={{ scale: 1 }}
-        >
-          <rect
-            className="parade-story__name-badge"
-            x="274"
-            y="240"
-            width="145"
-            height="48"
-            rx="20"
-          />
-          <text
-            className="parade-story__name-label"
-            x="346"
-            y="260"
-            textAnchor="middle"
-          >
-            LETTER NAME
-          </text>
-          <text
-            className="parade-story__name-value"
-            x="346"
-            y="280"
-            textAnchor="middle"
-          >
-            {scene.pronunciation}
-          </text>
-        </motion.g>
-      ) : null}
-
       <StationProp letter={capital} />
     </motion.g>
   );

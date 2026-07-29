@@ -227,7 +227,8 @@ describe("LearnWithClaraLettersPage", () => {
       { timeout: 1_500 },
     );
     expect(await screen.findByText("A found its partner")).toBeVisible();
-    expect(screen.getByText("ay")).toBeVisible();
+    expect(screen.queryByText("LETTER NAME")).not.toBeInTheDocument();
+    expect(screen.queryByText("ay")).not.toBeInTheDocument();
     expect(await screen.findByText("Your turn. Say A out loud.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Next Stop" })).toBeVisible();
     expect(
