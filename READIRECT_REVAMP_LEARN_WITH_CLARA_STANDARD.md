@@ -202,8 +202,9 @@ The letter name is {spoken form}. Listen: {spoken form}. Now you try.
 Browser code requests stable speech keys only. It does not submit synthesis
 text or storage paths.
 
-The parade opening and all five find prompts use the same `question` reference
-profile so the story keeps one consistent Clara voice and delivery.
+The parade opening uses the `instruction` reference profile so its teaching
+voice matches the letter demonstrations. The five find prompts use the
+`question` reference profile for their interactive questions.
 
 ## Server Checkpoint Contract
 

@@ -361,7 +361,7 @@ foreach ($lessonSixItems as $slug => $lines) {
 $learnWithClaraLettersLines = [
     'learn-with-clara-letters-parade-opening' => [
         'text' => 'Oh no. A playful gust scattered the little letters before the parade. Will you help me bring each one back to its big-letter partner?',
-        'reference' => 'question',
+        'reference' => 'instruction',
         'path' => 'learn-with-clara/letters/parade/opening.wav',
     ],
     'learn-with-clara-letters-find-a' => [

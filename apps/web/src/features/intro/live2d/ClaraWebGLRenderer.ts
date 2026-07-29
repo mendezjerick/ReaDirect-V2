@@ -39,13 +39,29 @@ const SPEAKING_MOUTH_MINIMUM = 0.12;
 const SPEAKING_MOUTH_RANGE = 0.68;
 const SPEAKING_CYCLE_RADIANS_PER_SECOND = 11;
 const HIDDEN_DRAWABLE_IDS = ["collar"] as const;
-const CATCHLIGHT_VISIBILITY_RULES = [
+const EYE_INTERNAL_VISIBILITY_RULES = [
   {
     drawableId: "ArtMesh47",
     eyeOpenParameterId: "ParamEyeROpen",
   },
   {
+    drawableId: "ArtMesh49",
+    eyeOpenParameterId: "ParamEyeROpen",
+  },
+  {
+    drawableId: "ArtMesh51",
+    eyeOpenParameterId: "ParamEyeROpen",
+  },
+  {
     drawableId: "ArtMesh65",
+    eyeOpenParameterId: "ParamEyeLOpen",
+  },
+  {
+    drawableId: "ArtMesh66",
+    eyeOpenParameterId: "ParamEyeLOpen",
+  },
+  {
+    drawableId: "ArtMesh68",
     eyeOpenParameterId: "ParamEyeLOpen",
   },
 ] as const;
@@ -153,7 +169,7 @@ interface ResolvedParameterOverride {
   value: number;
 }
 
-interface ResolvedCatchlightVisibilityRule {
+interface ResolvedEyeInternalVisibilityRule {
   drawableIndex: number;
   eyeOpenParameterIndex: number;
   minimumEyeOpen: number;
@@ -189,7 +205,7 @@ export class ClaraWebGLRenderer extends CubismUserModel {
   private readonly hiddenDrawableIndices: number[] = [];
   private readonly colorOverrides: ResolvedColorOverride[] = [];
   private readonly parameterOverrides: ResolvedParameterOverride[] = [];
-  private readonly catchlightVisibilityRules: ResolvedCatchlightVisibilityRule[] =
+  private readonly eyeInternalVisibilityRules: ResolvedEyeInternalVisibilityRule[] =
     [];
   private canvasClearColor: RgbaColor;
   private expressionController: ClaraExpressionController | null = null;
@@ -357,11 +373,11 @@ export class ClaraWebGLRenderer extends CubismUserModel {
     }
 
     const coreParameters = this._model.getModel().parameters;
-    for (const rule of CATCHLIGHT_VISIBILITY_RULES) {
+    for (const rule of EYE_INTERNAL_VISIBILITY_RULES) {
       const eyeOpenParameterIndex = this.getRequiredParameterIndex(
         rule.eyeOpenParameterId,
       );
-      this.catchlightVisibilityRules.push({
+      this.eyeInternalVisibilityRules.push({
         drawableIndex: this.getRequiredDrawableIndex(rule.drawableId),
         eyeOpenParameterIndex,
         minimumEyeOpen: coreParameters.minimumValues[eyeOpenParameterIndex],
@@ -459,7 +475,7 @@ export class ClaraWebGLRenderer extends CubismUserModel {
       drawableOpacities[drawableIndex] = 0;
     }
 
-    for (const rule of this.catchlightVisibilityRules) {
+    for (const rule of this.eyeInternalVisibilityRules) {
       const eyeOpenValue = this._model.getParameterValueByIndex(
         rule.eyeOpenParameterIndex,
       );
