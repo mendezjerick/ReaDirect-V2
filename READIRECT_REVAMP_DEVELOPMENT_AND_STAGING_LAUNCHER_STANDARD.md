@@ -6,15 +6,27 @@ ReaDirect-V2.
 This document covers developer-operated launchers only. It does not declare the
 current staging setup production-ready.
 
-## Known Recovery Baseline
+## Known Recovery Baselines
 
 The first successful complete learner-flow build is preserved by merge commit
 `191d004` (`Merge pull request #21 from
 mendezjerick/release/first-successful-build`). Its feature commit is `832c94b`.
 
+The second successful core-system build is preserved by merge commit `b29769d`
+(`Merge pull request #33 from
+mendezjerick/release/second-successful-build`). Its feature commit is `8d4bdf2`.
+This baseline includes the complete required learner assessment-and-lesson
+flow, staff dashboards, System Administrator workspaces, achievements, speech
+boundaries, Page Portals, and the guarded foundations for Games, Learn with
+Ma'am Clara, and Guests.
+
+The second baseline and its remaining work are documented in
+`READIRECT_REVAMP_SECOND_SUCCESSFUL_BUILD_REMAINING_WORK.md`.
+
 These commits are recovery references, not commands to reset the repository.
 Any recovery must first preserve later work, inspect migrations and PostgreSQL
 state, and receive explicit owner approval before changing the active branch.
+Neither baseline declares the developer staging launcher production-ready.
 
 ## Launcher Ownership
 
