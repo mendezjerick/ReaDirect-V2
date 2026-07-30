@@ -95,6 +95,72 @@ It contains:
 - Recent admin actions.
 - System health indicators for database, queue, and environment.
 
+The System Administrator overview reads persisted operational truth:
+
+- Part 1 Score level distribution uses each standard Learner's latest
+  Diagnostic Assessment run with a persisted Part 1 level.
+- Final reading profile distribution uses each standard Learner's latest
+  completed Final Assessment run with a persisted reading profile.
+- The portal-system Learner is excluded from totals, distributions, and recent
+  assessment activity.
+- Recent assessment activity shows the latest persisted Diagnostic and Final
+  Assessment runs across schools.
+- Recent ASR failures show sanitized failure summaries from persisted
+  IsoLetter and True Sandbox attempts. A learner-flow service failure is not
+  claimed unless the learner runtime owns equivalent persisted failure
+  evidence.
+- API and database health come from the authenticated overview request. ASR
+  and TTS use their existing readiness endpoints. TTS health reports both the
+  published Clara catalog and runtime voice service. Queue health must report
+  `not configured` when no Laravel queue connection exists; it must never be
+  presented as healthy by assumption.
+- Health checks are read-only and must not warm models, create queue jobs,
+  change settings, or mutate learner progress.
+
+The System Administrator Schools workspace is a global, read-only directory:
+
+- Each registered school shows active and total School Administrator, Teacher,
+  and standard Learner account counts.
+- Portal-system Learners are excluded from every school Learner count.
+- School Administrator accounts that have not completed first-time school
+  setup are reported separately and do not appear under an invented school.
+- School creation remains owned by the authenticated School Administrator
+  first-time setup flow. School profile editing remains owned by the existing
+  school-scoped profile workspace.
+- The global directory must not delete schools, reassign accounts, or mutate
+  learner, assessment, or lesson progress.
+
+The System Administrator Teachers workspace is a global, read-only directory:
+
+- Each Teacher row shows the persisted account status, school, Grade and
+  Section assignment, credential-setup state, assignment acknowledgement
+  state, and active and total assigned standard Learner counts.
+- Portal-system Learners are excluded from every Teacher learner count.
+- A complete assignment requires an existing school, Grade, and non-empty
+  Section. Incomplete assignments remain visible but are never presented as
+  acknowledged.
+- Search and account-status filtering are client-side views of the same
+  authenticated directory response and do not mutate account state.
+- Teacher creation and class assignment remain owned by the school-scoped
+  School Administrator workspace. The global directory must not deactivate,
+  reassign, or impersonate a Teacher.
+
+The System Administrator Learners workspace is a global, read-only directory:
+
+- The database query includes only `account_purpose = standard`. `KW000` and
+  every portal-system Learner are excluded before serialization, totals, search,
+  or filtering.
+- Each Learner row shows the persisted account status, school, Grade and
+  Section, assigned Teacher, progress stage, current required lesson order, and
+  Diagnostic and Final Assessment completion state.
+- Passwords, sessions, audio, response evidence, and portal progress are not
+  included in the directory response.
+- Search and account-status filtering are client-side views of the same
+  authenticated response and do not mutate the Learner.
+- Learner creation, Teacher assignment, credential reset, and progress changes
+  remain owned by their existing school-scoped, Teacher-scoped, and learner
+  runtime workflows. The global directory must not expose those mutations.
+
 System Administrator controls include:
 
 - AI service status.

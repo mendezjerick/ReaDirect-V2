@@ -17,13 +17,13 @@ export const systemAdminNavigationGroups: StaffNavigationGroup[] = [
   {
     label: "People and schools",
     items: [
-      { label: "Schools" },
+      { label: "Schools", to: "/staff/system-admin/schools" },
       {
         label: "School administrators",
         to: "/staff/system-admin/school-administrators",
       },
-      { label: "Teachers" },
-      { label: "Learners" },
+      { label: "Teachers", to: "/staff/system-admin/teachers" },
+      { label: "Learners", to: "/staff/system-admin/learners" },
       { label: "Guests" },
     ],
   },

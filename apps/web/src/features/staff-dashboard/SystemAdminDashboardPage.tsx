@@ -9,6 +9,7 @@ import { StaffBadge } from "../../components/staff/StaffBadge";
 import { StaffButton } from "../../components/staff/StaffButton";
 import { StaffCard } from "../../components/staff/StaffCard";
 import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns";
+import { StaffDataTable } from "../../components/staff/StaffDataTable";
 import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
 import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
@@ -56,7 +57,7 @@ function SandboxIcon() {
   );
 }
 
-function formatActionTime(value: string | null): string {
+function formatEventTime(value: string | null): string {
   if (!value) {
     return "Just now";
   }
@@ -66,6 +67,13 @@ function formatActionTime(value: string | null): string {
     timeStyle: "short",
   }).format(new Date(value));
 }
+
+const healthStatusLabels = {
+  online: "Online",
+  degraded: "Degraded",
+  offline: "Offline",
+  not_configured: "Not configured",
+} as const;
 
 export function SystemAdminDashboardPage() {
   const navigate = useNavigate();
@@ -318,7 +326,7 @@ export function SystemAdminDashboardPage() {
                   <span
                     className={`staff-health-status staff-health-status--${item.status}`}
                   >
-                    {item.status === "online" ? "Online" : "Not configured"}
+                    {healthStatusLabels[item.status]}
                   </span>
                 </div>
               )) ?? <StaffState compact title="Loading system health…" />}
@@ -326,17 +334,111 @@ export function SystemAdminDashboardPage() {
           </StaffCard>
         </section>
 
-        <section className="staff-dashboard-grid staff-dashboard-grid--secondary">
+        <section className="staff-dashboard-grid staff-dashboard-grid--operations">
           <StaffCard>
             <StaffSectionHeader
               eyebrow="Learner activity"
               title="Recent assessments"
             />
-            <StaffState
-              compact
-              title="No assessment activity yet"
-              description="Completed learner assessments will appear here."
+            {overview ? (
+              overview.recent_assessment_activity.length ? (
+                <StaffDataTable
+                  accessibleLabel="Recent system assessment activity"
+                  rows={overview.recent_assessment_activity}
+                  rowKey={(activity) => activity.id}
+                  columns={[
+                    {
+                      key: "learner",
+                      label: "Learner",
+                      width: "minmax(11rem, 1fr)",
+                      render: (activity) => (
+                        <span className="staff-primary-value">
+                          <strong>{activity.learner_name}</strong>
+                          <small>
+                            {activity.learner_code} ·{" "}
+                            {activity.school_name ?? "School unavailable"}
+                          </small>
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "assessment",
+                      label: "Assessment",
+                      width: "minmax(12rem, 1fr)",
+                      render: (activity) => (
+                        <span className="staff-primary-value">
+                          <strong>{activity.assessment_label}</strong>
+                          <small>
+                            {activity.status.replaceAll("_", " ")} ·{" "}
+                            {formatEventTime(activity.occurred_at)}
+                          </small>
+                        </span>
+                      ),
+                    },
+                  ]}
+                />
+              ) : (
+                <StaffState
+                  compact
+                  title="No assessment activity yet"
+                  description="Persisted standard Learner assessments will appear here."
+                />
+              )
+            ) : (
+              <StaffState compact title="Loading assessment activity…" />
+            )}
+          </StaffCard>
+
+          <StaffCard>
+            <StaffSectionHeader
+              eyebrow="Speech operations"
+              title="Recent ASR failures"
             />
+            {overview ? (
+              overview.recent_speech_failures.length ? (
+                <StaffDataTable
+                  accessibleLabel="Recent ASR failures"
+                  rows={overview.recent_speech_failures}
+                  rowKey={(failure) => failure.id}
+                  columns={[
+                    {
+                      key: "source",
+                      label: "Source",
+                      width: "minmax(10rem, 0.8fr)",
+                      render: (failure) => (
+                        <span className="staff-primary-value">
+                          <strong>{failure.source}</strong>
+                          <small>
+                            {failure.mode === "letter"
+                              ? "Letter resolution"
+                              : "General transcription"}
+                          </small>
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "failure",
+                      label: "Failure",
+                      width: "minmax(12rem, 1fr)",
+                      render: (failure) => (
+                        <span className="staff-primary-value">
+                          <strong>{failure.summary}</strong>
+                          <small>{formatEventTime(failure.occurred_at)}</small>
+                        </span>
+                      ),
+                    },
+                  ]}
+                />
+              ) : (
+                <StaffState
+                  compact
+                  title="No persisted ASR failures"
+                  description="Failed IsoLetter and True Sandbox requests will appear here."
+                />
+              )
+            ) : (
+              <StaffState compact title="Loading speech failures…" />
+            )}
           </StaffCard>
 
           <StaffCard>
@@ -354,11 +456,18 @@ export function SystemAdminDashboardPage() {
                   <div>
                     <strong>{action.description}</strong>
                     <p>
-                      {action.actor} · {formatActionTime(action.occurred_at)}
+                      {action.actor} · {formatEventTime(action.occurred_at)}
                     </p>
                   </div>
                 </article>
               )) ?? <StaffState compact title="Loading recent actions…" />}
+              {overview?.recent_actions.length === 0 ? (
+                <StaffState
+                  compact
+                  title="No administrative actions yet"
+                  description="Audited System Administrator activity will appear here."
+                />
+              ) : null}
             </div>
           </StaffCard>
         </section>

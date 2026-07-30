@@ -312,6 +312,64 @@ Sandbox, and Equivalence Book workspaces. True Sandbox consumes its selectable
 assessment and lesson speech-target catalog through Laravel; React must never
 open or parse root content CSV files.
 
+The System Administrator overview aggregation belongs to:
+
+```text
+apps/api/app/Services/SystemAdminOverviewService.php
+apps/api/app/Http/Controllers/SystemAdminOverviewController.php
+apps/web/src/features/staff-dashboard/SystemAdminDashboardPage.tsx
+```
+
+The service may read global standard-Learner assessment records, persisted
+speech-sandbox failures, the published TTS catalog, audit logs, and existing
+service readiness endpoints. It must exclude portal-system Learners and must
+not write learner progress, create migrations, warm speech models, or alter
+assessment and lesson controllers.
+
+The read-only System Administrator Schools directory belongs to:
+
+```text
+apps/api/app/Services/SystemAdminSchoolDirectoryService.php
+apps/api/app/Http/Controllers/SystemAdminSchoolController.php
+apps/web/src/features/staff-dashboard/SystemAdminSchoolsPage.tsx
+```
+
+It aggregates existing school, staff, and standard-Learner records without a
+new schema. Portal-system Learners are excluded. Unassigned School
+Administrator accounts are reported separately, while school creation and
+profile changes remain owned by the existing School Administrator setup and
+profile workspaces. This directory has no deletion, reassignment, or learner
+progress mutation behavior.
+
+The read-only System Administrator Teachers directory belongs to:
+
+```text
+apps/api/app/Services/SystemAdminTeacherDirectoryService.php
+apps/api/app/Http/Controllers/SystemAdminTeacherController.php
+apps/web/src/features/staff-dashboard/SystemAdminTeachersPage.tsx
+```
+
+It reads existing Teacher account, school, Grade, Section, credential,
+assignment acknowledgement, and assigned standard-Learner state. Portal-system
+Learners are excluded. Teacher creation and assignment remain owned by the
+school-scoped School Administrator workspace; this directory cannot deactivate,
+reassign, impersonate, or write learner progress.
+
+The read-only System Administrator Learners directory belongs to:
+
+```text
+apps/api/app/Services/SystemAdminLearnerDirectoryService.php
+apps/api/app/Http/Controllers/SystemAdminLearnerController.php
+apps/web/src/features/staff-dashboard/SystemAdminLearnersPage.tsx
+```
+
+Its query begins with `account_purpose = standard`, so portal-system Learners
+are excluded before aggregation and serialization. It may read existing school,
+Teacher, class, account-status, and `LearnerProgressState` fields. It must not
+load passwords, sessions, audio, assessment responses, or lesson responses,
+and it cannot create Learners, reset credentials, reassign Teachers, or write
+progress.
+
 Cross-feature achievement gallery, queue, and unlock presentation components
 belong under `apps/web/src/features/achievements/`. The Learner Dashboard and
 Game Lobby both compose that shared feature.
