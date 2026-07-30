@@ -771,3 +771,5 @@ Detailed references:
 - `READIRECT_REVAMP_ASSESSMENT_GUIDE.md`
 - `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`
 - `READIRECT_REVAMP_USER_ROLES_AND_DASHBOARDS.md`
+- `services/asr/training_records/README.md` (checkpoint-lineage documentation
+  package; see its provenance disclosure)

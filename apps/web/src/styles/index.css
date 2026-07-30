@@ -1602,6 +1602,23 @@ textarea.staff-field__control {
   width: 100%;
 }
 
+.staff-directory-toolbar {
+  max-width: 30rem;
+  padding: 1rem 1.25rem;
+}
+
+.staff-directory-toolbar--filters {
+  display: grid;
+  max-width: none;
+  gap: 1rem;
+}
+
+.staff-directory-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 .staff-data-table {
   display: grid;
 }
@@ -2918,6 +2935,10 @@ textarea.staff-field__control {
 }
 
 @media (min-width: 48rem) {
+  .staff-directory-toolbar--filters {
+    grid-template-columns: minmax(15rem, 1.5fr) minmax(10rem, 0.75fr);
+  }
+
   .binary-confusion__layout {
     grid-template-columns: minmax(24rem, 1.5fr) minmax(15rem, 1fr);
     align-items: start;
@@ -3209,6 +3230,14 @@ textarea.staff-field__control {
   background: var(--color-warning);
 }
 
+.staff-health-item__dot--degraded {
+  background: var(--color-warning);
+}
+
+.staff-health-item__dot--offline {
+  background: var(--color-danger);
+}
+
 .staff-health-item strong {
   display: block;
   color: var(--color-text-primary);
@@ -3240,6 +3269,16 @@ textarea.staff-field__control {
 .staff-health-status--not_configured {
   color: var(--color-warning);
   background: var(--color-warning-soft);
+}
+
+.staff-health-status--degraded {
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.staff-health-status--offline {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
 .staff-empty-state {
@@ -4323,6 +4362,10 @@ textarea.staff-field__control {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .staff-dashboard-grid--operations {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .staff-data-card {
     padding: 1.5rem;
   }
@@ -4563,6 +4606,10 @@ textarea.staff-field__control {
 
 @media (min-width: 80rem) {
   .staff-dashboard-grid--primary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .staff-dashboard-grid--operations {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 

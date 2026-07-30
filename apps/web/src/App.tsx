@@ -121,6 +121,24 @@ const SystemAdminDashboardPage = lazy(() =>
   ),
 );
 
+const SystemAdminSchoolsPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminSchoolsPage").then(
+    (module) => ({ default: module.SystemAdminSchoolsPage }),
+  ),
+);
+
+const SystemAdminTeachersPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminTeachersPage").then(
+    (module) => ({ default: module.SystemAdminTeachersPage }),
+  ),
+);
+
+const SystemAdminLearnersPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminLearnersPage").then(
+    (module) => ({ default: module.SystemAdminLearnersPage }),
+  ),
+);
+
 const SystemAdminPagePortalsPage = lazy(() =>
   import("./features/staff-dashboard/SystemAdminPagePortalsPage").then(
     (module) => ({ default: module.SystemAdminPagePortalsPage }),
@@ -385,6 +403,18 @@ export function App() {
               <Route
                 path="/staff/system-admin"
                 element={<SystemAdminDashboardPage />}
+              />
+              <Route
+                path="/staff/system-admin/schools"
+                element={<SystemAdminSchoolsPage />}
+              />
+              <Route
+                path="/staff/system-admin/teachers"
+                element={<SystemAdminTeachersPage />}
+              />
+              <Route
+                path="/staff/system-admin/learners"
+                element={<SystemAdminLearnersPage />}
               />
               <Route
                 path="/staff/system-admin/school-administrators"

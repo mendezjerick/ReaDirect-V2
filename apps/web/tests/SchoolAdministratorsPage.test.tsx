@@ -27,7 +27,7 @@ describe("SchoolAdministratorsPage", () => {
     vi.unstubAllGlobals();
   });
 
-  it("shows the full navigation structure with future work disabled", async () => {
+  it("shows the active school workspaces with future work disabled", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -46,8 +46,20 @@ describe("SchoolAdministratorsPage", () => {
     expect(
       screen.getByRole("link", { name: "School administrators" }),
     ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Schools" })).toHaveAttribute(
+      "href",
+      "/staff/system-admin/schools",
+    );
+    expect(screen.getByRole("link", { name: "Teachers" })).toHaveAttribute(
+      "href",
+      "/staff/system-admin/teachers",
+    );
+    expect(screen.getByRole("link", { name: "Learners" })).toHaveAttribute(
+      "href",
+      "/staff/system-admin/learners",
+    );
     expect(
-      screen.getByText("Schools").closest("[aria-disabled]"),
+      screen.getByText("Guests").closest("[aria-disabled]"),
     ).toHaveAttribute("aria-disabled", "true");
     expect(
       await screen.findByText("No School Administrators yet."),

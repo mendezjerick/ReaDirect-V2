@@ -23,11 +23,14 @@ use App\Http\Controllers\SchoolAdminTeacherDashboardController;
 use App\Http\Controllers\SchoolAdminWorkspaceController;
 use App\Http\Controllers\StaffAuthController;
 use App\Http\Controllers\SystemAdminEquivalenceController;
+use App\Http\Controllers\SystemAdminLearnerController;
 use App\Http\Controllers\SystemAdminOverviewController;
 use App\Http\Controllers\SystemAdminPortalController;
+use App\Http\Controllers\SystemAdminSchoolController;
 use App\Http\Controllers\SystemAdminSpeechAnalyticsController;
 use App\Http\Controllers\SystemAdminSpeechSandboxController;
 use App\Http\Controllers\SystemAdminSpeechSettingsController;
+use App\Http\Controllers\SystemAdminTeacherController;
 use App\Http\Controllers\TeacherAnalyticsController;
 use App\Http\Controllers\TeacherAudioReviewController;
 use App\Http\Controllers\TeacherDiagnosticAssessmentController;
@@ -47,6 +50,9 @@ Route::prefix('staff')->group(function (): void {
 
         Route::middleware('staff.role:system_admin')->prefix('system-admin')->group(function (): void {
             Route::get('/overview', [SystemAdminOverviewController::class, 'show']);
+            Route::get('/schools', [SystemAdminSchoolController::class, 'index']);
+            Route::get('/teachers', [SystemAdminTeacherController::class, 'index']);
+            Route::get('/learners', [SystemAdminLearnerController::class, 'index']);
             Route::get('/school-administrators', [SchoolAdministratorController::class, 'index']);
             Route::post('/school-administrators', [SchoolAdministratorController::class, 'store']);
             Route::get('/{staffUser}/page-portals', [SystemAdminPortalController::class, 'show']);

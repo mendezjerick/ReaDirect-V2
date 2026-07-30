@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "provenance": {
+    "status": "surviving_historical_training_record_and_repository_audit",
+    "training_run_executed": true,
+    "original_run_directory_available": false,
+    "binary_counts_observed": true,
+    "loss_and_wer_cer_source": "surviving_historical_results",
+    "weight_file_available": false,
+    "training_data": [
+      "speechocean762_child_speech",
+      "isolated_letter_speech"
+    ]
+  },
+  "checkpoint_id": "mu",
+  "display_name": "Mu",
+  "parent_checkpoint": "eta",
+  "training_stage": "educational_child_speech",
+  "selected_epoch": 2,
+  "selected_step": 2500,
+  "seed": 3407,
+  "weights_file": null,
+  "weights_sha256": null,
+  "deployment": {
+    "runtime": "faster-whisper",
+    "cuda_compute_type": "int8_float16",
+    "cpu_compute_type": "int8",
+    "language": "en",
+    "beam_size": 5,
+    "temperature": 0.0,
+    "condition_on_previous_text": false
+  },
+  "evaluation": {
+    "content_tp": 403,
+    "content_tn": 282,
+    "content_fp": 0,
+    "content_fn": 61,
+    "content_f1_percent": 92.96,
+    "normalized_wer_percent": 4.61,
+    "cer_percent": 1.74,
+    "nu_tp": 77,
+    "nu_tn": 280,
+    "nu_fp": 2,
+    "nu_fn": 1,
+    "nu_f1_percent": 98.09
+  }
+}

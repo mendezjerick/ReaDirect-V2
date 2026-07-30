@@ -1,0 +1,9 @@
+checkpoint,parent,epoch,cumulative_step,train_loss,validation_loss,normalized_wer_percent,cer_percent,raw_exact_positives,total_positives,learning_rate,evidence_status
+large-v3-turbo,,0,0,,,5.89,2.24,389,464,0,surviving_historical_result
+zeta,large-v3-turbo,1,250,0.423,0.371,5.62,2.15,391,464,0.0000100,surviving_historical_result
+zeta,large-v3-turbo,2,500,0.318,0.342,5.45,2.08,393,464,0.0000067,surviving_historical_result
+zeta,large-v3-turbo,3,750,0.271,0.329,5.33,2.01,395,464,0.0000033,surviving_historical_result
+eta,zeta,1,1125,0.254,0.315,5.09,1.91,398,464,0.0000075,surviving_historical_result
+eta,zeta,2,1500,0.226,0.304,4.93,1.84,400,464,0.0000038,surviving_historical_result
+mu,eta,1,2000,0.214,0.296,4.74,1.79,402,464,0.0000050,surviving_historical_result
+mu,eta,2,2500,0.197,0.289,4.61,1.74,403,464,0.0000025,surviving_historical_result

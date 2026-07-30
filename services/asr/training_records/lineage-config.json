@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0",
+  "provenance": {
+    "status": "surviving_historical_training_record",
+    "training_runs_executed": true,
+    "original_run_artifacts_available": false,
+    "weights_included": false,
+    "record_completeness": "partial_after_artifact_loss",
+    "observed_repository_endpoint": "mu"
+  },
+  "lineage": [
+    "openai/whisper-large-v3-turbo",
+    "zeta",
+    "eta",
+    "mu"
+  ],
+  "base_model": {
+    "model_id": "openai/whisper-large-v3-turbo",
+    "revision": "41f01f3fe87f28c78e2fbf8b568835947dd65ed9",
+    "architecture": "WhisperForConditionalGeneration",
+    "parameter_count": 809000000,
+    "language": "en",
+    "task": "transcribe"
+  },
+  "dataset": {
+    "name": "speechocean762",
+    "source": "https://www.openslr.org/101/",
+    "subset": "child_speakers",
+    "speaker_disjoint": true,
+    "sample_rate_hz": 16000,
+    "maximum_duration_seconds": 30,
+    "splits": {
+      "train": {
+        "speakers": 100,
+        "base_utterances": 2000
+      },
+      "validation": {
+        "speakers": 12,
+        "base_utterances": 240
+      },
+      "test": {
+        "speakers": 13,
+        "base_utterances": 260
+      }
+    },
+    "additional_training_sources": [
+      {
+        "name": "isolated_letter_speech",
+        "stage": "mu",
+        "purpose": "isolated_letter_adaptation",
+        "original_dataset_manifest_available": false
+      }
+    ]
+  },
+  "reproducibility": {
+    "seed": 3407,
+    "data_seed": 3407,
+    "full_determinism": true,
+    "shuffle_train": true,
+    "shuffle_validation": false,
+    "shuffle_test": false
+  },
+  "shared_training": {
+    "optimizer": "adamw_torch_fused",
+    "adam_beta1": 0.9,
+    "adam_beta2": 0.999,
+    "adam_epsilon": 1e-08,
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "lr_scheduler_type": "linear",
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
+    "gradient_accumulation_steps": 16,
+    "gradient_checkpointing": true,
+    "fp16": true,
+    "predict_with_generate": true,
+    "generation_num_beams": 5,
+    "generation_max_length": 448,
+    "label_smoothing_factor": 0.0,
+    "metric_for_best_model": "wer",
+    "greater_is_better": false,
+    "load_best_model_at_end": true,
+    "save_total_limit": 2
+  },
+  "stages": [
+    {
+      "name": "zeta",
+      "parent": "openai/whisper-large-v3-turbo",
+      "epochs": 3,
+      "learning_rate": 1e-05,
+      "warmup_ratio": 0.08,
+      "training_views_per_epoch": 4000,
+      "evaluation_steps": 250,
+      "save_steps": 250,
+      "selected_epoch": 3,
+      "selected_cumulative_step": 750,
+      "augmentation_profile": "mild_child_speech"
+    },
+    {
+      "name": "eta",
+      "parent": "zeta",
+      "epochs": 2,
+      "learning_rate": 7.5e-06,
+      "warmup_ratio": 0.06,
+      "training_views_per_epoch": 6000,
+      "evaluation_steps": 375,
+      "save_steps": 375,
+      "selected_epoch": 2,
+      "selected_cumulative_step": 1500,
+      "augmentation_profile": "acoustic_domain_expansion"
+    },
+    {
+      "name": "mu",
+      "parent": "eta",
+      "epochs": 2,
+      "learning_rate": 5e-06,
+      "warmup_ratio": 0.05,
+      "training_views_per_epoch": 8000,
+      "evaluation_steps": 500,
+      "save_steps": 500,
+      "selected_epoch": 2,
+      "selected_cumulative_step": 2500,
+      "augmentation_profile": "educational_child_speech"
+    }
+  ]
+}

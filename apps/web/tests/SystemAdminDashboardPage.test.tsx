@@ -28,12 +28,46 @@ const overviewResponse = {
       status: "online",
       detail: "PostgreSQL is connected.",
     },
+    {
+      service: "ASR",
+      status: "degraded",
+      detail: "The ASR service responded, but its model is not ready.",
+    },
+    {
+      service: "TTS",
+      status: "offline",
+      detail: "The runtime voice service did not answer.",
+    },
   ],
   speech_processing: {
     conditional_mu_noise_reduction_enabled: false,
     default_mode: "raw_first",
   },
-  recent_assessment_activity: [],
+  recent_assessment_activity: [
+    {
+      id: 12,
+      learner_id: 7,
+      learner_code: "AA001",
+      learner_name: "Ana Santos",
+      school_name: "Northfield Elementary",
+      assessment_type: "final",
+      assessment_label: "Final Assessment",
+      status: "completed",
+      score: 29,
+      profile: "Reading at Grade Level",
+      occurred_at: "2026-07-19T09:55:00+00:00",
+    },
+  ],
+  recent_speech_failures: [
+    {
+      id: 4,
+      source: "True Sandbox",
+      mode: "general",
+      status_code: 503,
+      summary: "The ASR service returned HTTP 503.",
+      occurred_at: "2026-07-19T09:58:00+00:00",
+    },
+  ],
   recent_actions: [
     {
       id: 1,
@@ -96,6 +130,15 @@ describe("SystemAdminDashboardPage", () => {
     ).toBeInTheDocument();
     expect(await screen.findByText("PostgreSQL is connected.")).toBeVisible();
     expect(screen.getByText("Development account prepared.")).toBeVisible();
+    expect(screen.getByText("Ana Santos")).toBeVisible();
+    expect(
+      screen.getByText("Northfield Elementary", { exact: false }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("The ASR service returned HTTP 503."),
+    ).toBeVisible();
+    expect(screen.getByText("Degraded")).toBeVisible();
+    expect(screen.getByText("Offline")).toBeVisible();
     expect(
       screen.getByRole("navigation", { name: "Dashboard navigation" }),
     ).toBeVisible();

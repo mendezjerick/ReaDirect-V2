@@ -129,8 +129,31 @@ const distributionItemSchema = z.object({
 
 const systemHealthItemSchema = z.object({
   service: z.string(),
-  status: z.enum(["online", "not_configured"]),
+  status: z.enum(["online", "degraded", "offline", "not_configured"]),
   detail: z.string(),
+});
+
+const systemAssessmentActivitySchema = z.object({
+  id: z.number().int().positive(),
+  learner_id: z.number().int().positive(),
+  learner_code: z.string(),
+  learner_name: z.string(),
+  school_name: z.string().nullable(),
+  assessment_type: z.enum(["diagnostic", "final"]),
+  assessment_label: z.string(),
+  status: z.string(),
+  score: z.number().int().nullable(),
+  profile: z.string().nullable(),
+  occurred_at: z.string().nullable(),
+});
+
+const systemSpeechFailureSchema = z.object({
+  id: z.number().int().positive(),
+  source: z.string(),
+  mode: z.enum(["letter", "general"]),
+  status_code: z.number().int().nullable(),
+  summary: z.string(),
+  occurred_at: z.string().nullable(),
 });
 
 const recentActionSchema = z.object({
@@ -154,8 +177,107 @@ const systemAdminOverviewSchema = z.object({
     conditional_mu_noise_reduction_enabled: z.boolean(),
     default_mode: z.literal("raw_first"),
   }),
-  recent_assessment_activity: z.array(z.unknown()),
+  recent_assessment_activity: z.array(systemAssessmentActivitySchema),
+  recent_speech_failures: z.array(systemSpeechFailureSchema),
   recent_actions: z.array(recentActionSchema),
+  generated_at: z.string(),
+});
+
+const systemAdminSchoolCountSchema = z.object({
+  total: z.number().int().nonnegative(),
+  active: z.number().int().nonnegative(),
+});
+
+const systemAdminSchoolDirectorySchema = z.object({
+  summary: z.object({
+    total_schools: z.number().int().nonnegative(),
+    active_school_administrators: z.number().int().nonnegative(),
+    active_teachers: z.number().int().nonnegative(),
+    active_learners: z.number().int().nonnegative(),
+    unassigned_school_administrators: z.number().int().nonnegative(),
+  }),
+  schools: z.array(
+    z.object({
+      id: z.number().int().positive(),
+      name: z.string(),
+      school_administrators: systemAdminSchoolCountSchema,
+      teachers: systemAdminSchoolCountSchema,
+      learners: systemAdminSchoolCountSchema,
+      created_at: z.string().nullable(),
+    }),
+  ),
+  generated_at: z.string(),
+});
+
+const systemAdminTeacherDirectorySchema = z.object({
+  summary: z.object({
+    total_teachers: z.number().int().nonnegative(),
+    active_teachers: z.number().int().nonnegative(),
+    active_standard_learners: z.number().int().nonnegative(),
+    pending_assignment_acknowledgements: z.number().int().nonnegative(),
+    incomplete_assignments: z.number().int().nonnegative(),
+    schools_represented: z.number().int().nonnegative(),
+  }),
+  teachers: z.array(
+    z.object({
+      id: z.number().int().positive(),
+      username: z.string().nullable(),
+      display_name: z.string(),
+      is_active: z.boolean(),
+      school: staffSchoolSchema.nullable(),
+      grade_level: z.number().int().min(1).max(6).nullable(),
+      section: z.string().nullable(),
+      assignment_complete: z.boolean(),
+      requires_assignment_acknowledgement: z.boolean(),
+      requires_credential_setup: z.boolean(),
+      learners: systemAdminSchoolCountSchema,
+      created_at: z.string().nullable(),
+    }),
+  ),
+  generated_at: z.string(),
+});
+
+const systemAdminLearnerDirectorySchema = z.object({
+  summary: z.object({
+    total_learners: z.number().int().nonnegative(),
+    active_learners: z.number().int().nonnegative(),
+    diagnostic_completed: z.number().int().nonnegative(),
+    final_assessment_completed: z.number().int().nonnegative(),
+    without_teacher: z.number().int().nonnegative(),
+    schools_represented: z.number().int().nonnegative(),
+  }),
+  learners: z.array(
+    z.object({
+      id: z.number().int().positive(),
+      learner_code: z.string().regex(/^[A-Z]{2}\d{3}$/),
+      full_name: z.string(),
+      is_active: z.boolean(),
+      school: staffSchoolSchema.nullable(),
+      teacher: z
+        .object({
+          id: z.number().int().positive(),
+          username: z.string().nullable(),
+          display_name: z.string(),
+          is_active: z.boolean(),
+        })
+        .nullable(),
+      grade_level: z.number().int().min(1).max(6).nullable(),
+      section: z.string().nullable(),
+      progress: z.object({
+        stage: z.string(),
+        current_required_lesson_order: z
+          .number()
+          .int()
+          .min(1)
+          .max(6)
+          .nullable(),
+        diagnostic_completed: z.boolean(),
+        final_assessment_completed: z.boolean(),
+        last_confirmed_at: z.string().nullable(),
+      }),
+      created_at: z.string().nullable(),
+    }),
+  ),
   generated_at: z.string(),
 });
 
@@ -184,6 +306,15 @@ export type StaffRole = StaffSession["staff"]["role"];
 export type SchoolAdminOverview = z.infer<typeof schoolAdminOverviewSchema>;
 export type TeacherOverview = z.infer<typeof teacherOverviewSchema>;
 export type SystemAdminOverview = z.infer<typeof systemAdminOverviewSchema>;
+export type SystemAdminSchoolDirectory = z.infer<
+  typeof systemAdminSchoolDirectorySchema
+>;
+export type SystemAdminTeacherDirectory = z.infer<
+  typeof systemAdminTeacherDirectorySchema
+>;
+export type SystemAdminLearnerDirectory = z.infer<
+  typeof systemAdminLearnerDirectorySchema
+>;
 
 const portalTargetKeySchema = z.enum([
   "learner-dashboard",
@@ -752,6 +883,42 @@ export async function getSystemAdminOverview(): Promise<SystemAdminOverview> {
   }
 
   return systemAdminOverviewSchema.parse(await response.json());
+}
+
+export async function getSystemAdminSchools(): Promise<SystemAdminSchoolDirectory> {
+  const response = await staffFetch("/api/staff/system-admin/schools", {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminSchoolDirectorySchema.parse(await response.json());
+}
+
+export async function getSystemAdminTeachers(): Promise<SystemAdminTeacherDirectory> {
+  const response = await staffFetch("/api/staff/system-admin/teachers", {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminTeacherDirectorySchema.parse(await response.json());
+}
+
+export async function getSystemAdminLearners(): Promise<SystemAdminLearnerDirectory> {
+  const response = await staffFetch("/api/staff/system-admin/learners", {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminLearnerDirectorySchema.parse(await response.json());
 }
 
 const speechProcessingResponseSchema = z.object({

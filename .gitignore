@@ -60,6 +60,9 @@ CubismSdkForWeb-*.zip
 apps/web/vendor/live2d/
 apps/web/public/assets/live2d/core/
 
+# Local root-level handoff archives
+/*.zip
+
 # Local runtime files
 .runtime/
 *.log
