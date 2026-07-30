@@ -258,6 +258,21 @@ Learner profile details.
 
 Guest accounts do not receive Learner Codes.
 
+The authoritative Guest identity and session tables may exist before public
+Guest registration is enabled. Public registration, email verification, Guest
+login, and the resolved learner-facing session must launch together only after:
+
+- a real email-verification delivery path is configured outside source code;
+- verification secrets are stored and transmitted safely;
+- the server can resolve Guest ownership without fabricating a Learner row; and
+- the assessment, lesson, achievement, and game boundaries explicitly support
+  that Guest owner.
+
+Until those conditions are implemented, the System Administrator Guests
+workspace may review persisted Guest identity and change active/inactive access,
+but it must not manually verify an email, send placeholder invitations, or
+create a fake learner-facing session.
+
 ## Username Deletion Rule
 
 For School Administrator and Teacher accounts, the initial username is only a

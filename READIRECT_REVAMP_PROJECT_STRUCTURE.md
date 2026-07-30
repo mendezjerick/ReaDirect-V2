@@ -370,6 +370,82 @@ load passwords, sessions, audio, assessment responses, or lesson responses,
 and it cannot create Learners, reset credentials, reassign Teachers, or write
 progress.
 
+The System Administrator Guest identity and access workspace belongs to:
+
+```text
+apps/api/database/migrations/2026_07_30_000023_create_guest_accounts_table.php
+apps/api/app/Models/GuestAccount.php
+apps/api/app/Models/GuestSession.php
+apps/api/app/Services/SystemAdminGuestDirectoryService.php
+apps/api/app/Http/Controllers/SystemAdminGuestController.php
+apps/web/src/features/staff-dashboard/SystemAdminGuestsPage.tsx
+```
+
+`guest_accounts` is an identity boundary separate from `learners`.
+`guest_sessions` stores only hashed bearer tokens and lifecycle timestamps.
+The System Administrator response may expose approved Guest identity,
+verification, access, sign-in, and active-session summaries but never password
+hashes or session-token hashes. Deactivation revokes active Guest sessions and
+writes a staff audit record; reactivation cannot verify email or create a
+session. This workspace must not create synthetic Learners or modify learner,
+assessment, lesson, achievement, or game ownership.
+
+The read-only System Administrator Learning Content workspaces belong to:
+
+```text
+apps/api/app/Services/SystemAdminLearningContentService.php
+apps/api/app/Http/Controllers/SystemAdminLearningContentController.php
+apps/web/src/features/staff-dashboard/SystemAdminAssessmentsPage.tsx
+apps/web/src/features/staff-dashboard/SystemAdminLessonsPage.tsx
+apps/web/src/features/staff-dashboard/SystemAdminLearningRulesPage.tsx
+```
+
+The Laravel service reads the reviewed root assessment and lesson CSV sources
+to expose publication metadata, active counts, pool readiness, and current
+runtime rule summaries. It is a read-only inspection boundary: it must not call
+learner-specific lesson snapshot methods, create target exposures, start runs,
+write progress, or modify the content files. React consumes only its
+authenticated JSON and never opens root CSV files. Equivalence mutations stay
+in the existing Equivalence Book boundary.
+
+The System Administrator Agents and AI catalog boundary belongs to:
+
+```text
+apps/api/app/Services/SystemAdminAgentsAiService.php
+apps/api/app/Http/Controllers/SystemAdminAgentsAiController.php
+apps/web/src/features/staff-dashboard/SystemAdminAiServicesPage.tsx
+apps/web/src/features/staff-dashboard/SystemAdminAgentSettingsPage.tsx
+apps/web/src/features/staff-dashboard/SystemAdminPromptTemplatesPage.tsx
+```
+
+AI Services reuses the authenticated System Administrator overview health
+contract and the existing audited conditional-Mu-noise-reduction endpoint.
+Agent Settings reads the published TTS voice catalog and source-controlled
+display and typography contracts. Prompt Templates reads approved published
+`TtsSpeechLine` text and metadata only; it never serializes storage paths,
+audio hashes, private voice assets, or credentials. Display, typography, voice,
+and fixed-speech publication remain read-only until an authoritative runtime
+mutation contract exists.
+
+The System Administrator Operations boundary belongs to:
+
+```text
+apps/api/app/Services/SystemAdminOperationsService.php
+apps/api/app/Http/Controllers/SystemAdminOperationsController.php
+apps/web/src/features/staff-dashboard/SystemAdminAuditLogsPage.tsx
+apps/web/src/features/staff-dashboard/SystemAdminMonitoringPage.tsx
+apps/web/src/features/staff-dashboard/SystemAdminSpeechToolsPage.tsx
+apps/web/src/features/staff-dashboard/SystemAdminGamesPlayersPage.tsx
+```
+
+Audit Logs serializes approved audit-event fields but not metadata. System
+Monitoring reuses the overview health contract and exposes no restart or repair
+mutation. Speech Tools is a hub for existing authenticated tools and owns no
+parallel speech runtime. Games and Players reads the catalog plus
+standard-Learner profile and save metadata, excludes portal-system records, and
+does not serialize game-save state. Guest game persistence remains explicitly
+unavailable until its separate ownership contract is implemented.
+
 Cross-feature achievement gallery, queue, and unlock presentation components
 belong under `apps/web/src/features/achievements/`. The Learner Dashboard and
 Game Lobby both compose that shared feature.

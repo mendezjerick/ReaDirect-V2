@@ -161,6 +161,26 @@ The System Administrator Learners workspace is a global, read-only directory:
   remain owned by their existing school-scoped, Teacher-scoped, and learner
   runtime workflows. The global directory must not expose those mutations.
 
+The System Administrator Guests workspace owns global Guest identity and access
+status:
+
+- Guest accounts are stored independently from Learners. A Guest has an email
+  login identity and never receives a Learner Code, school, Grade, Section,
+  Teacher assignment, or Learner progress row by implication.
+- The directory may show email, optional display name, email-verification
+  state, active/inactive access, last sign-in time, active-session count, and
+  account creation time. Passwords, token hashes, and verification secrets are
+  never serialized.
+- Deactivation requires explicit confirmation, blocks future sign-in, revokes
+  every unexpired Guest session, preserves the account and its retained data,
+  and writes a staff audit log.
+- Reactivation restores sign-in eligibility only. It does not verify a pending
+  email, send a message, create a session, or alter any Learner record.
+- System Administrators cannot manually mark an email verified, reveal or
+  reset a password, impersonate a Guest, or delete a Guest from this workspace.
+- Search, account-status filtering, and verification filtering are client-side
+  views of the same authenticated directory response.
+
 System Administrator controls include:
 
 - AI service status.
@@ -182,11 +202,80 @@ System Administrator controls include:
 - Prompt templates.
 - Audit logs.
 - System monitoring.
+- Speech tools.
+- Games and players.
 - Confusion matrix tools.
 - Page Portals.
 - IsoLetter Sandbox.
 - True Sandbox.
 - Equivalence Book.
+
+The System Administrator Learning Content workspaces are inspection and
+governance surfaces, not learner activity editors:
+
+- Assessments show the active published version, fixed task order, exact
+  authored-item counts, delivery mode, and source-file identity. Diagnostic and
+  Final Assessment use the same reviewed fixed form.
+- Lessons show every published pool, active-target count, minimum viable pool,
+  per-session target demand, mission count, and selection contract.
+- Rules and thresholds show the current Part 1 refresher bands, Final Reading
+  Profile bands and weighting, and the delivery guards that protect published
+  order, target cycling, and started snapshots.
+- These pages read content through authenticated Laravel endpoints. React must
+  never parse the root CSV files directly.
+- Opening these pages must not select targets for a Learner, create
+  `lesson_target_exposures`, start or modify a run, write progress, or mutate
+  assessment and lesson controllers.
+- Published Version 1 is read-only in this slice. Publishing, activation,
+  retirement, and correction workflows remain unavailable until the reviewed
+  CSV import/version contract has an authoritative persisted implementation.
+- Accepted transcript differences remain owned by the Equivalence Book. The
+  Rules and thresholds page may link there, but it must not duplicate its
+  mutations.
+
+The System Administrator Agents and AI workspaces expose current operational
+truth without inventing learner-facing settings:
+
+- AI services show the authenticated live health of Laravel, PostgreSQL, ASR,
+  TTS, the queue connection, and the current environment.
+- Conditional Mu noise reduction is the only runtime mutation in this slice.
+  It keeps its existing confirmation, audit-log, original-audio-first, new-Mu-
+  submissions-only, and Nu-exclusion rules.
+- Agent settings show Ma'am Clara's source-controlled Live2D display contract,
+  approved static fallback, Jersey 20 learner-interface font, Lexend authored-
+  reading font, published voice version, and approved reference-role counts.
+- Display mode, typography, and voice publication are read-only here because
+  the learner runtime does not consume a global mutable setting for them.
+- Prompt templates show the approved published fixed Clara speech catalog.
+  Search and grouping are client-side views of the same authenticated response.
+- No generative LLM prompt registry exists in the current runtime. The Prompt
+  Templates workspace must say this explicitly and must not represent fixed TTS
+  speech as editable or generative prompts.
+- Agent and prompt inspection must not expose private audio paths, hashes, voice
+  reference assets, service credentials, or learner records.
+
+The System Administrator Operations workspaces are inspection surfaces:
+
+- Audit Logs shows the 500 most recent global staff audit events, current
+  totals, recent activity, and approved actor identity. Audit metadata is not
+  serialized to the browser, and this workspace cannot edit or delete history.
+- System Monitoring reuses the authenticated overview health contract for
+  Laravel, PostgreSQL, ASR, TTS, the queue, environment, and recent speech
+  failures. Refreshing performs a read only; restart, repair, queue-clearing,
+  and service-configuration controls are not available.
+- Speech Tools is a navigation hub for the existing AI Services, IsoLetter
+  Sandbox, True Sandbox, Equivalence Book, Confusion Matrix, and Page Portals
+  workspaces. Opening the hub itself performs no speech, content, or learner
+  mutation.
+- Games and Players is a read-only view of the active catalog, standard-Learner
+  public handles, approved Learner identity, and save metadata. It excludes the
+  portal-system Learner and never exposes game-save state, passwords, tokens,
+  credentials, or private game data.
+- Guest game persistence is not implemented yet. The workspace states this
+  explicitly instead of combining Guest identity with Learner-owned game
+  profiles or inventing Guest player records.
+- Reset, edit, delete, restore, impersonation, score changes, and save changes
+  remain unavailable until a separate authorization and audit contract exists.
 
 System Administrator page portal and ASR review tools:
 

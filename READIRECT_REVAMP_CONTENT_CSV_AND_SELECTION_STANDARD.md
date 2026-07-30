@@ -51,6 +51,11 @@ content. It complements:
     active spoken targets through Laravel. This catalog excludes choice-only
     rhyme and comprehension items, including Lesson 6, and excludes isolated
     letters. It never gives the browser direct CSV access.
+14. System Administrator Assessment and Lesson workspaces may receive
+    authenticated, read-only publication metadata and pool-readiness summaries
+    through Laravel. Inspection must not select content for a Learner, record
+    exposures, start a run, or change a published CSV. The browser never parses
+    the root CSV sources.
 
 ## Authority Boundaries
 
