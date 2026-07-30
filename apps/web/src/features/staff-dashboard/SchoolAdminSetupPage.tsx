@@ -3,11 +3,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
-import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
 import { StaffButton } from "../../components/staff/StaffButton";
 import { StaffCard } from "../../components/staff/StaffCard";
 import { StaffNotice } from "../../components/staff/StaffNotice";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
+import { Surface } from "../../components/ui/Surface";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import {
@@ -103,57 +103,66 @@ export function SchoolAdminSetupPage() {
       data-route-focus
       tabIndex={-1}
     >
-      <StaffCard padding="roomy" className="staff-session-required">
-        <StaffPageHeader
-          eyebrow="First-time setup"
-          title="Tell us your school"
-          description="Your dashboard and future Teacher accounts will use this school assignment."
-          badge={<StaffBrandIcon />}
-        />
-
-        <StaffNotice title="Signed in account">
-          <strong>{session.staff.username}</strong>
-        </StaffNotice>
-
-        <form className="staff-form-stack" onSubmit={submitSchool}>
-          <TextField
-            label="School name"
-            type="text"
-            autoComplete="organization"
-            placeholder="Enter the complete school name"
-            required
-            error={errors.school_name?.message}
-            {...register("school_name", {
-              required: "Enter your school name.",
-              minLength: {
-                value: 2,
-                message: "Use at least 2 characters.",
-              },
-            })}
+      <Surface
+        kind="frame"
+        padding="compact"
+        className="staff-school-setup-card"
+      >
+        <Surface
+          kind="panel"
+          padding="roomy"
+          className="staff-school-setup-card__panel"
+        >
+          <StaffPageHeader
+            eyebrow="First-time setup"
+            title="Tell us your school"
+            description="Your dashboard and future Teacher accounts will use this school assignment."
           />
 
-          {setupMutation.isError ? (
-            <StaffNotice tone="danger">
-              {setupMutation.error.message}
-            </StaffNotice>
-          ) : null}
+          <StaffNotice title="Signed in account">
+            <strong>{session.staff.username}</strong>
+          </StaffNotice>
 
-          <StaffButton
-            tone="primary"
-            size="roomy"
-            type="submit"
-            committing={continueCommit.committing}
-            busy={setupMutation.isPending}
-            busyLabel="Saving school"
-          >
-            Continue to dashboard
+          <form className="staff-form-stack" onSubmit={submitSchool}>
+            <TextField
+              label="School name"
+              type="text"
+              autoComplete="organization"
+              placeholder="Enter the complete school name"
+              required
+              error={errors.school_name?.message}
+              {...register("school_name", {
+                required: "Enter your school name.",
+                minLength: {
+                  value: 2,
+                  message: "Use at least 2 characters.",
+                },
+              })}
+            />
+
+            {setupMutation.isError ? (
+              <StaffNotice tone="danger">
+                {setupMutation.error.message}
+              </StaffNotice>
+            ) : null}
+
+            <StaffButton
+              tone="primary"
+              size="roomy"
+              type="submit"
+              committing={continueCommit.committing}
+              busy={setupMutation.isPending}
+              busyLabel="Saving school"
+            >
+              Continue to dashboard
+            </StaffButton>
+          </form>
+
+          <StaffButton tone="quiet" size="compact" onClick={returnToLogin}>
+            Use a different staff account
           </StaffButton>
-        </form>
-
-        <StaffButton tone="quiet" size="compact" onClick={returnToLogin}>
-          Use a different staff account
-        </StaffButton>
-      </StaffCard>
+        </Surface>
+      </Surface>
     </main>
   );
 }

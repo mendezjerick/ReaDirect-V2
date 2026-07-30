@@ -17,6 +17,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "demos:record": "node scripts/record-system-admin-demos.mjs",
     "lint": "eslint --no-config-lookup --config eslint.config.js .",
     "format": "prettier --check ."
   },

@@ -243,6 +243,12 @@ const SchoolAdministratorsPage = lazy(() =>
   ),
 );
 
+const SystemAdminDemosPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminDemosPage").then((module) => ({
+    default: module.SystemAdminDemosPage,
+  })),
+);
+
 const SchoolAdminSetupPage = lazy(() =>
   import("./features/staff-dashboard/SchoolAdminSetupPage").then((module) => ({
     default: module.SchoolAdminSetupPage,
@@ -471,6 +477,10 @@ export function App() {
               <Route
                 path="/staff/system-admin"
                 element={<SystemAdminDashboardPage />}
+              />
+              <Route
+                path="/staff/system-admin/demos"
+                element={<SystemAdminDemosPage />}
               />
               <Route
                 path="/staff/system-admin/schools"
