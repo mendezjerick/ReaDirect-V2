@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "provenance": {
+    "status": "surviving_historical_training_record",
+    "training_run_executed": true,
+    "original_run_directory_available": false,
+    "weight_file_available": false,
+    "metrics_source": "surviving_historical_results"
+  },
+  "checkpoint_id": "eta",
+  "display_name": "Eta",
+  "parent_checkpoint": "zeta",
+  "training_stage": "acoustic_domain_expansion",
+  "selected_epoch": 2,
+  "selected_step": 1500,
+  "seed": 3407,
+  "weights_file": null,
+  "weights_sha256": null,
+  "evaluation": {
+    "content_tp": 400,
+    "content_tn": 282,
+    "content_fp": 0,
+    "content_fn": 64,
+    "content_f1_percent": 92.59,
+    "normalized_wer_percent": 4.93,
+    "cer_percent": 1.84
+  }
+}

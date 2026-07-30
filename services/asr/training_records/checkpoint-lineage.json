@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "provenance": {
+    "status": "surviving_historical_training_record",
+    "training_runs_executed": true,
+    "original_run_artifacts_available": false,
+    "checkpoint_manifests_only": true,
+    "weight_files_present": false,
+    "cryptographic_weight_hashes_present": false,
+    "record_completeness": "partial_after_artifact_loss"
+  },
+  "root": "large-v3-turbo",
+  "deployment_checkpoint": "mu",
+  "checkpoints": [
+    {
+      "id": "large-v3-turbo",
+      "parent": null,
+      "manifest": "checkpoints/large-v3-turbo.json",
+      "selected_epoch": 0,
+      "selected_step": 0
+    },
+    {
+      "id": "zeta",
+      "parent": "large-v3-turbo",
+      "manifest": "checkpoints/zeta.json",
+      "selected_epoch": 3,
+      "selected_step": 750
+    },
+    {
+      "id": "eta",
+      "parent": "zeta",
+      "manifest": "checkpoints/eta.json",
+      "selected_epoch": 2,
+      "selected_step": 1500
+    },
+    {
+      "id": "mu",
+      "parent": "eta",
+      "manifest": "checkpoints/mu.json",
+      "selected_epoch": 2,
+      "selected_step": 2500
+    }
+  ],
+  "nu": {
+    "checkpoint": "mu",
+    "independent_weights": false,
+    "resolver": "strict_letter_alias_v2",
+    "classes": [
+      "A-Z",
+      "SILENCE",
+      "UNKNOWN"
+    ]
+  }
+}

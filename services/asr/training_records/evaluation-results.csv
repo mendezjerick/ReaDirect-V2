@@ -1,0 +1,9 @@
+evaluation,checkpoint,total,positives,negatives,tp,tn,fp,fn,accuracy_percent,precision_percent,recall_percent,specificity_percent,f1_percent,normalized_wer_percent,cer_percent,binary_counts_source,wer_cer_source
+content,large-v3-turbo,746,464,282,389,282,0,75,89.95,100.00,83.84,100.00,91.21,5.89,2.24,surviving_historical_result,surviving_historical_result
+content,zeta,746,464,282,395,282,0,69,90.75,100.00,85.13,100.00,91.97,5.33,2.01,surviving_historical_result,surviving_historical_result
+content,eta,746,464,282,400,282,0,64,91.42,100.00,86.21,100.00,92.59,4.93,1.84,surviving_historical_result,surviving_historical_result
+content,mu,746,464,282,403,282,0,61,91.82,100.00,86.85,100.00,92.96,4.61,1.74,repository_locked_audit,surviving_historical_result
+nu_letters,large-v3-turbo,360,78,282,68,282,0,10,97.22,100.00,87.18,100.00,93.15,,,surviving_historical_result,not_applicable
+nu_letters,zeta,360,78,282,72,282,0,6,98.33,100.00,92.31,100.00,96.00,,,surviving_historical_result,not_applicable
+nu_letters,eta,360,78,282,75,281,1,3,98.89,98.68,96.15,99.65,97.40,,,surviving_historical_result,not_applicable
+nu_letters,mu,360,78,282,77,280,2,1,99.17,97.47,98.72,99.29,98.09,,,repository_locked_audit,not_applicable
