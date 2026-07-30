@@ -12,7 +12,10 @@ export interface StaffNavigationGroup {
 export const systemAdminNavigationGroups: StaffNavigationGroup[] = [
   {
     label: "Workspace",
-    items: [{ label: "Overview", to: "/staff/system-admin" }],
+    items: [
+      { label: "Overview", to: "/staff/system-admin" },
+      { label: "Demos", to: "/staff/system-admin/demos" },
+    ],
   },
   {
     label: "People and schools",
