@@ -58,9 +58,10 @@ describe("SchoolAdministratorsPage", () => {
       "href",
       "/staff/system-admin/learners",
     );
-    expect(
-      screen.getByText("Guests").closest("[aria-disabled]"),
-    ).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("link", { name: "Guests" })).toHaveAttribute(
+      "href",
+      "/staff/system-admin/guests",
+    );
     expect(
       await screen.findByText("No School Administrators yet."),
     ).toBeVisible();

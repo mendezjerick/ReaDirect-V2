@@ -24,21 +24,24 @@ export const systemAdminNavigationGroups: StaffNavigationGroup[] = [
       },
       { label: "Teachers", to: "/staff/system-admin/teachers" },
       { label: "Learners", to: "/staff/system-admin/learners" },
-      { label: "Guests" },
+      { label: "Guests", to: "/staff/system-admin/guests" },
     ],
   },
   {
     label: "Learning content",
     items: [
-      { label: "Assessments" },
-      { label: "Lessons" },
-      { label: "Rules and thresholds" },
+      { label: "Assessments", to: "/staff/system-admin/assessments" },
+      { label: "Lessons", to: "/staff/system-admin/lessons" },
+      {
+        label: "Rules and thresholds",
+        to: "/staff/system-admin/rules-and-thresholds",
+      },
     ],
   },
   {
     label: "Agents and AI",
     items: [
-      { label: "AI services" },
+      { label: "AI services", to: "/staff/system-admin/ai-services" },
       {
         label: "IsoLetter Sandbox",
         to: "/staff/system-admin/isoletter-sandbox",
@@ -52,18 +55,27 @@ export const systemAdminNavigationGroups: StaffNavigationGroup[] = [
         label: "Confusion Matrix",
         to: "/staff/system-admin/confusion-matrix",
       },
-      { label: "Agent settings" },
-      { label: "Prompt templates" },
+      { label: "Agent settings", to: "/staff/system-admin/agent-settings" },
+      {
+        label: "Prompt templates",
+        to: "/staff/system-admin/prompt-templates",
+      },
     ],
   },
   {
     label: "Operations",
     items: [
-      { label: "Audit logs" },
-      { label: "System monitoring" },
+      { label: "Audit logs", to: "/staff/system-admin/audit-logs" },
+      {
+        label: "System monitoring",
+        to: "/staff/system-admin/system-monitoring",
+      },
       { label: "Page portals", to: "/staff/system-admin/page-portals" },
-      { label: "Speech tools" },
-      { label: "Games and players" },
+      { label: "Speech tools", to: "/staff/system-admin/speech-tools" },
+      {
+        label: "Games and players",
+        to: "/staff/system-admin/games-and-players",
+      },
     ],
   },
 ];

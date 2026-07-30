@@ -139,6 +139,74 @@ const SystemAdminLearnersPage = lazy(() =>
   ),
 );
 
+const SystemAdminGuestsPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminGuestsPage").then((module) => ({
+    default: module.SystemAdminGuestsPage,
+  })),
+);
+
+const SystemAdminAssessmentsPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminAssessmentsPage").then(
+    (module) => ({ default: module.SystemAdminAssessmentsPage }),
+  ),
+);
+
+const SystemAdminLessonsPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminLessonsPage").then(
+    (module) => ({
+      default: module.SystemAdminLessonsPage,
+    }),
+  ),
+);
+
+const SystemAdminLearningRulesPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminLearningRulesPage").then(
+    (module) => ({ default: module.SystemAdminLearningRulesPage }),
+  ),
+);
+
+const SystemAdminAiServicesPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminAiServicesPage").then(
+    (module) => ({ default: module.SystemAdminAiServicesPage }),
+  ),
+);
+
+const SystemAdminAgentSettingsPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminAgentSettingsPage").then(
+    (module) => ({ default: module.SystemAdminAgentSettingsPage }),
+  ),
+);
+
+const SystemAdminPromptTemplatesPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminPromptTemplatesPage").then(
+    (module) => ({ default: module.SystemAdminPromptTemplatesPage }),
+  ),
+);
+
+const SystemAdminAuditLogsPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminAuditLogsPage").then(
+    (module) => ({ default: module.SystemAdminAuditLogsPage }),
+  ),
+);
+
+const SystemAdminMonitoringPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminMonitoringPage").then(
+    (module) => ({ default: module.SystemAdminMonitoringPage }),
+  ),
+);
+
+const SystemAdminSpeechToolsPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminSpeechToolsPage").then(
+    (module) => ({ default: module.SystemAdminSpeechToolsPage }),
+  ),
+);
+
+const SystemAdminGamesPlayersPage = lazy(() =>
+  import("./features/staff-dashboard/SystemAdminGamesPlayersPage").then(
+    (module) => ({ default: module.SystemAdminGamesPlayersPage }),
+  ),
+);
+
 const SystemAdminPagePortalsPage = lazy(() =>
   import("./features/staff-dashboard/SystemAdminPagePortalsPage").then(
     (module) => ({ default: module.SystemAdminPagePortalsPage }),
@@ -415,6 +483,50 @@ export function App() {
               <Route
                 path="/staff/system-admin/learners"
                 element={<SystemAdminLearnersPage />}
+              />
+              <Route
+                path="/staff/system-admin/guests"
+                element={<SystemAdminGuestsPage />}
+              />
+              <Route
+                path="/staff/system-admin/assessments"
+                element={<SystemAdminAssessmentsPage />}
+              />
+              <Route
+                path="/staff/system-admin/lessons"
+                element={<SystemAdminLessonsPage />}
+              />
+              <Route
+                path="/staff/system-admin/rules-and-thresholds"
+                element={<SystemAdminLearningRulesPage />}
+              />
+              <Route
+                path="/staff/system-admin/ai-services"
+                element={<SystemAdminAiServicesPage />}
+              />
+              <Route
+                path="/staff/system-admin/agent-settings"
+                element={<SystemAdminAgentSettingsPage />}
+              />
+              <Route
+                path="/staff/system-admin/prompt-templates"
+                element={<SystemAdminPromptTemplatesPage />}
+              />
+              <Route
+                path="/staff/system-admin/audit-logs"
+                element={<SystemAdminAuditLogsPage />}
+              />
+              <Route
+                path="/staff/system-admin/system-monitoring"
+                element={<SystemAdminMonitoringPage />}
+              />
+              <Route
+                path="/staff/system-admin/speech-tools"
+                element={<SystemAdminSpeechToolsPage />}
+              />
+              <Route
+                path="/staff/system-admin/games-and-players"
+                element={<SystemAdminGamesPlayersPage />}
               />
               <Route
                 path="/staff/system-admin/school-administrators"

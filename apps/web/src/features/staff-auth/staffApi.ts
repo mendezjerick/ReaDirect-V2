@@ -281,6 +281,255 @@ const systemAdminLearnerDirectorySchema = z.object({
   generated_at: z.string(),
 });
 
+const systemAdminGuestSchema = z.object({
+  id: z.number().int().positive(),
+  email: z.string().email(),
+  display_name: z.string().nullable(),
+  is_active: z.boolean(),
+  email_verified_at: z.string().nullable(),
+  last_signed_in_at: z.string().nullable(),
+  active_session_count: z.number().int().nonnegative(),
+  created_at: z.string().nullable(),
+});
+
+const systemAdminGuestDirectorySchema = z.object({
+  summary: z.object({
+    total_guests: z.number().int().nonnegative(),
+    active_guests: z.number().int().nonnegative(),
+    verified_guests: z.number().int().nonnegative(),
+    pending_verification: z.number().int().nonnegative(),
+    active_sessions: z.number().int().nonnegative(),
+  }),
+  guests: z.array(systemAdminGuestSchema),
+  generated_at: z.string(),
+});
+
+const systemAdminGuestAccessResponseSchema = z.object({
+  guest: systemAdminGuestSchema,
+  revoked_sessions: z.number().int().nonnegative(),
+});
+
+const learningContentGovernanceSchema = z.object({
+  read_only: z.literal(true),
+  message: z.string(),
+});
+
+const learningContentStatusSchema = z.enum(["ready", "attention"]);
+
+const systemAdminAssessmentCatalogSchema = z.object({
+  summary: z.object({
+    version: z.string(),
+    active_items: z.number().int().nonnegative(),
+    ready_tasks: z.number().int().nonnegative(),
+    total_tasks: z.number().int().nonnegative(),
+    publication_state: z.string(),
+  }),
+  tasks: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      version: z.string(),
+      active_items: z.number().int().nonnegative(),
+      expected_items: z.number().int().positive(),
+      delivery: z.string(),
+      status: learningContentStatusSchema,
+      source_file: z.string(),
+    }),
+  ),
+  governance: learningContentGovernanceSchema,
+  generated_at: z.string(),
+});
+
+const systemAdminLessonCatalogSchema = z.object({
+  summary: z.object({
+    version: z.string(),
+    active_items: z.number().int().nonnegative(),
+    ready_lessons: z.number().int().nonnegative(),
+    total_lessons: z.number().int().nonnegative(),
+    publication_state: z.string(),
+  }),
+  lessons: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      version: z.string(),
+      active_items: z.number().int().nonnegative(),
+      minimum_active_items: z.number().int().positive(),
+      session_items: z.number().int().positive(),
+      missions: z.number().int().positive(),
+      selection: z.string(),
+      status: learningContentStatusSchema,
+      source_file: z.string(),
+    }),
+  ),
+  governance: learningContentGovernanceSchema,
+  generated_at: z.string(),
+});
+
+const scoreBandSchema = z.object({
+  minimum: z.number().int().nonnegative(),
+  maximum: z.number().int().nonnegative(),
+  label: z.string(),
+});
+
+const systemAdminLearningRulesSchema = z.object({
+  part_one: z.object({
+    maximum_score: z.number().int().positive(),
+    bands: z.array(scoreBandSchema),
+  }),
+  final_reading: z.object({
+    comprehension_weight_percent: z.number().int().nonnegative(),
+    reading_accuracy_weight_percent: z.number().int().nonnegative(),
+    bands: z.array(scoreBandSchema),
+  }),
+  delivery_guards: z.array(
+    z.object({
+      title: z.string(),
+      description: z.string(),
+    }),
+  ),
+  governance: learningContentGovernanceSchema,
+  generated_at: z.string(),
+});
+
+const systemAdminAgentSettingsSchema = z.object({
+  agent: z.object({
+    name: z.string(),
+    role: z.string(),
+    display: z.object({
+      mode: z.string(),
+      fallback: z.string(),
+      ownership: z.string(),
+    }),
+    typography: z.object({
+      learner_interface: z.string(),
+      authored_reading_content: z.string(),
+      ownership: z.string(),
+    }),
+    voice: z.object({
+      stable_key: z.string().nullable(),
+      engine: z.string().nullable(),
+      reference_set: z.string().nullable(),
+      conditioning_version: z.string().nullable(),
+      status: z.string(),
+      published_lines: z.number().int().nonnegative(),
+      reference_roles: z.array(
+        z.object({
+          role: z.string(),
+          published_lines: z.number().int().nonnegative(),
+        }),
+      ),
+    }),
+    speech_processing: z.object({
+      mu_default_mode: z.literal("raw_first"),
+      conditional_mu_noise_reduction_enabled: z.boolean(),
+      nu_noise_reduction: z.literal(false),
+    }),
+  }),
+  governance: learningContentGovernanceSchema,
+  generated_at: z.string(),
+});
+
+const systemAdminPromptTemplatesSchema = z.object({
+  summary: z.object({
+    published_voice: z.string().nullable(),
+    published_templates: z.number().int().nonnegative(),
+    groups: z.array(
+      z.object({
+        group: z.string(),
+        published_templates: z.number().int().nonnegative(),
+      }),
+    ),
+    generative_prompt_registry_configured: z.boolean(),
+  }),
+  templates: z.array(
+    z.object({
+      speech_key: z.string(),
+      text: z.string(),
+      reference_role: z.string(),
+      group: z.string(),
+      status: z.string(),
+    }),
+  ),
+  governance: learningContentGovernanceSchema,
+  generated_at: z.string(),
+});
+
+const systemAdminAuditLogDirectorySchema = z.object({
+  summary: z.object({
+    total_events: z.number().int().nonnegative(),
+    events_last_24_hours: z.number().int().nonnegative(),
+    visible_events: z.number().int().nonnegative(),
+    unique_actors: z.number().int().nonnegative(),
+    retention_note: z.string(),
+  }),
+  logs: z.array(
+    z.object({
+      id: z.number().int().positive(),
+      action_key: z.string(),
+      description: z.string(),
+      actor: z.string(),
+      actor_role: z.string().nullable(),
+      occurred_at: z.string().nullable(),
+    }),
+  ),
+  generated_at: z.string(),
+});
+
+const systemAdminGamesAndPlayersSchema = z.object({
+  summary: z.object({
+    catalog_games: z.number().int().nonnegative(),
+    active_games: z.number().int().nonnegative(),
+    player_profiles: z.number().int().nonnegative(),
+    active_player_profiles: z.number().int().nonnegative(),
+    players_with_saves: z.number().int().nonnegative(),
+    save_slots: z.number().int().nonnegative(),
+    guest_game_persistence_available: z.boolean(),
+  }),
+  games: z.array(
+    z.object({
+      id: z.number().int().positive(),
+      game_key: z.string(),
+      display_title: z.string(),
+      slot: z.string(),
+      engine: z.string(),
+      contract_version: z.number().int().positive(),
+      ruleset_version: z.string(),
+      has_meaningful_progression: z.boolean(),
+      is_active: z.boolean(),
+      player_count: z.number().int().nonnegative(),
+      save_count: z.number().int().nonnegative(),
+    }),
+  ),
+  players: z.array(
+    z.object({
+      id: z.number().int().positive(),
+      handle: z.string(),
+      is_active: z.boolean(),
+      username_changed_at: z.string().nullable(),
+      learner: z.object({
+        id: z.number().int().positive(),
+        learner_code: z.string(),
+        full_name: z.string(),
+        school_name: z.string().nullable(),
+        is_active: z.boolean(),
+      }),
+      saves: z.array(
+        z.object({
+          game_key: z.string(),
+          game_title: z.string(),
+          checkpoint_key: z.string(),
+          save_schema_version: z.number().int().positive(),
+          revision: z.number().int().positive(),
+          saved_at: z.string().nullable(),
+        }),
+      ),
+    }),
+  ),
+  governance: learningContentGovernanceSchema,
+  generated_at: z.string(),
+});
+
 const apiErrorSchema = z.object({
   message: z.string().optional(),
   errors: z
@@ -314,6 +563,30 @@ export type SystemAdminTeacherDirectory = z.infer<
 >;
 export type SystemAdminLearnerDirectory = z.infer<
   typeof systemAdminLearnerDirectorySchema
+>;
+export type SystemAdminGuestDirectory = z.infer<
+  typeof systemAdminGuestDirectorySchema
+>;
+export type SystemAdminAssessmentCatalog = z.infer<
+  typeof systemAdminAssessmentCatalogSchema
+>;
+export type SystemAdminLessonCatalog = z.infer<
+  typeof systemAdminLessonCatalogSchema
+>;
+export type SystemAdminLearningRules = z.infer<
+  typeof systemAdminLearningRulesSchema
+>;
+export type SystemAdminAgentSettings = z.infer<
+  typeof systemAdminAgentSettingsSchema
+>;
+export type SystemAdminPromptTemplates = z.infer<
+  typeof systemAdminPromptTemplatesSchema
+>;
+export type SystemAdminAuditLogDirectory = z.infer<
+  typeof systemAdminAuditLogDirectorySchema
+>;
+export type SystemAdminGamesAndPlayers = z.infer<
+  typeof systemAdminGamesAndPlayersSchema
 >;
 
 const portalTargetKeySchema = z.enum([
@@ -919,6 +1192,132 @@ export async function getSystemAdminLearners(): Promise<SystemAdminLearnerDirect
   }
 
   return systemAdminLearnerDirectorySchema.parse(await response.json());
+}
+
+export async function getSystemAdminGuests(): Promise<SystemAdminGuestDirectory> {
+  const response = await staffFetch("/api/staff/system-admin/guests", {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminGuestDirectorySchema.parse(await response.json());
+}
+
+export async function updateSystemAdminGuestAccess(
+  guestId: number,
+  isActive: boolean,
+): Promise<z.infer<typeof systemAdminGuestAccessResponseSchema>> {
+  const response = await staffFetch(
+    `/api/staff/system-admin/guests/${guestId}/access`,
+    {
+      method: "PATCH",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ is_active: isActive }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminGuestAccessResponseSchema.parse(await response.json());
+}
+
+export async function getSystemAdminAssessmentCatalog(): Promise<SystemAdminAssessmentCatalog> {
+  const response = await staffFetch(
+    "/api/staff/system-admin/learning-content/assessments",
+    { headers: { Accept: "application/json" } },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminAssessmentCatalogSchema.parse(await response.json());
+}
+
+export async function getSystemAdminLessonCatalog(): Promise<SystemAdminLessonCatalog> {
+  const response = await staffFetch(
+    "/api/staff/system-admin/learning-content/lessons",
+    { headers: { Accept: "application/json" } },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminLessonCatalogSchema.parse(await response.json());
+}
+
+export async function getSystemAdminLearningRules(): Promise<SystemAdminLearningRules> {
+  const response = await staffFetch(
+    "/api/staff/system-admin/learning-content/rules",
+    { headers: { Accept: "application/json" } },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminLearningRulesSchema.parse(await response.json());
+}
+
+export async function getSystemAdminAgentSettings(): Promise<SystemAdminAgentSettings> {
+  const response = await staffFetch(
+    "/api/staff/system-admin/agents-ai/settings",
+    { headers: { Accept: "application/json" } },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminAgentSettingsSchema.parse(await response.json());
+}
+
+export async function getSystemAdminPromptTemplates(): Promise<SystemAdminPromptTemplates> {
+  const response = await staffFetch(
+    "/api/staff/system-admin/agents-ai/prompt-templates",
+    { headers: { Accept: "application/json" } },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminPromptTemplatesSchema.parse(await response.json());
+}
+
+export async function getSystemAdminAuditLogs(): Promise<SystemAdminAuditLogDirectory> {
+  const response = await staffFetch(
+    "/api/staff/system-admin/operations/audit-logs",
+    { headers: { Accept: "application/json" } },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminAuditLogDirectorySchema.parse(await response.json());
+}
+
+export async function getSystemAdminGamesAndPlayers(): Promise<SystemAdminGamesAndPlayers> {
+  const response = await staffFetch(
+    "/api/staff/system-admin/operations/games-and-players",
+    { headers: { Accept: "application/json" } },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return systemAdminGamesAndPlayersSchema.parse(await response.json());
 }
 
 const speechProcessingResponseSchema = z.object({

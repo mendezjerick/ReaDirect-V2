@@ -484,7 +484,8 @@ schema implementation.
 ## System Administrator Player Database
 
 The System Administrator sidebar includes a dedicated read-only game-player
-database. Learners and guests are presented in separate views.
+database. The current implementation reports standard Learners only. Guest
+identity remains separate, and Guest game persistence is not yet connected.
 
 Authorized inspection may show:
 
@@ -497,11 +498,19 @@ Authorized inspection may show:
 - Account active or deactivated state.
 
 Passwords, password hashes, email verification codes, authentication tokens,
-and private credentials are never displayed.
+private credentials, and serialized game-state JSON are never displayed.
 
-Preview data is disposable and excluded. The initial feature is read-only;
+Preview and portal-system data are disposable and excluded. The initial feature
+is read-only;
 reset, edit, delete, restore, impersonate, and score-changing actions require a
 separate future authorization and audit specification.
+
+The first implemented directory exposes the current catalog plus existing
+standard-Learner game profiles and save metadata. It excludes the portal-system
+Learner and does not serialize private save-state JSON. Guest game persistence
+is not implemented in this slice, so the Guest section reports that boundary
+explicitly instead of synthesizing Guest players or joining Guest identity to
+Learner-owned profiles.
 
 ## Deactivation and Retention
 
