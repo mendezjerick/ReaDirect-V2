@@ -44,6 +44,12 @@ export function BigButton({
     committing ||
     variant === "unavailable" ||
     variant === "unavailable-vertical";
+  const visualVariant: BigButtonVariant =
+    isDisabled && variant !== "skip-vertical"
+      ? variant === "primary-vertical" || variant === "unavailable-vertical"
+        ? "unavailable-vertical"
+        : "unavailable"
+      : variant;
 
   return (
     <button
@@ -51,7 +57,7 @@ export function BigButton({
       type={type}
       className={joinClasses(
         "big-button",
-        `big-button--${variant}`,
+        `big-button--${visualVariant}`,
         `big-button--${size}`,
         className,
       )}

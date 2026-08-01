@@ -24,6 +24,16 @@ export function useAudioRecorder(
   const [error, setError] = useState("");
   const [recordingElapsedMs, setRecordingElapsedMs] = useState(0);
 
+  const stopPlayback = useCallback(() => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    player.pause();
+    player.currentTime = 0;
+    playerRef.current = null;
+    setState((current) => (current === "playing" ? "recorded" : current));
+  }, []);
+
   const clearRecordingTimers = useCallback(() => {
     if (maximumDurationTimeoutRef.current !== null) {
       window.clearTimeout(maximumDurationTimeoutRef.current);
@@ -37,7 +47,7 @@ export function useAudioRecorder(
 
   const clear = useCallback(() => {
     clearRecordingTimers();
-    playerRef.current?.pause();
+    stopPlayback();
     recorderRef.current = null;
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
@@ -50,7 +60,7 @@ export function useAudioRecorder(
     setHasPlayed(false);
     setError("");
     setRecordingElapsedMs(0);
-  }, [clearRecordingTimers]);
+  }, [clearRecordingTimers, stopPlayback]);
 
   useEffect(() => {
     clear();
@@ -123,16 +133,24 @@ export function useAudioRecorder(
     player.addEventListener(
       "ended",
       () => {
+        if (playerRef.current !== player) return;
         playerRef.current = null;
         setHasPlayed(true);
         setState("recorded");
       },
       { once: true },
     );
-    void player.play().catch(() => {
-      setState("recorded");
-      setError("Your recording could not play. Try recording again.");
-    });
+    void player
+      .play()
+      .then(() => {
+        if (playerRef.current === player) setHasPlayed(true);
+      })
+      .catch(() => {
+        if (playerRef.current !== player) return;
+        playerRef.current = null;
+        setState("recorded");
+        setError("Your recording could not play. Try recording again.");
+      });
   }, [audioUrl]);
 
   return {
@@ -143,6 +161,7 @@ export function useAudioRecorder(
     recordingElapsedMs,
     record,
     stop,
+    stopPlayback,
     play,
     retry: clear,
   };

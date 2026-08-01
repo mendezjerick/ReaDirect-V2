@@ -7,10 +7,7 @@ import { preloadCssImageToken } from "../../utils/preloadCssImageToken";
 import { ThemeSelector } from "../theme/ThemeSelector";
 import { useTheme } from "../theme/themeContext";
 import { ClaraIntroStage } from "./ClaraIntroStage";
-import {
-  INTRO_CENTER_HOLD_MS,
-  INTRO_EXPRESSION_SEQUENCE,
-} from "./introConfig";
+import { INTRO_EXPRESSION_SEQUENCE } from "./introConfig";
 
 const INTRO_EXPRESSION_DURATION_MS = 2000;
 const INTRO_TITLE_RISE_PX = 80;
@@ -20,7 +17,7 @@ export function IntroPage() {
   const { theme } = useTheme();
   const { beginRouteTransition, isTransitioning } = useRouteTransition();
   const [expressionIndex, setExpressionIndex] = useState(0);
-  const [introReady, setIntroReady] = useState(Boolean(reduceMotion));
+  const [claraReady, setClaraReady] = useState(false);
   const homeBackgroundPreloadRef = useRef<HTMLImageElement | null>(null);
   const expression = INTRO_EXPRESSION_SEQUENCE[expressionIndex];
 
@@ -48,35 +45,25 @@ export function IntroPage() {
     return () => window.clearInterval(interval);
   }, [reduceMotion]);
 
-  useEffect(() => {
-    if (reduceMotion) {
-      setIntroReady(true);
-      return;
-    }
-
-    const timeout = window.setTimeout(
-      () => setIntroReady(true),
-      INTRO_CENTER_HOLD_MS,
-    );
-
-    return () => window.clearTimeout(timeout);
-  }, [reduceMotion]);
-
   const continueToHome = () => {
     beginRouteTransition("/home");
   };
+  const introReady = claraReady;
 
   return (
     <ClaraIntroStage
       ariaLabelledBy="intro-title"
       emotion={expression}
       overlay={<ThemeSelector />}
+      onClaraLoadStateChange={(loadState) =>
+        setClaraReady(loadState === "ready")
+      }
     >
       <motion.h1
         id="intro-title"
         className="intro-page__title"
-        initial={reduceMotion ? false : { opacity: 0, y: 0 }}
-        animate={{ opacity: 1, y: introReady ? -INTRO_TITLE_RISE_PX : 0 }}
+        initial={reduceMotion ? false : { opacity: 0, y: -INTRO_TITLE_RISE_PX }}
+        animate={{ opacity: 1, y: -INTRO_TITLE_RISE_PX }}
         transition={{
           opacity: {
             duration: reduceMotion ? 0 : 0.6,
@@ -93,22 +80,21 @@ export function IntroPage() {
 
       <motion.div
         className="intro-page__continue-wrap"
-        initial={reduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: introReady ? 1 : 0 }}
+        initial={false}
+        animate={{ opacity: 1 }}
         transition={{
-          delay: reduceMotion || !introReady ? 0 : 0.14,
-          duration: reduceMotion ? 0 : 0.5,
+          duration: reduceMotion ? 0 : 0.2,
           ease: "easeOut",
         }}
-        aria-hidden={!introReady}
       >
         <BigButton
           className="intro-page__continue"
+          variant={introReady ? "primary" : "unavailable"}
           committing={isTransitioning}
           disabled={!introReady}
           onClick={continueToHome}
         >
-          Tap to continue
+          {introReady ? "Tap to continue" : "Loading..."}
         </BigButton>
       </motion.div>
     </ClaraIntroStage>

@@ -657,11 +657,6 @@
   cursor: pointer;
 }
 
-.parade-story__choice:disabled {
-  cursor: wait;
-  opacity: 0.58;
-}
-
 .parade-story__choice[data-wrong] {
   border-color: var(--color-danger);
   color: var(--color-danger);
@@ -671,6 +666,14 @@
   border-color: var(--color-success);
   color: var(--color-text-on-action);
   background: var(--color-success);
+}
+
+.parade-story__choice:disabled {
+  border-color: var(--color-button-unavailable-border);
+  color: var(--color-button-unavailable-text);
+  background: var(--color-button-unavailable-surface);
+  box-shadow: 0 4px 0 var(--color-button-unavailable-depth);
+  cursor: not-allowed;
 }
 
 .parade-story__story-beat {

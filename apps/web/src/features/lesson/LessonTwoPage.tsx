@@ -286,6 +286,8 @@ export function LessonTwoPage() {
 
   const submit = async () => {
     if (!session?.token || !lesson?.item || !recorder.audio) return;
+    recorder.stopPlayback();
+    playbackRef.current?.stop();
     setBusy(true);
     setError("");
     try {
@@ -333,6 +335,8 @@ export function LessonTwoPage() {
 
   const next = async () => {
     if (!session?.token || !lesson) return;
+    recorder.stopPlayback();
+    playbackRef.current?.stop();
     setBusy(true);
     setError("");
     try {
@@ -425,7 +429,11 @@ export function LessonTwoPage() {
             }
             leadingIcon={<DockActionIcon kind="next" />}
             disabled={controlsUnavailable}
-            onClick={() => navigate("/learner/dashboard")}
+            onClick={() => {
+              recorder.stopPlayback();
+              playbackRef.current?.stop();
+              navigate("/learner/dashboard");
+            }}
           >
             Continue
           </BigButton>

@@ -331,6 +331,8 @@ export function SpokenTextLessonPage({
 
   const submit = async () => {
     if (!session?.token || !lesson?.item || !recorder.audio) return;
+    recorder.stopPlayback();
+    playbackRef.current?.stop();
     setBusy(true);
     setError("");
     try {
@@ -374,6 +376,8 @@ export function SpokenTextLessonPage({
 
   const next = async () => {
     if (!session?.token || !lesson) return;
+    recorder.stopPlayback();
+    playbackRef.current?.stop();
     setBusy(true);
     setError("");
     try {
@@ -391,6 +395,8 @@ export function SpokenTextLessonPage({
 
   const continueReview = async () => {
     if (!session?.token || !lesson || !api.continueReview) return;
+    recorder.stopPlayback();
+    playbackRef.current?.stop();
     setBusy(true);
     setError("");
     try {
@@ -551,7 +557,11 @@ export function SpokenTextLessonPage({
             }
             leadingIcon={<DockActionIcon kind="next" />}
             disabled={controlsUnavailable}
-            onClick={() => navigate("/learner/dashboard")}
+            onClick={() => {
+              recorder.stopPlayback();
+              playbackRef.current?.stop();
+              navigate("/learner/dashboard");
+            }}
           >
             Continue
           </BigButton>
