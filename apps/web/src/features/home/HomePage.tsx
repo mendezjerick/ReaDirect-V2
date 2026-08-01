@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { ThemeSelector } from "../theme/ThemeSelector";
 import { AboutReaDirectDialog } from "./AboutReaDirectDialog";
 
 function BookIcon() {
@@ -41,6 +42,7 @@ export function HomePage() {
       tabIndex={-1}
     >
       <h1 className="visually-hidden">ReaDirect home</h1>
+      <ThemeSelector />
 
       <section className="home-page__actions" aria-label="Home actions">
         <BigButton

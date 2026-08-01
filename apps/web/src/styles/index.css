@@ -5182,20 +5182,32 @@ textarea.staff-field__control {
   }
 
   .intro-page__content {
-    grid-template-columns: minmax(15rem, 1fr) minmax(15rem, 1fr);
-    grid-template-rows: 1fr;
-    align-items: center;
-    max-width: 62rem;
-    margin: 0 auto;
+    grid-template-rows: minmax(0, 38fr) minmax(0, 62fr);
   }
 
   .intro-page__brand {
-    align-self: center;
+    width: min(100%, 18rem);
+    padding-bottom: 0.5rem;
+  }
+
+  .intro-page__title {
+    font-size: clamp(2.25rem, 5vw, 3.25rem);
+  }
+
+  .intro-page__continue-wrap {
+    min-width: min(12rem, calc(100vw - 2rem));
+  }
+
+  .intro-page__continue.big-button--large {
+    min-height: 3.75rem;
+    padding: 0.75rem 1rem;
+    font-size: clamp(1.15rem, 2.2vw, 1.5rem);
   }
 
   .clara-stage {
     align-self: end;
-    width: min(72vh, 17rem);
+    justify-self: center;
+    width: min(46vh, 17rem);
   }
 }
 

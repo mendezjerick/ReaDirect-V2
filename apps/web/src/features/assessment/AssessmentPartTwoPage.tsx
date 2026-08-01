@@ -287,9 +287,6 @@ function AssessmentCompletion({ state }: { state: AssessmentPartTwoState }) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.34 }}
     >
-      <span className="assessment-completion__seal" aria-hidden="true">
-        ✓
-      </span>
       <h2>{state.completion.title}</h2>
       <p>{state.completion.message}</p>
       {isFinale ? (
@@ -518,6 +515,8 @@ export function AssessmentPartTwoPage({
     request: Promise<AssessmentPartTwoState>,
     action: Exclude<SaveAction, null>,
   ) => {
+    recorder.stopPlayback();
+    playbackRef.current?.stop();
     setSaveAction(action);
     try {
       const next = await request;
@@ -579,8 +578,7 @@ export function AssessmentPartTwoPage({
       ? selectedStory !== null
       : isPassage
         ? recorder.audio !== null &&
-          recorder.state !== "recording" &&
-          recorder.state !== "playing"
+          recorder.state !== "recording"
         : isComprehension
           ? selectedChoice !== null
           : isResult || isCompletion;
@@ -604,6 +602,8 @@ export function AssessmentPartTwoPage({
 
   const submitCurrent = () => {
     if (!session?.token || !canSubmit) return;
+    recorder.stopPlayback();
+    playbackRef.current?.stop();
     if (state.stage === "story-selection" && selectedStory) {
       void save(
         selectAssessmentStory(

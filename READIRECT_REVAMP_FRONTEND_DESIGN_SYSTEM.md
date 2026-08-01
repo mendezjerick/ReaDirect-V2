@@ -1142,6 +1142,12 @@ through opacity alone. An unavailable primary action must use the shared
 compresses or responds as a pressable control. Other disabled controls remove
 their press shadow and use an appropriate cursor.
 
+Every functional action that is temporarily unavailable uses this muted-grey
+unavailable treatment, including choices, recorder-adjacent actions, and intro
+continuation controls. It must not retain an active orange, blue, or themed
+primary appearance while disabled. The Skip action and the achievement-unlock
+acknowledgement overlay retain their separately documented presentation rules.
+
 ### Typed button reference
 
 ```tsx
@@ -1543,18 +1549,20 @@ The intro uses one fixed upper focal point so its elements do not jump as the
 sequence advances. This anchor sits at the end of the top content region rather
 than at the exact center of the viewport:
 
-1. `ReaDirect` fades in at the intro's upper focal anchor.
-2. The title remains stationary for `2000ms`.
-3. The title moves upward by `80px` over `650ms` using the
-   `[0.16, 1, 0.3, 1]` ease-out curve.
-4. The shared primary button fades into the focal point vacated by the title.
-5. The button remains disabled and outside the accessibility interaction flow
-   until its reveal begins.
+1. `ReaDirect` and the primary action are visible from the start at the upper
+   focal anchor.
+2. While Clara's model loads and completes its pulse/reveal, the action reads
+   `Loading...`, uses the shared muted-grey unavailable treatment, and is
+   disabled.
+3. The title holds its raised final position so it never overlaps the already
+   visible action.
+4. Only after Clara's pulse/reveal reports ready does the action change to the
+   orange primary variant and the label `Tap to continue`.
 
 Do not animate the parent brand container. The title and action animate
-independently over the same fixed grid cell. Ma'am Clara's stage also remains
-positionally fixed and uses opacity-only entrance motion. With reduced motion,
-show the final title and button positions immediately.
+independently. Ma'am Clara's stage also remains positionally fixed and uses
+opacity-only entrance motion. With reduced motion, show the final title and
+button positions immediately, while retaining the model-readiness gate.
 
 ### Link-start route transition
 

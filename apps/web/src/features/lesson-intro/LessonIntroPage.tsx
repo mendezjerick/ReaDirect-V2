@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +12,11 @@ import {
 import { ClaraSpeechWarmupLoader } from "../clara-audio/ClaraSpeechWarmupLoader";
 import { activitySpeechScopeForProgress } from "../clara-audio/activitySpeechReadiness";
 import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPreparation";
-import { loadLearnerSession } from "../learner-auth/learnerApi";
+import {
+  getLearnerSession,
+  loadLearnerSession,
+  saveLearnerSession,
+} from "../learner-auth/learnerApi";
 import { ClaraIntroStage } from "../intro/ClaraIntroStage";
 import "./lesson-intro.css";
 
@@ -27,7 +32,22 @@ const speechStatusMessages: Record<LessonIntroSpeechState, string> = {
 export function LessonIntroPage() {
   const navigate = useNavigate();
   const continueCommit = useButtonCommit();
-  const session = loadLearnerSession();
+  const storedSession = loadLearnerSession();
+  const sessionQuery = useQuery({
+    queryKey: ["learner-session", storedSession?.token],
+    queryFn: () => getLearnerSession(storedSession?.token ?? ""),
+    enabled: Boolean(storedSession?.token),
+    initialData: storedSession
+      ? { learner: storedSession.learner, session: storedSession.session }
+      : undefined,
+    // Routes are derived from progression, so the lesson intro must never
+    // choose a lesson from an old browser session snapshot.
+    refetchOnMount: "always",
+  });
+  const session =
+    storedSession && sessionQuery.data
+      ? { token: storedSession.token, ...sessionQuery.data }
+      : null;
   const activityScope = session
     ? activitySpeechScopeForProgress(session.learner.progress)
     : "signed-out";
@@ -48,6 +68,12 @@ export function LessonIntroPage() {
       : session?.learner.progress.stage === "final_assessment"
         ? "/learner/final-assessment/part-one"
         : "/learner/assessment/part-one";
+
+  useEffect(() => {
+    if (storedSession?.token && sessionQuery.data) {
+      saveLearnerSession({ token: storedSession.token, ...sessionQuery.data });
+    }
+  }, [sessionQuery.data, storedSession?.token]);
 
   useEffect(() => {
     if (!session?.token) {
@@ -131,7 +157,9 @@ export function LessonIntroPage() {
   }, [claraReady, preparedSpeech]);
 
   const ready =
-    speechState === "finished" && activityPreparation.status === "ready";
+    speechState === "finished" &&
+    activityPreparation.status === "ready" &&
+    !sessionQuery.isFetching;
   const hasError =
     speechState === "error" || activityPreparation.status === "error";
   const statusMessage = hasError

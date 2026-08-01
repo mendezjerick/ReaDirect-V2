@@ -463,6 +463,8 @@ export function AssessmentPartOnePage({
     request: Promise<AssessmentState>,
     action: Exclude<SaveAction, null> = "submit",
   ) => {
+    recorder.stopPlayback();
+    playbackRef.current?.stop();
     setSaveAction(action);
     setSaveState("processing");
     try {
@@ -537,6 +539,8 @@ export function AssessmentPartOnePage({
 
   const continueFromResult = () => {
     if (!assessment || !storedSession?.token) return;
+    recorder.stopPlayback();
+    playbackRef.current?.stop();
     setSaveState("processing");
     void continuePartOneResult(
       storedSession.token,
