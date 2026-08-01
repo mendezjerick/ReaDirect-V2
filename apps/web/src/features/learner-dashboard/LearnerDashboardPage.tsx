@@ -78,6 +78,9 @@ export function LearnerDashboardPage() {
     initialData: storedSession
       ? { learner: storedSession.learner, session: storedSession.session }
       : undefined,
+    // The learner may have just completed an assessment or lesson. Always
+    // reconcile this shared progression snapshot when the dashboard opens.
+    refetchOnMount: "always",
   });
   const logoutMutation = useMutation({
     mutationFn: () => logoutLearner(storedSession?.token ?? ""),
