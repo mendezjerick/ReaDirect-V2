@@ -713,12 +713,18 @@ export type PortalTargetKey = z.infer<typeof portalTargetKeySchema>;
 export type PortalLaunchResponse = z.infer<typeof portalLaunchResponseSchema>;
 
 const staffSessionStorageKey = "readirect.staff-session";
+export const staffSessionChangedEvent = "readirect:staff-session-changed";
+
+function announceStaffSessionChange(): void {
+  window.dispatchEvent(new Event(staffSessionChangedEvent));
+}
 
 export function saveStaffSession(session: StaffSession): void {
   window.sessionStorage.setItem(
     staffSessionStorageKey,
     JSON.stringify(session),
   );
+  announceStaffSessionChange();
 }
 
 export function loadStaffSession(): StaffSession | null {
@@ -750,6 +756,7 @@ export function loadStaffSession(): StaffSession | null {
 export function clearStaffSession(): void {
   const session = loadStaffSession();
   window.sessionStorage.removeItem(staffSessionStorageKey);
+  announceStaffSessionChange();
 
   if (session) {
     void fetch("/api/staff/logout", {
@@ -765,6 +772,7 @@ export function clearStaffSession(): void {
 
 function discardStaffSession(): void {
   window.sessionStorage.removeItem(staffSessionStorageKey);
+  announceStaffSessionChange();
 }
 
 export async function staffFetch(

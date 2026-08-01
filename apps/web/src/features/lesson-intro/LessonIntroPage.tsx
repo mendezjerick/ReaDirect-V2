@@ -18,6 +18,7 @@ import {
   saveLearnerSession,
 } from "../learner-auth/learnerApi";
 import { ClaraIntroStage } from "../intro/ClaraIntroStage";
+import { ThemeSelector } from "../theme/ThemeSelector";
 import "./lesson-intro.css";
 
 type LessonIntroSpeechState = "preparing" | "speaking" | "finished" | "error";
@@ -185,6 +186,7 @@ export function LessonIntroPage() {
         ariaLabelledBy="lesson-intro-title"
         className="lesson-intro-page"
         emotion="happy"
+        overlay={<ThemeSelector />}
         speaking={speechState === "speaking"}
         speechLevel={speechLevel}
         onClaraLoadStateChange={(loadState) =>
@@ -192,32 +194,34 @@ export function LessonIntroPage() {
         }
         routeFocus
       >
-        <div className="lesson-intro-page__action-panel">
-          <h1 id="lesson-intro-title" className="visually-hidden">
-            Get ready to read
-          </h1>
-          <p className="lesson-intro-page__status" aria-live="polite">
-            {statusMessage}
-          </p>
-          <BigButton
-            className="intro-page__continue lesson-intro-page__continue"
-            variant={ready ? "primary" : "unavailable"}
-            committing={continueCommit.committing}
-            disabled={!ready}
-            onClick={() => continueCommit.commit(() => navigate(nextRoute))}
-          >
-            Continue
-          </BigButton>
-          {hasError ? (
+        <div className="intro-page__continue-wrap lesson-intro-page__continue-wrap">
+          <div className="lesson-intro-page__action-panel">
+            <h1 id="lesson-intro-title" className="visually-hidden">
+              Get ready to read
+            </h1>
+            <p className="lesson-intro-page__status" aria-live="polite">
+              {statusMessage}
+            </p>
             <BigButton
-              className="lesson-intro-page__retry"
-              variant="secondary"
-              size="regular"
-              onClick={retry}
+              className="intro-page__continue lesson-intro-page__continue"
+              variant={ready ? "primary" : "unavailable"}
+              committing={continueCommit.committing}
+              disabled={!ready}
+              onClick={() => continueCommit.commit(() => navigate(nextRoute))}
             >
-              Try again
+              Continue
             </BigButton>
-          ) : null}
+            {hasError ? (
+              <BigButton
+                className="lesson-intro-page__retry"
+                variant="secondary"
+                size="regular"
+                onClick={retry}
+              >
+                Try again
+              </BigButton>
+            ) : null}
+          </div>
         </div>
       </ClaraIntroStage>
     </>

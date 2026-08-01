@@ -13,6 +13,7 @@ dependencies = [
   "numpy",
   "openai-whisper",
   "python-multipart",
+  "readirect-gpu-runtime",
   "soundfile",
   "torch==2.11.0",
   "torchaudio==2.11.0",
@@ -36,6 +37,7 @@ explicit = true
 [tool.uv.sources]
 torch = { index = "pytorch" }
 torchaudio = { index = "pytorch" }
+readirect-gpu-runtime = { path = "../gpu-runtime", editable = true }
 
 [tool.uv]
 package = false

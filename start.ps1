@@ -15,6 +15,11 @@ param(
     [ValidateRange(1, 65535)]
     [int]$ReverbPort = 8080,
 
+    [ValidateRange(30, 600)]
+    [int]$SpeechStartupTimeoutSeconds = 240,
+
+    [switch]$ProductionSpeechServices,
+
     [switch]$OpenBrowser
 )
 
@@ -29,6 +34,8 @@ $stopRequestPath = Join-Path $runtimeDirectory 'stop-requested'
 $bindAddress = '0.0.0.0'
 $runningProcesses = [System.Collections.Generic.List[object]]::new()
 $serviceResults = [System.Collections.Generic.List[object]]::new()
+$previousReverbPort = [Environment]::GetEnvironmentVariable('REVERB_PORT', 'Process')
+$previousReverbServerPort = [Environment]::GetEnvironmentVariable('REVERB_SERVER_PORT', 'Process')
 
 function Write-Section {
     param([Parameter(Mandatory)][string]$Title)
@@ -160,13 +167,67 @@ function Start-ManagedProcess {
     return $processRecord
 }
 
+function Start-ManagedBackgroundProcess {
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$Executable,
+        [Parameter(Mandatory)][string[]]$Arguments,
+        [Parameter(Mandatory)][string]$WorkingDirectory
+    )
+
+    $safeName = $Name.ToLowerInvariant().Replace(' ', '-')
+    $standardOutputPath = Join-Path $logDirectory "$safeName.log"
+    $standardErrorPath = Join-Path $logDirectory "$safeName.error.log"
+    $process = Start-Process `
+        -FilePath $Executable `
+        -ArgumentList $Arguments `
+        -WorkingDirectory $WorkingDirectory `
+        -RedirectStandardOutput $standardOutputPath `
+        -RedirectStandardError $standardErrorPath `
+        -WindowStyle Hidden `
+        -PassThru
+
+    $processRecord = [pscustomobject]@{
+        Name               = $Name
+        Process            = $process
+        Port               = 0
+        Url                = $null
+        StandardOutputPath = $standardOutputPath
+        StandardErrorPath  = $standardErrorPath
+    }
+    $runningProcesses.Add($processRecord)
+    Save-ServiceManifest
+
+    Start-Sleep -Milliseconds 750
+    $process.Refresh()
+    if ($process.HasExited) {
+        $errorTail = if (Test-Path -LiteralPath $standardErrorPath) {
+            (Get-Content -LiteralPath $standardErrorPath -Tail 20) -join [Environment]::NewLine
+        }
+        else {
+            'No error output was written.'
+        }
+        throw "$Name exited during startup.$([Environment]::NewLine)$errorTail"
+    }
+
+    $serviceResults.Add([pscustomobject]@{
+            Name   = $Name
+            State  = 'Running'
+            Url    = $null
+            Reason = $null
+        })
+    return $processRecord
+}
+
 function Wait-ForService {
     param(
         [Parameter(Mandatory)][object]$ProcessRecord,
-        [int]$TimeoutSeconds = 30
+        [int]$TimeoutSeconds = 30,
+        [string]$ReadinessPath = ''
     )
 
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    $lastReadinessError = $null
 
     while ([DateTime]::UtcNow -lt $deadline) {
         $ProcessRecord.Process.Refresh()
@@ -182,7 +243,25 @@ function Wait-ForService {
             throw "$($ProcessRecord.Name) exited before becoming ready.$([Environment]::NewLine)$errorTail"
         }
 
-        if (Test-TcpPort -Port $ProcessRecord.Port) {
+        $serviceReady = Test-TcpPort -Port $ProcessRecord.Port
+
+        if ($serviceReady -and -not [string]::IsNullOrWhiteSpace($ReadinessPath)) {
+            try {
+                $readiness = Invoke-RestMethod `
+                    -Uri "http://127.0.0.1:$($ProcessRecord.Port)$ReadinessPath" `
+                    -TimeoutSec 5
+                $serviceReady = $readiness.status -eq 'ready'
+                if (-not $serviceReady) {
+                    $lastReadinessError = "reported status '$($readiness.status)'"
+                }
+            }
+            catch {
+                $serviceReady = $false
+                $lastReadinessError = $_.Exception.Message
+            }
+        }
+
+        if ($serviceReady) {
             $serviceResults.Add([pscustomobject]@{
                     Name   = $ProcessRecord.Name
                     State  = 'Running'
@@ -195,7 +274,13 @@ function Wait-ForService {
         Start-Sleep -Milliseconds 250
     }
 
-    throw "$($ProcessRecord.Name) did not become ready on port $($ProcessRecord.Port) within $TimeoutSeconds seconds. Check $($ProcessRecord.StandardErrorPath)."
+    $readinessDetail = if ($lastReadinessError) {
+        " Last readiness result: $lastReadinessError."
+    }
+    else {
+        ''
+    }
+    throw "$($ProcessRecord.Name) did not become ready on port $($ProcessRecord.Port) within $TimeoutSeconds seconds.$readinessDetail Check $($ProcessRecord.StandardErrorPath)."
 }
 
 function Stop-ProcessTree {
@@ -232,6 +317,9 @@ Write-Host 'ReaDirect local launcher' -ForegroundColor Green
 Write-Host "Repository: $repositoryRoot"
 
 try {
+    [Environment]::SetEnvironmentVariable('REVERB_PORT', [string]$ReverbPort, 'Process')
+    [Environment]::SetEnvironmentVariable('REVERB_SERVER_PORT', [string]$ReverbPort, 'Process')
+
     $corepackPath = Get-RequiredCommandPath `
         -Command 'corepack' `
         -InstallHint 'Install the Node.js version declared by this repository.'
@@ -279,14 +367,36 @@ try {
                 -Url "ws://localhost:$ReverbPort"
             Wait-ForService -ProcessRecord $reverbProcess
             Write-Host "  Reverb    ready on port $ReverbPort" -ForegroundColor Green
+
+            & $phpPath $artisanPath queue:prune-failed --hours=168 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                throw 'Failed to prune expired broadcast queue failures.'
+            }
+
+            $queueProcess = Start-ManagedBackgroundProcess `
+                -Name 'Broadcast Queue' `
+                -Executable $phpPath `
+                -Arguments @(
+                    'artisan', 'queue:work', 'database',
+                    '--queue=broadcasts',
+                    '--sleep=1',
+                    '--tries=3',
+                    '--timeout=30',
+                    '--backoff=2',
+                    '--memory=256'
+                ) `
+                -WorkingDirectory (Join-Path $repositoryRoot 'apps\api')
+            Write-Host '  Queue     broadcast worker ready' -ForegroundColor Green
         }
         else {
             Add-SkippedService -Name 'Reverb' -Reason 'Laravel Reverb has not been configured yet.'
+            Add-SkippedService -Name 'Broadcast Queue' -Reason 'Laravel Reverb has not been configured yet.'
         }
     }
     else {
         Add-SkippedService -Name 'API' -Reason 'Laravel is still an empty scaffold.'
         Add-SkippedService -Name 'Reverb' -Reason 'Laravel is still an empty scaffold.'
+        Add-SkippedService -Name 'Broadcast Queue' -Reason 'Laravel is still an empty scaffold.'
     }
 
     $speechServices = @(
@@ -295,12 +405,14 @@ try {
             Directory  = Join-Path $repositoryRoot 'services\asr'
             Port       = $AsrPort
             Url        = "http://localhost:$AsrPort"
+            ReadinessPath = '/ready'
         },
         @{
             Name       = 'TTS'
             Directory  = Join-Path $repositoryRoot 'services\tts'
             Port       = $TtsPort
             Url        = "http://localhost:$TtsPort"
+            ReadinessPath = '/health'
         }
     )
 
@@ -323,24 +435,43 @@ try {
             throw "$($speechService.Name) environment is missing. Run .\scripts\bootstrap.ps1 once, then retry."
         }
 
+        $speechArguments = @(
+            '-m', 'uvicorn', 'main:app',
+            '--host', $bindAddress,
+            '--port', "$($speechService.Port)",
+            '--timeout-graceful-shutdown', '180'
+        )
+        if ($ProductionSpeechServices) {
+            $speechArguments += @('--workers', '1')
+        }
+        else {
+            $speechArguments += '--reload'
+        }
+
         $speechProcess = Start-ManagedProcess `
             -Name $speechService.Name `
             -Executable $pythonPath `
-            -Arguments @('-m', 'uvicorn', 'main:app', '--host', $bindAddress, '--port', "$($speechService.Port)", '--reload') `
+            -Arguments $speechArguments `
             -WorkingDirectory $speechService.Directory `
             -Port $speechService.Port `
             -Url $speechService.Url
-        Wait-ForService -ProcessRecord $speechProcess -TimeoutSeconds 60
+        Wait-ForService `
+            -ProcessRecord $speechProcess `
+            -TimeoutSeconds $SpeechStartupTimeoutSeconds `
+            -ReadinessPath $speechService.ReadinessPath
         Write-Host "  $($speechService.Name.PadRight(9))ready on port $($speechService.Port)" -ForegroundColor Green
     }
 
     Write-Section -Title 'Local URLs'
     foreach ($service in $serviceResults) {
-        if ($service.State -eq 'Running') {
+        if ($service.State -eq 'Running' -and $service.Url) {
             Write-Host "  $($service.Name.PadRight(10))$($service.Url)" -ForegroundColor White
         }
+        elseif ($service.State -eq 'Running') {
+            Write-Host "  $($service.Name.PadRight(16))running in background" -ForegroundColor White
+        }
         else {
-            Write-Host "  $($service.Name.PadRight(10))not started - $($service.Reason)" -ForegroundColor DarkYellow
+            Write-Host "  $($service.Name.PadRight(16))not started - $($service.Reason)" -ForegroundColor DarkYellow
         }
     }
 
@@ -394,4 +525,6 @@ finally {
 
     Remove-Item -LiteralPath $serviceManifestPath -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $stopRequestPath -Force -ErrorAction SilentlyContinue
+    [Environment]::SetEnvironmentVariable('REVERB_PORT', $previousReverbPort, 'Process')
+    [Environment]::SetEnvironmentVariable('REVERB_SERVER_PORT', $previousReverbServerPort, 'Process')
 }

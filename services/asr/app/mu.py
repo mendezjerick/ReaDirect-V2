@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import threading
 import time
 import unicodedata
 from functools import lru_cache
@@ -53,6 +54,7 @@ class MuTranscriber:
         self.language = os.getenv("MU_LANGUAGE", "en")
         self.allow_download = os.getenv("MU_ALLOW_DOWNLOAD", "false").lower() == "true"
         self._model: Any | None = None
+        self._load_lock = threading.Lock()
         self._load_error: str | None = None
 
     def status(self) -> dict[str, object]:
@@ -306,24 +308,29 @@ class MuTranscriber:
     def _load(self) -> None:
         if self._model is not None:
             return
-        source = self._local_source()
-        if source is None and not self.allow_download:
-            raise RuntimeError("mu_checkpoint_missing")
 
-        try:
-            from faster_whisper import WhisperModel
+        with self._load_lock:
+            if self._model is not None:
+                return
 
-            self._model = WhisperModel(
-                str(source or "large-v3-turbo"),
-                device=self._device(),
-                compute_type=self._compute_type(),
-                download_root=str(self.artifact_path / "cache"),
-                local_files_only=not self.allow_download,
-            )
-            self._load_error = None
-        except Exception as error:
-            self._load_error = str(error)
-            raise
+            source = self._local_source()
+            if source is None and not self.allow_download:
+                raise RuntimeError("mu_checkpoint_missing")
+
+            try:
+                from faster_whisper import WhisperModel
+
+                self._model = WhisperModel(
+                    str(source or "large-v3-turbo"),
+                    device=self._device(),
+                    compute_type=self._compute_type(),
+                    download_root=str(self.artifact_path / "cache"),
+                    local_files_only=not self.allow_download,
+                )
+                self._load_error = None
+            except Exception as error:
+                self._load_error = str(error)
+                raise
 
     def _local_source(self) -> Path | None:
         direct = self.artifact_path / "model"

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\LearnerProgressState;
+use App\Observers\LearnerProgressStateObserver;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -16,6 +18,8 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        LearnerProgressState::observe(LearnerProgressStateObserver::class);
+
         if (! $this->app->runningInConsole()) {
             return;
         }

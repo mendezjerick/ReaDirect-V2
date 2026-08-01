@@ -2189,10 +2189,23 @@
  * Clara | the result itself | the next action.  This prevents the result
  * panel from competing with an oversized combined Clara/action dock.
  */
-@media (orientation: landscape) {
+/*
+ * A result is naturally much smaller than an active activity.  On tablets and
+ * horizontal screens, keep the three supporting slices but cap their physical
+ * footprint instead of stretching each one to the available viewport height.
+ * This includes tablet portrait while deliberately leaving phone portrait on
+ * its existing stacked flow.
+ */
+@media (min-width: 48rem), (orientation: landscape) {
   .assessment-page.learner-flow-page:has(.assessment-item-panel--result) {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 12fr) minmax(7rem, 5fr);
+    --assessment-result-slice-height: min(100%, clamp(18rem, 48svh, 25rem));
+
+    grid-template-columns: minmax(9rem, 14rem) minmax(17rem, 27rem) minmax(
+        8.5rem,
+        11rem
+      );
     grid-template-rows: auto minmax(0, 1fr);
+    justify-content: center;
     gap: clamp(0.45rem, 1.25svh, 0.9rem);
     padding: max(0.55rem, env(safe-area-inset-top))
       max(0.65rem, env(safe-area-inset-right))
@@ -2212,10 +2225,28 @@
     grid-column: 2;
     grid-row: 2;
     width: 100%;
-    height: 100%;
+    height: var(--assessment-result-slice-height);
     min-height: 0;
-    align-self: stretch;
+    align-self: center;
     padding: clamp(0.65rem, 1.8svh, 1rem);
+  }
+
+  /*
+   * The ordinary lesson score is intrinsically taller than its two supporting
+   * slices. Let that score card take the room its summary, score, and reward
+   * label need rather than clipping the reward to a shared fixed height.
+   */
+  .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
+    .assessment-item-panel--result:has(.assessment-result) {
+    height: fit-content;
+    max-height: 100%;
+    overflow: visible;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
+    .assessment-item-panel--result:has(.assessment-result)
+    .assessment-stage {
+    height: auto;
   }
 
   .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
@@ -2229,8 +2260,8 @@
     .assessment-clara,
   .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
     .assessment-action-slot {
-    align-self: stretch;
-    height: auto;
+    align-self: center;
+    height: var(--assessment-result-slice-height);
     min-height: 0;
     border: 2px solid var(--color-border-warm);
     border-radius: var(--radius-frame);
@@ -2241,7 +2272,7 @@
 
   .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
     .assessment-clara {
-    --assessment-clara-max-size: min(100%, 19rem);
+    --assessment-clara-max-size: min(100%, 17rem);
 
     grid-column: 1;
     grid-row: 2;
@@ -2252,6 +2283,13 @@
     .assessment-action-slot {
     grid-column: 3;
     grid-row: 2;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
+    .assessment-action-slot
+    .big-button {
+    height: min(100%, 20rem);
+    align-self: center;
   }
 
   .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
@@ -2321,6 +2359,29 @@
     .assessment-passage-review__text {
     font-size: clamp(0.9rem, 2.6svh, 1.25rem);
     line-height: 1.45;
+  }
+}
+
+@media (max-height: 32rem) and (orientation: landscape) {
+  .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
+    .assessment-result {
+    gap: 0.3rem;
+    padding: 0.15rem;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
+    .assessment-result__segments > div {
+    padding-block: 0.25rem;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
+    .assessment-result__score strong {
+    font-size: clamp(3rem, 15svh, 4rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
+    .assessment-result__level {
+    padding-block: 0.2rem;
   }
 }
 

@@ -170,7 +170,8 @@ if ($stoppedServices.Count -eq 0) {
 else {
     Write-Host 'Stopped services' -ForegroundColor Cyan
     foreach ($service in $stoppedServices) {
-        Write-Host "  $($service.Name.PadRight(10))port $($service.Port)" -ForegroundColor White
+        $location = if ($service.Port -gt 0) { "port $($service.Port)" } else { 'background process' }
+        Write-Host "  $($service.Name.PadRight(16))$location" -ForegroundColor White
     }
 }
 

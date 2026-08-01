@@ -18,6 +18,10 @@ use Throwable;
 
 final class SystemAdminOverviewService
 {
+    public function __construct(
+        private readonly RealtimeHealthService $realtimeHealth,
+    ) {}
+
     /** @var list<string> */
     private const PART_ONE_LEVELS = [
         'Full Refresher',
@@ -240,7 +244,6 @@ final class SystemAdminOverviewService
         ?string $publishedVoiceKey,
         int $publishedSpeechCount,
     ): array {
-        $queueConnection = config('queue.default');
         $environment = (string) config('app.env', 'unknown');
 
         return [
@@ -259,15 +262,8 @@ final class SystemAdminOverviewService
                 $publishedVoiceKey,
                 $publishedSpeechCount,
             ),
-            [
-                'service' => 'Queue',
-                'status' => is_string($queueConnection)
-                    ? 'online'
-                    : 'not_configured',
-                'detail' => is_string($queueConnection)
-                    ? "The {$queueConnection} queue connection is configured."
-                    : 'No Laravel queue connection is configured.',
-            ],
+            $this->realtimeHealth->queue(),
+            $this->realtimeHealth->reverb(),
             [
                 'service' => 'Environment',
                 'status' => 'online',

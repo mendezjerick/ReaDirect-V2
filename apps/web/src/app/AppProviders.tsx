@@ -2,6 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useState, type PropsWithChildren } from "react";
 
 import { ThemeProvider } from "../features/theme/ThemeProvider";
+import { StaffRealtimeProvider } from "../features/realtime/StaffRealtimeProvider";
 import { createAppQueryClient } from "./queryClient";
 
 export function AppProviders({ children }: PropsWithChildren) {
@@ -9,7 +10,9 @@ export function AppProviders({ children }: PropsWithChildren) {
 
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <StaffRealtimeProvider>{children}</StaffRealtimeProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

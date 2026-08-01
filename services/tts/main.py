@@ -9,7 +9,7 @@ import threading
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Generic, Literal, TypeVar
 
 import numpy as np
 import soundfile as sf
@@ -17,6 +17,14 @@ import torch
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, field_validator
+from readirect_gpu_runtime import GpuCoordinator, InferenceCapacity, ServiceProcessGuard
+
+from inference_queue import (
+    InferenceQueue,
+    InferenceQueueFull,
+    InferenceQueueUnavailable,
+    InferenceQueueWaitTimeout,
+)
 
 SERVICE_ROOT = Path(__file__).resolve().parent
 REPOSITORY_ROOT = SERVICE_ROOT.parents[1]
@@ -42,6 +50,7 @@ REFERENCE_FILES = {
 }
 
 logger = logging.getLogger("readirect.tts")
+QueueResult = TypeVar("QueueResult")
 
 ReferenceProfile = Literal[
     "introduce",
@@ -85,6 +94,13 @@ class WarmupRequest(BaseModel):
 class PreparedProfile:
     fingerprint: str
     prompt_cache: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class CoordinatedInferenceOutcome(Generic[QueueResult]):
+    value: QueueResult
+    queue_wait_seconds: float
+    gpu_wait_seconds: float
 
 
 class VoxRuntime:
@@ -346,6 +362,44 @@ class VoxRuntime:
 
 
 runtime = VoxRuntime()
+inference_queue = InferenceQueue(
+    max_waiting=int(os.getenv("TTS_QUEUE_MAX_WAITING", "4")),
+    wait_timeout_seconds=float(os.getenv("TTS_QUEUE_WAIT_TIMEOUT_SECONDS", "60")),
+    retry_after_seconds=int(os.getenv("TTS_QUEUE_RETRY_AFTER_SECONDS", "2")),
+)
+gpu_resource_key = os.getenv("READIRECT_GPU_RESOURCE_KEY", "cuda-default")
+gpu_lock_directory = Path(
+    os.getenv(
+        "READIRECT_GPU_LOCK_DIRECTORY",
+        str(REPOSITORY_ROOT / ".runtime" / "gpu-locks"),
+    )
+)
+gpu_coordination_enabled = (
+    os.getenv("READIRECT_GPU_COORDINATION_ENABLED", "true").strip().lower()
+    not in {"0", "false", "no", "off"}
+    and torch.cuda.is_available()
+)
+gpu_coordinator = GpuCoordinator(
+    service_name="tts",
+    lock_directory=gpu_lock_directory,
+    resource_key=gpu_resource_key,
+    enabled=gpu_coordination_enabled,
+    acquire_timeout_seconds=float(os.getenv("READIRECT_GPU_PERMIT_TIMEOUT_SECONDS", "150")),
+)
+gpu_process_guard = ServiceProcessGuard(
+    service_name="tts",
+    lock_directory=gpu_lock_directory,
+    resource_key=gpu_resource_key,
+    enabled=gpu_coordination_enabled,
+)
+_startup_capacity = InferenceCapacity(
+    service_name="tts",
+    concurrency=1,
+    max_waiting=inference_queue.max_waiting,
+    queue_wait_timeout_seconds=inference_queue.wait_timeout_seconds,
+    gpu_coordination_enabled=gpu_coordination_enabled,
+    gpu_permit_timeout_seconds=gpu_coordinator.acquire_timeout_seconds,
+)
 reference_conditioning_lock = threading.Lock()
 
 
@@ -353,15 +407,23 @@ reference_conditioning_lock = threading.Lock()
 async def lifespan(_: FastAPI):
     CACHE_PATH.mkdir(parents=True, exist_ok=True)
     REFERENCE_CACHE_PATH.mkdir(parents=True, exist_ok=True)
-    startup_task: asyncio.Task[None] | None = None
+    gpu_process_guard.acquire()
+    try:
+        await inference_queue.start()
+        startup_task: asyncio.Task[None] | None = None
 
-    if STARTUP_WARMUP_ENABLED:
-        startup_task = asyncio.create_task(warm_model_at_startup())
+        if STARTUP_WARMUP_ENABLED:
+            startup_task = asyncio.create_task(warm_model_at_startup())
+            await asyncio.sleep(0)
 
-    yield
-
-    if startup_task is not None and startup_task.done():
-        startup_task.result()
+        try:
+            yield
+        finally:
+            await inference_queue.close()
+            if startup_task is not None:
+                await startup_task
+    finally:
+        gpu_process_guard.release()
 
 
 app = FastAPI(title="ReaDirect TTS", version="1.0.0", lifespan=lifespan)
@@ -456,32 +518,77 @@ def condition_reference(reference_path: Path) -> Path:
 
 async def warm_model_at_startup() -> None:
     try:
-        await asyncio.to_thread(runtime.warmup_model)
+        await run_coordinated_inference("startup_warmup", runtime.warmup_model)
     except Exception:
         logger.exception("VoxCPM2 startup warm-up failed")
+
+
+async def submit_inference(
+    operation: str,
+    work: Callable[[], QueueResult],
+) -> CoordinatedInferenceOutcome[QueueResult]:
+    try:
+        return await run_coordinated_inference(operation, work)
+    except (InferenceQueueFull, InferenceQueueWaitTimeout, InferenceQueueUnavailable) as error:
+        raise HTTPException(
+            status_code=503,
+            detail=error.code,
+            headers={"Retry-After": str(inference_queue.retry_after_seconds)},
+        ) from error
+
+
+async def run_coordinated_inference(
+    operation: str,
+    work: Callable[[], QueueResult],
+) -> CoordinatedInferenceOutcome[QueueResult]:
+    queue_outcome = await inference_queue.submit(
+        operation,
+        lambda: gpu_coordinator.run(operation, work),
+    )
+    return CoordinatedInferenceOutcome(
+        value=queue_outcome.value.value,
+        queue_wait_seconds=queue_outcome.queue_wait_seconds,
+        gpu_wait_seconds=queue_outcome.value.wait_seconds,
+    )
 
 
 @app.get("/health")
 async def health() -> dict[str, Any]:
     state = runtime.state()
+    queue = inference_queue.snapshot()
+    gpu = _gpu_coordination_status()
+    ready = bool(queue["healthy"]) and bool(state["model_ready"])
 
     return {
         "service": "tts",
-        "status": "ready",
+        "status": "ready" if ready else "not_ready",
         "runtime_ready": state["model_ready"],
         **state,
+        "inference_queue": queue,
+        "gpu_coordination": gpu,
+        "capacity": _capacity_status(queue, gpu),
     }
 
 
 @app.post("/warmup")
 async def warmup(request: WarmupRequest | None = None) -> dict[str, Any]:
     requested_profiles = request.profiles if request is not None else []
+    state = runtime.state()
+    warmup_required = (
+        not inference_queue.snapshot()["healthy"]
+        or not state["model_ready"]
+        or any(profile not in state["profiles_ready"] for profile in requested_profiles)
+    )
 
-    try:
-        await asyncio.to_thread(runtime.prepare_profiles, requested_profiles)
-    except (OSError, RuntimeError, ValueError) as error:
-        logger.exception("VoxCPM2 warm-up failed")
-        raise HTTPException(status_code=503, detail=str(error)) from error
+    if warmup_required:
+        try:
+            await submit_inference(
+                "profile_warmup",
+                lambda: runtime.prepare_profiles(requested_profiles),
+            )
+        except (OSError, RuntimeError, ValueError) as error:
+            logger.exception("VoxCPM2 warm-up failed")
+            raise HTTPException(status_code=503, detail=str(error)) from error
 
     state = runtime.state()
 
@@ -505,18 +612,34 @@ async def synthesize(request: SynthesisRequest) -> FileResponse:
     normalized_request = request.model_copy(update={"text": request.text.strip()})
     output_path = cache_path_for(normalized_request, reference_path)
     was_cached = output_path.is_file()
+    state = runtime.state()
+    profile_ready = request.reference in state["profiles_ready"]
+    queue_wait_seconds = 0.0
+    gpu_wait_seconds = 0.0
 
     try:
         # Warm-up is intentional even on a cache hit: this screen guarantees that
         # the live TTS runtime is resident before the learner enters an activity.
-        await asyncio.to_thread(runtime.prepare_profiles, [request.reference])
-        if not was_cached:
-            await asyncio.to_thread(
-                runtime.synthesize,
-                normalized_request.text,
-                normalized_request.reference,
-                output_path,
+        if was_cached and profile_ready:
+            pass
+        elif was_cached:
+            outcome = await submit_inference(
+                "cached_profile_warmup",
+                lambda: runtime.prepare_profiles([request.reference]),
             )
+            queue_wait_seconds = outcome.queue_wait_seconds
+            gpu_wait_seconds = outcome.gpu_wait_seconds
+        else:
+            outcome = await submit_inference(
+                "synthesize",
+                lambda: runtime.synthesize(
+                    normalized_request.text,
+                    normalized_request.reference,
+                    output_path,
+                ),
+            )
+            queue_wait_seconds = outcome.queue_wait_seconds
+            gpu_wait_seconds = outcome.gpu_wait_seconds
     except (OSError, RuntimeError, ValueError) as error:
         logger.exception("Clara speech synthesis failed")
         raise HTTPException(status_code=503, detail=str(error)) from error
@@ -528,5 +651,28 @@ async def synthesize(request: SynthesisRequest) -> FileResponse:
         headers={
             "Cache-Control": "no-store",
             "X-ReaDirect-TTS-Cache": "hit" if was_cached else "miss",
+            "X-ReaDirect-TTS-Queue-Wait": f"{queue_wait_seconds:.4f}",
+            "X-ReaDirect-TTS-GPU-Wait": f"{gpu_wait_seconds:.4f}",
         },
     )
+
+
+def _gpu_coordination_status() -> dict[str, object]:
+    return {
+        **gpu_coordinator.snapshot(),
+        "process_guard": gpu_process_guard.snapshot(),
+    }
+
+
+def _capacity_status(
+    queue: dict[str, object],
+    gpu: dict[str, object],
+) -> dict[str, object]:
+    return InferenceCapacity(
+        service_name="tts",
+        concurrency=1,
+        max_waiting=inference_queue.max_waiting,
+        queue_wait_timeout_seconds=inference_queue.wait_timeout_seconds,
+        gpu_coordination_enabled=gpu_coordinator.enabled,
+        gpu_permit_timeout_seconds=gpu_coordinator.acquire_timeout_seconds,
+    ).snapshot(queue, gpu)

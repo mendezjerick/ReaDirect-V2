@@ -596,6 +596,10 @@ Status: complete.
   before mounting a learner renderer. The public landing intro uses an
   equivalent mode-only contract, then selects the existing theme-specific PNG
   for static mode.
+- The learner Dashboard offers a device-local renderer choice with Dynamic on
+  the left and Static on the right. It initially reflects the effective system
+  setting, then persists the learner's local renderer choice without calling
+  the API or changing the server-owned speech mode.
 - Static Clara shares the existing square stage, readiness callback,
   accessibility status, crop, and reveal behavior.
 - Static mode does not mount the lazy Live2D canvas or expose its model path;

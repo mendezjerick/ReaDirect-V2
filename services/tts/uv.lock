@@ -1773,6 +1773,11 @@ wheels = [
 ]
 
 [[package]]
+name = "readirect-gpu-runtime"
+version = "0.1.0"
+source = { editable = "../gpu-runtime" }
+
+[[package]]
 name = "readirect-tts"
 version = "0.0.0"
 source = { virtual = "." }
@@ -1781,6 +1786,7 @@ dependencies = [
     { name = "huggingface-hub" },
     { name = "numpy" },
     { name = "python-multipart" },
+    { name = "readirect-gpu-runtime" },
     { name = "soundfile" },
     { name = "torch" },
     { name = "torchaudio" },
@@ -1803,6 +1809,7 @@ requires-dist = [
     { name = "huggingface-hub" },
     { name = "numpy" },
     { name = "python-multipart" },
+    { name = "readirect-gpu-runtime", editable = "../gpu-runtime" },
     { name = "soundfile" },
     { name = "torch", specifier = "==2.11.0", index = "https://download.pytorch.org/whl/cu126" },
     { name = "torchaudio", specifier = "==2.11.0", index = "https://download.pytorch.org/whl/cu126" },

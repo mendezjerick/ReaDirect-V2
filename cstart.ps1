@@ -40,6 +40,7 @@ $runtimeDirectory = Join-Path $repositoryRoot '.runtime'
 $logDirectory = Join-Path $runtimeDirectory 'logs'
 $localStartScriptPath = Join-Path $repositoryRoot 'start.ps1'
 $localStopScriptPath = Join-Path $repositoryRoot 'stop.ps1'
+$localServiceManifestPath = Join-Path $runtimeDirectory 'services.json'
 $cloudManifestPath = Join-Path $runtimeDirectory 'cloud-services.json'
 $cloudStopRequestPath = Join-Path $runtimeDirectory 'cloud-stop-requested'
 $runtimeCloudflareConfigPath = Join-Path $runtimeDirectory 'cloudflare-config.yml'
@@ -216,7 +217,7 @@ function Save-CloudManifest {
 function Wait-ForLocalServices {
     param(
         [Parameter(Mandatory)][Diagnostics.Process]$LauncherProcess,
-        [Parameter(Mandatory)][System.Collections.IDictionary]$RequiredPorts,
+        [Parameter(Mandatory)][System.Collections.IDictionary]$RequiredServices,
         [Parameter(Mandatory)][DateTime]$Deadline
     )
 
@@ -230,14 +231,29 @@ function Wait-ForLocalServices {
             throw "The local ReaDirect launcher exited before cloud readiness.$([Environment]::NewLine)$errorTail"
         }
 
-        foreach ($serviceName in $RequiredPorts.Keys) {
-            if (-not $ready.ContainsKey($serviceName) -and (Test-TcpPort -Port $RequiredPorts[$serviceName])) {
+        foreach ($serviceName in $RequiredServices.Keys) {
+            $definition = $RequiredServices[$serviceName]
+            $serviceReady = Test-TcpPort -Port ([int]$definition.Port)
+
+            if ($serviceReady -and $definition.ReadinessPath) {
+                try {
+                    $readiness = Invoke-RestMethod `
+                        -Uri "http://127.0.0.1:$($definition.Port)$($definition.ReadinessPath)" `
+                        -TimeoutSec 5
+                    $serviceReady = $readiness.status -eq 'ready'
+                }
+                catch {
+                    $serviceReady = $false
+                }
+            }
+
+            if (-not $ready.ContainsKey($serviceName) -and $serviceReady) {
                 $ready[$serviceName] = $true
-                Write-Host "  $($serviceName.PadRight(10))ready on port $($RequiredPorts[$serviceName])" -ForegroundColor Green
+                Write-Host "  $($serviceName.PadRight(10))ready on port $($definition.Port)" -ForegroundColor Green
             }
         }
 
-        if ($ready.Count -eq $RequiredPorts.Count) {
+        if ($ready.Count -eq $RequiredServices.Count) {
             return
         }
 
@@ -245,12 +261,70 @@ function Wait-ForLocalServices {
     }
 
     $missing = @(
-        $RequiredPorts.Keys |
+        $RequiredServices.Keys |
             Where-Object { -not $ready.ContainsKey($_) } |
-            ForEach-Object { "$_ ($($RequiredPorts[$_]))" }
+            ForEach-Object { "$_ ($($RequiredServices[$_].Port))" }
     )
 
     throw "Cloud startup timed out waiting for: $($missing -join ', '). Check $logDirectory."
+}
+
+function Test-RecordedProcess {
+    param([Parameter(Mandatory)][object]$Service)
+
+    try {
+        $process = Get-Process -Id ([int]$Service.ProcessId) -ErrorAction Stop
+        $recordedStartTime = [DateTime]::Parse([string]$Service.StartTimeUtc).ToUniversalTime()
+        $actualStartTime = $process.StartTime.ToUniversalTime()
+
+        return [Math]::Abs(($actualStartTime - $recordedStartTime).TotalSeconds) -lt 2
+    }
+    catch {
+        return $false
+    }
+}
+
+function Wait-ForManagedBackgroundService {
+    param(
+        [Parameter(Mandatory)][Diagnostics.Process]$LauncherProcess,
+        [Parameter(Mandatory)][string]$ServiceName,
+        [Parameter(Mandatory)][DateTime]$Deadline
+    )
+
+    while ([DateTime]::UtcNow -lt $Deadline) {
+        $LauncherProcess.Refresh()
+
+        if ($LauncherProcess.HasExited) {
+            $errorTail = Get-ProcessErrorTail -Path $launcherErrorPath
+            throw "The local ReaDirect launcher exited before $ServiceName became ready.$([Environment]::NewLine)$errorTail"
+        }
+
+        if (Test-Path -LiteralPath $localServiceManifestPath) {
+            try {
+                $manifest = Get-Content -LiteralPath $localServiceManifestPath -Raw | ConvertFrom-Json
+                $manifestRoot = [string]$manifest.RepositoryRoot
+                $service = @($manifest.Services) |
+                    Where-Object { $_.Name -eq $ServiceName } |
+                    Select-Object -First 1
+
+                if (
+                    [string]::Equals($manifestRoot, $repositoryRoot, [StringComparison]::OrdinalIgnoreCase) -and
+                    $service -and
+                    (Test-RecordedProcess -Service $service)
+                ) {
+                    Write-Host "  $($ServiceName.PadRight(16))ready" -ForegroundColor Green
+                    return
+                }
+            }
+            catch {
+                # The launcher writes the manifest atomically; retry transient read/startup failures.
+            }
+        }
+
+        Start-Sleep -Milliseconds 400
+    }
+
+    throw "Cloud startup timed out waiting for $ServiceName. Check $logDirectory."
 }
 
 function Wait-ForPublicSite {
@@ -431,7 +505,9 @@ ingress:
         '-ApiPort', "$ApiPort",
         '-AsrPort', "$AsrPort",
         '-TtsPort', "$TtsPort",
-        '-ReverbPort', "$ReverbPort"
+        '-ReverbPort', "$ReverbPort",
+        '-SpeechStartupTimeoutSeconds', "$StartupTimeoutSeconds",
+        '-ProductionSpeechServices'
     )
 
     $localLauncherProcess = Start-Process `
@@ -447,15 +523,20 @@ ingress:
     Save-CloudManifest -TunnelId $tunnelId -CredentialsPath $credentialsPath
 
     $startupDeadline = [DateTime]::UtcNow.AddSeconds($StartupTimeoutSeconds)
-    $requiredPorts = [ordered]@{
-        Web = $WebPort
-        API = $ApiPort
-        ASR = $AsrPort
-        TTS = $TtsPort
+    $requiredServices = [ordered]@{
+        Web = @{ Port = $WebPort; ReadinessPath = $null }
+        API = @{ Port = $ApiPort; ReadinessPath = $null }
+        ASR = @{ Port = $AsrPort; ReadinessPath = '/ready' }
+        TTS = @{ Port = $TtsPort; ReadinessPath = '/health' }
+        Reverb = @{ Port = $ReverbPort; ReadinessPath = $null }
     }
     Wait-ForLocalServices `
         -LauncherProcess $localLauncherProcess `
-        -RequiredPorts $requiredPorts `
+        -RequiredServices $requiredServices `
+        -Deadline $startupDeadline
+    Wait-ForManagedBackgroundService `
+        -LauncherProcess $localLauncherProcess `
+        -ServiceName 'Broadcast Queue' `
         -Deadline $startupDeadline
 
     Write-Section -Title 'Starting Cloudflare Tunnel'

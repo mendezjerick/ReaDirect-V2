@@ -64,11 +64,9 @@ export function ClaraStage({
     speaking,
     speechLevel,
   };
-  const awaitingLearnerExperience = learnerExperience.state === "resolving";
-  const displayMode =
-    learnerExperience.state === "ready"
-      ? (learnerExperience.settings?.display_mode ?? null)
-      : null;
+  const displayMode = learnerExperience.displayMode;
+  const awaitingLearnerExperience =
+    learnerExperience.state === "resolving" && displayMode === null;
   const staticSource =
     theme === "t2"
       ? "/assets/live2d/clara/stills/clara-t2.png"
@@ -139,10 +137,10 @@ export function ClaraStage({
   );
 
   useEffect(() => {
-    if (learnerExperience.state === "error") {
+    if (learnerExperience.state === "error" && displayMode === null) {
       handleLoadStateChange("error");
     }
-  }, [handleLoadStateChange, learnerExperience.state]);
+  }, [displayMode, handleLoadStateChange, learnerExperience.state]);
 
   useEffect(() => {
     const cover = revealCoverRef.current;

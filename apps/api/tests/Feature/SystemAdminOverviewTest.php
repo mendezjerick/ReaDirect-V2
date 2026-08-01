@@ -183,6 +183,7 @@ final class SystemAdminOverviewTest extends TestCase
             ->assertJsonPath('system_health.3.service', 'TTS')
             ->assertJsonPath('system_health.3.status', 'online')
             ->assertJsonPath('system_health.4.status', 'online')
+            ->assertJsonPath('system_health.5.service', 'Reverb')
             ->assertJsonPath('recent_assessment_activity.0.learner_code', 'AA001')
             ->assertJsonPath('recent_assessment_activity.0.school_name', 'Northfield Elementary')
             ->assertJsonPath('recent_assessment_activity.0.assessment_label', 'Final Assessment')

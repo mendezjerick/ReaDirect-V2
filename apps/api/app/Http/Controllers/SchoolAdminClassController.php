@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StaffRealtimeTopic;
 use App\Models\Learner;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
+use App\Services\StaffRealtimePublisher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +42,7 @@ final class SchoolAdminClassController extends Controller
         Request $request,
         StaffUser $staffUser,
         StaffUser $teacher,
+        StaffRealtimePublisher $realtime,
     ): JsonResponse {
         $this->assertReadyAdministrator($staffUser);
         $this->assertTeacherInSchool($staffUser, $teacher);
@@ -96,6 +99,16 @@ final class SchoolAdminClassController extends Controller
                 ],
             ]);
         });
+
+        $realtime->teacher(
+            $teacher->id,
+            $staffUser->school_id,
+            StaffRealtimeTopic::Overview,
+            StaffRealtimeTopic::Classes,
+            StaffRealtimeTopic::Teachers,
+            StaffRealtimeTopic::Learners,
+            StaffRealtimeTopic::Operations,
+        );
 
         $teacher->loadCount([
             'learners as learner_count' => fn ($query) => $query

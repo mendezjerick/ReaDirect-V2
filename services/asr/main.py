@@ -1,22 +1,91 @@
 from __future__ import annotations
 
-import os
 import json
+import os
 import tempfile
+from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Callable
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from readirect_gpu_runtime import GpuCoordinator, InferenceCapacity, ServiceProcessGuard
 
+from app.inference_queue import (
+    InferenceQueue,
+    InferenceQueueFull,
+    InferenceQueueUnavailable,
+    InferenceQueueWaitTimeout,
+)
 from app.mu import get_mu_transcriber
 
 SERVICE_NAME = "ReaDirect ASR"
+SERVICE_ROOT = Path(__file__).resolve().parent
+REPOSITORY_ROOT = SERVICE_ROOT.parents[1]
 ALLOWED_AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".webm", ".ogg", ".flac"}
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 
-app = FastAPI(title=SERVICE_NAME, version="0.1.0")
+
+def _environment_flag(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() not in {"0", "false", "no", "off"}
+
+inference_queue = InferenceQueue(
+    concurrency=int(os.getenv("ASR_INFERENCE_CONCURRENCY", "1")),
+    max_waiting=int(os.getenv("ASR_QUEUE_MAX_WAITING", "8")),
+    wait_timeout_seconds=float(os.getenv("ASR_QUEUE_WAIT_TIMEOUT_SECONDS", "90")),
+    retry_after_seconds=int(os.getenv("ASR_QUEUE_RETRY_AFTER_SECONDS", "2")),
+)
+gpu_resource_key = os.getenv("READIRECT_GPU_RESOURCE_KEY", "cuda-default")
+gpu_lock_directory = Path(
+    os.getenv(
+        "READIRECT_GPU_LOCK_DIRECTORY",
+        str(REPOSITORY_ROOT / ".runtime" / "gpu-locks"),
+    )
+)
+gpu_coordination_enabled = _environment_flag("READIRECT_GPU_COORDINATION_ENABLED", True) and (
+    get_mu_transcriber().status()["device"] == "cuda"
+)
+gpu_coordinator = GpuCoordinator(
+    service_name="asr",
+    lock_directory=gpu_lock_directory,
+    resource_key=gpu_resource_key,
+    enabled=gpu_coordination_enabled,
+    acquire_timeout_seconds=float(os.getenv("READIRECT_GPU_PERMIT_TIMEOUT_SECONDS", "150")),
+)
+gpu_process_guard = ServiceProcessGuard(
+    service_name="asr",
+    lock_directory=gpu_lock_directory,
+    resource_key=gpu_resource_key,
+    enabled=gpu_coordination_enabled,
+)
+_startup_capacity = InferenceCapacity(
+    service_name="asr",
+    concurrency=inference_queue.concurrency,
+    max_waiting=inference_queue.max_waiting,
+    queue_wait_timeout_seconds=inference_queue.wait_timeout_seconds,
+    gpu_coordination_enabled=gpu_coordination_enabled,
+    gpu_permit_timeout_seconds=gpu_coordinator.acquire_timeout_seconds,
+)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    gpu_process_guard.acquire()
+    try:
+        await inference_queue.start()
+        try:
+            yield
+        finally:
+            await inference_queue.close()
+    finally:
+        gpu_process_guard.release()
+
+
+app = FastAPI(title=SERVICE_NAME, version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -49,19 +118,31 @@ def live() -> dict[str, str]:
 
 
 @app.get("/ready")
-def ready() -> dict[str, object]:
+async def ready() -> dict[str, object]:
     mu = get_mu_transcriber().status()
-    available = bool(mu["available"])
+    queue = inference_queue.snapshot()
+    gpu = _gpu_coordination_status()
+    available = bool(mu["available"]) and bool(queue["healthy"])
     return {
         "status": "ready" if available else "not_ready",
         "service": SERVICE_NAME,
         "mu": mu,
+        "inference_queue": queue,
+        "gpu_coordination": gpu,
+        "capacity": _capacity_status(queue, gpu),
     }
 
 
 @app.get("/models/status")
-def model_status() -> dict[str, object]:
-    return {"mu": get_mu_transcriber().status()}
+async def model_status() -> dict[str, object]:
+    queue = inference_queue.snapshot()
+    gpu = _gpu_coordination_status()
+    return {
+        "mu": get_mu_transcriber().status(),
+        "inference_queue": queue,
+        "gpu_coordination": gpu,
+        "capacity": _capacity_status(queue, gpu),
+    }
 
 
 @app.post("/mu/resolve-letter")
@@ -77,15 +158,17 @@ async def resolve_letter_with_mu(
     if not isinstance(reviewed_equivalences, list):
         raise HTTPException(status_code=422, detail="invalid_letter_equivalences")
 
+    transcriber = get_mu_transcriber()
     path = await _store_upload(audio)
-    try:
-        return get_mu_transcriber().resolve_letter(
+    return await _run_inference(
+        operation="resolve_letter",
+        path=path,
+        work=lambda: transcriber.resolve_letter(
             path,
             expected_letter,
             reviewed_equivalences,
-        )
-    finally:
-        path.unlink(missing_ok=True)
+        ),
+    )
 
 
 @app.post("/mu/transcribe")
@@ -95,16 +178,71 @@ async def transcribe_mu(
     task_type: Annotated[str, Form()] = "word",
     noise_reduction_enabled: Annotated[bool, Form()] = False,
 ) -> dict[str, object]:
+    transcriber = get_mu_transcriber()
     path = await _store_upload(audio)
-    try:
-        return get_mu_transcriber().transcribe(
+    return await _run_inference(
+        operation="transcribe",
+        path=path,
+        work=lambda: transcriber.transcribe(
             path,
             expected_text,
             task_type,
             noise_reduction_enabled=noise_reduction_enabled,
+        ),
+    )
+
+
+async def _run_inference(
+    *,
+    operation: str,
+    path: Path,
+    work: Callable[[], dict[str, object]],
+) -> dict[str, object]:
+    def coordinated_work() -> dict[str, object]:
+        gpu_outcome = gpu_coordinator.run(operation, work)
+        performance = gpu_outcome.value.setdefault("performance", {})
+        if isinstance(performance, dict):
+            performance["gpu_wait_seconds"] = round(gpu_outcome.wait_seconds, 4)
+        return gpu_outcome.value
+
+    try:
+        outcome = await inference_queue.submit(
+            operation,
+            coordinated_work,
+            cleanup=lambda: path.unlink(missing_ok=True),
         )
-    finally:
-        path.unlink(missing_ok=True)
+    except (InferenceQueueFull, InferenceQueueWaitTimeout, InferenceQueueUnavailable) as error:
+        raise HTTPException(
+            status_code=503,
+            detail=error.code,
+            headers={"Retry-After": str(inference_queue.retry_after_seconds)},
+        ) from error
+
+    performance = outcome.value.setdefault("performance", {})
+    if isinstance(performance, dict):
+        performance["queue_wait_seconds"] = round(outcome.queue_wait_seconds, 4)
+    return outcome.value
+
+
+def _gpu_coordination_status() -> dict[str, object]:
+    return {
+        **gpu_coordinator.snapshot(),
+        "process_guard": gpu_process_guard.snapshot(),
+    }
+
+
+def _capacity_status(
+    queue: dict[str, object],
+    gpu: dict[str, object],
+) -> dict[str, object]:
+    return InferenceCapacity(
+        service_name="asr",
+        concurrency=inference_queue.concurrency,
+        max_waiting=inference_queue.max_waiting,
+        queue_wait_timeout_seconds=inference_queue.wait_timeout_seconds,
+        gpu_coordination_enabled=gpu_coordinator.enabled,
+        gpu_permit_timeout_seconds=gpu_coordinator.acquire_timeout_seconds,
+    ).snapshot(queue, gpu)
 
 
 async def _store_upload(audio: UploadFile) -> Path:

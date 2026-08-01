@@ -1,8 +1,26 @@
 .lesson-intro-page__action-panel {
   display: grid;
-  width: min(100%, 18rem);
+  width: 100%;
   justify-items: center;
   gap: 0.75rem;
+}
+
+.lesson-intro-page__continue-wrap {
+  display: grid;
+  justify-items: center;
+}
+
+/*
+ * ThemeSelector is a top overlay. Reserve its footprint in this lesson-only
+ * variant so status and retry controls begin beneath it instead of underneath
+ * its theme choices.
+ */
+.lesson-intro-page .intro-page__content {
+  padding-top: max(4.5rem, calc(env(safe-area-inset-top) + 3.75rem));
+}
+
+.lesson-intro-page:has(.lesson-intro-page__retry) .intro-page__content {
+  grid-template-rows: minmax(0, 50fr) minmax(0, 50fr);
 }
 
 .lesson-intro-page__status,
@@ -28,87 +46,11 @@
 }
 
 @media (max-height: 40rem) and (orientation: landscape) {
-  .lesson-intro-page__action-panel {
-    width: min(100%, 20rem);
-  }
-}
-
-/*
- * On desktop, the lesson handoff uses the same framed, compact composition as
- * the learner activities that follow it. Keeping this behind a wide-screen
- * guard avoids changing the established phone and narrow-tablet intro flow.
- */
-@media (min-width: 64rem) {
-  .lesson-intro-page {
-    background-color: var(--color-surface-page);
-    background-image: var(--asset-learner-flow-background-desktop);
-    background-position: center;
-    background-size: cover;
-  }
-
   .lesson-intro-page .intro-page__content {
-    width: min(calc(100% - 3rem), 70rem);
-    height: min(calc(100svh - 3rem), 42rem);
-    grid-template-columns: minmax(0, 7fr) minmax(18rem, 5fr);
-    grid-template-rows: minmax(0, 1fr);
-    align-items: stretch;
-    gap: clamp(0.75rem, 1.5vw, 1rem);
-    margin: 1.5rem auto;
-    padding: 0;
-  }
-
-  .lesson-intro-page .intro-page__brand {
-    grid-column: 2;
-    grid-row: 1;
-    width: 100%;
-    align-self: stretch;
-    justify-self: stretch;
-    align-content: center;
-    border: 2px solid var(--color-border-warm);
-    border-radius: var(--radius-frame);
-    padding: clamp(1.25rem, 3vw, 2rem);
-    background: var(--color-surface-panel);
-    box-shadow: 0 6px 0 var(--color-frame-depth);
+    padding-top: max(3.5rem, calc(env(safe-area-inset-top) + 3rem));
   }
 
   .lesson-intro-page .clara-stage {
-    grid-column: 1;
-    grid-row: 1;
-    width: 100%;
-    height: 100%;
-    align-self: stretch;
-    justify-self: stretch;
-    overflow: hidden;
-    aspect-ratio: auto;
-    border: 2px solid var(--color-border-warm);
-    border-radius: var(--radius-frame);
-    background: var(--color-surface-panel);
-    box-shadow: 0 6px 0 var(--color-frame-depth);
-  }
-
-  .lesson-intro-page__action-panel {
-    width: min(100%, 22rem);
-    gap: clamp(0.75rem, 1.6svh, 1rem);
-  }
-
-  .lesson-intro-page__status {
-    font-size: clamp(1rem, 1.4vw, 1.25rem);
-  }
-}
-
-@media (min-width: 64rem) and (max-height: 37.499rem) and (orientation: landscape) {
-  .lesson-intro-page .intro-page__content {
-    width: min(calc(100% - 2rem), 70rem);
-    height: calc(100svh - 1.5rem);
-    gap: clamp(0.55rem, 1vw, 0.75rem);
-    margin-block: 0.75rem;
-  }
-
-  .lesson-intro-page .intro-page__brand {
-    padding: clamp(0.9rem, 2.2vw, 1.4rem);
-  }
-
-  .lesson-intro-page__action-panel {
-    width: min(100%, 20rem);
+    width: min(42vh, 15rem);
   }
 }
