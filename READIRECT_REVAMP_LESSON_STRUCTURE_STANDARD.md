@@ -85,6 +85,25 @@ account-owned save state. The dashboard primary action reads Continue Lesson
 followed by its number or title. If the lesson has never been started, it reads
 Start Lesson followed by its number or title.
 
+### Session Freshness And Next-Activity Routing
+
+The authenticated learner-session endpoint is the only client-readable source
+of truth for Dashboard progression, earned achievements, and next-activity
+routing. Browser session storage and in-memory query data are bootstrap caches,
+not progression authority.
+
+- After a diagnostic, lesson, or final-assessment completion transaction, the
+  Dashboard must reconcile the learner session when it opens.
+- Lesson Intro must reconcile the same session before enabling Continue or
+  deriving the next route.
+- The confirmed response updates both the shared query cache and the browser
+  session mirror.
+- Never send a learner to a lesson, assessment, or achievement state using a
+  stale cached `current_required_lesson_order` or achievement list.
+- A successful completion must be usable immediately: returning to Dashboard
+  and selecting its primary action opens the newly unlocked next activity
+  without requiring refresh, reopening the page, or signing out.
+
 If a save request fails, the interface must not claim that the newest position
 was saved. It must retain the pending checkpoint long enough to retry when
 practical and give the learner a clear retry or safe-return message.

@@ -147,7 +147,18 @@ Desktop layouts must not:
 
 Portrait orientation is the primary mobile experience.
 
-Landscape orientation must remain usable, but it does not need a separate redesigned interface unless a specific activity requires it.
+Assessment and required-lesson activity workspaces use one global orientation
+rule, independent of device category or browser zoom:
+
+- Portrait uses the stacked mobile composition.
+- Landscape uses the three-card lower workspace: Clara, recorder and Retry,
+  then actions.
+- Tablet and desktop always use that same three-card composition.
+- A two-column intermediate workspace is prohibited. It causes the recorder,
+  action controls, and Clara to compete for the same space.
+
+Landscape phone layouts remain compact versions of the same three-card design;
+they do not revert to a tablet-only breakpoint or a separate learner flow.
 
 The application must not force landscape orientation for normal lessons.
 
@@ -184,9 +195,8 @@ Desktop:
 Character and activity may use a side-by-side layout
 ```
 
-For learner lesson and assessment activity pages, tablet and desktop viewports
-of at least `768px` wide and `600px` tall use the same unified rectangular
-workspace:
+For learner lesson and assessment activity pages, every landscape viewport plus
+all tablet and desktop viewports use the same unified rectangular workspace:
 
 ```text
 header

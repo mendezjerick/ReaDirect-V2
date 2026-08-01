@@ -88,6 +88,12 @@ Authority boundaries:
     control. It returns directly to `/learner/dashboard`, uses the standard
     tactile commit, and must remain visible without crowding the title or
     progress at the priority `360 x 740` viewport.
+17. Audio playback does not by itself block a contextual primary action. Once
+    that action's own prerequisites are met, Submit, Next, or Continue remains
+    available while guide, passage, or learner-recording audio plays. Choosing
+    the action stops the local playback before its request or navigation
+    begins. Controls that are inherently incompatible with playback, such as
+    starting a new recording, remain unavailable.
 
 ## Required Lesson Intro Gate
 
@@ -128,8 +134,10 @@ PREPARING -> SPEAKING -> READY
 - Failure exposes a secondary `Try again` action and must not bypass the gate.
 - The page is non-scrollable and follows all canonical Intro safe-viewport,
   copy-prevention, custom-cursor, touch-trail, loading-reveal, and Live2D rules.
-- The next activity remains progression-owned; Lesson Intro must not change or
-  infer learner progress.
+- The next activity remains progression-owned. Lesson Intro must obtain the
+  current authenticated learner session before it enables Continue or derives
+  the next route; a browser-stored session may bootstrap the screen but must
+  never choose a lesson from stale progression data.
 
 ## Mandatory No-Image Rule
 
@@ -243,7 +251,7 @@ Mobile rules:
   container is the explicit exception because its full authored text owns the
   flexible content row.
 
-### Tablet and desktop composition
+### Landscape, tablet, and desktop composition
 
 ```text
 +---------------------------------------------------------+
@@ -262,12 +270,13 @@ Mobile rules:
 +------------------+  +--------------------+  +-----------+
 ```
 
-At viewports of at least `768px` wide and `600px` tall, tablet and desktop use
-the same sliced activity workspace. The header and displayed-item region share
-one outer width but remain separate ReaDirect cards. The lower interaction row
-uses three real sibling cards with a small, consistent background gap between
-them. Every card retains the approved border, corner radius, surface color, and
-fake depth instead of relying on one overlapping panel to imitate dividers.
+Every landscape activity viewport, plus tablet and desktop regardless of
+orientation, uses the same sliced activity workspace. The header and
+displayed-item region share one outer width but remain separate ReaDirect cards.
+The lower interaction row uses three real sibling cards with a small, consistent
+background gap between them. Every card retains the approved border, corner
+radius, surface color, and fake depth instead of relying on one overlapping
+panel to imitate dividers. A two-column intermediate layout is prohibited.
 
 The lower strip assigns Clara the left region, the recorder and Retry review
 slot the center region, and Submit plus Skip or Next the right region. Clara
@@ -284,9 +293,9 @@ to keep the complete authored passage visible without scrolling. Lesson 5 may
 use a slightly taller passage allocation because its reading card includes an
 instruction line and an inner passage frame.
 
-This large-screen composition is progressive enhancement only. Phone
-composition, including short landscape-phone viewports, remains governed by
-the mobile rules.
+Portrait phones retain the stacked mobile composition. Landscape phones use the
+same three-card structure with compact dimensions; they do not fall back to a
+two-column or stacked desktop substitute.
 
 ## Text As The Interactive Material
 
@@ -416,7 +425,9 @@ conceptual flow.
 
 - The center becomes Pause during playback.
 - A solid progress rail may show playback position.
-- Submit and Skip are disabled during active playback.
+- Submit remains available during active playback once its normal review or
+  answer prerequisites are satisfied; activating it stops playback before
+  submission. Skip follows its activity-specific availability rule.
 - Playing the learner's recording does not invoke ASR or create a score.
 
 ### 5. Reviewed
