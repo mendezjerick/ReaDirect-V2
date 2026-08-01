@@ -22,6 +22,7 @@ import {
   logoutLearner,
   saveLearnerSession,
 } from "../learner-auth/learnerApi";
+import { useLearnerExperience } from "../learner-auth/LearnerExperienceProvider";
 import "./learner-dashboard.css";
 
 function LearningIcon() {
@@ -63,6 +64,7 @@ function ClaraStoryIcon() {
 
 export function LearnerDashboardPage() {
   const navigate = useNavigate();
+  const { displayMode, setDisplayModeOverride } = useLearnerExperience();
   const [selectedAchievementKey, setSelectedAchievementKey] = useState<
     (typeof readingJourneyAchievements)[number]["key"]
   >("reading.ready_reader");
@@ -434,6 +436,61 @@ export function LearnerDashboardPage() {
                 <p>{selectedAchievement.criteria}</p>
               </div>
             </div>
+          </Surface>
+
+          <Surface
+            className="learner-dashboard__renderer-card learner-dashboard__entrance"
+            kind="panel"
+            padding="normal"
+          >
+            <div>
+              <p className="learner-dashboard__eyebrow">Your device</p>
+              <h2>Clara appearance</h2>
+              <p>
+                Choose how Clara appears here. Speech follows your school&apos;s
+                setting.
+              </p>
+            </div>
+            <div className="learner-dashboard__renderer-control">
+              <span
+                data-selected={displayMode === "live2d" || undefined}
+                aria-hidden="true"
+              >
+                Dynamic
+              </span>
+              <button
+                type="button"
+                className="learner-dashboard__renderer-switch"
+                role="switch"
+                aria-checked={displayMode === "static"}
+                aria-label={`Clara appearance: ${
+                  displayMode === "static" ? "Static" : "Dynamic"
+                }`}
+                aria-describedby="clara-appearance-note"
+                disabled={displayMode === null}
+                onClick={() =>
+                  setDisplayModeOverride(
+                    displayMode === "static" ? "live2d" : "static",
+                  )
+                }
+              >
+                <span />
+              </button>
+              <span
+                data-selected={displayMode === "static" || undefined}
+                aria-hidden="true"
+              >
+                Static
+              </span>
+            </div>
+            <p
+              id="clara-appearance-note"
+              className="learner-dashboard__renderer-note"
+            >
+              {displayMode === null
+                ? "Checking your school setting..."
+                : "This device remembers your choice."}
+            </p>
           </Surface>
         </div>
       </div>

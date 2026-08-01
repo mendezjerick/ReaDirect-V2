@@ -166,6 +166,12 @@ describe("LearnerDashboardPage", () => {
     expect(headings.indexOf("Learn with Ma'am Clara")).toBeLessThan(
       headings.indexOf("Achievements"),
     );
+    expect(headings.indexOf("Achievements")).toBeLessThan(
+      headings.indexOf("Clara appearance"),
+    );
+    expect(
+      screen.getByRole("switch", { name: "Clara appearance: Dynamic" }),
+    ).toHaveAttribute("aria-checked", "false");
   });
 
   it("shows the selected badge details from the recessed achievement case", () => {

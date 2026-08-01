@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -16,13 +17,21 @@ import {
 } from "./learnerApi";
 
 type LearnerExperienceState = "ready" | "resolving" | "error";
+type ClaraDisplayMode = LearnerExperienceSettings["display_mode"];
+
+const claraDisplayModeOverrideStorageKey =
+  "readirect.learner.clara-display-mode";
 
 interface LearnerExperienceContextValue {
   state: LearnerExperienceState;
   settings: LearnerExperienceSettings | null;
+  displayMode: ClaraDisplayMode | null;
+  setDisplayModeOverride: (displayMode: ClaraDisplayMode) => void;
 }
 
-interface ResolvedLearnerExperience extends LearnerExperienceContextValue {
+interface ResolvedLearnerExperience {
+  state: LearnerExperienceState;
+  settings: LearnerExperienceSettings | null;
   requestKey?: string;
 }
 
@@ -33,10 +42,20 @@ const defaultExperience: LearnerExperienceContextValue = {
     display_mode: "live2d",
     speech_mode: "hybrid",
   },
+  displayMode: "live2d",
+  setDisplayModeOverride: () => undefined,
 };
 
 const LearnerExperienceContext =
   createContext<LearnerExperienceContextValue>(defaultExperience);
+
+function loadClaraDisplayModeOverride(): ClaraDisplayMode | null {
+  const stored = window.localStorage.getItem(
+    claraDisplayModeOverrideStorageKey,
+  );
+
+  return stored === "live2d" || stored === "static" ? stored : null;
+}
 
 export function LearnerExperienceProvider({ children }: PropsWithChildren) {
   const location = useLocation();
@@ -53,6 +72,19 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
         : null;
   const [experience, setExperience] =
     useState<ResolvedLearnerExperience>(defaultExperience);
+  const [displayModeOverride, setDisplayModeOverrideState] =
+    useState<ClaraDisplayMode | null>(loadClaraDisplayModeOverride);
+
+  const setDisplayModeOverride = useCallback(
+    (displayMode: ClaraDisplayMode) => {
+      window.localStorage.setItem(
+        claraDisplayModeOverrideStorageKey,
+        displayMode,
+      );
+      setDisplayModeOverrideState(displayMode);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (requestKey === null) {
@@ -84,14 +116,23 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
   }, [appliesToLearnerRoute, learnerToken, requestKey]);
 
   const value = useMemo<LearnerExperienceContextValue>(() => {
-    if (requestKey === null) {
-      return defaultExperience;
-    }
+    const resolvedExperience: ResolvedLearnerExperience =
+      requestKey === null
+        ? defaultExperience
+        : experience.requestKey === requestKey
+          ? experience
+          : { state: "resolving", settings: null };
+    const systemDisplayMode =
+      resolvedExperience.state === "ready"
+        ? (resolvedExperience.settings?.display_mode ?? null)
+        : null;
 
-    return experience.requestKey === requestKey
-      ? experience
-      : { state: "resolving", settings: null };
-  }, [experience, requestKey]);
+    return {
+      ...resolvedExperience,
+      displayMode: displayModeOverride ?? systemDisplayMode,
+      setDisplayModeOverride,
+    };
+  }, [displayModeOverride, experience, requestKey, setDisplayModeOverride]);
 
   return (
     <LearnerExperienceContext.Provider value={value}>
