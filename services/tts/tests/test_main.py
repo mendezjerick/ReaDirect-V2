@@ -59,7 +59,28 @@ class FakeVoxModel:
 @pytest.fixture(autouse=True)
 def isolated_runtime(monkeypatch) -> main.VoxRuntime:
     runtime = main.VoxRuntime()
+    inference_queue = main.InferenceQueue(
+        max_waiting=4,
+        wait_timeout_seconds=1,
+        retry_after_seconds=2,
+    )
+    gpu_coordinator = main.GpuCoordinator(
+        service_name="tts",
+        lock_directory=main.REPOSITORY_ROOT / ".runtime" / "test-gpu-locks",
+        resource_key="test-gpu",
+        enabled=False,
+        acquire_timeout_seconds=1,
+    )
+    gpu_process_guard = main.ServiceProcessGuard(
+        service_name="tts",
+        lock_directory=main.REPOSITORY_ROOT / ".runtime" / "test-gpu-locks",
+        resource_key="test-gpu",
+        enabled=False,
+    )
     monkeypatch.setattr(main, "runtime", runtime)
+    monkeypatch.setattr(main, "inference_queue", inference_queue)
+    monkeypatch.setattr(main, "gpu_coordinator", gpu_coordinator)
+    monkeypatch.setattr(main, "gpu_process_guard", gpu_process_guard)
     monkeypatch.setattr(main, "STARTUP_WARMUP_ENABLED", False)
 
     return runtime
@@ -99,7 +120,65 @@ def test_health_reports_model_and_profile_runtime_state(monkeypatch, tmp_path: P
         "profiles_warming": [],
         "profiles_failed": [],
         "model_error": None,
+        "inference_queue": {
+            "healthy": True,
+            "accepting": True,
+            "concurrency": 1,
+            "active": 0,
+            "waiting": 0,
+            "max_waiting": 4,
+            "wait_timeout_seconds": 1,
+            "accepted_total": 0,
+            "completed_total": 0,
+            "failed_total": 0,
+            "rejected_total": 0,
+            "timed_out_total": 0,
+            "cancelled_total": 0,
+        },
+        "gpu_coordination": {
+            "enabled": False,
+            "service": "tts",
+            "resource_key": "test-gpu",
+            "acquire_timeout_seconds": 1,
+            "waiting": 0,
+            "holding": False,
+            "operation": None,
+            "acquisitions_total": 0,
+            "timeouts_total": 0,
+            "last_wait_seconds": 0.0,
+            "total_wait_seconds": 0.0,
+            "process_guard": {
+                "enabled": False,
+                "acquired": False,
+                "service": "tts",
+                "resource_key": "test-gpu",
+            },
+        },
+        "capacity": {
+            "service": "tts",
+            "configuration_valid": True,
+            "local_concurrency": 1,
+            "waiting_limit": 4,
+            "admitted_request_limit": 5,
+            "admitted_requests": 0,
+            "queue_slots_available": 4,
+            "utilization_percent": 0.0,
+            "saturated": False,
+            "maximum_pre_execution_wait_seconds": 1,
+            "gpu_serialized": False,
+            "gpu_resource_key": "test-gpu",
+            "overload_responses_total": 0,
+        },
     }
+
+
+def test_health_is_not_ready_until_the_model_is_resident() -> None:
+    with TestClient(main.app) as client:
+        response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "not_ready"
+    assert response.json()["runtime_ready"] is False
 
 
 def test_service_start_begins_model_only_warmup(monkeypatch, tmp_path: Path) -> None:
@@ -120,6 +199,7 @@ def test_service_start_begins_model_only_warmup(monkeypatch, tmp_path: Path) -> 
     assert response.status_code == 200
     assert response.json()["model_ready"] is True
     assert response.json()["profiles_ready"] == []
+    assert response.json()["inference_queue"]["accepted_total"] == 1
 
 
 def test_warmup_prepares_only_requested_profiles_and_reuses_the_prompt_cache(
@@ -131,6 +211,7 @@ def test_warmup_prepares_only_requested_profiles_and_reuses_the_prompt_cache(
     with TestClient(main.app) as client:
         first = client.post("/warmup", json={"profiles": ["result"]})
         second = client.post("/warmup", json={"profiles": ["result"]})
+        health = client.get("/health")
 
     assert first.status_code == 200
     assert first.json() == {
@@ -139,6 +220,7 @@ def test_warmup_prepares_only_requested_profiles_and_reuses_the_prompt_cache(
         "profiles_ready": ["result"],
     }
     assert second.status_code == 200
+    assert health.json()["inference_queue"]["accepted_total"] == 1
     assert model.tts_model.build_count == 1
     assert model.tts_model.generate_count == 1
     assert model.tts_model.generated_texts == [main.PROFILE_PROBE_TEXT]
@@ -193,11 +275,21 @@ def test_synthesis_uses_the_prepared_semantic_profile_and_returns_wav(
             "/synthesize",
             json={"text": "Hello, reader!", "reference": "introduce"},
         )
+        cached_response = client.post(
+            "/synthesize",
+            json={"text": "Hello, reader!", "reference": "introduce"},
+        )
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "audio/wav"
     assert response.headers["x-readirect-tts-cache"] == "miss"
+    assert float(response.headers["x-readirect-tts-queue-wait"]) >= 0
+    assert response.headers["x-readirect-tts-gpu-wait"] == "0.0000"
     assert response.content.startswith(b"RIFF")
+    assert cached_response.status_code == 200
+    assert cached_response.headers["x-readirect-tts-cache"] == "hit"
+    assert cached_response.headers["x-readirect-tts-queue-wait"] == "0.0000"
+    assert cached_response.headers["x-readirect-tts-gpu-wait"] == "0.0000"
     assert model.tts_model.build_count == 1
     assert model.tts_model.generate_count == 2
     assert model.tts_model.generated_texts == [

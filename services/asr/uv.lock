@@ -915,6 +915,7 @@ dependencies = [
     { name = "numpy" },
     { name = "openai-whisper" },
     { name = "python-multipart" },
+    { name = "readirect-gpu-runtime" },
     { name = "soundfile" },
     { name = "torch" },
     { name = "torchaudio" },
@@ -941,6 +942,7 @@ requires-dist = [
     { name = "numpy" },
     { name = "openai-whisper" },
     { name = "python-multipart" },
+    { name = "readirect-gpu-runtime", editable = "../gpu-runtime" },
     { name = "soundfile" },
     { name = "torch", specifier = "==2.11.0", index = "https://download.pytorch.org/whl/cu126" },
     { name = "torchaudio", specifier = "==2.11.0", index = "https://download.pytorch.org/whl/cu126" },
@@ -955,6 +957,11 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+
+[[package]]
+name = "readirect-gpu-runtime"
+version = "0.1.0"
+source = { editable = "../gpu-runtime" }
 
 [[package]]
 name = "regex"

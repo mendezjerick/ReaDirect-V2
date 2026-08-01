@@ -15,6 +15,11 @@ param(
     [ValidateRange(1, 65535)]
     [int]$ReverbPort = 8080,
 
+    [ValidateRange(30, 600)]
+    [int]$SpeechStartupTimeoutSeconds = 240,
+
+    [switch]$ProductionSpeechServices,
+
     [switch]$OpenBrowser
 )
 
@@ -163,10 +168,12 @@ function Start-ManagedProcess {
 function Wait-ForService {
     param(
         [Parameter(Mandatory)][object]$ProcessRecord,
-        [int]$TimeoutSeconds = 30
+        [int]$TimeoutSeconds = 30,
+        [string]$ReadinessPath = ''
     )
 
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    $lastReadinessError = $null
 
     while ([DateTime]::UtcNow -lt $deadline) {
         $ProcessRecord.Process.Refresh()
@@ -182,7 +189,25 @@ function Wait-ForService {
             throw "$($ProcessRecord.Name) exited before becoming ready.$([Environment]::NewLine)$errorTail"
         }
 
-        if (Test-TcpPort -Port $ProcessRecord.Port) {
+        $serviceReady = Test-TcpPort -Port $ProcessRecord.Port
+
+        if ($serviceReady -and -not [string]::IsNullOrWhiteSpace($ReadinessPath)) {
+            try {
+                $readiness = Invoke-RestMethod `
+                    -Uri "http://127.0.0.1:$($ProcessRecord.Port)$ReadinessPath" `
+                    -TimeoutSec 5
+                $serviceReady = $readiness.status -eq 'ready'
+                if (-not $serviceReady) {
+                    $lastReadinessError = "reported status '$($readiness.status)'"
+                }
+            }
+            catch {
+                $serviceReady = $false
+                $lastReadinessError = $_.Exception.Message
+            }
+        }
+
+        if ($serviceReady) {
             $serviceResults.Add([pscustomobject]@{
                     Name   = $ProcessRecord.Name
                     State  = 'Running'
@@ -195,7 +220,13 @@ function Wait-ForService {
         Start-Sleep -Milliseconds 250
     }
 
-    throw "$($ProcessRecord.Name) did not become ready on port $($ProcessRecord.Port) within $TimeoutSeconds seconds. Check $($ProcessRecord.StandardErrorPath)."
+    $readinessDetail = if ($lastReadinessError) {
+        " Last readiness result: $lastReadinessError."
+    }
+    else {
+        ''
+    }
+    throw "$($ProcessRecord.Name) did not become ready on port $($ProcessRecord.Port) within $TimeoutSeconds seconds.$readinessDetail Check $($ProcessRecord.StandardErrorPath)."
 }
 
 function Stop-ProcessTree {
@@ -295,12 +326,14 @@ try {
             Directory  = Join-Path $repositoryRoot 'services\asr'
             Port       = $AsrPort
             Url        = "http://localhost:$AsrPort"
+            ReadinessPath = '/ready'
         },
         @{
             Name       = 'TTS'
             Directory  = Join-Path $repositoryRoot 'services\tts'
             Port       = $TtsPort
             Url        = "http://localhost:$TtsPort"
+            ReadinessPath = '/health'
         }
     )
 
@@ -323,14 +356,30 @@ try {
             throw "$($speechService.Name) environment is missing. Run .\scripts\bootstrap.ps1 once, then retry."
         }
 
+        $speechArguments = @(
+            '-m', 'uvicorn', 'main:app',
+            '--host', $bindAddress,
+            '--port', "$($speechService.Port)",
+            '--timeout-graceful-shutdown', '180'
+        )
+        if ($ProductionSpeechServices) {
+            $speechArguments += @('--workers', '1')
+        }
+        else {
+            $speechArguments += '--reload'
+        }
+
         $speechProcess = Start-ManagedProcess `
             -Name $speechService.Name `
             -Executable $pythonPath `
-            -Arguments @('-m', 'uvicorn', 'main:app', '--host', $bindAddress, '--port', "$($speechService.Port)", '--reload') `
+            -Arguments $speechArguments `
             -WorkingDirectory $speechService.Directory `
             -Port $speechService.Port `
             -Url $speechService.Url
-        Wait-ForService -ProcessRecord $speechProcess -TimeoutSeconds 60
+        Wait-ForService `
+            -ProcessRecord $speechProcess `
+            -TimeoutSeconds $SpeechStartupTimeoutSeconds `
+            -ReadinessPath $speechService.ReadinessPath
         Write-Host "  $($speechService.Name.PadRight(9))ready on port $($speechService.Port)" -ForegroundColor Green
     }
 
