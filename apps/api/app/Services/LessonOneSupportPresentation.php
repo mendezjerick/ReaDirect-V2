@@ -8,6 +8,10 @@ use App\Models\LessonRun;
 
 final class LessonOneSupportPresentation
 {
+    public function __construct(
+        private readonly LearnerSpeechPolicy $speechPolicy,
+    ) {}
+
     public const AFTER_NONE = 'none';
 
     public const AFTER_RECORD = 'record';
@@ -70,7 +74,7 @@ final class LessonOneSupportPresentation
             return $this->presentation(
                 $sequenceKey,
                 [
-                    $this->runtimeFeedback($response),
+                    $this->firstIncorrectFeedback($response),
                     [
                         'kind' => 'published',
                         'speech_key' => "lesson-1-clue-{$run->mission_key}",
@@ -122,10 +126,6 @@ final class LessonOneSupportPresentation
     private function terminalPresentation(string $sequenceKey, LessonResponse $response): array
     {
         $speech = [];
-        if ($response->response_type === 'speech'
-            && preg_match('/^[A-Z]$/', (string) $response->final_transcript) === 1) {
-            $speech[] = $this->runtimeFeedback($response);
-        }
 
         $speechKey = match ($response->outcome) {
             LessonTeachingStateMachine::OUTCOME_INDEPENDENT_CORRECT => 'lesson-1-feedback-independent',
@@ -157,8 +157,21 @@ final class LessonOneSupportPresentation
         ];
     }
 
+    /** @return array{kind: string, response_id?: int, speech_key?: string} */
+    private function firstIncorrectFeedback(LessonResponse $response): array
+    {
+        if ($this->speechPolicy->allowsRuntimeFeedback($response)) {
+            return $this->runtimeFeedback($response);
+        }
+
+        return [
+            'kind' => 'published',
+            'speech_key' => 'lesson-1-feedback-incorrect-first',
+        ];
+    }
+
     /**
-     * @param array<int, array<string, mixed>> $speech
+     * @param  array<int, array<string, mixed>>  $speech
      * @return array<string, mixed>
      */
     private function presentation(

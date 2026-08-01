@@ -19,6 +19,7 @@ class SpokenTextLessonSupportPresentation
     public function __construct(
         private readonly int $lessonNumber,
         private readonly string $contentIdPrefix,
+        private readonly LearnerSpeechPolicy $speechPolicy,
     ) {}
 
     /**
@@ -85,7 +86,7 @@ class SpokenTextLessonSupportPresentation
             return $this->presentation(
                 $sequenceKey,
                 [
-                    $this->runtimeFeedback($response),
+                    $this->firstIncorrectFeedback($response),
                     [
                         'kind' => 'published',
                         'speech_key' => "lesson-{$this->lessonNumber}-clue-mission-1",
@@ -137,12 +138,6 @@ class SpokenTextLessonSupportPresentation
         LessonResponse $response,
     ): array {
         $speech = [];
-        $final = trim((string) $response->final_transcript);
-        if ($response->response_type === 'speech'
-            && $final !== ''
-            && strtoupper($final) !== 'UNKNOWN') {
-            $speech[] = $this->runtimeFeedback($response);
-        }
 
         $speechKey = match ($response->outcome) {
             LessonTeachingStateMachine::OUTCOME_INDEPENDENT_CORRECT => "lesson-{$this->lessonNumber}-feedback-independent",
@@ -181,6 +176,19 @@ class SpokenTextLessonSupportPresentation
         return [
             'kind' => 'runtime_feedback',
             'response_id' => $response->id,
+        ];
+    }
+
+    /** @return array{kind: string, response_id?: int, speech_key?: string} */
+    private function firstIncorrectFeedback(LessonResponse $response): array
+    {
+        if ($this->speechPolicy->allowsRuntimeFeedback($response)) {
+            return $this->runtimeFeedback($response);
+        }
+
+        return [
+            'kind' => 'published',
+            'speech_key' => "lesson-{$this->lessonNumber}-feedback-incorrect-first",
         ];
     }
 

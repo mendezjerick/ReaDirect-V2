@@ -11,6 +11,8 @@ import {
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "motion/react";
 
+import { useLearnerExperience } from "../learner-auth/LearnerExperienceProvider";
+import { useTheme } from "../theme/themeContext";
 import type {
   ClaraEmotion,
   ClaraPresentationCue,
@@ -47,10 +49,13 @@ export function ClaraStage({
   onLoadStateChange,
 }: ClaraStageProps) {
   const reduceMotion = useReducedMotion();
+  const { theme } = useTheme();
+  const learnerExperience = useLearnerExperience();
   const [loadState, setLoadState] = useState<ClaraStageVisualState>("loading");
   const onLoadStateChangeRef = useRef(onLoadStateChange);
   const stageRef = useRef<HTMLElement>(null);
   const revealCoverRef = useRef<HTMLSpanElement>(null);
+  const renderedModeRef = useRef<string | null>(null);
   const [loaderOrigin, setLoaderOrigin] = useState({ x: 0, y: 0 });
   const presentation: ClaraPresentationState = {
     emotion,
@@ -59,8 +64,32 @@ export function ClaraStage({
     speaking,
     speechLevel,
   };
+  const awaitingLearnerExperience = learnerExperience.state === "resolving";
+  const displayMode =
+    learnerExperience.state === "ready"
+      ? (learnerExperience.settings?.display_mode ?? null)
+      : null;
+  const staticSource =
+    theme === "t2"
+      ? "/assets/live2d/clara/stills/clara-t2.png"
+      : "/assets/live2d/clara/stills/clara-default.png";
 
   onLoadStateChangeRef.current = onLoadStateChange;
+
+  useEffect(() => {
+    const renderedMode = `${displayMode ?? "resolving"}:${staticSource}`;
+    if (renderedModeRef.current === null) {
+      renderedModeRef.current = renderedMode;
+      return;
+    }
+
+    if (renderedModeRef.current === renderedMode) {
+      return;
+    }
+
+    renderedModeRef.current = renderedMode;
+    setLoadState("loading");
+  }, [displayMode, staticSource]);
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
@@ -110,6 +139,12 @@ export function ClaraStage({
   );
 
   useEffect(() => {
+    if (learnerExperience.state === "error") {
+      handleLoadStateChange("error");
+    }
+  }, [handleLoadStateChange, learnerExperience.state]);
+
+  useEffect(() => {
     const cover = revealCoverRef.current;
     if (!cover || loadState !== "revealing") {
       return;
@@ -142,28 +177,44 @@ export function ClaraStage({
           ease: "easeOut",
         }}
         aria-label="Ma'am Clara"
-        data-live2d-model={CLARA_RUNTIME_MODEL_PATH}
+        data-live2d-model={
+          displayMode === "live2d" ? CLARA_RUNTIME_MODEL_PATH : undefined
+        }
         data-live2d-state={loadState}
+        data-clara-display-mode={displayMode ?? "resolving"}
         data-clara-emotion={emotion}
         data-clara-behavior={behavior}
         data-clara-cue={cue}
         data-clara-speaking={speaking}
       >
         <div className="clara-stage__viewport">
-          <Suspense fallback={null}>
-            <ClaraLive2DCanvas
-              reduceMotion={Boolean(reduceMotion)}
-              presentation={presentation}
-              onStateChange={handleLoadStateChange}
+          {displayMode === "static" ? (
+            <img
+              className="clara-stage__static-image"
+              src={staticSource}
+              alt=""
+              aria-hidden="true"
+              onLoad={() => handleLoadStateChange("ready")}
+              onError={() => handleLoadStateChange("error")}
             />
-          </Suspense>
+          ) : displayMode === "live2d" ? (
+            <Suspense fallback={null}>
+              <ClaraLive2DCanvas
+                reduceMotion={Boolean(reduceMotion)}
+                presentation={presentation}
+                onStateChange={handleLoadStateChange}
+              />
+            </Suspense>
+          ) : null}
         </div>
         <span className="visually-hidden" role="status">
           {loadState === "ready"
             ? "Ma'am Clara is ready"
             : loadState === "error"
               ? "Ma'am Clara could not load"
-              : "Loading Ma'am Clara"}
+              : awaitingLearnerExperience
+                ? "Preparing Ma'am Clara"
+                : "Loading Ma'am Clara"}
         </span>
       </motion.figure>
       {loadState !== "ready"

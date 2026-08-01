@@ -58,7 +58,7 @@ final class LearnerTtsTest extends TestCase
         $token = $this->createLearnerSession();
         $definitions = $this->speechDefinitions();
 
-        $this->assertCount(247, $definitions);
+        $this->assertCount(300, $definitions);
         foreach ($definitions as $speechKey => $definition) {
             $this->assertStringNotContainsString(
                 '!',
@@ -82,6 +82,44 @@ final class LearnerTtsTest extends TestCase
         }
 
         Http::assertNothingSent();
+    }
+
+    public function test_lightweight_speech_migration_matches_the_active_catalog(): void
+    {
+        $definitions = $this->speechDefinitions();
+        $migration = config('speech.pending_published_catalog_migrations.lightweight-v1');
+
+        $this->assertCount(300, $definitions);
+        $this->assertArrayHasKey('lesson-1-feedback-incorrect-first', $definitions);
+        $this->assertArrayHasKey('lesson-2-word-demo-bag', $definitions);
+        $this->assertSame(
+            'That is correct. You said the letter correctly with me.',
+            $definitions['lesson-1-feedback-demonstrated']['text'],
+        );
+        $this->assertSame(
+            'That is correct. You read the word correctly with me.',
+            $definitions['lesson-2-feedback-demonstrated']['text'],
+        );
+
+        $this->assertIsArray($migration);
+        $this->assertCount(53, $migration['new_lines']);
+        $this->assertCount(2, $migration['replacement_lines']);
+        $this->assertSame(
+            'That word was not quite right. Let us try again.',
+            $migration['new_lines']['lesson-2-feedback-incorrect-first']['text'],
+        );
+        $this->assertSame(
+            'The word is bag. Listen: bag. Now you try.',
+            $migration['new_lines']['lesson-2-word-demo-bag']['text'],
+        );
+        $this->assertSame(
+            'That is correct. You said the letter correctly with me.',
+            $migration['replacement_lines']['lesson-1-feedback-demonstrated']['text'],
+        );
+        $this->assertSame(
+            'That is correct. You read the word correctly with me.',
+            $migration['replacement_lines']['lesson-2-feedback-demonstrated']['text'],
+        );
     }
 
     public function test_unknown_speech_keys_are_not_forwarded(): void
@@ -124,6 +162,8 @@ final class LearnerTtsTest extends TestCase
             'raw_transcript' => 'a cat on a mat',
             'final_transcript' => 'a cat on a mat',
             'decision' => 'NEEDS_SUPPORT',
+            'teaching_state' => 'GIVING_CLUE',
+            'academic_attempt_count' => 1,
             'evidence' => [
                 'transcript_alignment' => [
                     'diagnosis_key' => 'missing_word',
@@ -151,6 +191,48 @@ final class LearnerTtsTest extends TestCase
             'text' => 'You missed the word is.',
             'reference' => 'result',
         ]);
+    }
+
+    public function test_first_incorrect_runtime_feedback_falls_back_to_approved_audio(): void
+    {
+        $token = $this->createLearnerSession();
+        $learner = Learner::query()->firstOrFail();
+        $run = LessonRun::query()->create([
+            'learner_id' => $learner->id,
+            'lesson_key' => 'required-lesson-1',
+            'content_version' => 'v1',
+            'status' => LessonRun::STATUS_ACTIVE,
+            'mission_key' => 'mission-1',
+            'current_item_index' => 0,
+            'content_snapshot' => [],
+        ]);
+        $response = LessonResponse::query()->create([
+            'lesson_run_id' => $run->id,
+            'mission_key' => 'mission-1',
+            'item_key' => 'lesson-v1-letter-a',
+            'item_order' => 1,
+            'response_type' => 'speech',
+            'raw_transcript' => 'b',
+            'final_transcript' => 'B',
+            'decision' => 'NEEDS_SUPPORT',
+            'teaching_state' => 'GIVING_CLUE',
+            'academic_attempt_count' => 1,
+        ]);
+        $this->publishSpeech(
+            'lesson-1-feedback-incorrect-first',
+            'That letter was not quite right. Let us try again.',
+            'result',
+            'RIFF-published-fallback',
+        );
+        Http::fake(['*/synthesize' => Http::response([], 503)]);
+
+        $this->withToken($token)
+            ->post("/api/learners/tts/lesson-feedback/{$response->id}")
+            ->assertOk()
+            ->assertHeader('X-ReaDirect-TTS-Source', 'published-fallback')
+            ->assertHeader('X-ReaDirect-TTS-Fallback', 'runtime-unavailable')
+            ->assertHeader('X-ReaDirect-Clara-Speech', 'lesson-1-feedback-incorrect-first')
+            ->assertContent('RIFF-published-fallback');
     }
 
     public function test_missing_or_modified_published_audio_never_falls_back_to_vox(): void

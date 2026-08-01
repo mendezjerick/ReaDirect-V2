@@ -2402,6 +2402,41 @@ textarea.staff-field__control {
   color: var(--color-danger);
 }
 
+.staff-lightweight-mode {
+  margin-top: 1rem;
+}
+
+.staff-lightweight-mode__children {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.65rem;
+  border-top: 1px solid var(--color-border-soft);
+  padding-top: 1rem;
+}
+
+.staff-lightweight-mode__children > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  padding: 0.75rem 0.85rem;
+  background: var(--color-surface-muted);
+}
+
+.staff-lightweight-mode__children strong {
+  color: var(--color-text-primary);
+  font-size: 0.86rem;
+}
+
+.staff-lightweight-mode__children p {
+  margin: 0.2rem 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
 .staff-data-card__header {
   display: flex;
   align-items: flex-start;
@@ -4475,6 +4510,19 @@ textarea.staff-field__control {
   pointer-events: none;
 }
 
+.clara-stage__static-image {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .clara-stage__loader[data-live2d-state="revealing"] .clara-stage__loader-wave {
   animation: clara-loader-wave-core-out 360ms ease-out forwards;
 }
@@ -4496,7 +4544,15 @@ textarea.staff-field__control {
   animation: clara-loader-canvas-switch 3000ms linear both;
 }
 
+.clara-stage[data-live2d-state="revealing"] .clara-stage__static-image {
+  animation: clara-loader-canvas-switch 3000ms linear both;
+}
+
 .clara-stage[data-live2d-state="ready"] .clara-stage__canvas {
+  opacity: 1;
+}
+
+.clara-stage[data-live2d-state="ready"] .clara-stage__static-image {
   opacity: 1;
 }
 

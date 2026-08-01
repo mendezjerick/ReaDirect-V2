@@ -47,9 +47,9 @@ final class LearnerLessonTwoTeachingTest extends TestCase
             ->assertJsonPath('response.outcome', 'INDEPENDENT_CORRECT')
             ->assertJsonPath('response.independent_mastery', true)
             ->assertJsonPath('teaching.can_advance', true)
-            ->assertJsonPath('support.speech.0.kind', 'runtime_feedback')
+            ->assertJsonPath('support.speech.0.kind', 'published')
             ->assertJsonPath(
-                'support.speech.1.speech_key',
+                'support.speech.0.speech_key',
                 'lesson-2-feedback-independent',
             )
             ->assertJsonPath('support.after_speech', 'advance');
@@ -256,11 +256,9 @@ final class LearnerLessonTwoTeachingTest extends TestCase
             'response_type' => 'speech',
             'raw_transcript' => 'cap',
             'final_transcript' => 'cat',
-            'decision' => 'CORRECT',
-            'teaching_state' => 'INDEPENDENT_FEEDBACK',
-            'outcome' => 'INDEPENDENT_CORRECT',
+            'decision' => 'NEEDS_SUPPORT',
+            'teaching_state' => 'GIVING_CLUE',
             'academic_attempt_count' => 1,
-            'independent_mastery' => true,
         ]);
         Http::fake([
             '*/synthesize' => Http::response(

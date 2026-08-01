@@ -187,7 +187,11 @@ System Administrator controls include:
 - Conditional Mu noise reduction. It is off by default, requires confirmation
   to change, affects new Mu submissions only, and preserves original-audio
   evidence even when its optional second pass runs. Nu never uses this setting.
-- Agent display mode.
+- Lightweight learner delivery mode. This global control is off by default
+  and, when enabled, reveals independent `Static Clara` and
+  `Published-only speech` child switches that default on. Its complete setting,
+  confirmation, audit, and normalization contract is owned by
+  `READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md`.
 - Learner font mode. The canonical default is Jersey 20 for learner interface
   chrome, with Lexend reserved for authored reading content.
 - Agent voice stage.
@@ -238,14 +242,18 @@ truth without inventing learner-facing settings:
 
 - AI services show the authenticated live health of Laravel, PostgreSQL, ASR,
   TTS, the queue connection, and the current environment.
-- Conditional Mu noise reduction is the only runtime mutation in this slice.
-  It keeps its existing confirmation, audit-log, original-audio-first, new-Mu-
-  submissions-only, and Nu-exclusion rules.
-- Agent settings show Ma'am Clara's source-controlled Live2D display contract,
-  approved static fallback, Jersey 20 learner-interface font, Lexend authored-
+- Conditional Mu noise reduction keeps its existing confirmation, audit-log,
+  original-audio-first, new-Mu-submissions-only, and Nu-exclusion rules.
+- Agent Settings provides one atomic global lightweight delivery setting with
+  two child values: static Clara and published-only speech. Changes require
+  confirmation, apply to the next learner activity load, and write the
+  before/after values to the staff audit log.
+- Agent settings continue to show Ma'am Clara's source-controlled Live2D and
+  static-portrait contract, Jersey 20 learner-interface font, Lexend authored-
   reading font, published voice version, and approved reference-role counts.
-- Display mode, typography, and voice publication are read-only here because
-  the learner runtime does not consume a global mutable setting for them.
+- Typography and voice publication remain read-only. Renderer and speech-mode
+  choice become mutable only through the bounded lightweight contract; no page
+  may invent its own override.
 - Prompt templates show the approved published fixed Clara speech catalog.
   Search and grouping are client-side views of the same authenticated response.
 - No generative LLM prompt registry exists in the current runtime. The Prompt

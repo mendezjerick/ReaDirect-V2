@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { MetricCard } from "../../components/staff/MetricCard";
@@ -17,16 +18,51 @@ import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import {
   clearStaffSession,
   getSystemAdminAgentSettings,
+  updateSystemAdminLightweightMode,
 } from "../staff-auth/staffApi";
+
+type LightweightModeRequest = {
+  enabled: boolean;
+  static_clara: boolean;
+  published_speech_only: boolean;
+};
+
+function effectiveModeLabel(mode: LightweightModeRequest): string {
+  const display = mode.enabled && mode.static_clara ? "Static Clara" : "Live2D Clara";
+  const speech = mode.enabled && mode.published_speech_only
+    ? "published-only speech"
+    : "hybrid speech";
+
+  return `${display} + ${speech}`;
+}
 
 export function SystemAdminAgentSettingsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const exitCommit = useButtonCommit();
+  const settingCommit = useButtonCommit();
+  const [requestedLightweightMode, setRequestedLightweightMode] =
+    useState<LightweightModeRequest | null>(null);
   const settingsQuery = useQuery({
     queryKey: ["system-admin-agents-ai", "settings"],
     queryFn: getSystemAdminAgentSettings,
   });
   const agent = settingsQuery.data?.agent;
+  const lightweightMode = agent?.lightweight_mode;
+  const lightweightModeMutation = useMutation({
+    mutationFn: updateSystemAdminLightweightMode,
+    onSuccess: () => {
+      setRequestedLightweightMode(null);
+      void queryClient.invalidateQueries({
+        queryKey: ["system-admin-agents-ai", "settings"],
+      });
+    },
+  });
+
+  const requestLightweightMode = (next: LightweightModeRequest) => {
+    lightweightModeMutation.reset();
+    setRequestedLightweightMode(next);
+  };
 
   return (
     <StaffShell
@@ -101,6 +137,139 @@ export function SystemAdminAgentSettingsPage() {
             detail={agent?.voice.reference_set ?? undefined}
           />
         </section>
+
+        {lightweightMode ? (
+          <StaffCard className="staff-speech-setting staff-lightweight-mode">
+            <div className="staff-speech-setting__copy">
+              <p className="staff-speech-setting__eyebrow">Learner delivery</p>
+              <div className="staff-speech-setting__title-row">
+                <h2>Lightweight mode</h2>
+                <span
+                  className={`staff-setting-status staff-setting-status--${
+                    lightweightMode.enabled ? "enabled" : "disabled"
+                  }`}
+                >
+                  {lightweightMode.enabled ? "On" : "Off"}
+                </span>
+              </div>
+              <p>
+                Choose a lower-weight Clara display and/or published-only speech.
+                Existing learner evidence is never changed; the selected mode is
+                used when the learner next loads an activity.
+              </p>
+            </div>
+            <button
+              className="staff-setting-switch"
+              type="button"
+              role="switch"
+              aria-checked={lightweightMode.enabled}
+              aria-label="Lightweight mode"
+              disabled={lightweightModeMutation.isPending}
+              onClick={() =>
+                requestLightweightMode({
+                  enabled: !lightweightMode.enabled,
+                  static_clara: lightweightMode.static_clara,
+                  published_speech_only: lightweightMode.published_speech_only,
+                })
+              }
+            >
+              <span aria-hidden="true" />
+            </button>
+
+            {lightweightMode.enabled ? (
+              <div className="staff-lightweight-mode__children">
+                <div>
+                  <div>
+                    <strong>Static Clara image</strong>
+                    <p>Use the approved PNG Clara render instead of Live2D.</p>
+                  </div>
+                  <button
+                    className="staff-setting-switch"
+                    type="button"
+                    role="switch"
+                    aria-checked={lightweightMode.static_clara}
+                    aria-label="Static Clara image"
+                    disabled={lightweightModeMutation.isPending}
+                    onClick={() =>
+                      requestLightweightMode({
+                        enabled: true,
+                        static_clara: !lightweightMode.static_clara,
+                        published_speech_only:
+                          lightweightMode.published_speech_only,
+                      })
+                    }
+                  >
+                    <span aria-hidden="true" />
+                  </button>
+                </div>
+                <div>
+                  <div>
+                    <strong>Published-only speech</strong>
+                    <p>Use approved published audio instead of hybrid speech.</p>
+                  </div>
+                  <button
+                    className="staff-setting-switch"
+                    type="button"
+                    role="switch"
+                    aria-checked={lightweightMode.published_speech_only}
+                    aria-label="Published-only speech"
+                    disabled={lightweightModeMutation.isPending}
+                    onClick={() =>
+                      requestLightweightMode({
+                        enabled: true,
+                        static_clara: lightweightMode.static_clara,
+                        published_speech_only:
+                          !lightweightMode.published_speech_only,
+                      })
+                    }
+                  >
+                    <span aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {requestedLightweightMode ? (
+              <div className="staff-setting-confirmation" role="alertdialog">
+                <div>
+                  <strong>Apply this lightweight learner mode?</strong>
+                  <p>
+                    Effective mode: {effectiveModeLabel(requestedLightweightMode)}.
+                    It applies on the next learner activity load and does not
+                    alter existing learner evidence.
+                  </p>
+                </div>
+                <div className="staff-setting-confirmation__actions">
+                  <StaffButton
+                    tone="quiet"
+                    onClick={() => setRequestedLightweightMode(null)}
+                  >
+                    Cancel
+                  </StaffButton>
+                  <StaffButton
+                    tone="primary"
+                    busy={lightweightModeMutation.isPending}
+                    busyLabel="Saving setting"
+                    committing={settingCommit.committing}
+                    onClick={() =>
+                      settingCommit.commit(() =>
+                        lightweightModeMutation.mutate(requestedLightweightMode),
+                      )
+                    }
+                  >
+                    Confirm change
+                  </StaffButton>
+                </div>
+              </div>
+            ) : null}
+
+            {lightweightModeMutation.isError ? (
+              <p className="staff-setting-message staff-setting-message--error">
+                {lightweightModeMutation.error.message}
+              </p>
+            ) : null}
+          </StaffCard>
+        ) : null}
 
         {settingsQuery.isLoading ? (
           <StaffState title="Loading agent contracts…" />

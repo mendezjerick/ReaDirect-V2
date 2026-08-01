@@ -272,6 +272,10 @@ RESULT
 
 ## VoxCPM2 Audio Rules
 
+Renderer and speech-mode selection, including the published-only no-warm-up
+rule, is owned by
+`READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md`.
+
 VoxCPM2 is one TTS implementation. It must use the engine-neutral isolated
 letter standard rather than maintaining its own competing A-Z table.
 
@@ -279,8 +283,9 @@ Before an assessment or lesson opens, Lesson Intro fetches and plays its
 approved, published Clara introduction WAV from the Laravel speech catalog. It
 must not invoke runtime synthesis for that fixed line. Its Continue control
 must remain disabled until playback actually ends. A persistent VoxCPM2 runtime
-may be warmed separately only when the upcoming learner flow can require
-unpredictable, final-transcript feedback. This preparation does not override
+may be warmed separately only when effective hybrid mode can reach a first
+clear incorrect personalized diagnosis. Published-only mode must not warm or
+call Vox. This preparation does not override
 the turn-taking rules below: if learner recording or learner-audio playback
 starts, Clara speech must still stop immediately.
 

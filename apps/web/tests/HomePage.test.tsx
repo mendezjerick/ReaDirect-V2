@@ -13,15 +13,21 @@ vi.mock("motion/react", async (importOriginal) => {
 
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { HomePage } from "../src/features/home/HomePage";
+import { ThemeProvider } from "../src/features/theme/ThemeProvider";
 
 function renderHome() {
   return render(
     <MemoryRouter initialEntries={["/home"]}>
-      <Routes>
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/learner/login" element={<div>Learner login route</div>} />
-        <Route path="/staff/login" element={<div>Staff login route</div>} />
-      </Routes>
+      <ThemeProvider>
+        <Routes>
+          <Route path="/home" element={<HomePage />} />
+          <Route
+            path="/learner/login"
+            element={<div>Learner login route</div>}
+          />
+          <Route path="/staff/login" element={<div>Staff login route</div>} />
+        </Routes>
+      </ThemeProvider>
     </MemoryRouter>,
   );
 }

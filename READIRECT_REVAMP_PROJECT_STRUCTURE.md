@@ -413,6 +413,14 @@ The System Administrator Agents and AI catalog boundary belongs to:
 ```text
 apps/api/app/Services/SystemAdminAgentsAiService.php
 apps/api/app/Http/Controllers/SystemAdminAgentsAiController.php
+apps/api/app/Services/LearnerLightweightModeSettings.php
+apps/api/app/Services/LearnerSpeechPolicy.php
+apps/api/app/Http/Controllers/SystemAdminLearnerExperienceSettingsController.php
+apps/api/app/Http/Controllers/LearnerExperienceController.php
+apps/api/database/migrations/2026_08_01_000010_add_learner_lightweight_mode_setting.php
+apps/api/scripts/audit-tts-catalog-retirement.php
+apps/api/scripts/clear-tts-runtime-cache.php
+apps/web/src/features/learner-auth/LearnerExperienceProvider.tsx
 apps/web/src/features/staff-dashboard/SystemAdminAiServicesPage.tsx
 apps/web/src/features/staff-dashboard/SystemAdminAgentSettingsPage.tsx
 apps/web/src/features/staff-dashboard/SystemAdminPromptTemplatesPage.tsx
@@ -687,8 +695,9 @@ disposable generation probe, and retains the resulting Vox prompt cache in
 process memory. Concurrent preparation for one profile is single-flight,
 generation is serialized around the non-reentrant model, and a dynamic cache
 hit still confirms that the required profile is resident. VoxCPM2 is used for
-controlled speech publication and unpredictable final-transcript feedback;
-fixed learner-flow lines do not call it at runtime.
+controlled speech publication and, in effective hybrid mode, the first clear
+incorrect personalized diagnosis. Fixed learner-flow lines and every
+published-only activity do not call it at runtime.
 
 Laravel is the authenticated browser-facing speech proxy. Published metadata
 belongs in `tts_voice_versions` and `tts_speech_lines`, while approved WAVs live
@@ -696,13 +705,23 @@ under `apps/api/storage/app/private/tts/catalog/`. The current `clara-sh-v1`
 catalog contains Lesson Intro, every fixed Part 1 instruction and ordinal cue,
 all fixed Part 2 prompts and questions, the Diagnostic and Final Assessment
 completion lines, and
-51 fixed Lesson 1 lines, 19 fixed Lesson 2 lines, 33 fixed Lesson 3 lines, 33
+52 fixed Lesson 1 lines, 69 fixed Lesson 2 lines, 34 fixed Lesson 3 lines, 34
 fixed Lesson 4 lines, 9 fixed Lesson 5 lines, 47 fixed Lesson 6 lines, and 7
-dedicated companion-class story lines. Its 247 published rows are grouped under
+dedicated companion-class story lines. Its 300 published rows are grouped under
 `sh/lesson-intro/`, `sh/part-1/`, `sh/part-2/`, `sh/completion/`, and
 `sh/lessons/` for human review. Laravel verifies the catalog status, file
 existence, and SHA-256 checksum before returning audio. Browser code must never
 send or receive private paths.
+
+The catalog slice of the approved lightweight/hybrid migration defined by
+`READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md` is published:
+it added 53 WAVs for the 300-row catalog, including 49 Lesson 2 word
+demonstrations and four general first-incorrect lines. It also replaced two
+demonstrated-success WAVs under their existing keys. The remaining 245
+published WAVs are preserved.
+Fourteen additional WAVs currently present below the physical catalog root are
+not configured published lines; the lightweight standard names each path for
+explicit reviewed removal. They must not be promoted or regenerated.
 
 Dashboard entry may begin a deduplicated Lesson Intro catalog request during
 the shared route transition. The destination reuses that same in-memory browser
@@ -728,10 +747,12 @@ against one published voice version and verifies private WAV checksums before
 calling Vox for manifest-declared profiles. The authenticated
 `POST /api/learners/tts/activity-readiness` contract accepts no browser-selected
 activity or profile. Assessments therefore validate their published catalog
-without contacting Vox. Lesson 1 prepares only `result`; Lesson 2 prepares
-`result` and `instruction` for controlled response feedback and word
-demonstration; Lessons 3 and 4 prepare only `result` because all possible
-phrase and sentence demonstrations are published. Lesson 5 is published-only:
+without contacting Vox. In the currently deployed baseline, Lesson 1 prepares
+only `result`; Lesson 2 prepares `result` and `instruction`; and Lessons 3 and 4
+prepare only `result`. The approved migration makes every deterministic
+demonstration and terminal outcome published, requests a runtime profile only
+for a first clear incorrect personalized diagnosis in effective hybrid mode,
+and declares no runtime profiles in effective published-only mode. Lesson 5 is published-only:
 its instruction, technical recovery, six review-band responses, and completion
 line require no runtime Vox profile.
 
@@ -818,6 +839,8 @@ Examples include:
 - OGG, MP3, or WebM audio
 - MP4 or WebM videos
 - Live2D runtime model files
+- Theme-specific static Clara portraits under
+  `apps/web/public/assets/live2d/clara/stills/`
 - Web fonts
 
 The browser-ready assets are derived from the master assets. Editable source
@@ -888,6 +911,16 @@ Runtime model files are copied to:
 apps/web/public/assets/live2d/main-character/
 ```
 
+Approved lightweight static portraits are copied to:
+
+```text
+apps/web/public/assets/live2d/clara/stills/clara-default.png
+apps/web/public/assets/live2d/clara/stills/clara-t2.png
+```
+
+They are explicit renderer assets, not automatic Live2D error fallbacks. Static
+mode must avoid importing or downloading the Live2D model bundle.
+
 File names and internal paths must not be changed unless the references inside the Live2D configuration files are updated accordingly.
 
 ## Backgrounds and Illustrations
@@ -930,11 +963,25 @@ Background music, sound effects, prerecorded dialogue, phoneme recordings, and T
 
 Raw classmate voice recordings and private voice-reference files must not be placed in the public directory.
 
-Generated TTS audio belongs in:
+Published, reviewed Clara speech belongs in Laravel private storage:
+
+```text
+apps/api/storage/app/private/tts/catalog/
+```
+
+Its authoritative keys, text, hashes, and source groups belong in the Laravel
+speech catalog configuration and database publication workflow. Published WAVs
+must never be confused with disposable runtime cache entries.
+
+Runtime-generated dynamic TTS cache audio belongs in:
 
 ```text
 services/tts/storage/cache/
 ```
+
+The dynamic cache may be cleared by an approved rollout or maintenance action.
+Published catalog WAVs and `services/tts/storage/reference-cache/` must not be
+removed by that operation.
 
 Explicitly requested development comparison outputs may be retained under
 `assets/audio/tts-samples/` for human review. They are test artifacts, not the

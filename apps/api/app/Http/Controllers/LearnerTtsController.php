@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LearnerSession;
 use App\Models\LessonResponse;
 use App\Models\TtsSpeechLine;
 use App\Models\TtsVoiceVersion;
@@ -9,6 +10,7 @@ use App\Services\ActivitySpeechManifestService;
 use App\Services\ActivitySpeechPreparationService;
 use App\Services\IsolatedLetterPronunciation;
 use App\Services\LearnerSessionResolver;
+use App\Services\LearnerSpeechPolicy;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +26,7 @@ final class LearnerTtsController extends Controller
         private readonly IsolatedLetterPronunciation $letterPronunciation,
         private readonly ActivitySpeechManifestService $activitySpeechManifest,
         private readonly ActivitySpeechPreparationService $activitySpeechPreparation,
+        private readonly LearnerSpeechPolicy $speechPolicy,
     ) {}
 
     public function activityManifest(Request $request): JsonResponse
@@ -59,6 +62,16 @@ final class LearnerTtsController extends Controller
     public function speech(Request $request, string $speechKey): Response|JsonResponse
     {
         $session = $this->sessionResolver->resolve($request);
+
+        return $this->publishedSpeech($session, $speechKey);
+    }
+
+    private function publishedSpeech(
+        LearnerSession $session,
+        string $speechKey,
+        string $source = 'published',
+        array $headers = [],
+    ): Response|JsonResponse {
         $speech = TtsSpeechLine::query()
             ->with('voiceVersion')
             ->where('speech_key', $speechKey)
@@ -95,8 +108,9 @@ final class LearnerTtsController extends Controller
             'Content-Type' => 'audio/wav',
             'Cache-Control' => 'no-store',
             'X-ReaDirect-Clara-Speech' => $speechKey,
-            'X-ReaDirect-TTS-Source' => 'published',
+            'X-ReaDirect-TTS-Source' => $source,
             'X-ReaDirect-TTS-Voice' => $speech->voiceVersion->stable_key,
+            ...$headers,
         ]);
     }
 
@@ -106,6 +120,13 @@ final class LearnerTtsController extends Controller
         $lessonResponse->loadMissing('run');
         abort_unless($lessonResponse->run->learner_id === $session->learner_id, 404);
         abort_unless($lessonResponse->response_type === 'speech', 409, 'Skipped items do not have spoken feedback.');
+        abort_unless(
+            $this->speechPolicy->allowsRuntimeFeedback($lessonResponse),
+            409,
+            'Response-specific feedback is unavailable while published-only speech is effective.',
+        );
+        $fallbackSpeechKey = $this->speechPolicy->firstIncorrectSpeechKey($lessonResponse);
+        abort_unless($fallbackSpeechKey !== null, 409, 'This lesson does not support response-specific feedback.');
 
         $final = trim((string) $lessonResponse->final_transcript);
         $canonicalLetter = strtoupper($final);
@@ -148,7 +169,7 @@ final class LearnerTtsController extends Controller
             };
         }
 
-        return $this->runtimeSpeech($text, 'result', [
+        return $this->runtimeSpeech($session, $text, 'result', $fallbackSpeechKey, [
             'X-ReaDirect-Letter' => $isLetterLesson
                 && preg_match('/^[A-Z]$/', $canonicalLetter)
                     ? $canonicalLetter
@@ -190,6 +211,11 @@ final class LearnerTtsController extends Controller
             409,
             'This lesson item does not need a demonstration.',
         );
+        abort_unless(
+            $this->speechPolicy->allowsRuntimeDemonstration($lessonResponse),
+            409,
+            'Word demonstrations are unavailable while published-only speech is effective.',
+        );
 
         $item = collect(
             $lessonResponse->run->content_snapshot[$lessonResponse->mission_key] ?? [],
@@ -202,8 +228,10 @@ final class LearnerTtsController extends Controller
         abort_unless($word !== '', 409, 'The lesson word is unavailable.');
 
         return $this->runtimeSpeech(
+            $session,
             "The word is {$word}. Listen: {$word}. Now you try.",
             'instruction',
+            'lesson-2-word-demo-'.str_replace('lesson-v1-word-', '', (string) $item['content_id']),
             ['X-ReaDirect-Word' => $word],
         );
     }
@@ -212,8 +240,10 @@ final class LearnerTtsController extends Controller
      * @param  array<string, string>  $headers
      */
     private function runtimeSpeech(
+        LearnerSession $session,
         string $text,
         string $reference,
+        string $fallbackSpeechKey,
         array $headers = [],
     ): Response|JsonResponse {
         try {
@@ -227,15 +257,21 @@ final class LearnerTtsController extends Controller
         } catch (Throwable $error) {
             report($error);
 
-            return response()->json([
-                'message' => 'Ma\'am Clara is still preparing that feedback.',
-            ], 503);
+            return $this->publishedSpeech(
+                $session,
+                $fallbackSpeechKey,
+                'published-fallback',
+                ['X-ReaDirect-TTS-Fallback' => 'runtime-unavailable', ...$headers],
+            );
         }
 
         if (! $speech->successful()) {
-            return response()->json([
-                'message' => 'Ma\'am Clara could not prepare that feedback.',
-            ], 503);
+            return $this->publishedSpeech(
+                $session,
+                $fallbackSpeechKey,
+                'published-fallback',
+                ['X-ReaDirect-TTS-Fallback' => 'runtime-unavailable', ...$headers],
+            );
         }
 
         return response($speech->body(), 200, [

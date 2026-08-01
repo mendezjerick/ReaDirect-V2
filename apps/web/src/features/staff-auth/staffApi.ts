@@ -425,8 +425,19 @@ const systemAdminAgentSettingsSchema = z.object({
       conditional_mu_noise_reduction_enabled: z.boolean(),
       nu_noise_reduction: z.literal(false),
     }),
+    lightweight_mode: z.object({
+      enabled: z.boolean(),
+      static_clara: z.boolean(),
+      published_speech_only: z.boolean(),
+      display_mode: z.enum(["live2d", "static"]),
+      speech_mode: z.enum(["hybrid", "published_only"]),
+      revision: z.string(),
+      applies_on_next_learner_load: z.literal(true),
+    }),
   }),
-  governance: learningContentGovernanceSchema,
+  governance: learningContentGovernanceSchema.extend({
+    lightweight_mode_mutable: z.literal(true),
+  }),
   generated_at: z.string(),
 });
 
@@ -579,6 +590,8 @@ export type SystemAdminLearningRules = z.infer<
 export type SystemAdminAgentSettings = z.infer<
   typeof systemAdminAgentSettingsSchema
 >;
+export type SystemAdminLightweightMode =
+  SystemAdminAgentSettings["agent"]["lightweight_mode"];
 export type SystemAdminPromptTemplates = z.infer<
   typeof systemAdminPromptTemplatesSchema
 >;
@@ -1279,6 +1292,35 @@ export async function getSystemAdminAgentSettings(): Promise<SystemAdminAgentSet
   }
 
   return systemAdminAgentSettingsSchema.parse(await response.json());
+}
+
+const lightweightModeResponseSchema = z.object({
+  lightweight_mode: systemAdminAgentSettingsSchema.shape.agent.shape.lightweight_mode,
+});
+
+export async function updateSystemAdminLightweightMode(input: {
+  enabled: boolean;
+  static_clara: boolean;
+  published_speech_only: boolean;
+}): Promise<SystemAdminLightweightMode> {
+  const response = await staffFetch(
+    "/api/staff/system-admin/agents-ai/lightweight-mode",
+    {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return lightweightModeResponseSchema.parse(await response.json())
+    .lightweight_mode;
 }
 
 export async function getSystemAdminPromptTemplates(): Promise<SystemAdminPromptTemplates> {

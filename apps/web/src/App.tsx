@@ -11,6 +11,7 @@ import { RouteTransitionProvider } from "./components/transitions/RouteTransitio
 import { RequireStaffRole } from "./components/staff/RequireStaffRole";
 import { HomePage } from "./features/home/HomePage";
 import { IntroPage } from "./features/intro/IntroPage";
+import { LearnerExperienceProvider } from "./features/learner-auth/LearnerExperienceProvider";
 
 const LearnerDashboardPage = lazy(() =>
   import("./features/learner-dashboard/LearnerDashboardPage").then(
@@ -397,258 +398,266 @@ export function App() {
   return (
     <RouteTransitionProvider>
       <GameLobbySkeletonProvider>
-        <Suspense fallback={<RouteLoading />}>
-          <Routes>
-            <Route path="/" element={<IntroPage />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/learner/login" element={<LearnerLoginPage />} />
-            <Route
-              path="/learner/dashboard"
-              element={<LearnerDashboardPage />}
-            />
-            <Route path="/learner/lesson-intro" element={<LessonIntroPage />} />
-            <Route
-              path="/learner/learn-with-clara"
-              element={<LearnWithClaraMenuPage />}
-            />
-            <Route
-              path="/learner/learn-with-clara/letters"
-              element={<LearnWithClaraLettersPage />}
-            />
-            <Route
-              path="/learner/assessment/part-one"
-              element={<AssessmentPartOnePage />}
-            />
-            <Route
-              path="/learner/assessment/part-two"
-              element={<AssessmentPartTwoPage />}
-            />
-            <Route
-              path="/learner/assessment/complete"
-              element={<AssessmentPartTwoPage />}
-            />
-            <Route
-              path="/learner/final-assessment/part-one"
-              element={<AssessmentPartOnePage assessmentType="final" />}
-            />
-            <Route
-              path="/learner/final-assessment/part-two"
-              element={<AssessmentPartTwoPage assessmentType="final" />}
-            />
-            <Route
-              path="/learner/final-assessment/complete"
-              element={<AssessmentPartTwoPage assessmentType="final" />}
-            />
-            <Route path="/learner/lessons/1" element={<LessonOnePage />} />
-            <Route path="/learner/lessons/2" element={<LessonTwoPage />} />
-            <Route path="/learner/lessons/3" element={<LessonThreePage />} />
-            <Route path="/learner/lessons/4" element={<LessonFourPage />} />
-            <Route path="/learner/lessons/5" element={<LessonFivePage />} />
-            <Route path="/learner/lessons/6" element={<LessonSixPage />} />
-            <Route path="/learner/games" element={<GameLobbyPage />} />
-            <Route
-              path="/learner/games/game-zero"
-              element={
-                <RequireSkeletonGameProfile>
-                  <GameZeroRoutePage />
-                </RequireSkeletonGameProfile>
-              }
-            />
-            <Route
-              path="/learner/games/game-one"
-              element={
-                <RequireSkeletonGameProfile>
-                  <GameOneHostPage />
-                </RequireSkeletonGameProfile>
-              }
-            />
-            <Route
-              path="/learner/games/game-two"
-              element={
-                <RequireSkeletonGameProfile>
-                  <GameTwoRoutePage />
-                </RequireSkeletonGameProfile>
-              }
-            />
-            <Route path="/staff/login" element={<StaffLoginPage />} />
-            <Route
-              element={<RequireStaffRole allowedRoles={["system_admin"]} />}
-            >
+        <LearnerExperienceProvider>
+          <Suspense fallback={<RouteLoading />}>
+            <Routes>
+              <Route path="/" element={<IntroPage />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/learner/login" element={<LearnerLoginPage />} />
               <Route
-                path="/staff/system-admin"
-                element={<SystemAdminDashboardPage />}
+                path="/learner/dashboard"
+                element={<LearnerDashboardPage />}
               />
               <Route
-                path="/staff/system-admin/demos"
-                element={<SystemAdminDemosPage />}
+                path="/learner/lesson-intro"
+                element={<LessonIntroPage />}
               />
               <Route
-                path="/staff/system-admin/schools"
-                element={<SystemAdminSchoolsPage />}
+                path="/learner/learn-with-clara"
+                element={<LearnWithClaraMenuPage />}
               />
               <Route
-                path="/staff/system-admin/teachers"
-                element={<SystemAdminTeachersPage />}
+                path="/learner/learn-with-clara/letters"
+                element={<LearnWithClaraLettersPage />}
               />
               <Route
-                path="/staff/system-admin/learners"
-                element={<SystemAdminLearnersPage />}
+                path="/learner/assessment/part-one"
+                element={<AssessmentPartOnePage />}
               />
               <Route
-                path="/staff/system-admin/guests"
-                element={<SystemAdminGuestsPage />}
+                path="/learner/assessment/part-two"
+                element={<AssessmentPartTwoPage />}
               />
               <Route
-                path="/staff/system-admin/assessments"
-                element={<SystemAdminAssessmentsPage />}
+                path="/learner/assessment/complete"
+                element={<AssessmentPartTwoPage />}
               />
               <Route
-                path="/staff/system-admin/lessons"
-                element={<SystemAdminLessonsPage />}
+                path="/learner/final-assessment/part-one"
+                element={<AssessmentPartOnePage assessmentType="final" />}
               />
               <Route
-                path="/staff/system-admin/rules-and-thresholds"
-                element={<SystemAdminLearningRulesPage />}
+                path="/learner/final-assessment/part-two"
+                element={<AssessmentPartTwoPage assessmentType="final" />}
               />
               <Route
-                path="/staff/system-admin/ai-services"
-                element={<SystemAdminAiServicesPage />}
+                path="/learner/final-assessment/complete"
+                element={<AssessmentPartTwoPage assessmentType="final" />}
+              />
+              <Route path="/learner/lessons/1" element={<LessonOnePage />} />
+              <Route path="/learner/lessons/2" element={<LessonTwoPage />} />
+              <Route path="/learner/lessons/3" element={<LessonThreePage />} />
+              <Route path="/learner/lessons/4" element={<LessonFourPage />} />
+              <Route path="/learner/lessons/5" element={<LessonFivePage />} />
+              <Route path="/learner/lessons/6" element={<LessonSixPage />} />
+              <Route path="/learner/games" element={<GameLobbyPage />} />
+              <Route
+                path="/learner/games/game-zero"
+                element={
+                  <RequireSkeletonGameProfile>
+                    <GameZeroRoutePage />
+                  </RequireSkeletonGameProfile>
+                }
               />
               <Route
-                path="/staff/system-admin/agent-settings"
-                element={<SystemAdminAgentSettingsPage />}
+                path="/learner/games/game-one"
+                element={
+                  <RequireSkeletonGameProfile>
+                    <GameOneHostPage />
+                  </RequireSkeletonGameProfile>
+                }
               />
               <Route
-                path="/staff/system-admin/prompt-templates"
-                element={<SystemAdminPromptTemplatesPage />}
+                path="/learner/games/game-two"
+                element={
+                  <RequireSkeletonGameProfile>
+                    <GameTwoRoutePage />
+                  </RequireSkeletonGameProfile>
+                }
               />
+              <Route path="/staff/login" element={<StaffLoginPage />} />
               <Route
-                path="/staff/system-admin/audit-logs"
-                element={<SystemAdminAuditLogsPage />}
-              />
+                element={<RequireStaffRole allowedRoles={["system_admin"]} />}
+              >
+                <Route
+                  path="/staff/system-admin"
+                  element={<SystemAdminDashboardPage />}
+                />
+                <Route
+                  path="/staff/system-admin/demos"
+                  element={<SystemAdminDemosPage />}
+                />
+                <Route
+                  path="/staff/system-admin/schools"
+                  element={<SystemAdminSchoolsPage />}
+                />
+                <Route
+                  path="/staff/system-admin/teachers"
+                  element={<SystemAdminTeachersPage />}
+                />
+                <Route
+                  path="/staff/system-admin/learners"
+                  element={<SystemAdminLearnersPage />}
+                />
+                <Route
+                  path="/staff/system-admin/guests"
+                  element={<SystemAdminGuestsPage />}
+                />
+                <Route
+                  path="/staff/system-admin/assessments"
+                  element={<SystemAdminAssessmentsPage />}
+                />
+                <Route
+                  path="/staff/system-admin/lessons"
+                  element={<SystemAdminLessonsPage />}
+                />
+                <Route
+                  path="/staff/system-admin/rules-and-thresholds"
+                  element={<SystemAdminLearningRulesPage />}
+                />
+                <Route
+                  path="/staff/system-admin/ai-services"
+                  element={<SystemAdminAiServicesPage />}
+                />
+                <Route
+                  path="/staff/system-admin/agent-settings"
+                  element={<SystemAdminAgentSettingsPage />}
+                />
+                <Route
+                  path="/staff/system-admin/prompt-templates"
+                  element={<SystemAdminPromptTemplatesPage />}
+                />
+                <Route
+                  path="/staff/system-admin/audit-logs"
+                  element={<SystemAdminAuditLogsPage />}
+                />
+                <Route
+                  path="/staff/system-admin/system-monitoring"
+                  element={<SystemAdminMonitoringPage />}
+                />
+                <Route
+                  path="/staff/system-admin/speech-tools"
+                  element={<SystemAdminSpeechToolsPage />}
+                />
+                <Route
+                  path="/staff/system-admin/games-and-players"
+                  element={<SystemAdminGamesPlayersPage />}
+                />
+                <Route
+                  path="/staff/system-admin/school-administrators"
+                  element={<SchoolAdministratorsPage />}
+                />
+                <Route
+                  path="/staff/system-admin/page-portals"
+                  element={<SystemAdminPagePortalsPage />}
+                />
+                <Route
+                  path="/staff/system-admin/isoletter-sandbox"
+                  element={<IsoLetterSandboxPage />}
+                />
+                <Route
+                  path="/staff/system-admin/true-sandbox"
+                  element={<TrueSandboxPage />}
+                />
+                <Route
+                  path="/staff/system-admin/equivalence-book"
+                  element={<EquivalenceBookPage />}
+                />
+                <Route
+                  path="/staff/system-admin/confusion-matrix"
+                  element={<RawConfusionMatrixPage />}
+                />
+              </Route>
               <Route
-                path="/staff/system-admin/system-monitoring"
-                element={<SystemAdminMonitoringPage />}
-              />
-              <Route
-                path="/staff/system-admin/speech-tools"
-                element={<SystemAdminSpeechToolsPage />}
-              />
-              <Route
-                path="/staff/system-admin/games-and-players"
-                element={<SystemAdminGamesPlayersPage />}
-              />
-              <Route
-                path="/staff/system-admin/school-administrators"
-                element={<SchoolAdministratorsPage />}
-              />
-              <Route
-                path="/staff/system-admin/page-portals"
-                element={<SystemAdminPagePortalsPage />}
-              />
-              <Route
-                path="/staff/system-admin/isoletter-sandbox"
-                element={<IsoLetterSandboxPage />}
-              />
-              <Route
-                path="/staff/system-admin/true-sandbox"
-                element={<TrueSandboxPage />}
-              />
-              <Route
-                path="/staff/system-admin/equivalence-book"
-                element={<EquivalenceBookPage />}
-              />
-              <Route
-                path="/staff/system-admin/confusion-matrix"
-                element={<RawConfusionMatrixPage />}
-              />
-            </Route>
-            <Route
-              element={<RequireStaffRole allowedRoles={["school_admin"]} />}
-            >
-              <Route
-                path="/staff/school-admin/setup-school"
-                element={<SchoolAdminSetupPage />}
-              />
-              <Route
-                path="/staff/school-admin"
-                element={<SchoolAdminDashboardPage />}
-              />
-              <Route
-                path="/staff/school-admin/teachers"
-                element={<TeacherAccountsPage />}
-              />
-              <Route
-                path="/staff/school-admin/profile"
-                element={<SchoolAdminProfilePage />}
-              />
-              <Route
-                path="/staff/school-admin/classes"
-                element={<SchoolAdminClassesPage />}
-              />
-              <Route
-                path="/staff/school-admin/learners"
-                element={<SchoolAdminLearnersPage />}
-              />
-              <Route
-                path="/staff/school-admin/learners/:learnerId"
-                element={<SchoolAdminLearnerDetailPage />}
-              />
-              <Route
-                path="/staff/school-admin/instructional-insights"
-                element={<SchoolAdminInstructionalInsightsPage />}
-              />
-              <Route
-                path="/staff/school-admin/reports"
-                element={<SchoolAdminReportsPage />}
-              />
-              <Route
-                path="/staff/school-admin/teacher-dashboards"
-                element={<SchoolAdminTeacherDashboardsPage />}
-              />
-            </Route>
-            <Route element={<RequireStaffRole allowedRoles={["teacher"]} />}>
-              <Route path="/staff/teacher" element={<TeacherDashboardPage />} />
-              <Route
-                path="/staff/teacher/learners"
-                element={<LearnerAccountsPage />}
-              />
-              <Route
-                path="/staff/teacher/learners/import"
-                element={<TeacherLearnerImportPage />}
-              />
-              <Route
-                path="/staff/teacher/learners/credentials"
-                element={<TeacherCredentialSheetsPage />}
-              />
-              <Route
-                path="/staff/teacher/learners/:learnerId"
-                element={<TeacherLearnerDetailPage />}
-              />
-              <Route
-                path="/staff/teacher/assessments/diagnostic"
-                element={<TeacherDiagnosticAssessmentPage />}
-              />
-              <Route
-                path="/staff/teacher/assessments/final"
-                element={<TeacherFinalAssessmentPage />}
-              />
-              <Route
-                path="/staff/teacher/reports"
-                element={<TeacherReportsPage />}
-              />
-              <Route
-                path="/staff/teacher/analytics"
-                element={<TeacherAnalyticsPage />}
-              />
-              <Route
-                path="/staff/teacher/audio-review"
-                element={<TeacherAudioReviewPage />}
-              />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
+                element={<RequireStaffRole allowedRoles={["school_admin"]} />}
+              >
+                <Route
+                  path="/staff/school-admin/setup-school"
+                  element={<SchoolAdminSetupPage />}
+                />
+                <Route
+                  path="/staff/school-admin"
+                  element={<SchoolAdminDashboardPage />}
+                />
+                <Route
+                  path="/staff/school-admin/teachers"
+                  element={<TeacherAccountsPage />}
+                />
+                <Route
+                  path="/staff/school-admin/profile"
+                  element={<SchoolAdminProfilePage />}
+                />
+                <Route
+                  path="/staff/school-admin/classes"
+                  element={<SchoolAdminClassesPage />}
+                />
+                <Route
+                  path="/staff/school-admin/learners"
+                  element={<SchoolAdminLearnersPage />}
+                />
+                <Route
+                  path="/staff/school-admin/learners/:learnerId"
+                  element={<SchoolAdminLearnerDetailPage />}
+                />
+                <Route
+                  path="/staff/school-admin/instructional-insights"
+                  element={<SchoolAdminInstructionalInsightsPage />}
+                />
+                <Route
+                  path="/staff/school-admin/reports"
+                  element={<SchoolAdminReportsPage />}
+                />
+                <Route
+                  path="/staff/school-admin/teacher-dashboards"
+                  element={<SchoolAdminTeacherDashboardsPage />}
+                />
+              </Route>
+              <Route element={<RequireStaffRole allowedRoles={["teacher"]} />}>
+                <Route
+                  path="/staff/teacher"
+                  element={<TeacherDashboardPage />}
+                />
+                <Route
+                  path="/staff/teacher/learners"
+                  element={<LearnerAccountsPage />}
+                />
+                <Route
+                  path="/staff/teacher/learners/import"
+                  element={<TeacherLearnerImportPage />}
+                />
+                <Route
+                  path="/staff/teacher/learners/credentials"
+                  element={<TeacherCredentialSheetsPage />}
+                />
+                <Route
+                  path="/staff/teacher/learners/:learnerId"
+                  element={<TeacherLearnerDetailPage />}
+                />
+                <Route
+                  path="/staff/teacher/assessments/diagnostic"
+                  element={<TeacherDiagnosticAssessmentPage />}
+                />
+                <Route
+                  path="/staff/teacher/assessments/final"
+                  element={<TeacherFinalAssessmentPage />}
+                />
+                <Route
+                  path="/staff/teacher/reports"
+                  element={<TeacherReportsPage />}
+                />
+                <Route
+                  path="/staff/teacher/analytics"
+                  element={<TeacherAnalyticsPage />}
+                />
+                <Route
+                  path="/staff/teacher/audio-review"
+                  element={<TeacherAudioReviewPage />}
+                />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </LearnerExperienceProvider>
       </GameLobbySkeletonProvider>
     </RouteTransitionProvider>
   );

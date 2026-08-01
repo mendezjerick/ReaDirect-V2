@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -9,48 +11,69 @@ require dirname(__DIR__).'/vendor/autoload.php';
 $application = require dirname(__DIR__).'/bootstrap/app.php';
 $application->make(Kernel::class)->bootstrap();
 
-$prefix = $argv[1] ?? null;
-$force = in_array('--force', $argv, true);
+$migrationOption = array_values(array_filter(
+    $argv,
+    fn (string $argument): bool => str_starts_with($argument, '--migration='),
+));
+$migrationKey = isset($migrationOption[0])
+    ? substr($migrationOption[0], strlen('--migration='))
+    : null;
 
-if (! is_string($prefix) || trim($prefix) === '' || str_starts_with($prefix, '--')) {
-    fwrite(STDERR, "Usage: php scripts/generate-published-tts-lines.php <speech-key-prefix> [--force]\n");
-    exit(1);
-}
-
-$definitions = collect(config('speech.clara_lines', []))
-    ->filter(
-        fn (mixed $definition, string $speechKey): bool => str_starts_with(
-            $speechKey,
-            $prefix,
-        ),
+if (! is_string($migrationKey) || trim($migrationKey) === '') {
+    fwrite(
+        STDERR,
+        "Usage: php scripts/generate-published-tts-lines.php --migration=<key>\n",
     );
-
-if ($definitions->isEmpty()) {
-    fwrite(STDERR, "No configured speech keys begin with {$prefix}.\n");
     exit(1);
 }
 
-$disk = Storage::disk('tts_catalog');
+$migration = config("speech.pending_published_catalog_migrations.{$migrationKey}");
+if (! is_array($migration)
+    || ! is_array($migration['new_lines'] ?? null)
+    || ! is_array($migration['replacement_lines'] ?? null)) {
+    fwrite(STDERR, "Unknown staged published-speech migration: {$migrationKey}.\n");
+    exit(1);
+}
+
+/** @var array<string, array{text: string, reference: string, path: string}> $definitions */
+$definitions = [
+    ...$migration['new_lines'],
+    ...$migration['replacement_lines'],
+];
+
+if ($definitions === []) {
+    fwrite(STDERR, "Staged published-speech migration {$migrationKey} has no lines.\n");
+    exit(1);
+}
+
+$stagingDisk = Storage::disk('tts_catalog_staging');
 $endpoint = rtrim((string) config('speech.tts_url'), '/').'/synthesize';
-$completed = 0;
+$generated = 0;
+$skipped = 0;
 
 foreach ($definitions as $speechKey => $definition) {
     if (! is_array($definition)
         || ! is_string($definition['text'] ?? null)
         || ! is_string($definition['reference'] ?? null)
-        || ! is_string($definition['path'] ?? null)) {
-        throw new RuntimeException("Invalid speech definition: {$speechKey}");
-    }
-    if (str_contains($definition['text'], '!')) {
-        throw new RuntimeException(
-            "Published TTS text cannot contain exclamation marks: {$speechKey}",
-        );
+        || ! is_string($definition['path'] ?? null)
+        || str_contains($definition['text'], '!')) {
+        throw new RuntimeException("Invalid staged speech definition: {$speechKey}");
     }
 
-    $relativePath = "sh/{$definition['path']}";
-    if ($disk->exists($relativePath) && ! $force) {
-        fwrite(STDERR, "Refusing to overwrite {$relativePath}; pass --force to regenerate it.\n");
-        exit(1);
+    $relativePath = "{$migrationKey}/sh/{$definition['path']}";
+    if ($stagingDisk->exists($relativePath)) {
+        $existing = $stagingDisk->get($relativePath);
+        if (strlen($existing) < 12
+            || substr($existing, 0, 4) !== 'RIFF'
+            || substr($existing, 8, 4) !== 'WAVE') {
+            throw new RuntimeException(
+                "Refusing to overwrite invalid staged WAV: {$relativePath}",
+            );
+        }
+
+        $skipped++;
+        fwrite(STDOUT, "Already staged: {$speechKey}\n");
+        continue;
     }
 
     $response = Http::accept('audio/wav')
@@ -74,15 +97,18 @@ foreach ($definitions as $speechKey => $definition) {
         throw new RuntimeException("Vox returned invalid WAV audio for {$speechKey}.");
     }
 
-    $disk->put($relativePath, $audio);
-    $completed++;
-    fwrite(
-        STDOUT,
-        sprintf(
-            "Generated %d/%d: %s\n",
-            $completed,
-            $definitions->count(),
-            $speechKey,
-        ),
-    );
+    $stagingDisk->put($relativePath, $audio);
+    $generated++;
+    fwrite(STDOUT, "Staged: {$speechKey}\n");
 }
+
+fwrite(
+    STDOUT,
+    sprintf(
+        "Completed staged migration %s: %d generated, %d already staged, %d total.\n",
+        $migrationKey,
+        $generated,
+        $skipped,
+        count($definitions),
+    ),
+);

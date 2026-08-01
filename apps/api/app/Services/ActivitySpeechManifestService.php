@@ -11,6 +11,10 @@ use LogicException;
 
 final class ActivitySpeechManifestService
 {
+    public function __construct(
+        private readonly LearnerSpeechPolicy $speechPolicy,
+    ) {}
+
     private const PART_TWO_ASSESSMENT_STAGES = [
         'story-selection',
         'task-3a',
@@ -106,12 +110,14 @@ final class ActivitySpeechManifestService
 
         $publishedSpeechKeys = array_values(array_unique($publishedSpeechKeys));
 
+        $effectiveRuntimeProfiles = $this->speechPolicy->runtimeProfiles($runtimeProfiles);
+
         return [
             'activity' => $activityKey,
             'published_groups' => $publishedGroups,
             'published_speech_keys' => $publishedSpeechKeys,
-            'runtime_profiles' => $runtimeProfiles,
-            'requires_runtime' => $runtimeProfiles !== [],
+            'runtime_profiles' => $effectiveRuntimeProfiles,
+            'requires_runtime' => $effectiveRuntimeProfiles !== [],
         ];
     }
 

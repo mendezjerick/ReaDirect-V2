@@ -11,13 +11,18 @@ This specification covers speech synthesis only. Learner speech recognition,
 content scoring, and general interface composition are governed by their own
 standards.
 
+`READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md` owns the
+approved renderer/TTS mode combinations, the narrower hybrid-runtime boundary,
+the published-only option, and the catalog migration ledger. This document
+continues to own Vox, audio, catalog, and delivery mechanics.
+
 Implementation status: published catalog delivery is active for Lesson Intro,
 all 32 fixed Part 1 assessment lines, 15 unique fixed Part 2 and completion
-lines (14 required by each assessment type), 51 fixed Lesson 1 lines, 19 fixed
-Lesson 2 lines, 33 fixed Lesson 3 lines, 33 fixed Lesson 4 lines, 9 fixed
+lines (14 required by each assessment type), 52 fixed Lesson 1 lines, 69 fixed
+Lesson 2 lines, 34 fixed Lesson 3 lines, 34 fixed Lesson 4 lines, 9 fixed
 Lesson 5 lines, 47 fixed Lesson 6 lines, and 7 dedicated published
 `Learn with Ma'am Clara` story lines. PostgreSQL holds one published
-`clara-sh-v1` voice version and 247 speech metadata rows; Laravel verifies and
+`clara-sh-v1` voice version and 300 speech metadata rows; Laravel verifies and
 returns their private WAVs without calling VoxCPM2. Response-owned dynamic
 final-transcript feedback is active for Lessons 1 through 4. Lesson 2 also
 uses a response-owned target-word demonstration. Lesson 3 instead uses one of
@@ -26,6 +31,12 @@ snapshot, and Lesson 4 uses the corresponding finite set of 20 sentence
 demonstrations. Lesson 5 instead uses one of six finite passage-review
 responses selected from committed accuracy evidence. All are ordered by the
 server-authored support presentation.
+
+The catalog migration is complete: it added all deterministic Lesson 2 word
+demonstrations, one general first-incorrect line for each of Lessons 1 through
+4, and replaced two ambiguous demonstrated-success WAVs under their existing
+keys. The runtime speech-policy integration remains a later slice. The active
+catalog remains authoritative and must not be regenerated wholesale.
 
 ## Approved Runtime Stack
 
@@ -81,8 +92,10 @@ line before requesting audio; it must not send every line to VoxCPM2 by default.
 | Published speech | General, fixed, finite, and reusable Clara lines | Pre-generated, human-approved WAV referenced by the speech catalog |
 | Dynamic speech | Learner-specific or otherwise unpredictable text | Runtime VoxCPM2 generation with a private dynamic cache |
 
-This hybrid model is a hard rule. Runtime-only behavior for fixed speech is
-prohibited by the published catalog route and its no-fallback tests.
+This hybrid model is the default delivery rule. Runtime-only behavior for fixed
+speech remains prohibited by the published catalog route and its no-fallback
+tests. The approved lightweight setting may further restrict an activity to
+published-only speech; it never permits additional runtime generation.
 
 ### Published speech
 
@@ -104,15 +117,20 @@ lookup and stream the approved WAV. They do not invoke VoxCPM2.
 
 ### Dynamic speech
 
-Dynamic speech is reserved for text that cannot be fully known before the
-learner responds. Its primary use is personalized lesson feedback, such as:
+Dynamic speech is reserved for the first clear incorrect academic response when
+the diagnostic text cannot be fully known before the learner responds. Its
+primary use is one short personalized diagnosis, such as:
 
 ```text
 You said ei.
 You said huyaj.
 ```
 
-The variable portion must come from the saved final transcription. The raw Mu
+Correct outcomes, demonstrated-echo outcomes, terminal incorrect outcomes,
+technical retries, clues, demonstrations, and completion messages are
+published speech in both effective modes. Dynamic speech must not introduce a
+terminal `You said ...` preamble. The variable portion of the one permitted
+hybrid diagnosis must come from the saved final transcription. The raw Mu
 transcription, expected answer, or browser-submitted replacement text must
 never be used as a shortcut.
 
@@ -121,17 +139,21 @@ letter, such as `A`. Laravel converts only the spoken rendering through
 `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`, so Vox receives
 `You said ei.` while scoring and persistence continue to use `A`.
 
-For Lesson 2 word feedback, Laravel speaks the committed final resolved
-transcript through `You said {final_transcript}.`. Accepted equivalences
-therefore speak the canonical target; an incorrect but usable response speaks
-what Mu and the equivalence resolver committed. Lesson 2 demonstration text
-uses the server-owned hidden target from the immutable run snapshot:
-`The word is {target}. Listen: {target}. Now you try.`. The browser cannot
-supply either substitution.
+For Lesson 2 word feedback, the current baseline speaks the committed final
+resolved transcript through `You said {final_transcript}.`. Accepted
+equivalences therefore speak the canonical target; an incorrect but usable
+response speaks what Mu and the equivalence resolver committed. During the
+current baseline, Lesson 2 demonstration text uses the server-owned hidden
+target from the immutable run snapshot:
+`The word is {target}. Listen: {target}. Now you try.`. The approved migration
+publishes this deterministic template for all 49 active Version 1 word rows and
+addresses the WAV by locked content identity. The browser cannot supply either
+substitution or select a catalog key independently.
 
-For Lesson 3, correct phrase evidence still uses
-`You said {final_transcript}.`. Clear incorrect evidence first uses the
-server-persisted word-level alignment:
+For Lesson 3, the current baseline may render correct phrase evidence through
+`You said {final_transcript}.`. After the approved migration, correct and
+terminal outcome speech is published. Clear first-attempt incorrect evidence
+may still use the server-persisted word-level alignment:
 
 ```text
 missing_word       -> You missed the word {expected}.
@@ -494,9 +516,9 @@ Manifest rules:
    standardized, pre-generated, reviewed, and published.
 5. A lesson profile is declared only when the bounded feedback strategy can
    reach text that was impossible to know before the learner response.
-6. The current Lesson 1 manifest may declare `result` while it uses controlled
-   final-transcript feedback. If that dynamic behavior is removed, its manifest
-   must remove `result` rather than retaining unnecessary warm-up.
+6. A Lesson 1 manifest may declare `result` only while effective hybrid mode
+   can reach its first clear incorrect personalized diagnosis. Published-only
+   mode must remove `result` rather than retaining unnecessary warm-up.
 7. The browser must not add profiles, replace manifest groups, or decide that a
    line requires dynamic generation.
 8. Manifest changes are version-controlled content/runtime changes and must be
@@ -525,6 +547,11 @@ Current implementation:
 - Lesson 4 follows the same published-demonstration contract and declares only
   `result`. Its instruction, four ordinal cues, support, completion, and all
   20 approved sentence demonstrations are fixed catalog speech.
+- The Lesson 1 through 4 bullets above record the deployed baseline. Under the
+  approved lightweight/hybrid migration, `result` is requested only in
+  effective hybrid mode and only where a first clear incorrect personalized
+  diagnosis is reachable. Published-only mode returns no runtime profiles, and
+  Lesson 2 demonstrations no longer require `instruction` warm-up.
 - Lesson 5 declares no runtime profile. Its instruction, technical recovery,
   completion, and six possible passage-review responses are fixed catalog
   speech. It does not speak the transcript or demonstrate the passage.
@@ -961,6 +988,30 @@ line. Only their completion line differs. The Final Part 2 manifest replaces
 `assessment-complete` with `assessment-final-complete`; both manifests remain
 published-only and must never warm or call runtime Vox.
 
+### Published lightweight and hybrid catalog migration
+
+The migration inventory and exact key/text ledger are owned by
+`READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md`. The catalog
+publication is complete:
+
+| Group | Pre-publication WAVs | Published WAVs | Change |
+| --- | ---: | ---: | --- |
+| Lesson 1 | 51 | 52 | Add one general first-incorrect line |
+| Lesson 2 | 19 | 69 | Add one general first-incorrect line and 49 word demonstrations |
+| Lesson 3 | 33 | 34 | Add one general first-incorrect line |
+| Lesson 4 | 33 | 34 | Add one general first-incorrect line |
+| All other groups | 111 | 111 | Reuse unchanged |
+| **Catalog total** | **247** | **300** | **53 new WAVs** |
+
+Two existing demonstrated-success WAVs were replaced under their existing
+Lesson 1 and Lesson 2 keys so correct echo results cannot be mistaken for
+incorrect feedback. Replacement did not increase the row count; their former
+WAVs remain in the private publication archive. The other 245 published WAVs
+are preserved byte-for-byte unless an explicit human review finds a separate
+defect. Active dynamic-cache files are disposable runtime artifacts, not
+published source assets, and are cleared only by the controlled rollout
+procedure in the lightweight standard.
+
 ### Required published Lesson 1 item cues
 
 The first item of each mission uses the full mission instruction. Positions 2
@@ -985,6 +1036,7 @@ The fixed Lesson 1 support catalog contains:
 - `lesson-1-letter-demo-A` through `lesson-1-letter-demo-Z`
 - `lesson-1-feedback-independent`
 - `lesson-1-feedback-supported`
+- `lesson-1-feedback-incorrect-first`
 - `lesson-1-feedback-demonstrated`
 - `lesson-1-feedback-not-yet`
 - `lesson-1-feedback-unscorable`
@@ -997,7 +1049,8 @@ unstable high-pitch candidate during review.
 
 Every fixed key and family above is finite and known in advance. All must be
 pre-generated, reviewed, and published; none qualifies for learner-session
-generation. Only response-owned final-transcript rendering remains dynamic.
+generation. After the approved migration, runtime speech is limited to the
+first clear incorrect personalized diagnosis in effective hybrid mode.
 
 ### Required published Lesson 2 speech
 
@@ -1015,13 +1068,15 @@ The fixed Lesson 2 support catalog contains:
 - `lesson-2-clue-mission-1` and `lesson-2-clue-mission-2`
 - `lesson-2-feedback-independent`
 - `lesson-2-feedback-supported`
+- `lesson-2-feedback-incorrect-first`
 - `lesson-2-feedback-demonstrated`
 - `lesson-2-feedback-not-yet`
 - `lesson-2-feedback-unscorable`
 
-The 3 mission/completion lines, 8 ordinal cues, and 8 fixed support lines total
-19 published Lesson 2 lines. The target-word demonstration is deliberately not
-one of them because its selected target is run-specific.
+Three mission/completion lines, eight ordinal cues, nine fixed support lines,
+and 49 content-authored target-word demonstrations total 69 published Lesson 2
+WAVs. A run-specific selection does not make a finite authored target
+dynamically generated.
 
 ### Required published Lesson 3 speech
 
@@ -1034,6 +1089,7 @@ The fixed Lesson 3 support catalog contains:
 - `lesson-3-clue-mission-1`
 - `lesson-3-feedback-independent`
 - `lesson-3-feedback-supported`
+- `lesson-3-feedback-incorrect-first`
 - `lesson-3-feedback-demonstrated`
 - `lesson-3-feedback-not-yet`
 - `lesson-3-feedback-unscorable`
@@ -1041,9 +1097,10 @@ The fixed Lesson 3 support catalog contains:
 Every one of the 20 active Version 1 phrase rows also owns a published
 `lesson-3-demo-{phrase-slug}` line using the instruction reference. The mission
 line, completion line, four ordinal cues, seven support lines, and 20
-demonstrations total 33 published Lesson 3 lines. Only the response-owned
-final-transcript or targeted alignment feedback uses runtime synthesis and the
-`result` profile.
+demonstrations plus the general first-incorrect line total 34 published Lesson
+3 lines. Runtime synthesis is then
+limited to first clear incorrect personalized diagnosis or targeted alignment
+in effective hybrid mode; terminal outcomes remain published.
 
 ### Required published Lesson 4 speech
 
@@ -1057,6 +1114,7 @@ Its fixed support family is:
 - `lesson-4-clue-mission-1`
 - `lesson-4-feedback-independent`
 - `lesson-4-feedback-supported`
+- `lesson-4-feedback-incorrect-first`
 - `lesson-4-feedback-demonstrated`
 - `lesson-4-feedback-not-yet`
 - `lesson-4-feedback-unscorable`
@@ -1064,9 +1122,10 @@ Its fixed support family is:
 Every active Version 1 sentence row owns
 `lesson-4-demo-{sentence-slug}` using the instruction reference. The mission
 line, completion line, four ordinal cues, seven support lines, and 20
-demonstrations total 33 published Lesson 4 lines. Only response-owned
-final-transcript or targeted alignment feedback uses runtime synthesis and the
-`result` profile.
+demonstrations plus the general first-incorrect line total 34 published Lesson
+4 lines. Runtime synthesis is then
+limited to first clear incorrect personalized diagnosis or targeted alignment
+in effective hybrid mode; terminal outcomes remain published.
 
 ### Required published Lesson 5 speech
 
@@ -1524,8 +1583,10 @@ modifying the authored source recording at runtime.
 - [ ] Published groups and runtime profiles remain separate readiness concerns.
 - [ ] Only manifest-declared runtime profiles are conditioned, prompt-encoded,
       and generation-probed.
-- [ ] Lesson 1 declares `result` only while its controlled strategy can reach
-      dynamic final-transcript feedback.
+- [ ] Effective hybrid mode declares `result` only where the controlled
+      strategy can reach a first clear incorrect personalized diagnosis.
+- [ ] Effective published-only mode declares no runtime profiles and makes no
+      warm-up or synthesis request.
 - [ ] Dynamic cache misses reuse the process-memory prompt cache instead of
       re-encoding the reference WAV.
 - [ ] Concurrent warm-up calls for one profile share a single-flight task.

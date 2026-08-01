@@ -17,6 +17,11 @@ Required-lesson CSV schemas, target identities, pronunciation restrictions,
 content pools, selection cycles, and immutable activity snapshots are defined by
 `READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md`.
 
+Clara renderer selection, hybrid versus published-only speech, published audio
+preservation, and the narrower runtime-feedback boundary are defined by
+`READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md`. Those choices
+must not change the lesson state machine, scoring, attempts, or unlocks below.
+
 ## Course-Level Lesson Unlock Sequence
 
 The developer-made required lesson set is sequential.
@@ -813,15 +818,20 @@ requires_speech_completion
 ```
 
 `speech[]` preserves playback order and distinguishes published catalog lines
-from response-owned runtime feedback. `after_speech` may request recording,
+from the optional first-incorrect response-owned runtime diagnosis. In
+published-only mode, the server substitutes the general published
+first-incorrect line without changing `sequence_key`, state, or `after_speech`.
+`after_speech` may request recording,
 the guarded support continuation, advancement availability, or no action. The
 browser may execute that declared action only after the complete sequence.
 Browser code must never invent support transitions locally.
 
-Lesson 1 publishes three mission clues, one technical-retry line, twenty-six
-letter demonstrations, and five terminal outcome lines. Demonstration text
-uses the shared isolated-letter pronunciation map. The learner's committed
-final transcript remains the only dynamic token in the support sequence.
+Lesson 1 currently publishes three mission clues, one technical-retry line,
+twenty-six letter demonstrations, and five terminal outcome lines.
+Demonstration text uses the shared isolated-letter pronunciation map. The
+approved migration adds one general first-incorrect line. The learner's
+committed final transcript may be used only by the first clear incorrect
+diagnosis in effective hybrid mode; it is never a terminal speech preamble.
 
 The first item of each mission plays the complete mission instruction. Items
 two through five play mission-specific ordinal cues instead of repeating that
@@ -927,13 +937,16 @@ results composition. Only its word presentations differ:
 - Mission 2 displays one readable sentence and raises the selected word in a
   primary-color vector highlight.
 
-The server-owned support presentation sequences 19 fixed published lines,
-runtime `You said {final_transcript}.` feedback, and runtime target-word
-demonstration. Fixed speech includes two mission instructions, eight ordinal
-cues, two clues, one technical retry, five terminal outcomes, and completion.
-Lesson Intro validates this catalog and warms `result` plus `instruction`;
-Continue remains unavailable until both profiles are ready. TTS playback still
-waits for Clara's model-ready signal. After Lesson 3 is unlocked, reopening the
+The currently deployed server-owned support presentation sequences 19 fixed
+published lines, runtime `You said {final_transcript}.` feedback, and runtime
+target-word demonstration. The approved migration publishes all 49 authored
+word demonstrations plus one general first-incorrect line, for 69 Lesson 2
+WAVs. Runtime then remains available only for the first clear incorrect
+personalized diagnosis in effective hybrid mode; published-only mode substitutes
+the general line. Terminal correct and incorrect outcomes are always distinct
+published speech. The activity manifest warms only profiles required by the
+effective mode, and playback waits for the mounted Clara stage's ready signal.
+After Lesson 3 is unlocked, reopening the
 Lesson 2 route returns the learner's completed run and shared result rather
 than creating a duplicate. Its fixed completion line may replay after Clara is
 ready without warming the next lesson's dynamic profiles.
@@ -995,13 +1008,13 @@ in `content/lessons/v1/lesson-3-phrases.csv`.
 - The shared result displays one centered Phrases mission tile, the real
   independent-mastery total, and the Phrase Pro achievement.
 
-Lesson 3 owns 33 fixed published Clara lines: one instruction, one completion,
+Lesson 3 currently owns 33 fixed published Clara lines: one instruction, one completion,
 four ordinal cues, seven support lines, and demonstrations for all 20 possible
-phrases. The locked item content ID selects its demonstration key. Only
-response-owned final-transcript and targeted alignment feedback is
-runtime-generated, so the Lesson 3 activity manifest warms only the `result`
-profile. As everywhere in learner flow, playback waits for Clara's model-ready
-signal.
+phrases. The approved migration adds one general first-incorrect line. The
+locked item content ID selects its demonstration key. Runtime is limited to the
+first clear incorrect personalized diagnosis or targeted alignment in effective
+hybrid mode. Published-only mode uses the general line, terminal outcomes are
+published, and playback always waits for the mounted Clara stage's ready signal.
 
 ### Lesson 3 Page Portal Checkpoints
 
@@ -1047,11 +1060,13 @@ rows in `content/lessons/v1/lesson-4-sentences.csv`.
   `reading.sentence_star` (`Sentence Star`), and opens the shared one-segment
   lesson result.
 
-Lesson 4 owns 33 fixed published Clara lines: one instruction, one completion,
+Lesson 4 currently owns 33 fixed published Clara lines: one instruction, one completion,
 four ordinal cues, seven support lines, and one demonstration for every active
-Version 1 sentence. Only response-owned final-transcript and targeted
-alignment feedback is runtime-generated, so the Lesson 4 activity manifest
-warms only `result`.
+Version 1 sentence. The approved migration adds one general first-incorrect
+line. Runtime is limited to the first clear incorrect personalized diagnosis or
+targeted alignment in effective hybrid mode. Published-only mode uses the
+general line, terminal outcomes are published, and runtime profiles are warmed
+only when the effective manifest requires them.
 
 ### Lesson 4 Page Portal Checkpoints
 

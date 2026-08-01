@@ -4,6 +4,7 @@ use App\Http\Controllers\LearnerAssessmentPartOneController;
 use App\Http\Controllers\LearnerAssessmentPartTwoController;
 use App\Http\Controllers\LearnerAuthController;
 use App\Http\Controllers\LearnerClaraListeningController;
+use App\Http\Controllers\LearnerExperienceController;
 use App\Http\Controllers\LearnerGameProfileController;
 use App\Http\Controllers\LearnerGameSaveController;
 use App\Http\Controllers\LearnerLessonFiveController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\SystemAdminAgentsAiController;
 use App\Http\Controllers\SystemAdminEquivalenceController;
 use App\Http\Controllers\SystemAdminGuestController;
 use App\Http\Controllers\SystemAdminLearnerController;
+use App\Http\Controllers\SystemAdminLearnerExperienceSettingsController;
 use App\Http\Controllers\SystemAdminLearningContentController;
 use App\Http\Controllers\SystemAdminOperationsController;
 use App\Http\Controllers\SystemAdminOverviewController;
@@ -64,6 +66,7 @@ Route::prefix('staff')->group(function (): void {
             Route::get('/learning-content/lessons', [SystemAdminLearningContentController::class, 'lessons']);
             Route::get('/learning-content/rules', [SystemAdminLearningContentController::class, 'rules']);
             Route::get('/agents-ai/settings', [SystemAdminAgentsAiController::class, 'settings']);
+            Route::put('/agents-ai/lightweight-mode', [SystemAdminLearnerExperienceSettingsController::class, 'update']);
             Route::get('/agents-ai/prompt-templates', [SystemAdminAgentsAiController::class, 'promptTemplates']);
             Route::get('/operations/audit-logs', [SystemAdminOperationsController::class, 'auditLogs']);
             Route::get('/operations/games-and-players', [SystemAdminOperationsController::class, 'gamesAndPlayers']);
@@ -133,6 +136,7 @@ Route::prefix('learners')->group(function (): void {
     Route::post('/login', [LearnerAuthController::class, 'store']);
     Route::get('/session', [LearnerAuthController::class, 'show']);
     Route::post('/logout', [LearnerAuthController::class, 'destroy']);
+    Route::get('/experience/settings', [LearnerExperienceController::class, 'show']);
     Route::get('/games/profile', [LearnerGameProfileController::class, 'show']);
     Route::post('/games/profile', [LearnerGameProfileController::class, 'store']);
     Route::get('/games/{gameKey}/save', [LearnerGameSaveController::class, 'show'])
@@ -221,3 +225,5 @@ Route::prefix('learners')->group(function (): void {
             ->defaults('assessmentType', $assessmentType);
     }
 });
+
+Route::get('/experience/intro/settings', [LearnerExperienceController::class, 'intro']);
