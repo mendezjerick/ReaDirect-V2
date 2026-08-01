@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StaffRealtimeTopic;
 use App\Models\AssessmentResponse;
 use App\Models\StaffAuditLog;
 use App\Models\StaffResponseReview;
 use App\Models\StaffUser;
+use App\Services\StaffRealtimePublisher;
 use App\Services\TeacherAudioReviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -55,6 +57,7 @@ final class TeacherAudioReviewController extends Controller
         string $responseKind,
         int $responseId,
         TeacherAudioReviewService $reviews,
+        StaffRealtimePublisher $realtime,
     ): JsonResponse {
         $this->assertReadyTeacher($staffUser);
         $validated = $request->validate([
@@ -90,6 +93,16 @@ final class TeacherAudioReviewController extends Controller
                 'canonical_records_changed' => false,
             ],
         ]);
+
+        $realtime->teacher(
+            $staffUser->id,
+            $staffUser->school_id,
+            StaffRealtimeTopic::AudioReviews,
+            StaffRealtimeTopic::LearnerDetail,
+            StaffRealtimeTopic::Analytics,
+            StaffRealtimeTopic::Reports,
+            StaffRealtimeTopic::Operations,
+        );
 
         return response()->json([
             'review' => $reviews->serializeReview($review),

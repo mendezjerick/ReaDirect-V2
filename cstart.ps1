@@ -40,6 +40,7 @@ $runtimeDirectory = Join-Path $repositoryRoot '.runtime'
 $logDirectory = Join-Path $runtimeDirectory 'logs'
 $localStartScriptPath = Join-Path $repositoryRoot 'start.ps1'
 $localStopScriptPath = Join-Path $repositoryRoot 'stop.ps1'
+$localServiceManifestPath = Join-Path $runtimeDirectory 'services.json'
 $cloudManifestPath = Join-Path $runtimeDirectory 'cloud-services.json'
 $cloudStopRequestPath = Join-Path $runtimeDirectory 'cloud-stop-requested'
 $runtimeCloudflareConfigPath = Join-Path $runtimeDirectory 'cloudflare-config.yml'
@@ -268,6 +269,64 @@ function Wait-ForLocalServices {
     throw "Cloud startup timed out waiting for: $($missing -join ', '). Check $logDirectory."
 }
 
+function Test-RecordedProcess {
+    param([Parameter(Mandatory)][object]$Service)
+
+    try {
+        $process = Get-Process -Id ([int]$Service.ProcessId) -ErrorAction Stop
+        $recordedStartTime = [DateTime]::Parse([string]$Service.StartTimeUtc).ToUniversalTime()
+        $actualStartTime = $process.StartTime.ToUniversalTime()
+
+        return [Math]::Abs(($actualStartTime - $recordedStartTime).TotalSeconds) -lt 2
+    }
+    catch {
+        return $false
+    }
+}
+
+function Wait-ForManagedBackgroundService {
+    param(
+        [Parameter(Mandatory)][Diagnostics.Process]$LauncherProcess,
+        [Parameter(Mandatory)][string]$ServiceName,
+        [Parameter(Mandatory)][DateTime]$Deadline
+    )
+
+    while ([DateTime]::UtcNow -lt $Deadline) {
+        $LauncherProcess.Refresh()
+
+        if ($LauncherProcess.HasExited) {
+            $errorTail = Get-ProcessErrorTail -Path $launcherErrorPath
+            throw "The local ReaDirect launcher exited before $ServiceName became ready.$([Environment]::NewLine)$errorTail"
+        }
+
+        if (Test-Path -LiteralPath $localServiceManifestPath) {
+            try {
+                $manifest = Get-Content -LiteralPath $localServiceManifestPath -Raw | ConvertFrom-Json
+                $manifestRoot = [string]$manifest.RepositoryRoot
+                $service = @($manifest.Services) |
+                    Where-Object { $_.Name -eq $ServiceName } |
+                    Select-Object -First 1
+
+                if (
+                    [string]::Equals($manifestRoot, $repositoryRoot, [StringComparison]::OrdinalIgnoreCase) -and
+                    $service -and
+                    (Test-RecordedProcess -Service $service)
+                ) {
+                    Write-Host "  $($ServiceName.PadRight(16))ready" -ForegroundColor Green
+                    return
+                }
+            }
+            catch {
+                # The launcher writes the manifest atomically; retry transient read/startup failures.
+            }
+        }
+
+        Start-Sleep -Milliseconds 400
+    }
+
+    throw "Cloud startup timed out waiting for $ServiceName. Check $logDirectory."
+}
+
 function Wait-ForPublicSite {
     param(
         [Parameter(Mandatory)][Diagnostics.Process]$CloudflareProcess,
@@ -469,10 +528,15 @@ ingress:
         API = @{ Port = $ApiPort; ReadinessPath = $null }
         ASR = @{ Port = $AsrPort; ReadinessPath = '/ready' }
         TTS = @{ Port = $TtsPort; ReadinessPath = '/health' }
+        Reverb = @{ Port = $ReverbPort; ReadinessPath = $null }
     }
     Wait-ForLocalServices `
         -LauncherProcess $localLauncherProcess `
         -RequiredServices $requiredServices `
+        -Deadline $startupDeadline
+    Wait-ForManagedBackgroundService `
+        -LauncherProcess $localLauncherProcess `
+        -ServiceName 'Broadcast Queue' `
         -Deadline $startupDeadline
 
     Write-Section -Title 'Starting Cloudflare Tunnel'

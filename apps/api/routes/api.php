@@ -23,6 +23,7 @@ use App\Http\Controllers\SchoolAdminTeacherController;
 use App\Http\Controllers\SchoolAdminTeacherDashboardController;
 use App\Http\Controllers\SchoolAdminWorkspaceController;
 use App\Http\Controllers\StaffAuthController;
+use App\Http\Controllers\StaffRealtimeController;
 use App\Http\Controllers\SystemAdminAgentsAiController;
 use App\Http\Controllers\SystemAdminEquivalenceController;
 use App\Http\Controllers\SystemAdminGuestController;
@@ -53,6 +54,8 @@ Route::prefix('staff')->group(function (): void {
     Route::middleware('staff.auth')->group(function (): void {
         Route::get('/session', [StaffAuthController::class, 'show']);
         Route::post('/logout', [StaffAuthController::class, 'destroy']);
+        Route::get('/realtime/config', [StaffRealtimeController::class, 'config']);
+        Route::post('/realtime/probe', [StaffRealtimeController::class, 'probe']);
 
         Route::middleware('staff.role:system_admin')->prefix('system-admin')->group(function (): void {
             Route::get('/overview', [SystemAdminOverviewController::class, 'show']);

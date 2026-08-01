@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StaffRealtimeTopic;
 use App\Models\Learner;
 use App\Models\School;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
 use App\Services\SchoolAdminOverviewService;
+use App\Services\StaffRealtimePublisher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +29,7 @@ final class SchoolAdminWorkspaceController extends Controller
     public function updateSchoolProfile(
         Request $request,
         StaffUser $staffUser,
+        StaffRealtimePublisher $realtime,
     ): JsonResponse {
         $school = $this->readySchool($staffUser);
         $validated = $request->validate([
@@ -69,13 +72,24 @@ final class SchoolAdminWorkspaceController extends Controller
             ]);
         });
 
+        $realtime->school(
+            $school->id,
+            StaffRealtimeTopic::Overview,
+            StaffRealtimeTopic::Schools,
+            StaffRealtimeTopic::SchoolProfile,
+            StaffRealtimeTopic::Operations,
+        );
+
         return response()->json([
             'school' => $this->serializeSchoolProfile($school->refresh()),
         ]);
     }
 
-    public function updateSchool(Request $request, StaffUser $staffUser): JsonResponse
-    {
+    public function updateSchool(
+        Request $request,
+        StaffUser $staffUser,
+        StaffRealtimePublisher $realtime,
+    ): JsonResponse {
         $this->assertSchoolAdministrator($staffUser);
 
         $validated = $request->validate([
@@ -106,6 +120,15 @@ final class SchoolAdminWorkspaceController extends Controller
 
             return $school;
         });
+
+        $realtime->school(
+            $school->id,
+            StaffRealtimeTopic::Overview,
+            StaffRealtimeTopic::SchoolAdministrators,
+            StaffRealtimeTopic::Schools,
+            StaffRealtimeTopic::SchoolProfile,
+            StaffRealtimeTopic::Operations,
+        );
 
         return response()->json([
             'staff' => [

@@ -92,6 +92,8 @@ testing-evidence/
 └── 13-release-summary/
 ```
 
+Section 43 evidence must additionally separate `asr-queue`, `tts-queue`, `gpu-coordination`, `reverb-transport`, `broadcast-queue`, `capacity-load`, and `launcher-lifecycle` artifacts beneath the applicable AI-service, integration, reliability, security, or performance folder. Capacity evidence must retain the harness configuration, effective environment values, timestamps, response status and headers, queue snapshots, process identities, and resource measurements needed to reproduce the result.
+
 ## 1.4 Defect Handling
 
 When a test fails, Codex must:
@@ -169,6 +171,7 @@ Internal verification covers the following areas:
 40. Speech-administration tools
 41. Game profile and persistence
 42. Operational recovery, privacy governance, and deployment controls
+43. Bounded inference admission, shared GPU coordination, and real-time transport
 
 ---
 
@@ -202,7 +205,11 @@ Verify that all required services start successfully:
 
 Expected result:
 
-All services start without an unresolved critical error.
+- all services start without an unresolved critical error;
+- the local launcher records and supervises Reverb and the dedicated `broadcasts` queue worker;
+- cloud startup does not open the tunnel until Web, API, ASR, TTS, Reverb, and the broadcast worker are ready;
+- a Reverb or broadcast-worker startup failure prevents a partially ready deployment; and
+- the stop scripts terminate Reverb and the broadcast worker without leaving orphaned listeners or workers.
 
 ## ENV-03 Environment Variables — P0
 
@@ -345,6 +352,26 @@ Run Pytest for the ASR and AI services.
 Expected result:
 
 All required service tests pass.
+
+## AUTO-AI-02 Inference Admission and GPU Coordination Tests - P0
+
+Run the ASR, TTS, and shared GPU-runtime queue, capacity, coordinator, deployment, cancellation, timeout, and overload tests.
+
+Expected result:
+
+- ASR and TTS each enforce bounded FIFO admission;
+- failed, cancelled, and timed-out requests release their queue and GPU permits;
+- ASR and TTS cannot execute CUDA inference simultaneously when configured for the same GPU resource key;
+- duplicate service processes for one GPU resource key are rejected; and
+- overload responses and capacity telemetry match the configured limits.
+
+## AUTO-BE-03 Reverb Transport and Domain Event Tests - P0
+
+Run the backend feature and unit tests for realtime configuration, private-channel authorization, event scope, after-commit publication, rollback suppression, queue health, and live Reverb socket health.
+
+Expected result:
+
+All realtime transport, event-contract, authorization-boundary, and health-monitoring tests pass.
 
 ## AUTO-E2E-01 Playwright Essential Flows — P0
 
@@ -1578,19 +1605,39 @@ The service recovers or provides a safe unavailable state.
 
 Expected result:
 
-Queued work does not create duplicate or lost results.
+Committed broadcast work remains durable, resumes after the dedicated worker restarts, and does not create duplicate or lost domain changes. Failed jobs remain visible for operator review and are not replayed automatically without a safety decision.
 
 ## REL-10 Reverb Interruption — P1
 
 Expected result:
 
-The application recovers or falls back without corrupting state.
+The application preserves authoritative HTTP and database state, reports degraded realtime health, and reconnects or refreshes safely after Reverb returns without duplicating mutations or exposing stale authorization.
 
 ## REL-11 Repeated Representative Use — P1
 
 Expected result:
 
 No crashes, runaway retries, stalled queues, or progressive slowdown occur.
+
+## REL-12 ASR and TTS Queue Recovery - P0
+
+Cancel requests, force inference failures, expire queued requests, and restart each speech service while work is running and waiting.
+
+Expected result:
+
+- queued requests resolve to one controlled success, timeout, cancellation, or service-unavailable result;
+- no timed-out or cancelled waiting request executes later;
+- temporary audio and inference resources remain available only for the required lifetime;
+- permits and queue slots are released after every terminal outcome; and
+- a failed request does not stop subsequent admitted work.
+
+## REL-13 Reverb Launcher Supervision - P0
+
+Start the local and cloud launchers, then independently terminate Reverb and the `broadcasts` queue worker.
+
+Expected result:
+
+The launcher detects either failure, records actionable log evidence, and stops or rejects the managed stack instead of leaving cloud staging in a partially working state.
 
 ---
 
@@ -1911,6 +1958,9 @@ The build may be designated as the **Research Release Candidate** only when:
 - [ ] The official build version or commit hash is recorded.
 - [ ] The database schema version is recorded.
 - [ ] All required services start successfully.
+- [ ] Reverb and the dedicated broadcast queue worker are registered, ready, supervised, and stopped by the approved PowerShell lifecycle.
+- [ ] ASR and TTS bounded admission, overload, timeout, cancellation, and shared-GPU coordination tests pass.
+- [ ] Realtime private-channel authorization, payload privacy, after-commit delivery, rollback suppression, capacity, rate-limit, health, interruption, and recovery tests pass.
 - [ ] All P0 static and automated checks pass.
 - [ ] All P0 functional test cases pass.
 - [ ] All P0 authentication and authorization tests pass.
@@ -2415,3 +2465,211 @@ Measure private-media upload/retrieval and report/dashboard generation using rep
 Expected result:
 
 The application remains usable, returns correct aggregates, and does not expose another scope while operating at the documented research workload.
+
+---
+
+# 43. Bounded Inference Admission, Shared GPU Coordination, and Real-Time Transport
+
+These tests verify the backend capacity and realtime controls used by the current single-host research deployment. Codex must record the effective environment values, selected CPU or CUDA device, GPU resource key, process count, queue limits, timeouts, Reverb limits, and warning thresholds with the evidence. A configured limit must not be treated as verified without an automated test or controlled live-capacity result.
+
+## INFQ-01 ASR FIFO and Concurrency Boundary - P0
+
+Submit concurrent Nu and Mu inference requests through all ASR routes while instrumenting start and completion order.
+
+Expected result:
+
+- every ASR inference route uses the same bounded queue;
+- admitted waiting work begins in FIFO order;
+- active inference never exceeds `ASR_INFERENCE_CONCURRENCY`;
+- the event loop and readiness endpoint remain responsive while inference is running; and
+- each completed response records its queue-wait measurement where defined.
+
+## INFQ-02 ASR Saturation and Timeout - P0
+
+Fill the active ASR slot and every configured waiting slot, submit one additional request, and separately hold the worker until a waiting request exceeds `ASR_QUEUE_WAIT_TIMEOUT_SECONDS`.
+
+Expected result:
+
+- work beyond `ASR_QUEUE_MAX_WAITING` receives controlled HTTP `503` with the configured `Retry-After` value;
+- a waiting request that reaches its deadline does not execute later;
+- overload and timeout do not crash or duplicate the service process; and
+- queue depth, saturation, available slots, and cumulative rejection telemetry reconcile with the submitted workload.
+
+## INFQ-03 TTS FIFO and Shared Route Boundary - P0
+
+Submit concurrent uncached synthesis and warm-up requests to VoxCPM2 while instrumenting execution order.
+
+Expected result:
+
+- synthesis and warm-up share one bounded FIFO queue;
+- only one local VoxCPM2 inference operation executes at a time;
+- the event loop and health endpoint remain responsive; and
+- successful synthesis reports the queue-wait measurement in the approved response metadata.
+
+## INFQ-04 TTS Saturation and Timeout - P0
+
+Fill the active TTS slot and every configured waiting slot, submit one additional uncached request, and separately exceed `TTS_QUEUE_WAIT_TIMEOUT_SECONDS`.
+
+Expected result:
+
+- work beyond `TTS_QUEUE_MAX_WAITING` receives controlled HTTP `503` with the configured `Retry-After` value;
+- timed-out waiting work never reaches VoxCPM2;
+- failed synthesis releases capacity for the next request; and
+- health and capacity telemetry reconcile with the submitted workload.
+
+## INFQ-05 Cancellation and Resource Lifetime - P0
+
+Cancel one waiting request and one running request for each speech service, including an ASR upload backed by temporary audio.
+
+Expected result:
+
+- cancelled waiting work is removed and never executes;
+- running work reaches one controlled terminal cleanup path;
+- an ASR request does not delete audio while its admitted inference still needs the file;
+- no queue slot, GPU permit, file handle, or temporary file leaks after cleanup; and
+- later admitted requests still complete.
+
+## GPUQ-01 Cross-Service GPU Serialization - P0
+
+Run one real ASR inference request and one uncached TTS request concurrently while both services use CUDA and the same `READIRECT_GPU_RESOURCE_KEY`.
+
+Expected result:
+
+- ASR and TTS never execute GPU inference simultaneously;
+- the OS-backed permit is released after success, error, cancellation, timeout, and process exit;
+- cross-service waiting is bounded by `READIRECT_GPU_PERMIT_TIMEOUT_SECONDS`; and
+- the validation evidence records GPU utilization and the approved minimum free-memory headroom throughout the sample.
+
+## GPUQ-02 Process and Deployment Guard - P0
+
+Attempt to start duplicate ASR or TTS service processes for one GPU resource key, multiple local inference workers with GPU coordination enabled, mismatched resource keys for one shared GPU, and an unbounded queue configuration.
+
+Expected result:
+
+Startup or deployment validation rejects each unsafe configuration with an actionable error before model workload is accepted. One service process per service and GPU resource key remains the supported single-GPU topology.
+
+## GPUQ-03 Capacity Telemetry and CPU Mode - P1
+
+Compare `/health` and `/ready` capacity data with live queue state in CUDA mode and CPU fallback mode.
+
+Expected result:
+
+- local concurrency, waiting limit, admitted limit, running count, waiting count, available slots, saturation, rejection count, and GPU coordination state are internally consistent;
+- CUDA mode reports the shared GPU policy; and
+- CPU mode does not claim or wait for a GPU permit.
+
+## RT-01 Reverb Bootstrap and Local Lifecycle - P0
+
+Run the approved bootstrap, local start, and local stop PowerShell procedures from a clean dependency state.
+
+Expected result:
+
+- Laravel package discovery registers `reverb:start`;
+- Reverb listens only on the configured internal port;
+- one dedicated database queue worker processes only the `broadcasts` queue;
+- `.runtime/services.json` records both processes with verifiable process identities;
+- the launcher supervises both processes; and
+- shutdown removes both processes, listeners, and runtime manifest state.
+
+## RT-02 Cloud Startup and Exposure Boundary - P0
+
+Run cloud startup with healthy services, then repeat with Reverb unavailable and with the broadcast worker unable to start. Inspect the generated Cloudflare ingress configuration.
+
+Expected result:
+
+- the tunnel starts only after Web, API, ASR, TTS, Reverb, and the broadcast worker are ready;
+- failure of either realtime process prevents cloud readiness;
+- the public hostname routes through the approved same-origin Web path;
+- Reverb, API, ASR, TTS, PostgreSQL, and their internal ports are not exposed as direct tunnel origins; and
+- logs identify the failed readiness condition without revealing secrets.
+
+## RT-03 Staff Authentication and Channel Scope - P0
+
+Request realtime configuration and private-channel authorization as an unauthenticated user, learner, teacher, school administrator, and system administrator. Attempt role, school, teacher, and identifier manipulation.
+
+Expected result:
+
+- only an active authorized staff session receives transport configuration;
+- each staff user can authorize only channels within the authenticated role and data scope;
+- cross-teacher, cross-school, cross-role, learner, and unauthenticated subscriptions are denied; and
+- denial responses do not reveal protected channel data or another scope's identifiers.
+
+## RT-04 Event Contract and Payload Privacy - P0
+
+Capture each released staff realtime event type and inspect its serialized payload and channel fan-out.
+
+Expected result:
+
+- every event contains only the approved topic names, event UUID, contract version, and timestamp;
+- no learner record, credential, token, transcript, recording, private-media path, or full mutation payload is broadcast;
+- one domain change creates the documented system, school, or teacher scope signals without duplicate jobs; and
+- the client must retrieve authoritative data through its normal authenticated API after receiving a refresh signal.
+
+## RT-05 Transaction Boundary and Durable Queue - P0
+
+Perform representative learner-progress and staff-administration mutations inside successful, failed, and rolled-back database transactions while inspecting the `broadcasts` queue.
+
+Expected result:
+
+- a committed mutation enqueues its event only after commit;
+- a rolled-back or failed mutation publishes no signal;
+- an unavailable Reverb server does not roll back an already committed domain mutation;
+- queued broadcasts remain available for the worker after a controlled restart; and
+- retries do not recreate the underlying domain mutation.
+
+## RT-06 Health, Backlog, and Failure Telemetry - P0
+
+Observe system-administrator realtime health with Reverb online and offline, then create controlled ready, processing, delayed, old, and failed jobs in the `broadcasts` queue.
+
+Expected result:
+
+- Reverb health is based on a live socket check rather than configuration alone;
+- queue depth, oldest-job age, processing, delayed, and failed counts reconcile with database records;
+- health becomes degraded at the configured pending-depth or oldest-age threshold and whenever a broadcast job has failed;
+- broadcasting-disabled state is reported distinctly; and
+- telemetry does not expose job payloads, credentials, or learner information.
+
+## RT-07 Connection Capacity - P0
+
+Open authorized subscribed staff WebSocket clients up to and beyond `REVERB_APP_MAX_CONNECTIONS` using a controlled load harness.
+
+Expected result:
+
+- no more than the configured number of subscribed connections is accepted;
+- excess clients receive the controlled Reverb connection-limit response;
+- accepted clients remain responsive and isolated to their authorized channels; and
+- API, ASR, TTS, queue-worker, and database health remain within approved thresholds during the test.
+
+For the current single-host profile, evidence must reproduce or supersede the baseline of 250 accepted subscribed clients and five controlled rejections from 255 attempts. Any increase requires a new load test and deployment-capacity approval.
+
+## RT-08 Origin, Message Size, Client Events, and Rate Limit - P0
+
+Attempt connections from every allowed origin and representative disallowed origins; send an oversized message, a client-originated application event, and more than the configured message count inside the rate-limit window.
+
+Expected result:
+
+- only exact approved origins connect;
+- messages larger than `REVERB_APP_MAX_MESSAGE_SIZE` are rejected;
+- client-originated application events cannot mutate or publish application data;
+- a client exceeding `REVERB_APP_RATE_LIMIT_MAX_ATTEMPTS` during `REVERB_APP_RATE_LIMIT_DECAY_SECONDS` is controlled or disconnected according to configuration; and
+- abusive traffic does not degrade authorized clients or bypass channel authorization.
+
+## RT-09 Disconnect, Reconnect, and Authoritative Refresh - P1
+
+Interrupt the browser connection before, during, and after a committed domain change; restart Reverb; then restore connectivity.
+
+Expected result:
+
+- no authoritative domain state depends on receipt of a WebSocket signal;
+- the staff client reconnects according to the approved policy or recovers through a full authenticated refresh;
+- missed signals do not produce permanent stale state;
+- reconnect does not duplicate mutations or subscriptions; and
+- authorization is re-evaluated after logout, session revocation, role change, or scope change.
+
+## RT-10 Single-Host Scaling Boundary - P0
+
+Inspect runtime configuration and attempt deployment validation for an unapproved multi-host or multi-Reverb topology.
+
+Expected result:
+
+Reverb scaling remains disabled for the single-host research profile. A multi-host deployment is blocked until a shared pub/sub design, cross-host authorization review, capacity test, failure-recovery test, and approved operational procedure are supplied.

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StaffRealtimeTopic;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
+use App\Services\StaffRealtimePublisher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,8 +28,10 @@ final class SchoolAdministratorController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
-    {
+    public function store(
+        Request $request,
+        StaffRealtimePublisher $realtime,
+    ): JsonResponse {
         /** @var StaffUser $systemAdministrator */
         $systemAdministrator = $request->user();
 
@@ -72,6 +76,12 @@ final class SchoolAdministratorController extends Controller
 
             return $account;
         });
+
+        $realtime->system(
+            StaffRealtimeTopic::Overview,
+            StaffRealtimeTopic::SchoolAdministrators,
+            StaffRealtimeTopic::Operations,
+        );
 
         return response()->json([
             'school_administrator' => $this->serialize($schoolAdministrator),

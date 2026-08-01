@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StaffRealtimeTopic;
 use App\Models\Learner;
 use App\Models\LearnerSession;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
 use App\Services\LearnerCodeGenerator;
 use App\Services\LearnerTemporaryPasswordGenerator;
+use App\Services\StaffRealtimePublisher;
 use App\Services\TeacherCredentialSheetService;
 use App\Services\TeacherLearnerDetailService;
 use App\Services\TeacherLearnerImportService;
@@ -56,6 +58,7 @@ final class TeacherLearnerController extends Controller
         StaffUser $staffUser,
         LearnerCodeGenerator $learnerCodeGenerator,
         LearnerTemporaryPasswordGenerator $passwordGenerator,
+        StaffRealtimePublisher $realtime,
     ): JsonResponse {
         $this->assertReadyTeacher($staffUser);
 
@@ -111,6 +114,15 @@ final class TeacherLearnerController extends Controller
             return $learner;
         });
 
+        $realtime->teacher(
+            $staffUser->id,
+            $staffUser->school_id,
+            StaffRealtimeTopic::Overview,
+            StaffRealtimeTopic::Learners,
+            StaffRealtimeTopic::Reports,
+            StaffRealtimeTopic::Operations,
+        );
+
         return response()->json([
             'learner' => [
                 ...$this->serialize($learner),
@@ -123,6 +135,7 @@ final class TeacherLearnerController extends Controller
         StaffUser $staffUser,
         int $learner,
         LearnerTemporaryPasswordGenerator $passwordGenerator,
+        StaffRealtimePublisher $realtime,
     ): JsonResponse {
         $this->assertReadyTeacher($staffUser);
 
@@ -162,6 +175,14 @@ final class TeacherLearnerController extends Controller
             ]);
         });
 
+        $realtime->teacher(
+            $staffUser->id,
+            $staffUser->school_id,
+            StaffRealtimeTopic::Learners,
+            StaffRealtimeTopic::LearnerDetail,
+            StaffRealtimeTopic::Operations,
+        );
+
         return response()->json([
             'learner' => [
                 'id' => $assignedLearner->id,
@@ -176,6 +197,7 @@ final class TeacherLearnerController extends Controller
         Request $request,
         StaffUser $staffUser,
         TeacherLearnerImportService $importer,
+        StaffRealtimePublisher $realtime,
     ): JsonResponse {
         $this->assertReadyTeacher($staffUser);
 
@@ -199,9 +221,18 @@ final class TeacherLearnerController extends Controller
             'learners.*.lrn' => ['nullable', 'string', 'max:50'],
         ]);
 
-        return response()->json([
-            'learners' => $importer->import($staffUser, $validated['learners']),
-        ], 201);
+        $learners = $importer->import($staffUser, $validated['learners']);
+
+        $realtime->teacher(
+            $staffUser->id,
+            $staffUser->school_id,
+            StaffRealtimeTopic::Overview,
+            StaffRealtimeTopic::Learners,
+            StaffRealtimeTopic::Reports,
+            StaffRealtimeTopic::Operations,
+        );
+
+        return response()->json(['learners' => $learners], 201);
     }
 
     public function credentialSheet(

@@ -11,6 +11,18 @@ Push-Location $repositoryRoot
 try {
     corepack pnpm install --frozen-lockfile
     composer install --working-dir apps/api --no-interaction --no-scripts
+
+    php apps/api/artisan package:discover --ansi
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Laravel package discovery failed; Reverb cannot be registered.'
+    }
+
+    $artisanCommands = @(php apps/api/artisan list --raw)
+    if ($LASTEXITCODE -ne 0 -or -not ($artisanCommands -match '^reverb:start\s')) {
+        throw "Laravel Reverb is not available. Confirm that 'laravel/reverb' is installed in apps/api."
+    }
+    Write-Host 'Laravel Reverb registered.' -ForegroundColor Green
+
     python -m uv sync --project services/asr --python 3.11 --locked
     python -m uv sync --project services/tts --python 3.11 --locked
 

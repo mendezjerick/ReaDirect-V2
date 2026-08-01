@@ -37,6 +37,8 @@ abstract class TestCase extends BaseTestCase
         }
 
         Schema::dropIfExists('assessment_responses');
+        Schema::dropIfExists('failed_jobs');
+        Schema::dropIfExists('jobs');
         Schema::dropIfExists('assessment_runs');
         Schema::dropIfExists('learner_clara_listening_sessions');
         Schema::dropIfExists('learner_achievements');
@@ -70,6 +72,26 @@ abstract class TestCase extends BaseTestCase
             $table->string('name', 180)->unique();
             $table->string('normalized_name', 180)->unique();
             $table->timestamps();
+        });
+
+        Schema::create('jobs', function (Blueprint $table): void {
+            $table->id();
+            $table->string('queue')->index();
+            $table->longText('payload');
+            $table->unsignedTinyInteger('attempts');
+            $table->unsignedInteger('reserved_at')->nullable();
+            $table->unsignedInteger('available_at');
+            $table->unsignedInteger('created_at');
+        });
+
+        Schema::create('failed_jobs', function (Blueprint $table): void {
+            $table->id();
+            $table->string('uuid')->unique();
+            $table->text('connection');
+            $table->text('queue');
+            $table->longText('payload');
+            $table->longText('exception');
+            $table->timestamp('failed_at')->useCurrent();
         });
 
         Schema::create('staff_users', function (Blueprint $table): void {
