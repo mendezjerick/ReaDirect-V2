@@ -1699,7 +1699,8 @@
  * four floating cards. The 37.5rem height guard deliberately leaves phone and
  * short landscape-phone composition to the mobile rules above.
  */
-@media (min-width: 48rem) and (min-height: 37.5rem) {
+@media (min-width: 48rem) and (min-height: 37.5rem),
+  (min-width: 64rem) and (orientation: landscape) {
   .assessment-page.learner-flow-page:has(.assessment-recorder-panel) {
     --assessment-large-item-height: clamp(9.5rem, 24svh, 12rem);
     --assessment-large-dock-height: clamp(18rem, 48svh, 25rem);
@@ -1871,7 +1872,8 @@
  * recorder surface from overlapping Clara's grid area and gives every region
  * the same framed-card language as the rest of the learner flow.
  */
-@media (min-width: 48rem) and (min-height: 37.5rem) {
+@media (min-width: 48rem) and (min-height: 37.5rem),
+  (min-width: 64rem) and (orientation: landscape) {
   .assessment-page.learner-flow-page:has(.assessment-recorder-panel) {
     --assessment-large-panel-gap: clamp(0.65rem, 1.5svh, 0.9rem);
     --assessment-large-slice-gap: clamp(0.65rem, 1.2vw, 0.9rem);
@@ -1970,6 +1972,45 @@
     padding: clamp(0.55rem, 1.2svh, 0.8rem);
     background: var(--color-surface-panel);
     box-shadow: 0 6px 0 var(--color-frame-depth);
+  }
+}
+
+/*
+ * Browser chrome and desktop display scaling can leave a wide laptop with less
+ * than 37.5rem of CSS height at 100% zoom. Keep the three real desktop slices
+ * at those wide viewports, but compress their vertical rhythm so the complete
+ * activity remains visible. The 64rem width guard excludes landscape phones.
+ */
+@media (min-width: 64rem) and (max-height: 37.499rem) and (orientation: landscape) {
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel) {
+    --assessment-large-item-height: clamp(8rem, 24svh, 9.5rem);
+    --assessment-large-dock-height: clamp(13rem, 46svh, 16rem);
+    --assessment-large-panel-gap: clamp(0.5rem, 1.25svh, 0.7rem);
+    --assessment-large-slice-gap: clamp(0.5rem, 1vw, 0.7rem);
+
+    padding-top: max(0.55rem, env(safe-area-inset-top));
+    padding-bottom: max(0.55rem, env(safe-area-inset-bottom));
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-header {
+    min-height: 3.5rem;
+    padding-block: 0.32rem;
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-item-panel:not(.assessment-item-panel--result) {
+    padding-block: clamp(0.45rem, 1svh, 0.65rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-recorder__control {
+    width: min(27svh, 11rem);
+  }
+
+  .assessment-page.learner-flow-page:has(.assessment-passage)
+    .assessment-recorder__control {
+    width: min(20svh, 8.5rem);
   }
 }
 
