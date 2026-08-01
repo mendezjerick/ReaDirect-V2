@@ -36,6 +36,16 @@ const learnerApiErrorSchema = z.object({
 
 export type LearnerSession = z.infer<typeof learnerSessionSchema>;
 
+const learnerExperienceSettingsSchema = z.object({
+  revision: z.string(),
+  display_mode: z.enum(["live2d", "static"]),
+  speech_mode: z.enum(["hybrid", "published_only"]),
+});
+
+export type LearnerExperienceSettings = z.infer<
+  typeof learnerExperienceSettingsSchema
+>;
+
 const learnerSessionStorageKey = "readirect.learner-session";
 
 interface StoredLearnerSession extends LearnerSession {
@@ -133,6 +143,37 @@ export async function getLearnerSession(
   }
 
   return learnerSessionSchema.parse(await response.json());
+}
+
+export async function getLearnerExperienceSettings(
+  token: string,
+): Promise<LearnerExperienceSettings> {
+  const response = await fetch("/api/learners/experience/settings", {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return learnerExperienceSettingsSchema.parse(await response.json());
+}
+
+export async function getIntroExperienceSettings(): Promise<LearnerExperienceSettings> {
+  const response = await fetch("/api/experience/intro/settings", {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return learnerExperienceSettingsSchema.parse(await response.json());
 }
 
 export async function logoutLearner(token: string): Promise<void> {

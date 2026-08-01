@@ -8,6 +8,10 @@ use App\Models\LessonRun;
 
 final class LessonTwoSupportPresentation
 {
+    public function __construct(
+        private readonly LearnerSpeechPolicy $speechPolicy,
+    ) {}
+
     public const AFTER_NONE = 'none';
 
     public const AFTER_RECORD = 'record';
@@ -68,7 +72,7 @@ final class LessonTwoSupportPresentation
             return $this->presentation(
                 $sequenceKey,
                 [
-                    $this->runtimeFeedback($response),
+                    $this->firstIncorrectFeedback($response),
                     [
                         'kind' => 'published',
                         'speech_key' => "lesson-2-clue-{$run->mission_key}",
@@ -80,12 +84,16 @@ final class LessonTwoSupportPresentation
         }
 
         if ($response->teaching_state === LessonTeachingStateMachine::STATE_DEMONSTRATING) {
+            $demonstration = $this->speechPolicy->allowsRuntimeDemonstration($response)
+                ? ['kind' => 'runtime_demonstration', 'response_id' => $response->id]
+                : [
+                    'kind' => 'published',
+                    'speech_key' => $this->demonstrationSpeechKey($item),
+                ];
+
             return $this->presentation(
                 $sequenceKey,
-                [[
-                    'kind' => 'runtime_demonstration',
-                    'response_id' => $response->id,
-                ]],
+                [$demonstration],
                 'demonstration',
                 self::AFTER_CONTINUE_SUPPORT,
             );
@@ -120,12 +128,6 @@ final class LessonTwoSupportPresentation
         LessonResponse $response,
     ): array {
         $speech = [];
-        $final = trim((string) $response->final_transcript);
-        if ($response->response_type === 'speech'
-            && $final !== ''
-            && strtoupper($final) !== 'UNKNOWN') {
-            $speech[] = $this->runtimeFeedback($response);
-        }
 
         $speechKey = match ($response->outcome) {
             LessonTeachingStateMachine::OUTCOME_INDEPENDENT_CORRECT => 'lesson-2-feedback-independent',
@@ -154,6 +156,29 @@ final class LessonTwoSupportPresentation
         return [
             'kind' => 'runtime_feedback',
             'response_id' => $response->id,
+        ];
+    }
+
+    /** @param array<string, mixed> $item */
+    private function demonstrationSpeechKey(array $item): string
+    {
+        return str_replace(
+            'lesson-v1-word-',
+            'lesson-2-word-demo-',
+            (string) $item['content_id'],
+        );
+    }
+
+    /** @return array{kind: string, response_id?: int, speech_key?: string} */
+    private function firstIncorrectFeedback(LessonResponse $response): array
+    {
+        if ($this->speechPolicy->allowsRuntimeFeedback($response)) {
+            return $this->runtimeFeedback($response);
+        }
+
+        return [
+            'kind' => 'published',
+            'speech_key' => 'lesson-2-feedback-incorrect-first',
         ];
     }
 

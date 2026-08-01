@@ -54,8 +54,8 @@ final class LearnerLessonOneTest extends TestCase
             ->assertJsonPath('response.academic_attempt_count', 1)
             ->assertJsonPath('response.independent_mastery', true)
             ->assertJsonPath('teaching.can_advance', true)
-            ->assertJsonPath('support.speech.0.kind', 'runtime_feedback')
-            ->assertJsonPath('support.speech.1.speech_key', 'lesson-1-feedback-independent')
+            ->assertJsonPath('support.speech.0.kind', 'published')
+            ->assertJsonPath('support.speech.0.speech_key', 'lesson-1-feedback-independent')
             ->assertJsonPath('support.after_speech', 'advance');
 
         $this->assertDatabaseHas('lesson_item_attempts', [
@@ -231,7 +231,9 @@ final class LearnerLessonOneTest extends TestCase
         $response = LessonResponse::query()->create([
             'lesson_run_id' => $run->id, 'mission_key' => 'mission-1', 'item_key' => 'letter-k',
             'item_order' => 1, 'response_type' => 'speech', 'raw_transcript' => 'kay',
-            'final_transcript' => 'K', 'decision' => 'CORRECT',
+            'final_transcript' => 'K', 'decision' => 'NEEDS_SUPPORT',
+            'teaching_state' => 'GIVING_CLUE',
+            'academic_attempt_count' => 1,
         ]);
 
         $this->withToken($token)->post("/api/learners/tts/lesson-feedback/{$response->id}")

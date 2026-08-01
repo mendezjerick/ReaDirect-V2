@@ -10,7 +10,10 @@ use Illuminate\Support\Collection;
 
 final class SystemAdminAgentsAiService
 {
-    public function settings(SpeechProcessingSettings $speechSettings): array
+    public function settings(
+        SpeechProcessingSettings $speechSettings,
+        LearnerLightweightModeSettings $lightweightMode,
+    ): array
     {
         $voice = $this->publishedVoice();
         $lineCounts = $voice === null
@@ -58,10 +61,12 @@ final class SystemAdminAgentsAiService
                         ->conditionalMuNoiseReductionEnabled(),
                     'nu_noise_reduction' => false,
                 ],
+                'lightweight_mode' => $lightweightMode->contract(),
             ],
             'governance' => [
                 'read_only' => true,
-                'message' => 'Display, typography, and voice publication are source-controlled contracts. Only the existing Mu processing option is runtime configurable.',
+                'message' => 'Display, typography, and voice publication remain source-controlled contracts. The lightweight learner experience is runtime configurable and applies on the next learner load.',
+                'lightweight_mode_mutable' => true,
             ],
             'generated_at' => now()->toIso8601String(),
         ];

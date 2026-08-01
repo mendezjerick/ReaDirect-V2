@@ -40,7 +40,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonPath('published_groups.0', 'lesson-1-fixed')
             ->assertJsonPath('runtime_profiles.0', 'result')
             ->assertJsonPath('requires_runtime', true)
-            ->assertJsonCount(51, 'published_speech_keys');
+            ->assertJsonCount(52, 'published_speech_keys');
     }
 
     public function test_lesson_two_resolves_published_words_and_both_runtime_profiles(): void
@@ -55,7 +55,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonPath('runtime_profiles.0', 'result')
             ->assertJsonPath('runtime_profiles.1', 'instruction')
             ->assertJsonPath('requires_runtime', true)
-            ->assertJsonCount(19, 'published_speech_keys');
+            ->assertJsonCount(69, 'published_speech_keys');
     }
 
     public function test_lesson_three_resolves_published_phrases_and_only_result_runtime(): void
@@ -69,7 +69,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonPath('published_groups.0', 'lesson-3-fixed')
             ->assertJsonPath('runtime_profiles.0', 'result')
             ->assertJsonPath('requires_runtime', true)
-            ->assertJsonCount(33, 'published_speech_keys');
+            ->assertJsonCount(34, 'published_speech_keys');
     }
 
     public function test_lesson_four_resolves_published_sentences_and_only_result_runtime(): void
@@ -83,7 +83,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonPath('published_groups.0', 'lesson-4-fixed')
             ->assertJsonPath('runtime_profiles.0', 'result')
             ->assertJsonPath('requires_runtime', true)
-            ->assertJsonCount(33, 'published_speech_keys');
+            ->assertJsonCount(34, 'published_speech_keys');
     }
 
     public function test_lesson_five_is_fully_published_without_runtime_warmup(): void

@@ -7,9 +7,9 @@ use App\Models\LessonRun;
 
 final class LessonFiveSupportPresentation extends SpokenTextLessonSupportPresentation
 {
-    public function __construct()
+    public function __construct(LearnerSpeechPolicy $speechPolicy)
     {
-        parent::__construct(5, 'lesson-v1-passage-');
+        parent::__construct(5, 'lesson-v1-passage-', $speechPolicy);
     }
 
     public function forCurrentItem(

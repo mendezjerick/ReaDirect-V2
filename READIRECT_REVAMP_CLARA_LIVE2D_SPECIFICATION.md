@@ -5,6 +5,10 @@
 This document is the source of truth for Ma'am Clara's Live2D identity,
 assets, viewport, approved crop, and frontend presentation in ReaDirect-V2.
 
+`READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md` owns when the
+shared Clara stage selects Live2D or the approved static portrait. This document
+owns the visual assets and renderer behavior inside either selection.
+
 If another document, mockup, component, or implementation conflicts with this
 specification, this specification takes precedence for Ma'am Clara. The crop
 defined here is approved and must not be changed without explicit design
@@ -340,7 +344,8 @@ The frontend currently loads:
 | `CherryGoth.physics3.json`           | Physics configuration             | Required                         |
 | `CherryGoth.cdi3.json`               | Display and parameter metadata    | Available                        |
 | `Icon.png`                           | Legacy supplied icon              | Preserved, not used              |
-| `stills/clara-default.png`           | Retired crop-regression artifact  | Preserved, not used              |
+| `stills/clara-default.png`           | Default-theme static portrait     | Required by lightweight mode     |
+| `stills/clara-t2.png`                | Theme 2 static portrait           | Required by lightweight mode     |
 | `Angry.exp3.json`                    | Angry expression                  | Available, outside approved set  |
 | `Blush.exp3.json`                    | Legacy blush source               | Retained as source; runtime use prohibited |
 | `Dizzy.exp3.json`                    | Dizzy expression                  | Available, outside approved set  |
@@ -355,14 +360,18 @@ compiled runtime model and cannot be used for a true Cubism Editor re-export.
 Texture optimization must create a separate runtime derivative and must leave
 the original `assets/live2d/source/clara/` files untouched.
 
-### Retired Generated PNG Fallback
+### Approved Static Clara Portrait
 
-The generated PNG fallback is retired and is no longer rendered by the shared
-Clara stage. Existing PNG files may remain as crop-comparison and regression
-artifacts, but learner-facing runtime code must use the CSS loading transition
-defined below. The remaining material in this subsection is historical
-reproduction documentation only and does not authorize restoring the PNG as a
-runtime fallback.
+The PNG is not an automatic error fallback for a failed Live2D load. It is an
+approved, explicitly selected lightweight renderer. When static Clara is
+effective, the shared `ClaraStage` renders the theme-specific PNG inside the
+same square, reports ready only after the image decodes, and must not import or
+download the Live2D renderer or model assets. When Live2D is effective, the CSS
+loading transition defined below remains mandatory and the PNG must not cover a
+loading or failed canvas.
+
+The deterministic crop instructions below remain authoritative reproduction
+documentation for the approved static portrait.
 
 The approved fallback alignment is the finalized
 `clara-live2d-mimic-crop-raised-18px-preview.png`. Both active fallback copies
@@ -740,27 +749,31 @@ The initial Lesson Intro line uses the semantic `lesson-intro` speech key from
 the published `clara-sh-v1` catalog. Catalog paths stay server-owned; React
 requests a named speech key and never selects a filesystem path.
 
-### Global Live2D-Ready Speech Gate
+### Global Clara-Ready Speech Gate
 
 This is a hard rule for every page that contains Ma'am Clara: TTS playback must
-not begin while Clara's Live2D model is loading. The currently mounted shared
-`ClaraStage` must explicitly report `ready` before an audio source may start.
+not begin while the selected Clara renderer is loading. The currently mounted
+shared `ClaraStage` must explicitly report `ready` before an audio source may
+start. Live2D reports ready only after its first frame and reveal. Static Clara
+reports ready only after the selected theme portrait decodes successfully.
 
 Speech fetching, synthesis, caching, and audio decoding may run in parallel
 with model loading. Only audible playback is gated. The required order is:
 
 ```text
-prepare Clara speech + initialize Live2D in parallel
+prepare Clara speech + initialize selected Clara renderer in parallel
                          |
 wait until speech is prepared AND ClaraStage is ready
                          |
 start playback -> set speaking=true -> drive speechLevel
 ```
 
-- Showing the CSS loading pulse or reveal cover does not satisfy the gate.
+- Showing the CSS loading pulse, reveal cover, or an undecoded static image does
+  not satisfy the gate.
 - A previous page's ready state does not satisfy the gate. Every newly mounted
   Clara stage begins as not ready.
-- `loading`, `revealing`, and `error` must all block playback.
+- `loading`, `revealing`, and `error` must all block playback. Static mode does
+  not use the Live2D reveal state.
 - `speaking` remains `false` and `speechLevel` remains `0` while waiting.
 - A prepared line must remain queued rather than being regenerated solely
   because Clara is still loading.
@@ -958,9 +971,12 @@ A Ma'am Clara implementation is compliant only when:
 - [ ] Clara's colors are read from semantic theme variables.
 - [ ] No platform or ground decoration is present.
 - [ ] The background remains transparent and visually minimal.
-- [ ] The CSS wave and three-second hair-color reveal replace the raster
-      fallback.
-- [ ] Ready is reported only after the first frame and reveal both complete.
+- [ ] In Live2D mode, the CSS wave and three-second hair-color reveal run
+      without a raster loading fallback.
+- [ ] In Live2D mode, ready is reported only after the first frame and reveal
+      both complete.
+- [ ] In static mode, the correct theme portrait is used, ready waits for image
+      decode, and no Live2D model or renderer asset is requested.
 - [ ] TTS warm-up uses the centered shared cube only after Clara is ready.
 - [ ] The model wave and TTS cube never appear simultaneously.
 - [ ] Reduced-motion behavior is respected.

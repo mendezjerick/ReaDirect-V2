@@ -528,6 +528,147 @@ foreach ($lessonFourSentences as $sentenceKey => $sentence) {
     ];
 }
 
+// Staged only: these lines are intentionally excluded from the active catalog
+// until their WAVs are generated, reviewed, and atomically published.
+$lightweightFirstIncorrectLines = [
+    'lesson-1-feedback-incorrect-first' => [
+        'text' => 'That letter was not quite right. Let us try again.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-1/support/feedback/lesson-1-feedback-incorrect-first.wav',
+    ],
+    'lesson-2-feedback-incorrect-first' => [
+        'text' => 'That word was not quite right. Let us try again.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-2/support/feedback/lesson-2-feedback-incorrect-first.wav',
+    ],
+    'lesson-3-feedback-incorrect-first' => [
+        'text' => 'That phrase was not quite right. Let us try again.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-3/support/feedback/lesson-3-feedback-incorrect-first.wav',
+    ],
+    'lesson-4-feedback-incorrect-first' => [
+        'text' => 'That sentence was not quite right. Let us try again.',
+        'reference' => 'result',
+        'path' => 'lessons/lesson-4/support/feedback/lesson-4-feedback-incorrect-first.wav',
+    ],
+];
+
+$lessonTwoWordDemonstrationLines = [];
+$lessonTwoWordItemsPath = dirname(__DIR__, 3)
+    .'/content/lessons/v1/lesson-2-word-items.csv';
+$lessonTwoWordItemsHandle = fopen($lessonTwoWordItemsPath, 'rb');
+if ($lessonTwoWordItemsHandle === false) {
+    throw new RuntimeException("Unable to open Lesson 2 word content: {$lessonTwoWordItemsPath}");
+}
+
+try {
+    $lessonTwoWordItemsHeader = fgetcsv(
+        $lessonTwoWordItemsHandle,
+        null,
+        ',',
+        '"',
+        '\\',
+    );
+    if (! is_array($lessonTwoWordItemsHeader)) {
+        throw new RuntimeException('Lesson 2 word content has no CSV header.');
+    }
+
+    while (($lessonTwoWordItemValues = fgetcsv(
+        $lessonTwoWordItemsHandle,
+        null,
+        ',',
+        '"',
+        '\\',
+    )) !== false) {
+        $lessonTwoWordItem = array_combine(
+            $lessonTwoWordItemsHeader,
+            $lessonTwoWordItemValues,
+        );
+        if (! is_array($lessonTwoWordItem)
+            || ($lessonTwoWordItem['status'] ?? null) !== 'active') {
+            continue;
+        }
+
+        $contentId = trim((string) ($lessonTwoWordItem['content_id'] ?? ''));
+        $spokenTarget = trim((string) ($lessonTwoWordItem['spoken_target'] ?? ''));
+        $prefix = 'lesson-v1-word-';
+        if (! str_starts_with($contentId, $prefix) || $spokenTarget === '') {
+            throw new RuntimeException("Invalid active Lesson 2 word row: {$contentId}");
+        }
+
+        $wordSlug = substr($contentId, strlen($prefix));
+        $speechKey = "lesson-2-word-demo-{$wordSlug}";
+        if (isset($lessonTwoWordDemonstrationLines[$speechKey])) {
+            throw new RuntimeException("Duplicate Lesson 2 word demonstration: {$speechKey}");
+        }
+
+        $lessonTwoWordDemonstrationLines[$speechKey] = [
+            'text' => "The word is {$spokenTarget}. Listen: {$spokenTarget}. Now you try.",
+            'reference' => 'instruction',
+            'path' => "lessons/lesson-2/support/demonstrations/{$speechKey}.wav",
+        ];
+    }
+} finally {
+    fclose($lessonTwoWordItemsHandle);
+}
+
+if (count($lessonTwoWordDemonstrationLines) !== 49) {
+    throw new RuntimeException(sprintf(
+        'Expected 49 active Lesson 2 word demonstrations, resolved %d.',
+        count($lessonTwoWordDemonstrationLines),
+    ));
+}
+
+$lightweightPublishedSpeechMigration = [
+    'new_lines' => [
+        ...$lightweightFirstIncorrectLines,
+        ...$lessonTwoWordDemonstrationLines,
+    ],
+    'replacement_lines' => [
+        'lesson-1-feedback-demonstrated' => [
+            'text' => 'That is correct. You said the letter correctly with me.',
+            'reference' => 'result',
+            'path' => 'lessons/lesson-1/support/feedback/lesson-1-feedback-demonstrated.wav',
+        ],
+        'lesson-2-feedback-demonstrated' => [
+            'text' => 'That is correct. You read the word correctly with me.',
+            'reference' => 'result',
+            'path' => 'lessons/lesson-2/support/feedback/lesson-2-feedback-demonstrated.wav',
+        ],
+    ],
+];
+
+$lessonOneSupportLines = [
+    ...$lessonOneSupportLines,
+    'lesson-1-feedback-incorrect-first' => $lightweightFirstIncorrectLines[
+        'lesson-1-feedback-incorrect-first'
+    ],
+    'lesson-1-feedback-demonstrated' => $lightweightPublishedSpeechMigration[
+        'replacement_lines'
+    ]['lesson-1-feedback-demonstrated'],
+];
+$lessonTwoSupportLines = [
+    ...$lessonTwoSupportLines,
+    'lesson-2-feedback-incorrect-first' => $lightweightFirstIncorrectLines[
+        'lesson-2-feedback-incorrect-first'
+    ],
+    'lesson-2-feedback-demonstrated' => $lightweightPublishedSpeechMigration[
+        'replacement_lines'
+    ]['lesson-2-feedback-demonstrated'],
+];
+$lessonThreeSupportLines = [
+    ...$lessonThreeSupportLines,
+    'lesson-3-feedback-incorrect-first' => $lightweightFirstIncorrectLines[
+        'lesson-3-feedback-incorrect-first'
+    ],
+];
+$lessonFourSupportLines = [
+    ...$lessonFourSupportLines,
+    'lesson-4-feedback-incorrect-first' => $lightweightFirstIncorrectLines[
+        'lesson-4-feedback-incorrect-first'
+    ],
+];
+
 foreach (IsolatedLetterPronunciation::all() as $letter => $spokenForm) {
     $lessonOneSupportLines["lesson-1-letter-demo-{$letter}"] = [
         'text' => "The letter name is {$spokenForm}. Listen: {$spokenForm}. Now you try.",
@@ -549,6 +690,9 @@ return [
         'question',
         'result',
     ],
+    'pending_published_catalog_migrations' => [
+        'lightweight-v1' => $lightweightPublishedSpeechMigration,
+    ],
     'published_speech_groups' => [
         'assessment-part-one-fixed' => $assessmentPartOneSpeechKeys,
         'assessment-part-two-fixed' => $assessmentPartTwoSpeechKeys,
@@ -567,6 +711,7 @@ return [
             'lesson-2-complete',
             ...array_keys($lessonTwoItemCueLines),
             ...array_keys($lessonTwoSupportLines),
+            ...array_keys($lessonTwoWordDemonstrationLines),
         ],
         'lesson-3-fixed' => [
             'lesson-3-mission-1',
@@ -850,6 +995,7 @@ return [
         ...$lessonOneSupportLines,
         ...$lessonTwoItemCueLines,
         ...$lessonTwoSupportLines,
+        ...$lessonTwoWordDemonstrationLines,
         ...$lessonThreeItemCueLines,
         ...$lessonThreeSupportLines,
         ...$lessonThreeDemonstrationLines,

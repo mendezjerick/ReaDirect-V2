@@ -142,14 +142,20 @@ hierarchy and controls.
 
 ## Audio Activation
 
+The selected Clara renderer and effective speech mode are governed by
+`READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md`. This optional
+class remains published-only in either renderer mode.
+
 The welcome screen does not autoplay speech. It presents the server-backed
 Start or Continue action immediately after the checkpoint loads. That explicit
 learner action unlocks browser audio before the story opening or resumed scene,
 so direct navigation and refresh cannot trap the learner behind an autoplay
 restriction.
 
-Speech waits for Clara's model-ready signal. The client may prefetch only the
-server-declared possible-next speech key.
+Speech waits for the currently selected Clara renderer's ready signal. Live2D
+waits for its first rendered frame and reveal; approved static mode waits for
+the theme portrait to decode. The client may prefetch only the server-declared
+possible-next speech key.
 
 ## Published Speech
 

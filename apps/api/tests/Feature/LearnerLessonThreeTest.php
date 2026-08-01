@@ -110,9 +110,9 @@ final class LearnerLessonThreeTest extends TestCase
             ->assertJsonPath('response.final_transcript', $expected)
             ->assertJsonPath('response.outcome', 'INDEPENDENT_CORRECT')
             ->assertJsonPath('teaching.can_advance', true)
-            ->assertJsonPath('support.speech.0.kind', 'runtime_feedback')
+            ->assertJsonPath('support.speech.0.kind', 'published')
             ->assertJsonPath(
-                'support.speech.1.speech_key',
+                'support.speech.0.speech_key',
                 'lesson-3-feedback-independent',
             );
 

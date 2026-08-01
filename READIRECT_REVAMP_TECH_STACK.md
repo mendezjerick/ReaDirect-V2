@@ -62,6 +62,8 @@ defined in READIRECT_REVAMP_GAME_TECH_STACK.md.
 - Live2D Cubism Web Framework
 - Live2D Cubism runtime model files
 - PNG texture atlases
+- Theme-specific static Clara PNG portraits selected by the approved
+  lightweight delivery setting
 
 ## Backend
 
@@ -109,12 +111,19 @@ defined in READIRECT_REVAMP_GAME_TECH_STACK.md.
 - CMU Pronouncing Dictionary
 - VoxCPM2
 - Laravel-backed published speech catalog for approved fixed Clara WAVs
-- Runtime VoxCPM2 generation only for unpredictable final-transcript feedback
+- Runtime VoxCPM2 generation only for the first clear incorrect personalized
+  diagnosis in effective hybrid mode
+- Published-only Clara speech as the approved lightweight alternative; it makes
+  no Vox warm-up or synthesis request
 - Engine-neutral isolated-letter pronunciation registry defined by
   `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`
 - WebSocket
 - Streaming HTTP
 - uv
+
+The approved selection and operational boundary between these renderer and
+speech technologies is defined by
+`READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md`.
 
 ## Hosting and Networking
 

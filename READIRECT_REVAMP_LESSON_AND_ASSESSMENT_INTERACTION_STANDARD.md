@@ -14,6 +14,8 @@ It complements:
 - `READIRECT_REVAMP_VIEWPORT_STANDARD.md` for required responsive viewports.
 - `READIRECT_REVAMP_CLARA_LIVE2D_SPECIFICATION.md` for Ma'am Clara's approved
   crop, palette, behavior, and fallback.
+- `READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md` for the
+  effective Clara renderer, speech mode, and mode-invariant learner flow.
 - `READIRECT_REVAMP_LESSON_STRUCTURE_STANDARD.md` for lesson persistence, ASR
   targets, content formatting, and scoring separation.
 - `READIRECT_REVAMP_ASSESSMENT_GUIDE.md` for fixed assessment tasks, item
@@ -69,9 +71,10 @@ Authority boundaries:
     may hard-code a color.
 12. The interface uses solid vector-like fills, fake downward depth, and no
     gradients.
-13. Clara's TTS must never play while her Live2D model is loading. Speech may
-    be prepared early, but audible playback waits for the currently mounted
-    shared `ClaraStage` to report `ready`.
+13. Clara's TTS must never play while her selected renderer is loading. Speech
+    may be prepared early, but audible playback waits for the currently mounted
+    shared `ClaraStage` to report `ready`. Live2D waits for its first frame and
+    reveal; static mode waits for the selected theme portrait to decode.
 14. Part 1 item 1 uses the complete task instruction. Items 2 through 10 use
     the task's short ordinal cue: `Now, try the {ordinal} letter.`,
     `Now, check the {ordinal} pair.`, or
@@ -109,8 +112,8 @@ deduplicated named Clara speech request. After the shared tactile button commit,
 the dashboard navigates directly without a Link Start overlay. Lesson Intro
 then reuses the pending or completed request. Clara
 uses `happy + speaking` for the line; `speaking` becomes true only during actual
-playback. Speech preparation and Live2D initialization run in parallel, but
-playback begins only after both are ready. The Live2D CSS wave, active
+playback. Speech preparation and selected Clara-renderer initialization run in
+parallel, but playback begins only after both are ready. The Live2D CSS wave, active
 hair-color reveal, centered TTS warm-up cube, an elapsed timer, or a ready state
 inherited from a previous route must never open this gate. The model wave has
 loader priority: the TTS cube may appear only after the mounted Clara stage is
@@ -149,7 +152,7 @@ interaction alone.
 
 Allowed:
 
-- Ma'am Clara's Live2D model and approved PNG fallback.
+- Ma'am Clara's Live2D model and approved lightweight static portrait.
 - Simple SVG or CSS control icons such as microphone, play, pause, and arrows.
 - Code-rendered rectangles, circles, outlines, progress segments, particles,
   and other interface geometry.
@@ -485,7 +488,9 @@ conceptual flow.
 ```
 
 - The lesson displays only the feedback permitted for its result type.
-- Clara plays the corresponding short feedback audio and expression.
+- Clara plays the corresponding short published feedback audio and expression.
+  Correct and incorrect terminal results must use different authored lines;
+  neither may prepend runtime final-transcript narration.
 - The Skip position becomes Next.
 - Next appears only after the result and save checkpoint are confirmed.
 - Pressing Next advances after the standard tactile commit delay.

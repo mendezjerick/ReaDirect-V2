@@ -140,10 +140,20 @@ describe("System Admin Agents and AI workspaces", () => {
                 conditional_mu_noise_reduction_enabled: false,
                 nu_noise_reduction: false,
               },
+              lightweight_mode: {
+                enabled: false,
+                static_clara: true,
+                published_speech_only: true,
+                display_mode: "live2d",
+                speech_mode: "hybrid",
+                revision: "default-v1",
+                applies_on_next_learner_load: true,
+              },
             },
             governance: {
               read_only: true,
               message: "Display and voice are source-controlled.",
+              lightweight_mode_mutable: true,
             },
             generated_at: "2026-07-30T10:00:00+00:00",
           }),
@@ -164,7 +174,9 @@ describe("System Admin Agents and AI workspaces", () => {
     expect(screen.getAllByText("Jersey 20").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Lexend").length).toBeGreaterThan(0);
     expect(screen.getAllByText("clara-sh-v1").length).toBeGreaterThan(0);
-    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("switch", { name: "Lightweight mode" }),
+    ).toBeVisible();
   });
 
   it("searches the published fixed-speech catalog without inventing an LLM registry", async () => {

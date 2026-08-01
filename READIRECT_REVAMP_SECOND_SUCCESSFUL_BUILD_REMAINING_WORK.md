@@ -150,6 +150,12 @@ This is a guarded release boundary, not a hidden incomplete Learner flow.
 The following work does not block the completed required assessment-and-lesson
 system.
 
+### Lightweight Learner Delivery
+
+Completed in the third successful build. See
+`READIRECT_REVAMP_THIRD_SUCCESSFUL_BUILD_LIGHTWEIGHT_DELIVERY.md` and
+`READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md`.
+
 ### Games
 
 - Replace the reserved Game Zero route with a reviewed game design and complete

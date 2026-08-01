@@ -3,6 +3,8 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { createAppQueryClient } from "../src/app/queryClient";
 
 const speechMocks = vi.hoisted(() => ({
   prepare: vi.fn(),
@@ -115,10 +117,12 @@ function renderLessonIntro() {
   return render(
     <MemoryRouter initialEntries={["/learner/lesson-intro"]}>
       <ThemeProvider>
-        <Routes>
-          <Route path="/learner/lesson-intro" element={<LessonIntroPage />} />
-          <Route path="/learner/login" element={<div>Login route</div>} />
-        </Routes>
+        <QueryClientProvider client={createAppQueryClient()}>
+          <Routes>
+            <Route path="/learner/lesson-intro" element={<LessonIntroPage />} />
+            <Route path="/learner/login" element={<div>Login route</div>} />
+          </Routes>
+        </QueryClientProvider>
       </ThemeProvider>
     </MemoryRouter>,
   );
@@ -126,6 +130,18 @@ function renderLessonIntro() {
 
 describe("LessonIntroPage", () => {
   beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            learner: learnerSession.learner,
+            session: learnerSession.session,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
     activityPreparationMocks.state = {
       status: "ready",
       manifest: {
@@ -188,7 +204,7 @@ describe("LessonIntroPage", () => {
 
     await act(async () => finishPlayback?.());
 
-    expect(continueButton).toBeEnabled();
+    await waitFor(() => expect(continueButton).toBeEnabled());
     expect(continueButton).toHaveClass("big-button--primary");
     expect(continueButton).not.toHaveClass("big-button--unavailable");
     expect(container.querySelector(".clara-stage")).toHaveAttribute(

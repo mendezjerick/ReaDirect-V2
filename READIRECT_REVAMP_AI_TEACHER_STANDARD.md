@@ -29,6 +29,7 @@ This standard does not replace:
 - `READIRECT_REVAMP_CONTENT_CSV_AND_SELECTION_STANDARD.md`
 - `READIRECT_REVAMP_CLARA_VOX_TTS_SPECIFICATION.md`
 - `READIRECT_REVAMP_CLARA_LIVE2D_SPECIFICATION.md`
+- `READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md`
 - `READIRECT_REVAMP_ISOLATED_LETTER_PRONUNCIATION_STANDARD.md`
 
 Where those documents define stricter content, assessment, speech, viewport,
@@ -782,8 +783,9 @@ Feedback must never include:
 
 ## TTS Delivery Implications
 
-The AI teacher increases the number of possible spoken responses, but the
-hybrid delivery rule remains mandatory.
+The AI teacher increases the number of possible spoken responses. Hybrid
+delivery remains the default, while the approved lightweight setting may select
+published-only speech without changing teaching, scoring, or retry behavior.
 
 ### Published speech
 
@@ -796,6 +798,8 @@ Pre-generate and review:
 - Transition language
 - Demonstration framing
 - Completion and review messages
+- Correct, demonstrated-echo, terminal incorrect, unscorable, and skipped
+  outcome messages
 - Any line fully known during content publication
 
 ### Content-authored speech
@@ -808,10 +812,21 @@ Generate and review alongside content where possible:
 - Authored micro-lesson examples
 - Comprehension evidence prompts
 
+Finite content selected from a locked run remains content-authored speech. Run
+selection alone does not make a word, phrase, sentence, or passage
+demonstration dynamic.
+
 ### Dynamic speech
 
-Reserve runtime Vox for text that cannot be known before the learner response,
-such as safely rendering a committed unexpected final transcription.
+Reserve runtime Vox for one personalized diagnosis after the first clear
+incorrect academic response when the required text cannot be known before the
+learner responds. Published-only mode substitutes the activity's general
+first-incorrect line. Both modes then use the same published clue,
+demonstration, and distinct correct or incorrect terminal outcome.
+
+Runtime Vox must not render correct feedback, demonstrated-echo success, final
+incorrect feedback, or a terminal `You said ...` preamble. A runtime failure in
+hybrid mode falls back to the same general published first-incorrect line.
 
 The complete feedback sentence must not be runtime-generated merely because
 one small content token varies when a published or content-authored solution is
@@ -943,16 +958,22 @@ Current implementation:
   completion.
 - Mission-specific clues, technical retry language, terminal outcome feedback,
   and Lesson 1 A-Z demonstrations are finite published catalog content.
-- The committed learner transcript uses response-owned runtime feedback; it
-  plays before the relevant fixed clue or outcome line.
-- Lesson 2 target-word demonstrations are response-owned runtime speech
-  because the locked word varies by run. Laravel reads the hidden target from
-  the immutable snapshot; the browser never supplies demonstration text.
+- The currently deployed baseline can play response-owned runtime transcript
+  feedback before a fixed clue or outcome line. The approved lightweight and
+  hybrid migration narrows this to the first clear incorrect personalized
+  diagnosis only. Every terminal outcome then uses distinct published correct
+  or incorrect speech.
+- The currently deployed Lesson 2 target-word demonstration is response-owned
+  runtime speech. The approved migration publishes the deterministic
+  demonstration for all 49 active word rows and selects it from the immutable
+  snapshot; the browser never supplies demonstration text or its catalog key.
 - Lesson 3 phrase and Lesson 4 sentence demonstrations are finite published
   speech. All 20 phrase targets and 20 sentence targets are generated,
-  reviewed, cataloged, and addressed by the locked content ID. Only
-  response-dependent final-transcript and alignment feedback remains runtime
-  speech in these activities.
+  reviewed, cataloged, and addressed by the locked content ID. After the
+  approved migration, only a first clear incorrect personalized diagnosis or
+  alignment may remain runtime in hybrid mode. Published-only mode uses the
+  general first-incorrect line instead, and terminal speech is always
+  published.
 - `TranscriptAlignmentService` implements reusable word-level Levenshtein
   alignment for Lesson 3 phrases, Lesson 4 sentences, and Lesson 5 passages.
   All store the

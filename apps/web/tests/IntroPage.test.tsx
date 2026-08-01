@@ -47,7 +47,6 @@ vi.mock("motion/react", async (importOriginal) => {
 
 import {
   INTRO_ACTION_COMMIT_DELAY_MS,
-  INTRO_CENTER_HOLD_MS,
   INTRO_EXPRESSION_SEQUENCE,
 } from "../src/features/intro/introConfig";
 import { IntroPage } from "../src/features/intro/IntroPage";
@@ -108,37 +107,37 @@ describe("IntroPage", () => {
     }
   });
 
-  it("holds the centered title for two seconds before revealing the action", () => {
-    vi.useFakeTimers();
+  it("reveals the action once Clara has completed her opening reveal", async () => {
+    const { container, unmount } = renderIntro();
+    expect(container.querySelector("main")).toHaveClass(
+      "learner-typography-page",
+    );
+    const continueButton = container.querySelector<HTMLButtonElement>(
+      ".intro-page__continue",
+    );
 
-    try {
-      const { container, unmount } = renderIntro();
-      expect(container.querySelector("main")).toHaveClass(
-        "learner-typography-page",
-      );
-      const continueButton = container.querySelector<HTMLButtonElement>(
-        ".intro-page__continue",
-      );
+    expect(
+      screen.getByRole("heading", { name: "ReaDirect" }),
+    ).toBeInTheDocument();
+    expect(document.querySelector(".clara-stage__loader-wave")).toBeTruthy();
+    expect(screen.queryByAltText("Ma'am Clara")).not.toBeInTheDocument();
+    expect(continueButton).toBeDisabled();
 
-      expect(
-        screen.getByRole("heading", { name: "ReaDirect" }),
-      ).toBeInTheDocument();
-      expect(document.querySelector(".clara-stage__loader-wave")).toBeTruthy();
-      expect(screen.queryByAltText("Ma'am Clara")).not.toBeInTheDocument();
-      expect(continueButton).toBeDisabled();
+    await act(async () => {
+      await vi.dynamicImportSettled();
+    });
+    act(() => live2dMocks.setState?.("ready"));
+    act(() => {
+      document
+        .querySelector(".clara-stage__loader-cover")
+        ?.dispatchEvent(new Event("animationend", { bubbles: true }));
+    });
 
-      act(() => vi.advanceTimersByTime(INTRO_CENTER_HOLD_MS - 1));
-      expect(continueButton).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Tap to continue" }),
+    ).toBeEnabled();
 
-      act(() => vi.advanceTimersByTime(1));
-      expect(
-        screen.getByRole("button", { name: "Tap to continue" }),
-      ).toBeEnabled();
-
-      unmount();
-    } finally {
-      vi.useRealTimers();
-    }
+    unmount();
   });
 
   it("uses the model-centered CSS wave and completes its reveal", () => {
@@ -193,13 +192,20 @@ describe("IntroPage", () => {
     expect(document.querySelector(".clara-stage__canvas")).toBeTruthy();
   });
 
-  it("shows the press commit before continuing to the home route", () => {
+  it("shows the press commit before continuing to the home route", async () => {
     vi.useFakeTimers();
 
     try {
       const { unmount } = renderIntro();
-      act(() => vi.advanceTimersByTime(INTRO_CENTER_HOLD_MS));
-
+      await act(async () => {
+        await vi.dynamicImportSettled();
+      });
+      act(() => live2dMocks.setState?.("ready"));
+      act(() => {
+        document
+          .querySelector(".clara-stage__loader-cover")
+          ?.dispatchEvent(new Event("animationend", { bubbles: true }));
+      });
       const continueButton = screen.getByRole("button", {
         name: "Tap to continue",
       });
