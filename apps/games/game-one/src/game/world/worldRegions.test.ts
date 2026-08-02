@@ -6,6 +6,8 @@ describe("world regions", () => {
   it("identifies the connected village, river, and forest in priority order", () => {
     expect(getWorldRegionAtPoint({ x: 20 * TILE_SIZE, y: 22 * TILE_SIZE }).id).toBe("village");
     expect(getWorldRegionAtPoint({ x: 20 * TILE_SIZE, y: 9 * TILE_SIZE }).id).toBe("river");
+    expect(getWorldRegionAtPoint({ x: 51 * TILE_SIZE, y: 25 * TILE_SIZE }).id).toBe("river");
+    expect(getWorldRegionAtPoint({ x: 57 * TILE_SIZE, y: 24 * TILE_SIZE }).id).toBe("village");
     expect(getWorldRegionAtPoint({ x: 20 * TILE_SIZE, y: 4 * TILE_SIZE }).id).toBe("forest");
   });
 

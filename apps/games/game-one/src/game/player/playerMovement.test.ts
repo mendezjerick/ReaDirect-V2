@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { MAP_LANDMARKS, PROTOTYPE_MAP, TILE_SIZE } from "../map/prototypeMap";
-import { getBaseFrameForFacing, getWalkFrameForFacing, movePlayer, PLAYER_CONFIG } from "./playerMovement";
+import { isSwimmableRiverPosition, isSwimmableRiverPoint, MAP_LANDMARKS, PROTOTYPE_MAP, TILE_SIZE } from "../map/prototypeMap";
+import {
+  getBaseFrameForFacing,
+  getBoatRidingFrame,
+  getSwimmingBobOffset,
+  getSwimmingFrameForFacing,
+  getSwimmingStrokeAngle,
+  getWalkFrameForFacing,
+  movePlayer,
+  PLAYER_CONFIG
+} from "./playerMovement";
 
 describe("player movement", () => {
   it("moves consistently based on delta time", () => {
@@ -55,7 +64,7 @@ describe("player movement", () => {
   });
 
   it("allows movement into ordinary garden grass while solid objects remain blocked", () => {
-    const position = { x: 4 * TILE_SIZE, y: 12 * TILE_SIZE };
+    const position = { x: 4 * TILE_SIZE, y: 13 * TILE_SIZE };
     const moved = movePlayer({
       position,
       input: { x: -1, y: 0 },
@@ -110,6 +119,58 @@ describe("player movement", () => {
     expect(grassMoved.x).toBeGreaterThan(grassPosition.x);
   });
 
+  it("supports a custom movement speed and position rule for swimming", () => {
+    const position = { x: 10.5 * TILE_SIZE, y: 9.5 * TILE_SIZE };
+    const swimmingMap = {
+      ...PROTOTYPE_MAP,
+      collision: PROTOTYPE_MAP.collision.filter((obstacle) => !obstacle.id.startsWith("water-")),
+      getNearbyCollision: undefined,
+      isWalkablePoint: undefined
+    };
+    const moved = movePlayer({
+      position,
+      input: { x: 1, y: 0 },
+      deltaSeconds: 0.5,
+      map: swimmingMap,
+      speed: 92,
+      isPositionAllowed: (point) => isSwimmableRiverPosition(point, PLAYER_CONFIG.radius)
+    });
+
+    expect(moved.x).toBe(position.x + 92 * 0.5);
+    expect(isSwimmableRiverPoint(moved)).toBe(true);
+  });
+
+  it("keeps a swimmer inside the left river instead of allowing the bridge boundary", () => {
+    const position = { x: 28.5 * TILE_SIZE, y: 9.5 * TILE_SIZE };
+    const swimmingMap = {
+      ...PROTOTYPE_MAP,
+      collision: PROTOTYPE_MAP.collision.filter((obstacle) => !obstacle.id.startsWith("water-")),
+      getNearbyCollision: undefined,
+      isWalkablePoint: undefined
+    };
+    const moved = movePlayer({
+      position,
+      input: { x: 1, y: 0 },
+      deltaSeconds: 0.5,
+      map: swimmingMap,
+      speed: 92,
+      isPositionAllowed: isSwimmableRiverPoint
+    });
+
+    expect(moved).toEqual(position);
+    expect(isSwimmableRiverPoint({ x: 29.5 * TILE_SIZE, y: position.y })).toBe(false);
+  });
+
+  it("animates the swimmer and keeps the bob stable for reduced motion", () => {
+    expect(getSwimmingFrameForFacing("down", 0, "row-walk-four-way")).toBe(0);
+    expect(getSwimmingFrameForFacing("down", 0.3, "row-walk-four-way")).toBe(1);
+    expect(getSwimmingFrameForFacing("left", 0.3, "row-walk-four-way", false)).toBe(12);
+    expect(getSwimmingBobOffset(0.25)).not.toBe(0);
+    expect(getSwimmingBobOffset(0.25, true)).toBe(0);
+    expect(getSwimmingStrokeAngle("left", 0.25, true)).not.toBe(0);
+    expect(getSwimmingStrokeAngle("left", 0.25, true, true)).toBe(0);
+  });
+
   it("allows the player to move through the intended north and south path openings", () => {
     const northPath = { x: 27.5 * TILE_SIZE, y: 2.5 * TILE_SIZE };
     const northMoved = movePlayer({
@@ -154,5 +215,19 @@ describe("player movement", () => {
     expect([0, 1, 2, 3].map((step) => getWalkFrameForFacing("right", step))).toEqual([
       3, 7, 11, 15
     ]);
+  });
+
+  it("uses the Yato sheet's reversed side-facing columns for the playable learner", () => {
+    expect(getBaseFrameForFacing("left", "yato")).toBe(3);
+    expect(getBaseFrameForFacing("right", "yato")).toBe(2);
+    expect([0, 1, 2, 3].map((step) => getWalkFrameForFacing("left", step, "yato"))).toEqual([
+      3, 7, 11, 15
+    ]);
+  });
+
+  it("uses a slower facing-aware animation while the learner rows a boat", () => {
+    expect(getBoatRidingFrame("left", 0.4, false, "yato")).toBe(3);
+    expect(getBoatRidingFrame("left", 0.4, true, "yato")).toBe(11);
+    expect(getBoatRidingFrame("up", 0.5, true, "yato")).toBe(13);
   });
 });

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMission, getSkillLabels, MISSIONS } from "../content/missions";
+import { getLoreAssignments } from "../content/lore";
 import { getNpc } from "../content/npcs";
 import {
   getCurrentObjective,
@@ -82,19 +83,19 @@ export function DialogueOverlay({ state, dispatch }: { state: MissionState; disp
 
   if (!active) return null;
   const isLastPage = active.pageIndex === active.pages.length - 1;
-  const npc = getNpc(active.speakerId);
 
   return (
     <div className="mission-overlay" role="presentation">
       <section ref={panelRef} role="dialog" aria-modal="true" aria-label={`${active.speakerName} dialogue`} tabIndex={-1} className="dialogue-panel">
-        <div className="dialogue-speaker" aria-hidden="true"><span>{initials(npc.displayName)}</span></div>
+        <div className="dialogue-speaker" aria-hidden="true"><span>{initials(active.speakerName)}</span></div>
         <div className="min-w-0 flex-1 overflow-y-auto pr-1">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-black uppercase text-[#176b4d]">{active.speakerName}</p>
-              <p className="mt-1 text-sm font-bold text-[#567064]">{copy.page} {active.pageIndex + 1} {copy.of} {active.pages.length}</p>
+              <p className="mt-1 text-sm font-bold text-[#567064]">{active.speakerRole}</p>
+              <p className="text-xs font-bold text-[#6b7f75]">{copy.page} {active.pageIndex + 1} {copy.of} {active.pages.length}</p>
             </div>
-            {active.kind === "optional" && (
+            {active.kind !== "mission" && (
               <button type="button" onClick={() => dispatch({ type: "CLOSE_DIALOGUE" })} className="min-h-11 rounded-md border-2 border-[#176b4d] px-3 font-extrabold text-[#176b4d]">{copy.close}</button>
             )}
           </div>
@@ -134,6 +135,7 @@ export function StoryPresentationOverlay({ state, dispatch }: { state: MissionSt
   const mission = getMission(state.missionId, state.language);
   const page = mission.reading.pages[state.readingPageIndex];
   const lastPage = state.readingPageIndex === mission.reading.pages.length - 1;
+  const loreAssignments = getLoreAssignments(mission.id);
   return (
     <div className="mission-overlay">
       <section role="dialog" aria-modal="true" aria-labelledby="reading-title" className="story-panel pixel-reading-panel">
@@ -142,6 +144,14 @@ export function StoryPresentationOverlay({ state, dispatch }: { state: MissionSt
         <p className="mt-2 text-sm font-bold text-[#567064]">{copy.purpose}: {mission.situation}</p>
         <p className="reading-progress">{copy.page} {state.readingPageIndex + 1} {copy.of} {mission.reading.pages.length}</p>
         <div className="story-copy"><p>{page}</p></div>
+        {state.readingPageIndex === 0 && loreAssignments.length > 0 && (
+          <aside className="mt-4 border-l-4 border-[#facc15] bg-[#fff8d7] px-3 py-2 text-sm text-[#13251d]" aria-label={state.language === "fil" ? "Kasama sa misyon" : "Mission team"}>
+            <p className="font-black uppercase text-[#176b4d]">{state.language === "fil" ? "Kasama sa Misyon" : "Mission Team"}</p>
+            <ul className="mt-1 space-y-1">
+              {loreAssignments.map((assignment) => <li key={assignment.npcId}><strong>{getNpc(assignment.npcId).displayName}:</strong> {assignment.task[state.language]}</li>)}
+            </ul>
+          </aside>
+        )}
         <div className="reading-actions">
           <button type="button" onClick={() => dispatch({ type: "PREVIOUS_READING_PAGE" })} disabled={state.readingPageIndex === 0} className="question-secondary">{copy.previous}</button>
           {!lastPage && <button type="button" autoFocus onClick={() => dispatch({ type: "NEXT_READING_PAGE" })} className="story-primary">{copy.next}</button>}

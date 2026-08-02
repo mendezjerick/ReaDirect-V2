@@ -35,8 +35,19 @@ describe("bilingual ReaDirect content", () => {
       "Pack the cloth first. Add the pitchers second. Put the mangoes on top. Take the crate to Lolo Ambo."
     );
     expect(getMission("market-supplies", "fil").reading.pages[1]).toBe(
-      "Ilagay muna ang mantel. Isunod ang mga pitsel. Ilagay sa ibabaw ang mga mangga. Dalhin ang kahon kay Lolo Ambo."
+      "Ilagay muna ang tela. Isunod ang mga pitsel. Ilagay sa ibabaw ang mga mangga. Dalhin ang kahon kay Lolo Ambo."
     );
+  });
+
+  it("uses short questions and simple modern Filipino words", () => {
+    const formalWords = /\b(liwasan|hudyat|rehas|paunawa|panlabas|patungo|mantel|tala|palatandaan|paglalakbay|panganib|kagamitan|tuntunin|hinuha)\b/i;
+
+    for (const mission of getMissions("fil")) {
+      for (const question of mission.questions) {
+        expect(question.prompt.trim().split(/\s+/).length).toBeLessThanOrEqual(7);
+        expect([question.prompt, ...question.choices.map(({ text }) => text)].join(" ")).not.toMatch(formalWords);
+      }
+    }
   });
 
   it("changes language without changing the active item, choice order, attempts, or answer", () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { chooseFishingResult, createFishingSession, FISHING_SPOTS, fishingReducer, getFishingProximity } from "./fishingSystem";
+import { getTileKind, isWalkablePoint } from "../map/prototypeMap";
 
 describe("fishing interaction", () => {
   const spot = FISHING_SPOTS[0];
@@ -10,6 +11,12 @@ describe("fishing interaction", () => {
     expect(getFishingProximity(spot.interactionPosition, "down", spot)).toBe("face-water");
     expect(getFishingProximity(spot.interactionPosition, "up", spot)).toBe("ready");
     expect(getFishingProximity(spot.interactionPosition, "up", spot, true)).toBe("hidden");
+  });
+
+  it("keeps the learner on the bank while the dock reaches the water", () => {
+    expect(isWalkablePoint(spot.interactionPosition)).toBe(true);
+    expect(getTileKind(40, 12)).not.toBe("water");
+    expect(getTileKind(40, 11)).toBe("water");
   });
 
   it("keeps the pull window generous and ignores early pulls", () => {

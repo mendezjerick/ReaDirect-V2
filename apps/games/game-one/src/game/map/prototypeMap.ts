@@ -1,5 +1,6 @@
 import type { Rectangle } from "../physics/collision";
 import { getFruitTreeFrame, type FruitTreeKind } from "../assets/generatedOrchardAssets";
+import { VILLAGE_DECOR_FRAME } from "../assets/generatedVillageDecorAssets";
 
 export const TILE_SIZE = 32;
 
@@ -28,6 +29,10 @@ export type MapAreaKey =
   | "twin-waterfalls"
   | "south-lane"
   | "farm-woodland"
+  | "east-riverbank"
+  | "south-riverbend"
+  | "south-river-cove"
+  | "east-river-channel"
   | "tree-border";
 
 export type MapArea = {
@@ -37,17 +42,17 @@ export type MapArea = {
 };
 
 export type VisualAssetKey =
-  | "tileset-village-abandoned"
   | "tileset-nature"
   | "village-red-house"
   | "village-learning-hall"
   | "village-east-house"
-  | "village-market-counter"
+  | "village-market-shop"
   | "tree-round"
   | "tree-wide"
   | "fruit-tree"
-  | "stump-orange"
-  | "farm-fence";
+  | "farm-fence"
+  | "village-decor"
+  | "reading-shrine";
 
 export type TerrainSprite = {
   assetKey: "tileset-floor" | "tileset-water";
@@ -76,8 +81,8 @@ export type VisualObject = {
 
 type TileRegion = { x: number; y: number; width: number; height: number };
 
-const WORLD_COLUMNS = 54;
-const WORLD_ROWS = 34;
+const WORLD_COLUMNS = 62;
+const WORLD_ROWS = 66;
 
 const PATH_REGIONS: readonly TileRegion[] = [
   // Northern forest arrival space and the stepped trail beyond the bridge.
@@ -100,28 +105,85 @@ const PATH_REGIONS: readonly TileRegion[] = [
   // A gently offset southern lane instead of one straight corridor.
   { x: 24, y: 23, width: 8, height: 6 },
   { x: 22, y: 27, width: 8, height: 5 },
-  { x: 20, y: 30, width: 8, height: 3 }
+  { x: 20, y: 30, width: 12, height: 7 },
+  // New southern loop and east riverbank reached by walking around the river bend.
+  { x: 29, y: 34, width: 18, height: 4 },
+  { x: 44, y: 33, width: 14, height: 5 },
+  { x: 54, y: 18, width: 6, height: 18 },
+  // The extended cove has walkable banks for a deliberate boat landing.
+  { x: 43, y: 46, width: 4, height: 5 },
+  { x: 54, y: 46, width: 1, height: 16 }
 ];
 
 const MAIN_RIVER_REGIONS: readonly TileRegion[] = [
-  { x: 1, y: 8, width: 52, height: 3 },
-  { x: 50, y: 8, width: 3, height: 15 }
+  // Five-tile channels give the boat room to turn and continue into the expanded map.
+  { x: 1, y: 7, width: 53, height: 5 },
+  { x: 49, y: 7, width: 5, height: 42 },
+  // A wider southern cove gives the boat a place to turn and explore.
+  { x: 47, y: 46, width: 8, height: 3 },
+  // The cove turns right, then continues south as a second channel.
+  { x: 55, y: 46, width: 5, height: 16 },
+  // Small inlets keep the shoreline from reading as one rigid rectangle.
+  { x: 15, y: 6, width: 4, height: 1 },
+  { x: 38, y: 6, width: 5, height: 1 },
+  { x: 12, y: 12, width: 3, height: 1 }
 ];
 
-const BRIDGE_REGION: TileRegion = { x: 29, y: 8, width: 4, height: 3 };
+// The west horizontal channel is the learner's safe swimming area. The east channel remains boat-only.
+export const SWIMMABLE_RIVER_REGION: TileRegion = { x: 1, y: 7, width: 28, height: 5 };
+
+const BRIDGE_REGION: TileRegion = { x: 29, y: 7, width: 4, height: 5 };
+const NATURE_FRAME = {
+  leafyBush: 240,
+  roundBush: 241,
+  lowBush: 242,
+  tallLeaves: 245,
+  sunflower: 264,
+  doubleSunflower: 265,
+  redFlower: 267,
+  whiteFlower: 270,
+  smallStone: 292
+} as const;
 
 export const MAP_LANDMARKS = {
   spawn: tileCenter(27, 25),
   missEstelle: tileCenter(27, 21),
   marketFront: tileCenter(16, 20),
   loloCorner: tileCenter(43, 20),
-  bridgeSouth: tileCenter(30, 11),
-  bridgeNorth: tileCenter(30, 7),
+  bridgeSouth: tileCenter(30, 12),
+  bridgeNorth: tileCenter(30, 6),
   forestTrail: tileCenter(29, 14),
   twinWaterfalls: tileCenter(30, 4),
   southLane: tileCenter(23, 31),
   mangYato: tileCenter(45, 27),
-  farmGate: tileCenter(33, 27)
+  farmGate: tileCenter(33, 27),
+  eastRiverbank: tileCenter(57, 24),
+  southRiverbend: tileCenter(46, 36),
+  southRiverCove: tileCenter(46, 48),
+  eastRiverChannel: tileCenter(54, 52)
+} as const;
+
+export const MAP_DECORATION_LANDMARKS = {
+  villageGuideSign: {
+    position: tileCenter(30, 19),
+    indicatorPosition: tileCenter(30, 18)
+  },
+  learningHallNotice: {
+    position: tileCenter(24, 16),
+    indicatorPosition: tileCenter(24, 15)
+  },
+  farmGateSign: {
+    position: tileCenter(34, 26),
+    indicatorPosition: tileCenter(34, 25)
+  },
+  readingShrine: {
+    position: tileCenter(55, 18),
+    indicatorPosition: tileCenter(55, 16)
+  },
+  shrineBoatWarningSign: {
+    position: tileCenter(58, 17),
+    indicatorPosition: tileCenter(58, 16)
+  }
 } as const;
 
 const staticCollision = [
@@ -134,52 +196,98 @@ const staticCollision = [
 ] satisfies Rectangle[];
 
 const visualObjects = [
-  // West village home group.
+  // West homes use a compact private garden instead of repeated loose trees.
   house("west-house", "village-red-house", 7, 12),
-  tree("west-home-tree", 3, 11),
-  ...treeCluster("west-home-wide-tree", 5, 7),
-  stump("west-home-stump", 11, 12),
-  flower("west-home-flower", 12, 15, 264),
+  wideTree("west-home-canopy", 2, 10),
+  tree("west-home-side-tree", 12, 11),
+  natureDecor("west-home-sunflower", 5, 15, NATURE_FRAME.sunflower),
+  natureDecor("west-home-red-flower", 6, 15, NATURE_FRAME.redFlower),
+  natureDecor("west-home-white-flower", 12, 15, NATURE_FRAME.whiteFlower),
+  natureDecor("west-home-leafy-bush", 12, 14, NATURE_FRAME.tallLeaves),
+  villageDecor("west-home-planter", 6, 16, VILLAGE_DECOR_FRAME.redPlanter),
+  villageDecor("west-home-bench", 10, 16, VILLAGE_DECOR_FRAME.bench),
 
-  // Learning hall and story-plaza framing.
+  // The learning hall has a formal, readable entrance like a civic building.
   house("learning-hall", "village-learning-hall", 20, 12),
-  ...treeCluster("hall-tree", 15, 11),
-  flower("plaza-flower-a", 22, 19, 264),
-  flower("plaza-flower-b", 33, 22, 272),
+  wideTree("hall-tree-line", 15, 11),
+  villageDecor("learning-hall-notice", 24, 15, VILLAGE_DECOR_FRAME.sign, true),
+  villageDecor("learning-hall-lantern-left", 19, 15, VILLAGE_DECOR_FRAME.lantern),
+  villageDecor("learning-hall-lantern-right", 23, 15, VILLAGE_DECOR_FRAME.lantern),
+  villageDecor("learning-hall-planter-left", 18, 16, VILLAGE_DECOR_FRAME.whitePlanter),
+  villageDecor("learning-hall-planter-right", 24, 16, VILLAGE_DECOR_FRAME.redPlanter),
 
-  // Dedicated market scene: stall, goods, and readable front approach.
-  marketCounter("market-counter", 14, 17),
-  tileDecoration("market-produce-left", "tileset-village-abandoned", 13, 18, 227),
-  tileDecoration("market-produce-right", "tileset-village-abandoned", 18, 18, 228),
-  flower("market-flower", 12, 21, 272),
-  stump("market-crate-anchor", 19, 16),
+  // The story plaza is open in the middle and framed by useful street furniture.
+  villageDecor("village-guide-sign", 30, 18, VILLAGE_DECOR_FRAME.sign, true),
+  villageDecor("plaza-bench-west", 23, 23, VILLAGE_DECOR_FRAME.bench),
+  villageDecor("plaza-bench-east", 32, 23, VILLAGE_DECOR_FRAME.bench),
+  villageDecor("plaza-planter-west", 22, 20, VILLAGE_DECOR_FRAME.redPlanter),
+  villageDecor("plaza-planter-east", 33, 20, VILLAGE_DECOR_FRAME.whitePlanter),
+  natureDecor("plaza-stone-west", 21, 22, NATURE_FRAME.smallStone),
+  natureDecor("plaza-stone-east", 34, 22, NATURE_FRAME.smallStone),
 
-  // East home and Lolo Ambo's quieter garden corner.
+  // Market props are practical: produce, flowers, and a waiting bench.
+  marketShop("market-shop", 14, 17),
+  villageDecor("market-produce-left", 13, 19, VILLAGE_DECOR_FRAME.produceCrate),
+  villageDecor("market-produce-right", 18, 19, VILLAGE_DECOR_FRAME.produceCrate),
+  villageDecor("market-bench", 18, 21, VILLAGE_DECOR_FRAME.bench),
+  natureDecor("market-red-flower", 12, 21, NATURE_FRAME.redFlower),
+  natureDecor("market-white-flower", 19, 21, NATURE_FRAME.whiteFlower),
+
+  // Lolo Ambo's corner feels older and calmer with stone markers and lamps.
   house("east-house", "village-east-house", 41, 12),
-  tree("lolo-shade-tree", 46, 16),
-  flower("lolo-garden-flower", 40, 22, 264),
+  wideTree("lolo-shade-tree", 44, 15),
+  villageDecor("lolo-bench", 43, 17, VILLAGE_DECOR_FRAME.bench),
+  villageDecor("lolo-lantern-west", 40, 16, VILLAGE_DECOR_FRAME.lantern),
+  villageDecor("lolo-lantern-east", 47, 16, VILLAGE_DECOR_FRAME.lantern),
+  villageDecor("lolo-stone-marker", 46, 20, VILLAGE_DECOR_FRAME.stoneMarker),
+  natureDecor("lolo-white-flower", 40, 22, NATURE_FRAME.whiteFlower),
 
-  // Southern home and lane details.
+  // The southern lane transitions from village furniture into wilder growth.
   house("southwest-house", "village-learning-hall", 9, 26),
-  ...treeCluster("southwest-tree", 3, 25),
-  stump("south-lane-stump", 17, 28),
+  wideTree("southwest-tree-line", 3, 25),
+  villageDecor("south-lane-bench", 14, 29, VILLAGE_DECOR_FRAME.bench),
+  natureDecor("south-lane-bush", 17, 30, NATURE_FRAME.roundBush),
+  natureDecor("south-lane-stone", 18, 32, NATURE_FRAME.smallStone),
 
-  // A bounded farm field and calm woodland with a three-tile west gate.
+  // The farm has a working edge with supplies and planted color near its gate.
   sprite("farm-fence-boundary", "farm-fence", 33, 23, 16, 10, false),
   tree("farm-woodland-tree-north", 45, 24),
   tree("farm-woodland-tree-south", 45, 29),
-  stump("farm-woodland-log", 42, 30),
-  flower("farm-woodland-flower-a", 44, 28, 264),
-  flower("farm-woodland-flower-b", 47, 27, 272),
+  villageDecor("farm-gate-sign", 34, 26, VILLAGE_DECOR_FRAME.sign),
+  villageDecor("farm-produce-crate", 43, 30, VILLAGE_DECOR_FRAME.produceCrate),
+  natureDecor("farm-sunflower", 44, 28, NATURE_FRAME.doubleSunflower),
+  natureDecor("farm-red-flower", 47, 27, NATURE_FRAME.redFlower),
+  natureDecor("farm-leafy-bush", 47, 30, NATURE_FRAME.leafyBush),
 
-  // Forest framing uses staggered clusters rather than straight rows.
-  ...treeCluster("forest-west-a", 17, 3),
+  // The east bank is a quiet shrine garden with lamps and mixed flowers.
+  readingShrine("east-riverbank-reading-shrine", 54, 15),
+  villageDecor("shrine-boat-warning-sign", 58, 16, VILLAGE_DECOR_FRAME.sign, true),
+  tree("east-riverbank-tree-north", 57, 13),
+  wideTree("east-riverbank-tree-mid", 56, 21),
+  tree("east-riverbank-tree-south", 58, 30),
+  villageDecor("shrine-lantern-west", 54, 18, VILLAGE_DECOR_FRAME.lantern),
+  villageDecor("shrine-lantern-east", 57, 18, VILLAGE_DECOR_FRAME.lantern),
+  natureDecor("east-riverbank-sunflower", 58, 18, NATURE_FRAME.sunflower),
+  natureDecor("east-riverbank-red-flower", 55, 31, NATURE_FRAME.redFlower),
+  natureDecor("east-riverbank-white-flower", 56, 32, NATURE_FRAME.whiteFlower),
+  wideTree("south-riverbend-tree", 47, 36),
+  villageDecor("river-cove-landing-sign", 45, 48, VILLAGE_DECOR_FRAME.sign),
+  villageDecor("river-cove-bench", 44, 50, VILLAGE_DECOR_FRAME.bench),
+  natureDecor("river-cove-white-flower", 46, 50, NATURE_FRAME.whiteFlower),
+  tree("river-cove-west-tree", 40, 47),
+  villageDecor("east-channel-landing-sign", 54, 52, VILLAGE_DECOR_FRAME.sign),
+  villageDecor("east-channel-bench", 54, 54, VILLAGE_DECOR_FRAME.bench),
+  natureDecor("east-channel-white-flower", 54, 56, NATURE_FRAME.whiteFlower),
+  tree("east-channel-lower-bank-tree", 52, 59),
+
+  // Forest framing alternates canopy shapes so its silhouette is not tiled.
+  wideTree("forest-west-a", 17, 3),
   tree("forest-west-b", 19, 7),
-  ...treeCluster("forest-west-c", 21, 11),
+  wideTree("forest-west-c", 21, 11),
   tree("forest-east-a", 40, 2),
-  ...treeCluster("forest-east-b", 42, 6),
+  wideTree("forest-east-b", 42, 6),
+  wideTree("forest-east-wide-tree", 46, 3),
   tree("forest-east-c", 44, 11),
-  stump("forest-stump", 35, 13),
 
   // A mixed orchard frames the forest clearing without blocking its central route.
   fruitTree("forest-orchard-apple", "apple", 26, 2),
@@ -187,20 +295,20 @@ const visualObjects = [
   fruitTree("forest-orchard-lemon", "lemon", 26, 5),
   fruitTree("forest-orchard-plum", "plum", 34, 5),
 
-  // Irregular outer framing keeps every sprite fully inside the world.
-  tree("border-northwest-a", 1, 1),
-  ...treeCluster("border-northwest-b", 8, 2),
+  // Irregular outer framing uses fewer, broader canopies.
+  wideTree("border-northwest-a", 1, 1),
+  wideTree("border-northwest-b", 8, 2),
   tree("border-northwest-c", 13, 1),
-  ...treeCluster("border-northeast-a", 46, 1),
-  tree("border-northeast-b", 51, 3),
+  wideTree("border-northeast-a", 55, 1),
+  tree("border-northeast-b", 59, 3),
   tree("border-west-a", 1, 7),
-  ...treeCluster("border-west-b", 2, 17),
-  tree("border-west-c", 1, 29),
-  ...treeCluster("border-east-b", 49, 25),
-  tree("border-east-c", 51, 30),
-  ...treeCluster("border-south-a", 2, 31),
-  tree("border-south-b", 12, 31),
-  ...treeCluster("border-south-c", 43, 31)
+  wideTree("border-west-b", 2, 17),
+  tree("border-west-c", 1, 35),
+  wideTree("border-east-b", 57, 25),
+  tree("border-east-c", 59, 35),
+  wideTree("border-south-a", 2, 63),
+  tree("border-south-b", 12, 63),
+  wideTree("border-south-c", 52, 63)
 ] satisfies VisualObject[];
 
 export const PROTOTYPE_MAP = {
@@ -216,10 +324,14 @@ export const PROTOTYPE_MAP = {
     area("learning-hall-placeholder", "Learning hall", 17, 10, 10, 8),
     area("east-homes", "East home and garden", 38, 10, 10, 14),
     area("river-path", "Northern forest trail", 25, 10, 12, 8),
-    area("old-bridge", "Old wooden bridge", 29, 8, 4, 3),
+    area("old-bridge", "Old wooden bridge", 29, 7, 4, 5),
     area("twin-waterfalls", "North forest clearing", 22, 1, 17, 7),
     area("south-lane", "Winding south lane", 20, 23, 12, 10),
     area("farm-woodland", "Mang Yato's farm woodland", 33, 23, 16, 10),
+    area("east-riverbank", "East riverbank", 54, 12, 7, 23),
+    area("south-riverbend", "South river bend", 29, 33, 29, 6),
+    area("east-river-channel", "East river channel", 55, 46, 5, 16),
+    area("south-river-cove", "South river cove", 43, 44, 12, 8),
     area("tree-border", "Village tree border", 0, 0, WORLD_COLUMNS, WORLD_ROWS)
   ],
   collision: [
@@ -251,9 +363,14 @@ export function getTerrainSprite(tileX: number, tileY: number): TerrainSprite {
     return { assetKey: "tileset-water", frame: waterFrame(tileX, tileY) };
   }
   if (kind === "bridge") {
-    const bridgeFrames = [340, 341, 342, 343, 368, 369, 370, 371, 396, 397, 398, 399];
-    const index = (tileY - BRIDGE_REGION.y) * BRIDGE_REGION.width + (tileX - BRIDGE_REGION.x);
-    return { assetKey: "tileset-water", frame: bridgeFrames[index] };
+    const bridgeRows = [
+      [340, 341, 342, 343],
+      [368, 369, 370, 371],
+      [396, 397, 398, 399]
+    ] as const;
+    const localY = tileY - BRIDGE_REGION.y;
+    const row = localY === 0 ? bridgeRows[0] : localY === BRIDGE_REGION.height - 1 ? bridgeRows[2] : bridgeRows[1];
+    return { assetKey: "tileset-water", frame: row[tileX - BRIDGE_REGION.x] };
   }
   if (kind === "grass") {
     return { assetKey: "tileset-floor", frame: 264 };
@@ -274,7 +391,7 @@ export function getAnimatedWaterFrame(tileX: number, tileY: number, phase: numbe
     getTileKind(tileX - 1, tileY),
     getTileKind(tileX + 1, tileY)
   ].every((kind) => kind === "water" || kind === "bridge");
-  if (!surrounded || coordinateVariant(tileX, tileY, 5) !== 0) return null;
+  if (!surrounded) return null;
   const frames = [29, 39, 67, 123];
   return frames[(Math.max(0, phase) + coordinateVariant(tileX, tileY, frames.length)) % frames.length];
 }
@@ -404,8 +521,8 @@ function house(id: string, assetKey: Extract<VisualAssetKey, `village-${string}`
   });
 }
 
-function marketCounter(id: string, x: number, y: number) {
-  return sprite(id, "village-market-counter", x, y - 1, 4, 3, true, undefined, {
+function marketShop(id: string, x: number, y: number) {
+  return sprite(id, "village-market-shop", x, y - 1, 4, 3, true, undefined, {
     x: 0.2,
     y: 2.2,
     width: 3.6,
@@ -422,8 +539,36 @@ function tree(id: string, x: number, y: number) {
   });
 }
 
-function treeCluster(id: string, x: number, y: number) {
-  return [tree(id, x, y), tree(`${id}-right`, x + 2, y)] as const;
+export function isSwimmableRiverPoint(point: { x: number; y: number }) {
+  const tileX = Math.floor(point.x / TILE_SIZE);
+  const tileY = Math.floor(point.y / TILE_SIZE);
+  return contains(SWIMMABLE_RIVER_REGION, tileX, tileY) && isWaterTile(tileX, tileY);
+}
+
+export function isSwimmableRiverPosition(point: { x: number; y: number }, radius = 12) {
+  // Swimming effects extend below the player's collision circle, so reserve a small
+  // visual shoreline margin as well as the physical player radius.
+  const inset = Math.max(radius + 16, 0);
+  return [
+    point,
+    { x: point.x - inset, y: point.y },
+    { x: point.x + inset, y: point.y },
+    { x: point.x, y: point.y - inset },
+    { x: point.x, y: point.y + inset },
+    { x: point.x - inset, y: point.y - inset },
+    { x: point.x + inset, y: point.y - inset },
+    { x: point.x - inset, y: point.y + inset },
+    { x: point.x + inset, y: point.y + inset }
+  ].every(isSwimmableRiverPoint);
+}
+
+function wideTree(id: string, x: number, y: number) {
+  return sprite(id, "tree-wide", x, y, 4, 2, true, undefined, {
+    x: 0.25,
+    y: 0.7,
+    width: 3.5,
+    height: 0.85
+  });
 }
 
 function fruitTree(id: string, kind: FruitTreeKind, x: number, y: number) {
@@ -435,12 +580,32 @@ function fruitTree(id: string, kind: FruitTreeKind, x: number, y: number) {
   });
 }
 
-function stump(id: string, x: number, y: number) {
-  return sprite(id, "stump-orange", x, y, 2, 1, true, undefined, { x: 0.35, y: 0.55, width: 1.3, height: 0.4 });
+function readingShrine(id: string, x: number, y: number) {
+  return sprite(id, "reading-shrine", x, y, 3, 3, true, undefined, {
+    x: 0.45,
+    y: 2.2,
+    width: 2.1,
+    height: 0.55
+  });
 }
 
-function flower(id: string, x: number, y: number, frame: number) {
+function natureDecor(id: string, x: number, y: number, frame: number) {
   return tileDecoration(id, "tileset-nature", x, y, frame);
+}
+
+function villageDecor(
+  id: string,
+  x: number,
+  y: number,
+  frame: number,
+  blocksMovement = false
+) {
+  return sprite(id, "village-decor", x, y, 1, 1, blocksMovement, frame, {
+    x: 0.2,
+    y: 0.55,
+    width: 0.6,
+    height: 0.35
+  });
 }
 
 function tileDecoration(id: string, assetKey: VisualAssetKey, x: number, y: number, frame: number) {

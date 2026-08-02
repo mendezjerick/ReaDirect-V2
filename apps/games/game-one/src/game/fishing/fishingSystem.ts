@@ -21,8 +21,8 @@ export const FISHING_SPOTS: readonly FishingSpot[] = [
   {
     id: "east-river-bank",
     labels: { en: "East River Fishing Spot", fil: "Pangisdaan sa Silangang Ilog" },
-    interactionPosition: tileCenter(40, 11),
-    markerPosition: tileCenter(40, 10),
+    interactionPosition: tileCenter(40, 12),
+    markerPosition: tileCenter(40, 11),
     requiredFacing: "up",
     available: true
   }

@@ -3,7 +3,7 @@ import { PROTOTYPE_MAP } from "../map/prototypeMap";
 import { canOccupy, type Point } from "../physics/collision";
 import { PLAYER_CONFIG } from "../player/playerMovement";
 import { getWorldRegionAtPoint, type WorldRegionId } from "./worldRegions";
-import { NPCS } from "../content/npcs";
+import { STATIONARY_NPCS } from "../content/npcs";
 
 export const EXPLORATION_PROGRESS_KEY = "readirect-rpg:exploration-progress:v1";
 
@@ -56,7 +56,7 @@ export function isSafeExplorationPosition(position: unknown): position is Point 
   if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return false;
   const collision = [
     ...PROTOTYPE_MAP.collision,
-    ...NPCS.map((npc) => ({ id: `npc-${npc.id}-safe-position`, ...npc.collisionBase }))
+    ...STATIONARY_NPCS.map((npc) => ({ id: `npc-${npc.id}-safe-position`, ...npc.collisionBase }))
   ];
   return canOccupy(point as Point, PLAYER_CONFIG.radius, { ...PROTOTYPE_MAP, collision });
 }

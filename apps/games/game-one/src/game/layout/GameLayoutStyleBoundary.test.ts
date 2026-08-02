@@ -15,6 +15,16 @@ const responsiveLayoutCss = readFileSync(
   responsiveLayoutPath,
   "utf8",
 );
+const gameOneStylesPath = [
+  resolve(process.cwd(), "../games/game-one/src/styles/game-one.css"),
+  resolve(process.cwd(), "src/styles/game-one.css"),
+].find((candidate) => existsSync(candidate));
+
+if (!gameOneStylesPath) {
+  throw new Error("Game One primary stylesheet was not found.");
+}
+
+const gameOneStylesCss = readFileSync(gameOneStylesPath, "utf8");
 
 describe("Game One responsive style boundary", () => {
   it("keeps every responsive selector beneath .game-route", () => {
@@ -31,6 +41,20 @@ describe("Game One responsive style boundary", () => {
     expect(responsiveLayoutCss).not.toMatch(
       /(?:html|body|#root|:root):has\(\.game-route\)/,
     );
+  });
+
+  it("keeps every primary Game One selector beneath .game-route", () => {
+    const selectors = collectSelectors(gameOneStylesCss);
+    const unscoped = selectors.filter(
+      (selector) => !selector.startsWith(".game-route"),
+    );
+
+    expect(selectors.length).toBeGreaterThan(0);
+    expect(unscoped).toEqual([]);
+  });
+
+  it("does not import remote fonts, Tailwind, or another global stylesheet", () => {
+    expect(gameOneStylesCss).not.toMatch(/@import|@source|tailwindcss|fonts\.googleapis/i);
   });
 });
 

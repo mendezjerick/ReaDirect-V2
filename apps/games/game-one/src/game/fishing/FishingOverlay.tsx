@@ -28,7 +28,7 @@ const COPY = {
     pull: "Pull",
     caught: "You found",
     read: "Read the Catch Clue",
-    question: "Read the catch clue, then answer one comprehension question.",
+    question: "Read the clue. Answer the question.",
     tryAgain: "Look at the clue and try once more.",
     correct: "Correct! You understood the clue.",
     finish: "Finish Reading Catch",
@@ -48,7 +48,7 @@ const COPY = {
     pull: "Hilahin",
     caught: "Nakuha mo ang",
     read: "Basahin ang Pahiwatig sa Huli",
-    question: "Basahin ang pahiwatig sa huli, saka sagutin ang isang tanong sa pag-unawa.",
+    question: "Basahin ang clue. Sagutin ang tanong.",
     tryAgain: "Basahin muli ang pahiwatig at subukan ulit.",
     correct: "Tama! Naunawaan mo ang pahiwatig.",
     finish: "Tapusin ang Babasahing Huli",
@@ -65,15 +65,15 @@ const RESULT_CONTENT = {
     en: {
       name: "message bottle",
       story: "Lina placed a note inside the bottle before it floated downstream.",
-      question: "What did Lina put inside the bottle?",
+      question: "What was inside the bottle?",
       choices: [{ id: "note", label: "A note" }, { id: "water", label: "River water" }, { id: "stone", label: "A stone" }],
       correctChoiceId: "note"
     },
     fil: {
       name: "boteng may mensahe",
-      story: "Naglagay si Lina ng tala sa loob ng bote bago ito inanod sa ilog.",
-      question: "Ano ang inilagay ni Lina sa loob ng bote?",
-      choices: [{ id: "note", label: "Isang tala" }, { id: "water", label: "Tubig-ilog" }, { id: "stone", label: "Isang bato" }],
+      story: "Naglagay si Lina ng note sa bote. Pagkatapos, inanod ito sa ilog.",
+      question: "Ano ang nasa bote?",
+      choices: [{ id: "note", label: "Note" }, { id: "water", label: "Tubig" }, { id: "stone", label: "Bato" }],
       correctChoiceId: "note"
     }
   },
@@ -81,15 +81,15 @@ const RESULT_CONTENT = {
     en: {
       name: "silver fish",
       story: "The small silver fish rested in the shallow water near the reeds.",
-      question: "Where did the silver fish rest?",
+      question: "Where did the fish rest?",
       choices: [{ id: "shallow", label: "Near the reeds" }, { id: "tree", label: "Under a tree" }, { id: "market", label: "At the market" }],
       correctChoiceId: "shallow"
     },
     fil: {
       name: "pilak na isda",
-      story: "Nagpahinga ang maliit na pilak na isda sa mababaw na tubig malapit sa mga tambo.",
-      question: "Saan nagpahinga ang pilak na isda?",
-      choices: [{ id: "shallow", label: "Malapit sa mga tambo" }, { id: "tree", label: "Sa ilalim ng puno" }, { id: "market", label: "Sa palengke" }],
+      story: "Nagpahinga ang maliit na isda sa mababaw na tubig, malapit sa mga halaman.",
+      question: "Saan nagpahinga ang isda?",
+      choices: [{ id: "shallow", label: "Malapit sa mga halaman" }, { id: "tree", label: "Sa ilalim ng puno" }, { id: "market", label: "Sa palengke" }],
       correctChoiceId: "shallow"
     }
   }

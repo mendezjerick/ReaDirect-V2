@@ -35,6 +35,29 @@ describe("loadGameAssets", () => {
       expect.objectContaining({ sliceX: 4, sliceY: 1 })
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "ambient-miss-yuuri",
+      GAME_ASSETS.ambientMissYuuri.path,
+      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "ambient-mang-panda",
+      GAME_ASSETS.ambientMangPanda.path,
+      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "ambient-mr-kikushibu",
+      GAME_ASSETS.ambientMrKikushibu.path,
+      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "river-boat",
+      GAME_ASSETS.riverBoat.path
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "reading-shrine",
+      GAME_ASSETS.readingShrine.path
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
       "map-fragment",
       GAME_ASSETS.mapFragment.path
     );

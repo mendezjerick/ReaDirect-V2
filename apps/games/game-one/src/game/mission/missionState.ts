@@ -1,5 +1,6 @@
 import { getMission, getMissions, MISSIONS, type MissionId } from "../content/missions";
 import { getNpc, type NpcId } from "../content/npcs";
+import { getLandmark, type LandmarkId } from "../content/landmarks";
 import type { InteractionTarget } from "../interactions/interactionSystem";
 import type { QuestionRound } from "../questions/questionRound";
 import type { GameLanguage } from "../localization/language";
@@ -25,13 +26,22 @@ export type MissionStage =
   | "missionCompleted"
   | "activityCompleted";
 
-export type ActiveDialogue = {
-  kind: "mission" | "optional";
-  speakerId: NpcId;
+type ActiveDialogueBase = {
   speakerName: string;
+  speakerRole: string;
   pages: readonly string[];
   pageIndex: number;
 };
+
+export type ActiveDialogue =
+  | ActiveDialogueBase & {
+      kind: "mission" | "optional";
+      speakerId: NpcId;
+    }
+  | ActiveDialogueBase & {
+      kind: "landmark";
+      speakerId: LandmarkId;
+    };
 
 type ReviewReturnStage = "missionAction" | "missionActionFeedback" | "questionIntro" | "questionRound" | "answerSelected" | "questionFeedback" | "heartRecovery" | "deferredResume" | null;
 type AnswerStatus = "idle" | "incorrect" | "correct";
@@ -168,6 +178,10 @@ export function missionReducer(state: MissionState, event: MissionEvent): Missio
         !["approachStoryCharacter", "missionInProgress"].includes(state.stage) ||
         !event.target.enabled
       ) return state;
+      if (event.target.kind === "landmark") {
+        return inspectLandmark(state, event.target.landmarkId);
+      }
+      if (event.target.kind === "shop") return state;
       return missionReducer(state, { type: "TALK_TO_NPC", npcId: event.target.npcId });
     case "TALK_TO_NPC":
       return talkToNpc(state, event.npcId);
@@ -183,7 +197,7 @@ export function missionReducer(state: MissionState, event: MissionEvent): Missio
         ? completeDialogue({ ...state, activeDialogue: { ...state.activeDialogue, pageIndex: state.activeDialogue.pages.length - 1 } })
         : state;
     case "CLOSE_DIALOGUE":
-      return state.activeDialogue?.kind === "optional" ? { ...state, activeDialogue: null } : state;
+      return state.activeDialogue?.kind !== "mission" ? { ...state, activeDialogue: null } : state;
     case "START_READING":
       if (state.stage !== "readingIntro") return state;
       return { ...state, stage: "storyPresentation", readingPageIndex: 0, announcement: stateText(state.language).readCarefully };
@@ -320,6 +334,7 @@ function talkToNpc(state: MissionState, npcId: NpcId): MissionState {
       kind: "optional",
       speakerId: npcId,
       speakerName: speaker.displayName,
+      speakerRole: speaker.roleTitle[state.language],
       pages: speaker.optionalDialogue[state.language],
       pageIndex: 0
     }
@@ -337,6 +352,7 @@ function startMission(state: MissionState): MissionState {
       kind: "mission",
       speakerId: mission.npcId,
       speakerName: npc.displayName,
+      speakerRole: npc.roleTitle[state.language],
       pages: mission.briefing,
       pageIndex: 0
     },
@@ -346,13 +362,29 @@ function startMission(state: MissionState): MissionState {
 
 function completeDialogue(state: MissionState): MissionState {
   if (!state.activeDialogue || state.activeDialogue.pageIndex !== state.activeDialogue.pages.length - 1) return state;
-  if (state.activeDialogue.kind === "optional") return { ...state, activeDialogue: null };
+  if (state.activeDialogue.kind !== "mission") return { ...state, activeDialogue: null };
   const mission = getMission(state.missionId, state.language);
   return {
     ...state,
     activeDialogue: null,
     stage: "readingIntro",
     announcement: stateText(state.language).readyToRead(mission.reading.title)
+  };
+}
+
+function inspectLandmark(state: MissionState, landmarkId: LandmarkId): MissionState {
+  if (state.activeDialogue || state.helpOpen || !["approachStoryCharacter", "missionInProgress"].includes(state.stage)) return state;
+  const landmark = getLandmark(landmarkId);
+  return {
+    ...state,
+    activeDialogue: {
+      kind: "landmark",
+      speakerId: landmark.id,
+      speakerName: landmark.displayName[state.language],
+      speakerRole: landmark.roleTitle[state.language],
+      pages: landmark.pages[state.language],
+      pageIndex: 0
+    }
   };
 }
 
@@ -611,12 +643,7 @@ function localizeMissionState(state: MissionState, language: GameLanguage): Miss
   const rounds = state.rounds.map((round) => localizeRound(round, language));
   const mission = getMission(state.missionId, language);
   const activeDialogue = state.activeDialogue
-    ? {
-        ...state.activeDialogue,
-        pages: state.activeDialogue.kind === "mission"
-          ? mission.briefing
-          : getNpc(state.activeDialogue.speakerId).optionalDialogue[language]
-      }
+    ? localizeActiveDialogue(state.activeDialogue, language, mission)
     : null;
   const localized = {
     ...state,
@@ -631,6 +658,29 @@ function localizeMissionState(state: MissionState, language: GameLanguage): Miss
   return { ...localized, announcement: getCurrentObjective(localized).label };
 }
 
+function localizeActiveDialogue(
+  dialogue: ActiveDialogue,
+  language: GameLanguage,
+  mission: ReturnType<typeof getMission>
+): ActiveDialogue {
+  if (dialogue.kind === "landmark") {
+    const landmark = getLandmark(dialogue.speakerId);
+    return {
+      ...dialogue,
+      speakerName: landmark.displayName[language],
+      speakerRole: landmark.roleTitle[language],
+      pages: landmark.pages[language]
+    };
+  }
+  const npc = getNpc(dialogue.speakerId);
+  return {
+    ...dialogue,
+    speakerName: npc.displayName,
+    speakerRole: npc.roleTitle[language],
+    pages: dialogue.kind === "mission" ? mission.briefing : npc.optionalDialogue[language]
+  };
+}
+
 function localizeRound(round: QuestionRound, language: GameLanguage): QuestionRound {
   const mission = getMission(round.missionId, language);
   const questionsById = new Map(mission.questions.map((question) => [question.id, question]));
@@ -642,10 +692,13 @@ function localizeRound(round: QuestionRound, language: GameLanguage): QuestionRo
       const choicesById = new Map(localized.choices.map((choice) => [choice.id, choice]));
       return {
         ...localized,
-        choices: question.choices.map((choice) => {
-          const localizedChoice = choicesById.get(choice.id);
-          if (!localizedChoice) throw new Error(`Missing localized choice ${choice.id}.`);
-          return localizedChoice;
+        // The prepared round owns the stable choice IDs and answer key. The
+        // localized catalog only supplies the visible text and feedback.
+        correctChoiceId: question.correctChoiceId,
+        choices: question.choices.map((choice, index) => {
+          const localizedChoice = choicesById.get(choice.id) ?? localized.choices[index];
+          if (!localizedChoice) throw new Error(`Missing localized choice ${index} for ${question.id}.`);
+          return { ...choice, ...localizedChoice, id: choice.id };
         })
       };
     })

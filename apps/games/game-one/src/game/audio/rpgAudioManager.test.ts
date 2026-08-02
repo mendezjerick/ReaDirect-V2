@@ -4,9 +4,10 @@ import { AUDIO_PREFERENCES_KEY, createRpgAudioManager, type AudioBackend } from 
 describe("RPG terrain and location audio", () => {
   let time = 0;
   let backend: AudioBackend;
+  let storage: Storage;
 
   beforeEach(() => {
-    localStorage.clear();
+    storage = createMemoryStorage();
     time = 0;
     backend = {
       unlock: vi.fn(),
@@ -43,6 +44,31 @@ describe("RPG terrain and location audio", () => {
     expect(vi.mocked(backend.play).mock.calls.map(([sound]) => sound.id)).toEqual([
       "footstep-land",
       "footstep-grass"
+    ]);
+  });
+
+  it("uses the wood footstep for indoor shop floors", () => {
+    const audio = manager();
+    audio.unlock();
+
+    expect(audio.updateMovement({ moving: true, surface: "wood" })).toBe(true);
+    expect(vi.mocked(backend.play).mock.calls[0]?.[0].id).toBe("footstep-wood");
+  });
+
+  it("plays a cooled swimming wave while the learner is moving in water", () => {
+    const audio = manager();
+    audio.unlock();
+
+    expect(audio.updateSwimming({ swimming: false, moving: true })).toBe(false);
+    expect(audio.updateSwimming({ swimming: true, moving: false })).toBe(false);
+    expect(audio.updateSwimming({ swimming: true, moving: true })).toBe(true);
+    time = 100;
+    expect(audio.updateSwimming({ swimming: true, moving: true })).toBe(false);
+    time = 500;
+    expect(audio.updateSwimming({ swimming: true, moving: true })).toBe(true);
+    expect(vi.mocked(backend.play).mock.calls.map(([sound]) => sound.id)).toEqual([
+      "swim-wave",
+      "swim-wave"
     ]);
   });
 
@@ -88,7 +114,7 @@ describe("RPG terrain and location audio", () => {
   it("persists settings and forwards duck, pause, and cleanup state", () => {
     const audio = manager();
     audio.setPreferences(preferences({ sound: true, music: false, masterVolume: 0.4, sfxVolume: 0.7, musicVolume: 0.3 }));
-    expect(JSON.parse(localStorage.getItem(AUDIO_PREFERENCES_KEY) ?? "null")).toEqual({
+    expect(JSON.parse(storage.getItem(AUDIO_PREFERENCES_KEY) ?? "null")).toEqual({
       sound: true,
       music: false,
       masterVolume: 0.4,
@@ -113,12 +139,12 @@ describe("RPG terrain and location audio", () => {
   });
 
   it("migrates older stored preferences with separate channel defaults", () => {
-    localStorage.setItem(AUDIO_PREFERENCES_KEY, JSON.stringify({ sound: true, music: true, masterVolume: 0.5 }));
+    storage.setItem(AUDIO_PREFERENCES_KEY, JSON.stringify({ sound: true, music: true, masterVolume: 0.5 }));
     expect(manager().getPreferences()).toEqual({ sound: true, music: true, masterVolume: 0.5, sfxVolume: 0.8, musicVolume: 0.45 });
   });
 
   function manager() {
-    return createRpgAudioManager({ backend, storage: localStorage, now: () => time });
+    return createRpgAudioManager({ backend, storage, now: () => time });
   }
 
   function lastAmbienceId() {
@@ -133,3 +159,17 @@ describe("RPG terrain and location audio", () => {
     return { sound: true, music: true, masterVolume: 0.65, sfxVolume: 0.8, musicVolume: 0.45, ...overrides };
   }
 });
+
+function createMemoryStorage(): Storage {
+  const values = new Map<string, string>();
+  return {
+    get length() {
+      return values.size;
+    },
+    clear: () => values.clear(),
+    getItem: (key) => values.get(key) ?? null,
+    key: (index) => Array.from(values.keys())[index] ?? null,
+    removeItem: (key) => values.delete(key),
+    setItem: (key, value) => values.set(key, value)
+  };
+}

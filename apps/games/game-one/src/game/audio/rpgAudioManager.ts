@@ -107,6 +107,15 @@ export function createRpgAudioManager({
       backend.play(definition, [0.96, 1, 1.04][stepVariation]);
       return true;
     },
+    updateSwimming({ swimming, moving }: { swimming: boolean; moving: boolean }) {
+      if (!unlocked || !swimming || !moving || !preferences.sound) return false;
+      const definition = RPG_SOUNDS["swim-wave"];
+      const currentTime = now();
+      if (currentTime - (lastCueAt.get("swim-wave") ?? Number.NEGATIVE_INFINITY) < definition.cooldownMs) return false;
+      lastCueAt.set("swim-wave", currentTime);
+      backend.play(definition, 0.94 + ((currentTime / definition.cooldownMs) % 2) * 0.06);
+      return true;
+    },
     updateLocation(area: MapAreaKey) {
       if (area === currentArea) { pendingArea = null; return; }
       const currentTime = now();
@@ -262,6 +271,29 @@ function createWebAudioBackend(): AudioBackend {
     play(definition, pitch) {
       const audio = ensure();
       if (audio.state !== "running" || !effects) return;
+      if (definition.id === "swim-wave") {
+        const duration = 0.16;
+        const buffer = audio.createBuffer(1, Math.ceil(audio.sampleRate * duration), audio.sampleRate);
+        const samples = buffer.getChannelData(0);
+        for (let index = 0; index < samples.length; index += 1) {
+          const envelope = 1 - index / samples.length;
+          samples[index] = (Math.random() * 2 - 1) * envelope;
+        }
+        const source = audio.createBufferSource();
+        const filter = audio.createBiquadFilter();
+        const gain = audio.createGain();
+        source.buffer = buffer;
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(definition.frequency * pitch * 4, audio.currentTime);
+        gain.gain.setValueAtTime(definition.baseVolume, audio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + duration);
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(effects);
+        source.start();
+        source.stop(audio.currentTime + duration);
+        return;
+      }
       const oscillator = audio.createOscillator();
       const gain = audio.createGain();
       oscillator.type = definition.category === "footsteps" ? "triangle" : "sine";

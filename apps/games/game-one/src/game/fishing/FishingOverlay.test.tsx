@@ -30,7 +30,7 @@ describe("FishingOverlay", () => {
     fireEvent.click(screen.getByRole("button", { name: "Pull" }));
     expect(screen.getByText(/message bottle/i)).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Read the Catch Clue" }));
-    expect(screen.getByText(/one comprehension question/i)).toBeVisible();
+    expect(screen.getByText("Read the clue. Answer the question.")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "A note" }));
     expect(screen.getByText(/understood the clue/i)).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Finish Reading Catch" }));

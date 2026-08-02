@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NPC_IDS } from "./npcs";
-import { MISSION_IDS, MISSIONS } from "./missions";
+import { getMission, MISSION_IDS, MISSIONS } from "./missions";
 
 describe("centralized reading journey content", () => {
   it("uses the required six-mission order and only existing NPCs", () => {
@@ -46,10 +46,48 @@ describe("centralized reading journey content", () => {
     }
   });
 
+  it("keeps comprehension questions short and direct", () => {
+    for (const mission of MISSIONS) {
+      for (const question of mission.questions) {
+        expect(question.prompt.trim().split(/\s+/).length).toBeLessThanOrEqual(6);
+      }
+    }
+  });
+
   it("increases from direct retrieval to sequence, cause, inference, and main idea", () => {
     expect(MISSIONS[0].questions.map(({ skill }) => skill)).toEqual(expect.arrayContaining(["where", "sequence"]));
     expect(MISSIONS[3].questions.map(({ skill }) => skill)).toContain("cause-and-effect");
     expect(MISSIONS[4].questions.map(({ skill }) => skill)).toContain("inference");
     expect(MISSIONS[5].questions.map(({ skill }) => skill)).toContain("main-idea");
+  });
+
+  it("includes the three lore characters in the community finale", () => {
+    const finale = MISSIONS.find(({ id }) => id === "community-finale")!;
+    const englishReading = finale.reading.pages.join(" ");
+    const filipinoReading = getMission("community-finale", "fil").reading.pages.join(" ");
+
+    for (const reading of [englishReading, filipinoReading]) {
+      expect(reading).toContain("Miss Yuuri");
+      expect(reading).toContain("Mang Panda");
+      expect(reading).toContain("Mr. Kikushibu");
+      expect(reading).toContain("Lost Kingdom");
+    }
+  });
+
+  it("uses the forest reading to give Mang Yato, Mang Panda, and Miss Yuuri active roles", () => {
+    const forest = MISSIONS.find(({ id }) => id === "forest-route")!;
+    const englishReading = forest.reading.pages.join(" ");
+    const filipinoReading = getMission("forest-route", "fil").reading.pages.join(" ");
+
+    for (const reading of [englishReading, filipinoReading]) {
+      expect(reading).toContain("Mang Yato");
+      expect(reading).toContain("Mang Panda");
+      expect(reading).toContain("Miss Yuuri");
+    }
+    expect(forest.questions.map(({ prompt }) => prompt)).toEqual(expect.arrayContaining([
+      "What is past the farm gate?",
+      "Which way does Panda's sign point?",
+      "Why does Yuuri bring books?"
+    ]));
   });
 });

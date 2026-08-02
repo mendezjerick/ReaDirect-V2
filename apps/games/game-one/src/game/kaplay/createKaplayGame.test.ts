@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { GAME_ASSETS } from "../assets/assetRegistry";
 import { NPCS } from "../content/npcs";
+import { MAP_LANDMARKS } from "../map/prototypeMap";
 import {
   createKaplayGame,
   getInteractionPromptPosition,
@@ -97,11 +98,54 @@ describe("createKaplayGame", () => {
       { sliceX: 4, sliceY: 1 }
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "village-market-shop",
+      GAME_ASSETS.villageMarketShop.path
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "ambient-miss-yuuri",
+      GAME_ASSETS.ambientMissYuuri.path,
+      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "ambient-mang-panda",
+      GAME_ASSETS.ambientMangPanda.path,
+      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "ambient-mr-kikushibu",
+      GAME_ASSETS.ambientMrKikushibu.path,
+      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "river-boat",
+      GAME_ASSETS.riverBoat.path
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
       "roaming-animal",
       expect.any(HTMLCanvasElement),
       { sliceX: 12, sliceY: 1 }
     );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "boat-wake",
+      expect.any(HTMLCanvasElement),
+      { sliceX: 4, sliceY: 1 }
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "boat-oar",
+      expect.any(HTMLCanvasElement)
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "village-decor",
+      expect.any(HTMLCanvasElement),
+      { sliceX: 7, sliceY: 1 }
+    );
     expect(runtime.sprite.mock.calls.filter(([name]) => name === "roaming-animal")).toHaveLength(5);
+    expect(runtime.sprite.mock.calls.filter(([name]) => name === "ambient-miss-yuuri")).toHaveLength(1);
+    expect(runtime.sprite.mock.calls.filter(([name]) => name === "ambient-mang-panda")).toHaveLength(1);
+    expect(runtime.sprite.mock.calls.filter(([name]) => name === "ambient-mr-kikushibu")).toHaveLength(1);
+    expect(runtime.sprite.mock.calls.filter(([name]) => name === "river-boat")).toHaveLength(1);
+    expect(runtime.sprite.mock.calls.filter(([name]) => name === "boat-wake")).toHaveLength(2);
+    expect(runtime.sprite.mock.calls.filter(([name]) => name === "boat-oar")).toHaveLength(2);
     expect(runtime.sprite).toHaveBeenCalledWith("connected-tall-grass", { frame: 12 });
     expect(runtime.sprite.mock.calls.filter(([name]) => name === "connected-tall-grass")).toHaveLength(5);
     expect(runtime.setCamScale).toHaveBeenCalledWith(2, 2);
@@ -117,7 +161,7 @@ describe("createKaplayGame", () => {
       expect.objectContaining({ sprite: "connected-tall-grass", frame: expect.any(Number) })
     );
     expect(runtime.drawSprite.mock.calls.length).toBeLessThan(500);
-    expect(runtime.add.mock.calls.length).toBeLessThan(110);
+    expect(runtime.add.mock.calls.length).toBeLessThan(175);
     expect(runtime.sprite).toHaveBeenCalledWith(
       "village-learning-hall",
       expect.objectContaining({
@@ -213,6 +257,54 @@ describe("createKaplayGame", () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyF", key: "f" }));
 
     expect(onInteract).toHaveBeenCalledTimes(1);
+    game.destroy();
+  });
+
+  it("opens the River Market when the player interacts with its doorway", () => {
+    const container = document.createElement("div");
+    const onEnterShop = vi.fn();
+    const { factory, runUpdate } = makeFactory();
+    const game = createKaplayGame(container, {
+      kaplayFactory: factory,
+      initialPosition: MAP_LANDMARKS.marketFront,
+      onEnterShop
+    });
+
+    game.setMissionState({ activityCompleted: false, targetNpcId: "miss-estelle" });
+    runUpdate();
+    game.interact();
+
+    expect(onEnterShop).toHaveBeenCalledWith("market-shop");
+    game.destroy();
+  });
+
+  it("only offers interaction with the active mission NPC", () => {
+    const container = document.createElement("div");
+    const vendor = NPCS.find(({ id }) => id === "market-vendor")!;
+    const onInteractionTargetChange = vi.fn();
+    const { factory, runUpdate } = makeFactory();
+    const game = createKaplayGame(container, {
+      kaplayFactory: factory,
+      initialPosition: vendor.interactionPosition,
+      onInteractionTargetChange
+    });
+
+    game.setMissionState({ activityCompleted: false, targetNpcId: "miss-estelle" });
+    onInteractionTargetChange.mockClear();
+    runUpdate();
+
+    expect(onInteractionTargetChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: "shop", shopId: "market-shop" })
+    );
+    expect(onInteractionTargetChange.mock.calls.some(([target]) => target?.npcId === "market-vendor")).toBe(false);
+
+    game.setMissionState({ activityCompleted: false, targetNpcId: "market-vendor" });
+    onInteractionTargetChange.mockClear();
+    runUpdate();
+
+    expect(onInteractionTargetChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ npcId: "market-vendor" })
+    );
     game.destroy();
   });
 
