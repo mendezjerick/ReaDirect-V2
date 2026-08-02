@@ -26,6 +26,17 @@ final class StaffSessionResolver
             abort(401, 'The staff session has expired or was revoked.');
         }
 
+        $now = now();
+        $leaseCutoff = $now->copy()->subSeconds((int) config(
+            'staff.non_remembered_session_lease_seconds',
+            120,
+        ));
+        if (! $session->remembered
+            && ($session->last_used_at === null || $session->last_used_at->lte($leaseCutoff))) {
+            $session->forceFill(['revoked_at' => $now])->save();
+            abort(401, 'The staff session has expired or was revoked.');
+        }
+
         if ($session->remembered) {
             $deviceId = $request->header('X-ReaDirect-Device');
             $deviceHash = is_string($deviceId)
@@ -42,7 +53,17 @@ final class StaffSessionResolver
             $canonicalSessionId = StaffSession::query()
                 ->whereHas('staffUser', fn ($query) => $query->where('role', 'system_admin'))
                 ->whereNull('revoked_at')
-                ->where('expires_at', '>', now())
+                ->where('expires_at', '>', $now)
+                ->where(function ($query) use ($leaseCutoff): void {
+                    $query
+                        ->where('remembered', true)
+                        ->orWhere(function ($query) use ($leaseCutoff): void {
+                            $query
+                                ->where('remembered', false)
+                                ->whereNotNull('last_used_at')
+                                ->where('last_used_at', '>', $leaseCutoff);
+                        });
+                })
                 ->latest('id')
                 ->value('id');
 

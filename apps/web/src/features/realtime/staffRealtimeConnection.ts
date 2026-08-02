@@ -7,7 +7,7 @@ interface StaffRealtimeConnectionConfig {
 
 export function createConnectionOptions(
   config: StaffRealtimeConnectionConfig,
-  token: string,
+  authHeaders: Record<string, string>,
   location: Pick<Location, "hostname" | "port" | "protocol">,
 ) {
   if (!config.app_key) {
@@ -32,7 +32,7 @@ export function createConnectionOptions(
     enabledTransports: ["ws", "wss"] as ("ws" | "wss")[],
     authEndpoint: config.auth_endpoint,
     auth: {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: authHeaders,
     },
   };
 }

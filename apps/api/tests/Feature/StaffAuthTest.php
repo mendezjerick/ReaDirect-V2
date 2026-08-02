@@ -31,7 +31,9 @@ final class StaffAuthTest extends TestCase
             ->assertOk()
             ->assertJsonStructure(['token', 'session' => ['expires_at']])
             ->assertJsonPath('staff.username', 'system-admin-test')
-            ->assertJsonPath('staff.role', 'system_admin');
+            ->assertJsonPath('staff.role', 'system_admin')
+            ->assertJsonPath('session.remembered', false)
+            ->assertJsonPath('session.heartbeat_interval_seconds', 30);
 
         $this->assertDatabaseHas('staff_audit_logs', [
             'staff_user_id' => $staffUser->id,
@@ -115,6 +117,25 @@ final class StaffAuthTest extends TestCase
         $this->assertSame($second->id, StaffSession::query()->value('staff_user_id'));
     }
 
+    public function test_stale_non_remembered_sysadmin_session_does_not_block_login(): void
+    {
+        config()->set('staff.non_remembered_session_lease_seconds', 120);
+        $first = $this->staffUser('closed-browser-system-admin', 'system_admin');
+        $second = $this->staffUser('returning-system-admin', 'system_admin');
+        StaffSession::query()->create([
+            'staff_user_id' => $first->id,
+            'token_hash' => hash('sha256', 'closed-browser-session'),
+            'remembered' => false,
+            'last_used_at' => now()->subSeconds(121),
+            'expires_at' => now()->addHours(7),
+        ]);
+
+        $this->login($second)->assertOk();
+
+        $this->assertSame(1, StaffSession::query()->count());
+        $this->assertSame($second->id, StaffSession::query()->value('staff_user_id'));
+    }
+
     public function test_logout_releases_the_exclusive_sysadmin_slot(): void
     {
         $first = $this->staffUser('logout-system-admin', 'system_admin');
@@ -180,6 +201,66 @@ final class StaffAuthTest extends TestCase
         $this->assertNotSame($deviceId, $session->device_hash);
         $this->assertTrue($session->expires_at->gt(now()->addDays(29)));
 
+        $this->withToken($login->json('token'))
+            ->withHeader('X-ReaDirect-Device', $deviceId)
+            ->getJson('/api/staff/session')
+            ->assertOk();
+    }
+
+    public function test_non_remembered_staff_session_heartbeat_renews_the_browser_lease(): void
+    {
+        config()->set('staff.non_remembered_session_lease_seconds', 120);
+        config()->set('staff.session_heartbeat_interval_seconds', 30);
+        $teacher = $this->staffUser('heartbeat-teacher', 'teacher');
+        $login = $this->login($teacher)
+            ->assertOk()
+            ->assertJsonPath('session.heartbeat_interval_seconds', 30);
+        $token = $login->json('token');
+        $session = StaffSession::query()->latest('id')->firstOrFail();
+        $initialLastUsedAt = $session->last_used_at;
+
+        $this->travel(90)->seconds();
+        $this->withToken($token)
+            ->postJson('/api/staff/session/heartbeat')
+            ->assertOk()
+            ->assertJsonPath('active', true);
+
+        $this->assertTrue($session->fresh()->last_used_at->gt($initialLastUsedAt));
+        $this->travel(90)->seconds();
+        $this->withToken($token)->getJson('/api/staff/session')->assertOk();
+    }
+
+    public function test_stale_non_remembered_staff_session_is_revoked(): void
+    {
+        config()->set('staff.non_remembered_session_lease_seconds', 120);
+        $teacher = $this->staffUser('closed-browser-teacher', 'teacher');
+        $token = str_repeat('s', 64);
+        $session = StaffSession::query()->create([
+            'staff_user_id' => $teacher->id,
+            'token_hash' => hash('sha256', $token),
+            'remembered' => false,
+            'last_used_at' => now()->subSeconds(121),
+            'expires_at' => now()->addHours(7),
+        ]);
+
+        $this->withToken($token)->getJson('/api/staff/session')->assertUnauthorized();
+
+        $this->assertNotNull($session->fresh()->revoked_at);
+    }
+
+    public function test_remembered_session_is_not_subject_to_the_browser_heartbeat_lease(): void
+    {
+        config()->set('staff.non_remembered_session_lease_seconds', 120);
+        $teacher = $this->staffUser('persistent-teacher', 'teacher');
+        $deviceId = '34af2dd2-99da-46fd-a419-3f0d6b3d0a7f';
+        $login = $this->postJson('/api/staff/login', [
+            'identifier' => $teacher->username,
+            'password' => 'local-test-password',
+            'remember_me' => true,
+            'device_id' => $deviceId,
+        ])->assertOk()->assertJsonPath('session.heartbeat_interval_seconds', null);
+
+        $this->travel(10)->minutes();
         $this->withToken($login->json('token'))
             ->withHeader('X-ReaDirect-Device', $deviceId)
             ->getJson('/api/staff/session')

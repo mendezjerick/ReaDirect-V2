@@ -11,6 +11,7 @@ import {
 import { z } from "zod";
 
 import {
+  getStaffAuthHeaders,
   loadStaffSession,
   staffFetch,
   staffSessionChangedEvent,
@@ -46,11 +47,7 @@ const dataChangedSchema = z.object({
 });
 
 type StaffRealtimeStatus =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "degraded"
-  | "disabled";
+  "disconnected" | "connecting" | "connected" | "degraded" | "disabled";
 
 interface StaffRealtimeState {
   status: StaffRealtimeStatus;
@@ -62,9 +59,8 @@ const disconnectedState: StaffRealtimeState = {
   transportVerified: false,
 };
 
-const StaffRealtimeContext = createContext<StaffRealtimeState>(
-  disconnectedState,
-);
+const StaffRealtimeContext =
+  createContext<StaffRealtimeState>(disconnectedState);
 
 export function StaffRealtimeProvider({ children }: PropsWithChildren) {
   const queryClient = useQueryClient();
@@ -104,7 +100,9 @@ export function StaffRealtimeProvider({ children }: PropsWithChildren) {
           signal: abortController.signal,
         });
         if (!response.ok) {
-          throw new Error(`Realtime configuration returned HTTP ${response.status}.`);
+          throw new Error(
+            `Realtime configuration returned HTTP ${response.status}.`,
+          );
         }
 
         const config = realtimeConfigSchema.parse(await response.json());
@@ -114,7 +112,11 @@ export function StaffRealtimeProvider({ children }: PropsWithChildren) {
         }
 
         echo = new Echo<"reverb">(
-          createConnectionOptions(config, session.token, window.location),
+          createConnectionOptions(
+            config,
+            getStaffAuthHeaders(session),
+            window.location,
+          ),
         );
         const nonce = crypto.randomUUID();
         const channel = echo.private(config.channel);

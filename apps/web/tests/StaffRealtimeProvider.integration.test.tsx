@@ -38,6 +38,9 @@ vi.mock("laravel-echo", () => ({
 vi.mock("pusher-js", () => ({ default: class Pusher {} }));
 
 vi.mock("../src/features/staff-auth/staffApi", () => ({
+  getStaffAuthHeaders: () => ({
+    Authorization: `Bearer ${realtimeMocks.session.token}`,
+  }),
   loadStaffSession: () => realtimeMocks.session,
   staffFetch: realtimeMocks.staffFetch,
   staffSessionChangedEvent: "readirect:staff-session-changed",
@@ -112,7 +115,9 @@ describe("StaffRealtimeProvider domain subscriptions", () => {
     );
 
     await waitFor(() => {
-      expect(realtimeMocks.privateChannel).toHaveBeenCalledWith("staff.users.27");
+      expect(realtimeMocks.privateChannel).toHaveBeenCalledWith(
+        "staff.users.27",
+      );
       expect(realtimeMocks.privateChannel).toHaveBeenCalledWith("teachers.27");
     });
 

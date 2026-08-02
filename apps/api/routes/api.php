@@ -54,6 +54,7 @@ Route::prefix('staff')->group(function (): void {
 
     Route::middleware('staff.auth')->group(function (): void {
         Route::get('/session', [StaffAuthController::class, 'show']);
+        Route::post('/session/heartbeat', [StaffAuthController::class, 'heartbeat']);
         Route::post('/logout', [StaffAuthController::class, 'destroy']);
         Route::post('/security/email-verification', [StaffSecurityController::class, 'requestEmailVerification'])
             ->middleware('throttle:staff-security-code-request');
