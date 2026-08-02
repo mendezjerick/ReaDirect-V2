@@ -112,6 +112,10 @@ describe("TeacherDashboardPage", () => {
         name: "You are part of Grade 1 Section Maple",
       }),
     ).toBeVisible();
+    expect(screen.getByText("Temporary credentials are active.")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Review account security" }),
+    ).toBeEnabled();
     expect(await screen.findByText("Total learners")).toBeVisible();
     expect(screen.queryByText("AI services")).not.toBeInTheDocument();
     expect(screen.queryByText("School profile")).not.toBeInTheDocument();

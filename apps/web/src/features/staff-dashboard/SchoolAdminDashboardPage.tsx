@@ -18,6 +18,7 @@ import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
 import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
 import { StaffState } from "../../components/staff/StaffState";
+import { TemporaryCredentialsNotice } from "../../components/staff/TemporaryCredentialsNotice";
 import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -174,15 +175,12 @@ export function SchoolAdminDashboardPage() {
           </StaffNotice>
         ) : null}
 
-        {(overview?.requires_credential_setup ??
-        schoolAdminSession.staff.requires_credential_setup) ? (
-          <StaffNotice tone="warning" title="Temporary credentials are active.">
-            <span>
-              Account credential conversion is separate from school workspace
-              management. Your current authenticated session remains valid.
-            </span>
-          </StaffNotice>
-        ) : null}
+        <TemporaryCredentialsNotice
+          active={
+            overview?.requires_credential_setup ??
+            schoolAdminSession.staff.requires_credential_setup
+          }
+        />
 
         <section
           className="staff-metric-grid staff-metric-grid--school"

@@ -12,6 +12,7 @@ import { loginStaff, saveStaffSession } from "./staffApi";
 interface StaffLoginForm {
   identifier: string;
   password: string;
+  remember_me: boolean;
 }
 
 function BookShieldIcon() {
@@ -67,7 +68,7 @@ export function StaffLoginPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<StaffLoginForm>({
-    defaultValues: { identifier: "", password: "" },
+    defaultValues: { identifier: "", password: "", remember_me: false },
   });
 
   const returnHome = () => {
@@ -150,6 +151,16 @@ export function StaffLoginPage() {
                   required: "Enter your password.",
                 })}
               />
+
+              <label className="staff-login-form__remember">
+                <input type="checkbox" {...register("remember_me")} />
+                <span>
+                  Remember me on this device
+                  <small>
+                    Keep me signed in on this browser for up to 30 days.
+                  </small>
+                </span>
+              </label>
 
               {loginMutation.isError ? (
                 <Surface

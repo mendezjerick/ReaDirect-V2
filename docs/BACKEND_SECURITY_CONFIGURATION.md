@@ -1,0 +1,164 @@
+# Backend Security Configuration
+
+ReaDirect services bind to `127.0.0.1` by default. Keep the Laravel API,
+Reverb, ASR, TTS, PostgreSQL, recordings, and model runtimes on a private host
+network. Only the approved HTTPS gateway or web proxy should accept public
+traffic.
+
+## Production environment
+
+Production startup fails closed unless the following baseline is satisfied:
+
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://readirect.example.gov.ph
+APP_KEY=base64:replace-with-a-generated-production-key
+APP_FORCE_HTTPS=true
+TRUSTED_HOSTS=readirect.example.gov.ph
+TRUSTED_PROXIES=127.0.0.1,::1
+SECURITY_HSTS_ENABLED=true
+SECURITY_HSTS_MAX_AGE=31536000
+SECURITY_HSTS_INCLUDE_SUBDOMAINS=false
+REVERB_SERVER_HOST=127.0.0.1
+ASR_SERVICE_TOKEN=replace-with-a-distinct-random-secret-of-at-least-32-characters
+TTS_SERVICE_TOKEN=replace-with-another-random-secret-of-at-least-32-characters
+ASR_MAX_HTTP_REQUEST_BYTES=27262976
+TTS_MAX_HTTP_REQUEST_BYTES=16384
+```
+
+Replace `TRUSTED_PROXIES` with the explicit IP addresses or CIDR ranges of the
+approved reverse proxies. Wildcard proxies are rejected in production because
+they let clients forge forwarding information. List every approved hostname in
+`TRUSTED_HOSTS`, separated by commas.
+
+The application rejects plain HTTP requests when `APP_FORCE_HTTPS=true` rather
+than redirecting request bodies. The gateway must forward the original scheme,
+and only configured proxies are trusted to supply that information.
+
+HSTS is emitted only for requests Laravel recognizes as HTTPS. Enable it after
+the production hostname has a working certificate. Set
+`SECURITY_HSTS_INCLUDE_SUBDOMAINS=true` only when every affected subdomain is
+HTTPS-capable.
+
+The ASR and TTS credentials authenticate Laravel to the private speech
+services. Use distinct random values with at least 32 characters, deliver them
+only through process environment or a secrets manager, and never put them in
+URLs, logs, or source control. Production startup rejects missing or short
+values. The speech services expose only minimal liveness/readiness responses
+without authentication; model status and all inference routes require the
+matching bearer token.
+
+## Learner authentication
+
+Learner login is protected by independent per-IP and per-learner-code limits.
+The learner-code limiter uses a one-way digest as its cache key, so learner
+identifiers are not stored in rate-limit metadata. Missing, inactive, invalid,
+and corrupt credentials all use the same external error and perform a password
+hash check to reduce account-enumeration timing differences.
+
+```dotenv
+LEARNER_LOGIN_IP_ATTEMPTS_PER_MINUTE=60
+LEARNER_LOGIN_IDENTIFIER_ATTEMPTS_PER_MINUTE=5
+LEARNER_SESSION_LIFETIME_HOURS=12
+LEARNER_SESSION_IDLE_TIMEOUT_MINUTES=60
+LEARNER_SESSION_TOUCH_INTERVAL_SECONDS=60
+LEARNER_MAX_ACTIVE_SESSIONS=5
+```
+
+Every learner route except login is guarded centrally. Sessions have both an
+absolute lifetime and an inactivity timeout, activity writes are coalesced by
+the touch interval, and excess older standard sessions are revoked. Learner
+responses are marked private and non-cacheable. Portal sessions retain their
+shorter portal-controlled absolute expiry but use the same central guard.
+
+## Exclusive system administrator access
+
+Only one active `system_admin` session is permitted across the entire system.
+Login locks the system-administrator account rows in a stable order, removes
+expired or revoked sessions, and checks for an active session before issuing a
+new token. A competing login receives HTTP `409` with
+`system_admin_session_active`; the active session is never displaced. Blocked
+attempts are recorded in the staff audit log. Logging out releases the slot.
+Teacher and school-administrator accounts retain normal multi-session support.
+The additive migration revokes older pre-existing sysadmin sessions, and the
+session guard continuously reconciles any duplicate state created outside the
+normal login path.
+
+## Remembered staff devices
+
+Staff login may request `remember_me`. Normal sessions remain browser-tab
+sessions with the configured hourly lifetime; remembered sessions may persist
+for `STAFF_REMEMBERED_SESSION_LIFETIME_DAYS` (30 by default). The browser
+creates a random device identifier. Laravel stores only an HMAC of that value,
+and every remembered-session request must present the matching device header.
+A missing or mismatched binding immediately revokes the session. Raw hardware,
+browser fingerprint, and device identifiers are not stored server-side.
+
+## Staff email binding and password changes
+
+Staff email addresses are not bound until a six-digit authentication code sent
+to the proposed address is confirmed. Codes expire after
+`STAFF_VERIFICATION_CODE_EXPIRY_MINUTES` (10 by default), are single-use, and
+are stored only as an application-keyed HMAC. A database-backed resend cooldown,
+per-account route throttles, and `STAFF_VERIFICATION_CODE_MAX_ATTEMPTS` prevent
+unbounded delivery and guessing. Replaced and expired codes cannot be reused.
+
+A password change requires the current password, an already verified email,
+and a fresh password-change code sent to that verified address. A pending email
+binding does not qualify. Successful changes revoke every other active session,
+consume remaining codes, and clear the temporary-credential advisory state.
+Requests, successes, and failed code checks are recorded without storing codes
+or full email addresses in audit metadata.
+
+`requires_credential_setup` is an advisory state only. It is never an
+authorization condition and does not restrict dashboards, staff tools, or
+normal session use. Staff may keep their issued temporary password; the account
+security page recommends an upgrade and explains the verified-email requirement
+without forcing a redirect or deadline.
+
+`MAIL_MAILER=log` is suitable only for local development. Production startup
+requires the exact Gmail STARTTLS profile, a Google App Password, and a sender
+address matching the authenticated account. Authentication codes therefore
+cannot be logged, silently discarded, downgraded to plaintext SMTP, or sent
+through a placeholder configuration.
+
+Configure the ignored `apps/api/.env` file or deployment secret store with:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_REQUIRE_TLS=true
+MAIL_USERNAME=the-complete-gmail-or-workspace-address
+GMAIL_APP_PASSWORD=the-16-character-app-password-without-spaces
+MAIL_FROM_ADDRESS=the-same-address-as-MAIL_USERNAME
+MAIL_FROM_NAME=ReaDirect
+```
+
+Do not use or store the normal Google account password. Google requires
+2-Step Verification before an App Password can be created, and some managed or
+Advanced Protection accounts do not expose App Passwords. See Google's
+[App Password guidance](https://support.google.com/accounts/answer/185833)
+and [Gmail SMTP configuration](https://support.google.com/a/answer/176600).
+After saving the ignored environment values and clearing cached configuration,
+send a non-secret message to the configured account:
+
+```powershell
+php artisan config:clear
+php artisan readirect:mail-test
+```
+
+The diagnostic masks the address in console output, never prints credentials,
+and sends only to `MAIL_USERNAME`.
+
+## Local and staging launchers
+
+`start.ps1` uses loopback bindings by default. `cstart.ps1` retains this secure
+default and exposes only the web port through its generated Cloudflare tunnel.
+When credentials are not already supplied, `start.ps1` creates separate random
+ASR and TTS credentials for the lifetime of the process and passes them to
+Laravel and the matching speech service without printing them.
+Do not add API, Reverb, ASR, TTS, database, recording, model, or credential
+ports to the tunnel configuration.

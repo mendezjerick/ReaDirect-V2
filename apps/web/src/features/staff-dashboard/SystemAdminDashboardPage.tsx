@@ -15,6 +15,7 @@ import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
 import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
 import { StaffState } from "../../components/staff/StaffState";
+import { TemporaryCredentialsNotice } from "../../components/staff/TemporaryCredentialsNotice";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import {
   clearStaffSession,
@@ -129,6 +130,10 @@ export function SystemAdminDashboardPage() {
           title="System overview"
           description="Monitor ReaDirect and prepare schools for reading activities."
           badge={<StaffBadge tone="accent">Local development</StaffBadge>}
+        />
+
+        <TemporaryCredentialsNotice
+          active={staffSession?.staff.requires_credential_setup ?? false}
         />
 
         {overviewQuery.isError ? (

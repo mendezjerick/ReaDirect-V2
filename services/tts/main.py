@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import hmac
 import logging
 import os
 import re
@@ -14,8 +15,8 @@ from typing import Any, Callable, Generic, Literal, TypeVar
 import numpy as np
 import soundfile as sf
 import torch
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from readirect_gpu_runtime import GpuCoordinator, InferenceCapacity, ServiceProcessGuard
 
@@ -41,6 +42,10 @@ STARTUP_WARMUP_ENABLED = os.getenv("READIRECT_TTS_STARTUP_WARMUP", "1") not in {
     "False",
 }
 PROFILE_PROBE_TEXT = "Ma'am Clara is ready to help."
+MAX_HTTP_REQUEST_BYTES = int(os.getenv("TTS_MAX_HTTP_REQUEST_BYTES", "16384"))
+SERVICE_TOKEN = os.getenv("TTS_SERVICE_TOKEN", "").strip()
+SERVICE_TOKEN_CONFIGURED = len(SERVICE_TOKEN) >= 32
+PUBLIC_PATHS = frozenset({"/health"})
 
 REFERENCE_FILES = {
     "introduce": REFERENCE_ROOT / "introduce.wav",
@@ -76,7 +81,7 @@ class SynthesisRequest(BaseModel):
 
 
 class WarmupRequest(BaseModel):
-    profiles: list[ReferenceProfile] = Field(default_factory=list)
+    profiles: list[ReferenceProfile] = Field(default_factory=list, max_length=4)
 
     @field_validator("profiles")
     @classmethod
@@ -429,6 +434,48 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title="ReaDirect TTS", version="1.0.0", lifespan=lifespan)
 
 
+@app.middleware("http")
+async def enforce_service_boundary(request: Request, call_next):
+    if request.url.path in PUBLIC_PATHS:
+        return await call_next(request)
+
+    if not SERVICE_TOKEN_CONFIGURED:
+        return JSONResponse(status_code=503, content={"detail": "service_auth_not_configured"})
+
+    scheme, separator, supplied_token = request.headers.get("authorization", "").partition(" ")
+    if (
+        separator == ""
+        or scheme.lower() != "bearer"
+        or not supplied_token
+        or not hmac.compare_digest(supplied_token, SERVICE_TOKEN)
+    ):
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "service_auth_required"},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    content_length = request.headers.get("content-length")
+    if content_length is not None:
+        try:
+            parsed_content_length = int(content_length)
+            if parsed_content_length < 0:
+                return JSONResponse(status_code=400, content={"detail": "invalid_content_length"})
+            if parsed_content_length > MAX_HTTP_REQUEST_BYTES:
+                return JSONResponse(status_code=413, content={"detail": "request_too_large"})
+        except ValueError:
+            return JSONResponse(status_code=400, content={"detail": "invalid_content_length"})
+
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > MAX_HTTP_REQUEST_BYTES:
+            return JSONResponse(status_code=413, content={"detail": "request_too_large"})
+    request._body = bytes(body)
+
+    return await call_next(request)
+
+
 def cache_path_for(request: SynthesisRequest, reference_path: Path) -> Path:
     reference_stat = reference_path.stat()
     cache_key = "|".join(
@@ -556,13 +603,27 @@ async def run_coordinated_inference(
 async def health() -> dict[str, Any]:
     state = runtime.state()
     queue = inference_queue.snapshot()
-    gpu = _gpu_coordination_status()
-    ready = bool(queue["healthy"]) and bool(state["model_ready"])
+    ready = SERVICE_TOKEN_CONFIGURED and bool(queue["healthy"]) and bool(state["model_ready"])
 
     return {
         "service": "tts",
         "status": "ready" if ready else "not_ready",
         "runtime_ready": state["model_ready"],
+    }
+
+
+@app.get("/internal/status")
+async def internal_status() -> dict[str, Any]:
+    state = _sanitized_runtime_state()
+    queue = inference_queue.snapshot()
+    gpu = _gpu_coordination_status()
+    ready = SERVICE_TOKEN_CONFIGURED and bool(queue["healthy"]) and bool(state["model_ready"])
+
+    return {
+        "service": "tts",
+        "status": "ready" if ready else "not_ready",
+        "runtime_ready": state["model_ready"],
+        "service_auth_configured": SERVICE_TOKEN_CONFIGURED,
         **state,
         "inference_queue": queue,
         "gpu_coordination": gpu,
@@ -588,7 +649,7 @@ async def warmup(request: WarmupRequest | None = None) -> dict[str, Any]:
             )
         except (OSError, RuntimeError, ValueError) as error:
             logger.exception("VoxCPM2 warm-up failed")
-            raise HTTPException(status_code=503, detail=str(error)) from error
+            raise HTTPException(status_code=503, detail="tts_unavailable") from error
 
     state = runtime.state()
 
@@ -606,7 +667,7 @@ async def synthesize(request: SynthesisRequest) -> FileResponse:
     if not reference_path.is_file():
         raise HTTPException(
             status_code=503,
-            detail=f"Clara reference audio is missing for {request.reference}.",
+            detail="tts_unavailable",
         )
 
     normalized_request = request.model_copy(update={"text": request.text.strip()})
@@ -642,7 +703,7 @@ async def synthesize(request: SynthesisRequest) -> FileResponse:
             gpu_wait_seconds = outcome.gpu_wait_seconds
     except (OSError, RuntimeError, ValueError) as error:
         logger.exception("Clara speech synthesis failed")
-        raise HTTPException(status_code=503, detail=str(error)) from error
+        raise HTTPException(status_code=503, detail="tts_unavailable") from error
 
     return FileResponse(
         output_path,
@@ -662,6 +723,13 @@ def _gpu_coordination_status() -> dict[str, object]:
         **gpu_coordinator.snapshot(),
         "process_guard": gpu_process_guard.snapshot(),
     }
+
+
+def _sanitized_runtime_state() -> dict[str, Any]:
+    state = dict(runtime.state())
+    model_error = state.pop("model_error", None)
+    state["model_load_failed"] = model_error is not None
+    return state
 
 
 def _capacity_status(

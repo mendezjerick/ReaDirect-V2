@@ -9,6 +9,7 @@ const staffAccountSchema = z.object({
   id: z.number().int().positive(),
   username: z.string().nullable(),
   email: z.string().nullable(),
+  email_verified_at: z.string().nullable().default(null),
   display_name: z.string(),
   role: z.enum(["system_admin", "school_admin", "teacher"]),
   school: staffSchoolSchema.nullable(),
@@ -21,7 +22,10 @@ const staffAccountSchema = z.object({
 
 const staffIdentitySessionSchema = z.object({
   staff: staffAccountSchema,
-  session: z.object({ expires_at: z.string() }),
+  session: z.object({
+    expires_at: z.string(),
+    remembered: z.boolean().default(false),
+  }),
 });
 
 const staffSessionSchema = staffIdentitySessionSchema.extend({
@@ -546,6 +550,9 @@ const apiErrorSchema = z.object({
   errors: z
     .object({
       identifier: z.array(z.string()).optional(),
+      email: z.array(z.string()).optional(),
+      current_password: z.array(z.string()).optional(),
+      code: z.array(z.string()).optional(),
       password: z.array(z.string()).optional(),
       username: z.array(z.string()).optional(),
       temporary_password: z.array(z.string()).optional(),
@@ -561,7 +568,7 @@ const apiErrorSchema = z.object({
     .optional(),
 });
 
-export type StaffSession = z.infer<typeof staffSessionSchema>;
+export type StaffSession = z.input<typeof staffSessionSchema>;
 export type StaffRole = StaffSession["staff"]["role"];
 export type SchoolAdminOverview = z.infer<typeof schoolAdminOverviewSchema>;
 export type TeacherOverview = z.infer<typeof teacherOverviewSchema>;
@@ -713,6 +720,7 @@ export type PortalTargetKey = z.infer<typeof portalTargetKeySchema>;
 export type PortalLaunchResponse = z.infer<typeof portalLaunchResponseSchema>;
 
 const staffSessionStorageKey = "readirect.staff-session";
+const staffDeviceStorageKey = "readirect.staff-device";
 export const staffSessionChangedEvent = "readirect:staff-session-changed";
 
 function announceStaffSessionChange(): void {
@@ -720,15 +728,20 @@ function announceStaffSessionChange(): void {
 }
 
 export function saveStaffSession(session: StaffSession): void {
-  window.sessionStorage.setItem(
-    staffSessionStorageKey,
-    JSON.stringify(session),
-  );
+  const storage = session.session.remembered
+    ? window.localStorage
+    : window.sessionStorage;
+  window.localStorage.removeItem(staffSessionStorageKey);
+  window.sessionStorage.removeItem(staffSessionStorageKey);
+  storage.setItem(staffSessionStorageKey, JSON.stringify(session));
   announceStaffSessionChange();
 }
 
 export function loadStaffSession(): StaffSession | null {
-  const storedSession = window.sessionStorage.getItem(staffSessionStorageKey);
+  const storage = window.sessionStorage.getItem(staffSessionStorageKey)
+    ? window.sessionStorage
+    : window.localStorage;
+  const storedSession = storage.getItem(staffSessionStorageKey);
 
   if (!storedSession) {
     return null;
@@ -739,14 +752,14 @@ export function loadStaffSession(): StaffSession | null {
   try {
     storedValue = JSON.parse(storedSession);
   } catch {
-    window.sessionStorage.removeItem(staffSessionStorageKey);
+    storage.removeItem(staffSessionStorageKey);
     return null;
   }
 
   const parsed = staffSessionSchema.safeParse(storedValue);
 
   if (!parsed.success) {
-    window.sessionStorage.removeItem(staffSessionStorageKey);
+    storage.removeItem(staffSessionStorageKey);
     return null;
   }
 
@@ -756,6 +769,7 @@ export function loadStaffSession(): StaffSession | null {
 export function clearStaffSession(): void {
   const session = loadStaffSession();
   window.sessionStorage.removeItem(staffSessionStorageKey);
+  window.localStorage.removeItem(staffSessionStorageKey);
   announceStaffSessionChange();
 
   if (session) {
@@ -764,6 +778,9 @@ export function clearStaffSession(): void {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${session.token}`,
+        ...(session.session.remembered
+          ? { "X-ReaDirect-Device": getStaffDeviceId() }
+          : {}),
       },
       keepalive: true,
     }).catch(() => undefined);
@@ -772,6 +789,7 @@ export function clearStaffSession(): void {
 
 function discardStaffSession(): void {
   window.sessionStorage.removeItem(staffSessionStorageKey);
+  window.localStorage.removeItem(staffSessionStorageKey);
   announceStaffSessionChange();
 }
 
@@ -784,6 +802,9 @@ export async function staffFetch(
 
   if (session) {
     headers.set("Authorization", `Bearer ${session.token}`);
+    if (session.session.remembered) {
+      headers.set("X-ReaDirect-Device", getStaffDeviceId());
+    }
   }
 
   const response = await fetch(input, { ...init, headers });
@@ -830,6 +851,9 @@ async function readApiError(response: Response): Promise<string> {
 
   return (
     parsed.data.errors?.identifier?.[0] ??
+    parsed.data.errors?.email?.[0] ??
+    parsed.data.errors?.current_password?.[0] ??
+    parsed.data.errors?.code?.[0] ??
     parsed.data.errors?.password?.[0] ??
     parsed.data.errors?.username?.[0] ??
     parsed.data.errors?.temporary_password?.[0] ??
@@ -844,6 +868,90 @@ async function readApiError(response: Response): Promise<string> {
     parsed.data.message ??
     "ReaDirect could not complete that request."
   );
+}
+
+const verificationSentSchema = z.object({
+  verification_sent: z.literal(true),
+  expires_in_seconds: z.number().int().positive(),
+});
+
+const verifiedEmailSchema = z.object({
+  email: z.string().email(),
+  email_verified_at: z.string(),
+});
+
+export async function requestStaffEmailVerification(input: {
+  email: string;
+  current_password: string;
+}): Promise<z.infer<typeof verificationSentSchema>> {
+  const response = await staffFetch("/api/staff/security/email-verification", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) throw new Error(await readApiError(response));
+  return verificationSentSchema.parse(await response.json());
+}
+
+export async function confirmStaffEmailVerification(
+  code: string,
+): Promise<z.infer<typeof verifiedEmailSchema>> {
+  const response = await staffFetch(
+    "/api/staff/security/email-verification/confirm",
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ code }),
+    },
+  );
+
+  if (!response.ok) throw new Error(await readApiError(response));
+  return verifiedEmailSchema.parse(await response.json());
+}
+
+export async function requestStaffPasswordChangeCode(
+  currentPassword: string,
+): Promise<z.infer<typeof verificationSentSchema>> {
+  const response = await staffFetch(
+    "/api/staff/security/password-change-code",
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ current_password: currentPassword }),
+    },
+  );
+
+  if (!response.ok) throw new Error(await readApiError(response));
+  return verificationSentSchema.parse(await response.json());
+}
+
+export async function changeStaffPassword(input: {
+  current_password: string;
+  code: string;
+  password: string;
+  password_confirmation: string;
+}): Promise<void> {
+  const response = await staffFetch("/api/staff/security/password", {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) throw new Error(await readApiError(response));
+  z.object({ password_changed: z.literal(true) }).parse(await response.json());
 }
 
 const schoolAdministratorSchema = z.object({
@@ -1150,14 +1258,18 @@ export async function issueTeacherCredentialSheet(input: {
 export async function loginStaff(credentials: {
   identifier: string;
   password: string;
+  remember_me: boolean;
 }): Promise<StaffSession> {
+  const payload = credentials.remember_me
+    ? { ...credentials, device_id: getStaffDeviceId() }
+    : credentials;
   const response = await fetch("/api/staff/login", {
     method: "POST",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(credentials),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -1165,6 +1277,15 @@ export async function loginStaff(credentials: {
   }
 
   return staffSessionSchema.parse(await response.json());
+}
+
+function getStaffDeviceId(): string {
+  const existing = window.localStorage.getItem(staffDeviceStorageKey);
+  if (existing && /^[A-Za-z0-9_-]{1,64}$/.test(existing)) return existing;
+
+  const created = crypto.randomUUID();
+  window.localStorage.setItem(staffDeviceStorageKey, created);
+  return created;
 }
 
 export async function getSystemAdminOverview(): Promise<SystemAdminOverview> {
@@ -1303,7 +1424,8 @@ export async function getSystemAdminAgentSettings(): Promise<SystemAdminAgentSet
 }
 
 const lightweightModeResponseSchema = z.object({
-  lightweight_mode: systemAdminAgentSettingsSchema.shape.agent.shape.lightweight_mode,
+  lightweight_mode:
+    systemAdminAgentSettingsSchema.shape.agent.shape.lightweight_mode,
 });
 
 export async function updateSystemAdminLightweightMode(input: {

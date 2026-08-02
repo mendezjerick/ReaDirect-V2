@@ -70,6 +70,7 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
 
         Http::assertSentCount(1);
         Http::assertSent(fn ($request): bool => $request->url() === 'http://127.0.0.1:8002/warmup'
+            && $request->hasHeader('Authorization', 'Bearer '.config('speech.tts_token'))
             && $request->data() === ['profiles' => ['result']]);
     }
 

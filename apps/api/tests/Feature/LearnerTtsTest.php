@@ -187,7 +187,10 @@ final class LearnerTtsTest extends TestCase
             )
             ->assertContent('RIFF-runtime-feedback');
 
-        Http::assertSent(fn ($request): bool => $request->data() === [
+        Http::assertSent(fn ($request): bool => $request->hasHeader(
+            'Authorization',
+            'Bearer '.config('speech.tts_token'),
+        ) && $request->data() === [
             'text' => 'You missed the word is.',
             'reference' => 'result',
         ]);

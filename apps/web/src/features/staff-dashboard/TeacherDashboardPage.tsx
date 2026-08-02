@@ -18,6 +18,7 @@ import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
 import { StaffSectionHeader } from "../../components/staff/StaffSectionHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
 import { StaffState } from "../../components/staff/StaffState";
+import { TemporaryCredentialsNotice } from "../../components/staff/TemporaryCredentialsNotice";
 import { teacherNavigationGroups } from "../../components/staff/staffNavigation";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -220,6 +221,13 @@ export function TeacherDashboardPage() {
           title={`Grade ${gradeLevel} · Section ${section}`}
           description="Review your class, follow assessment progress, and prepare learner activities."
           badge={<StaffBadge>Teacher</StaffBadge>}
+        />
+
+        <TemporaryCredentialsNotice
+          active={
+            overview?.requires_credential_setup ??
+            teacherSession.staff.requires_credential_setup
+          }
         />
 
         {requiresAcknowledgement ? (

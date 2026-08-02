@@ -562,6 +562,7 @@ final class SystemAdminSpeechSandboxController extends Controller
     private function client(): PendingRequest
     {
         return Http::acceptJson()
+            ->withToken((string) config('speech.asr_token'))
             ->connectTimeout(config('speech.connect_timeout_seconds'))
             ->timeout(config('speech.request_timeout_seconds'));
     }

@@ -28,6 +28,11 @@ final class SystemAdminSpeechSandboxTest extends TestCase
             ->assertJsonPath('nu.model', 'nu')
             ->assertJsonPath('nu.resolver', 'strict_letter_alias_v2')
             ->assertJsonPath('mu.model', 'mu');
+
+        Http::assertSent(fn ($request): bool => $request->hasHeader(
+            'Authorization',
+            'Bearer '.config('speech.asr_token'),
+        ));
     }
 
     public function test_true_sandbox_catalog_contains_only_mu_spoken_activity_targets(): void

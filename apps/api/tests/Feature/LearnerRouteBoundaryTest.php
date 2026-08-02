@@ -60,6 +60,24 @@ final class LearnerRouteBoundaryTest extends TestCase
         }
     }
 
+    public function test_every_learner_route_except_login_has_the_central_session_guard(): void
+    {
+        $this->learnerRoutes()->each(function (Route $route): void {
+            $middleware = $route->gatherMiddleware();
+
+            if ($route->uri() === 'api/learners/login') {
+                $this->assertFalse(in_array('learner.auth', $middleware, true));
+                $this->assertTrue(collect($middleware)->contains(
+                    fn (string $entry): bool => str_starts_with($entry, 'throttle:learner-login'),
+                ));
+
+                return;
+            }
+
+            $this->assertContains('learner.auth', $middleware, $route->uri());
+        });
+    }
+
     /**
      * @return Collection<int, Route>
      */

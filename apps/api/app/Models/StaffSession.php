@@ -10,6 +10,8 @@ final class StaffSession extends Model
     protected $fillable = [
         'staff_user_id',
         'token_hash',
+        'remembered',
+        'device_hash',
         'last_used_at',
         'expires_at',
         'revoked_at',
@@ -18,6 +20,7 @@ final class StaffSession extends Model
     protected function casts(): array
     {
         return [
+            'remembered' => 'boolean',
             'last_used_at' => 'datetime',
             'expires_at' => 'datetime',
             'revoked_at' => 'datetime',

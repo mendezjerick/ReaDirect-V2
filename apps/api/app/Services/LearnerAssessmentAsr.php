@@ -81,6 +81,7 @@ final class LearnerAssessmentAsr
     {
         try {
             $response = Http::acceptJson()
+                ->withToken((string) config('speech.asr_token'))
                 ->connectTimeout((int) config('speech.connect_timeout_seconds'))
                 ->timeout((int) config('speech.request_timeout_seconds'))
                 ->attach('audio', file_get_contents($audio->getRealPath()), $audio->getClientOriginalName())

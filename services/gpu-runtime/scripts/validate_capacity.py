@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import threading
@@ -49,8 +50,12 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def fetch_json(url: str, timeout_seconds: float) -> dict[str, Any]:
-    with urllib.request.urlopen(url, timeout=timeout_seconds) as response:
+def fetch_json(url: str, timeout_seconds: float, token: str) -> dict[str, Any]:
+    request = urllib.request.Request(
+        url,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
         payload = json.loads(response.read().decode("utf-8"))
     if not isinstance(payload, dict):
         raise ValueError(f"Expected a JSON object from {url}")
@@ -130,18 +135,21 @@ def exercise_inference(
     audio_path: Path,
     tts_reference: str,
     timeout_seconds: float,
+    asr_token: str,
+    tts_token: str,
 ) -> list[dict[str, object]]:
     if not audio_path.is_file():
         raise FileNotFoundError(f"ASR fixture does not exist: {audio_path}")
 
     timestamp = int(time.time() * 1000)
     calls = {
-        "asr": lambda: post_asr(asr_url, audio_path, timeout_seconds),
+        "asr": lambda: post_asr(asr_url, audio_path, timeout_seconds, asr_token),
         "tts": lambda: post_tts(
             tts_url,
             f"ReaDirect capacity validation {timestamp}.",
             tts_reference,
             timeout_seconds,
+            tts_token,
         ),
     }
     results: list[dict[str, object]] = []
@@ -158,7 +166,12 @@ def exercise_inference(
     return sorted(results, key=lambda result: str(result["service"]))
 
 
-def post_asr(base_url: str, audio_path: Path, timeout_seconds: float) -> dict[str, object]:
+def post_asr(
+    base_url: str,
+    audio_path: Path,
+    timeout_seconds: float,
+    token: str,
+) -> dict[str, object]:
     boundary = f"readirect-{uuid.uuid4().hex}"
     body = multipart_body(
         boundary,
@@ -169,7 +182,10 @@ def post_asr(base_url: str, audio_path: Path, timeout_seconds: float) -> dict[st
     request = urllib.request.Request(
         f"{base_url.rstrip('/')}/mu/transcribe",
         data=body,
-        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+        },
         method="POST",
     )
     started = time.perf_counter()
@@ -190,11 +206,15 @@ def post_tts(
     text: str,
     reference: str,
     timeout_seconds: float,
+    token: str,
 ) -> dict[str, object]:
     request = urllib.request.Request(
         f"{base_url.rstrip('/')}/synthesize",
         data=json.dumps({"text": text, "reference": reference}).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
         method="POST",
     )
     started = time.perf_counter()
@@ -250,6 +270,10 @@ def _optional_float(value: str | None) -> float | None:
 
 def main() -> int:
     arguments = parse_arguments()
+    asr_token = os.getenv("ASR_SERVICE_TOKEN", "").strip()
+    tts_token = os.getenv("TTS_SERVICE_TOKEN", "").strip()
+    if len(asr_token) < 32 or len(tts_token) < 32:
+        raise ValueError("ASR_SERVICE_TOKEN and TTS_SERVICE_TOKEN must each contain at least 32 characters")
     if arguments.timeout_seconds <= 0:
         raise ValueError("--timeout-seconds must be greater than 0")
     if arguments.minimum_free_memory_mib < 0:
@@ -258,12 +282,14 @@ def main() -> int:
         raise ValueError("--asr-audio is required with --exercise")
 
     asr = fetch_json(
-        f"{arguments.asr_url.rstrip('/')}/ready",
+        f"{arguments.asr_url.rstrip('/')}/internal/status",
         arguments.timeout_seconds,
+        asr_token,
     )
     tts = fetch_json(
-        f"{arguments.tts_url.rstrip('/')}/health",
+        f"{arguments.tts_url.rstrip('/')}/internal/status",
         arguments.timeout_seconds,
+        tts_token,
     )
     validation = validate_speech_deployment(
         asr,
@@ -293,6 +319,8 @@ def main() -> int:
                 audio_path=arguments.asr_audio,
                 tts_reference=arguments.tts_reference,
                 timeout_seconds=arguments.timeout_seconds,
+                asr_token=asr_token,
+                tts_token=tts_token,
             )
         finally:
             stop_sampling.set()

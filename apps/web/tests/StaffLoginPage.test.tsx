@@ -50,6 +50,7 @@ function renderStaffLogin() {
 describe("StaffLoginPage", () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    window.localStorage.clear();
     vi.unstubAllGlobals();
   });
 
@@ -150,6 +151,62 @@ describe("StaffLoginPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(await screen.findByText("Dashboard route")).toBeInTheDocument();
+  });
+
+  it("binds and persists a remembered session to this browser", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          token: "r".repeat(64),
+          session: {
+            expires_at: "2099-01-01T00:00:00Z",
+            remembered: true,
+          },
+          staff: {
+            id: 4,
+            username: "remembered-teacher",
+            email: null,
+            display_name: "Remembered Teacher",
+            role: "teacher",
+            school: { id: 4, name: "Northfield Elementary School" },
+            requires_school_setup: false,
+            requires_credential_setup: false,
+            grade_level: 1,
+            section: "Maple",
+            requires_assignment_acknowledgement: false,
+          },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderStaffLogin();
+    fireEvent.change(screen.getByLabelText("Username or email"), {
+      target: { value: "remembered-teacher" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "temporary-pass" },
+    });
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /remember me on this device/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(
+      await screen.findByText("Teacher dashboard route"),
+    ).toBeInTheDocument();
+    const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const payload = JSON.parse(String(request.body)) as Record<string, unknown>;
+    expect(payload.remember_me).toBe(true);
+    expect(payload.device_id).toMatch(/^[A-Za-z0-9_-]{1,64}$/);
+    expect(window.localStorage.getItem("readirect.staff-session")).toContain(
+      '"remembered":true',
+    );
+    expect(window.sessionStorage.getItem("readirect.staff-session")).toBeNull();
   });
 
   it("sends a new School Administrator to mandatory school setup", async () => {

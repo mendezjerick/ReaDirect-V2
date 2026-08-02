@@ -26,5 +26,7 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="ASR_SERVICE_TOKEN" value="asr-test-token-at-least-thirty-two-characters"/>
+        <env name="TTS_SERVICE_TOKEN" value="tts-test-token-at-least-thirty-two-characters"/>
     </php>
 </phpunit>

@@ -54,6 +54,7 @@ abstract class TestCase extends BaseTestCase
         Schema::dropIfExists('tts_voice_versions');
         Schema::dropIfExists('speech_sandbox_attempts');
         Schema::dropIfExists('staff_audit_logs');
+        Schema::dropIfExists('staff_verification_codes');
         Schema::dropIfExists('staff_sessions');
         Schema::dropIfExists('guest_sessions');
         Schema::dropIfExists('guest_accounts');
@@ -120,10 +121,24 @@ abstract class TestCase extends BaseTestCase
             $table->timestamps();
         });
 
+        Schema::create('staff_verification_codes', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('staff_user_id')->constrained()->cascadeOnDelete();
+            $table->string('purpose', 32);
+            $table->string('destination_email', 254);
+            $table->char('code_hash', 64);
+            $table->unsignedTinyInteger('attempt_count')->default(0);
+            $table->timestamp('expires_at');
+            $table->timestamp('consumed_at')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('staff_sessions', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('staff_user_id')->constrained()->cascadeOnDelete();
             $table->char('token_hash', 64)->unique();
+            $table->boolean('remembered')->default(false);
+            $table->char('device_hash', 64)->nullable();
             $table->timestamp('last_used_at')->nullable();
             $table->timestamp('expires_at')->index();
             $table->timestamp('revoked_at')->nullable()->index();

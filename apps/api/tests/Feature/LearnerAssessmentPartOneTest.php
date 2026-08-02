@@ -80,6 +80,10 @@ final class LearnerAssessmentPartOneTest extends TestCase
             'decision' => 'CORRECT',
             'score' => 1,
         ]);
+        Http::assertSent(fn ($request): bool => $request->hasHeader(
+            'Authorization',
+            'Bearer '.config('speech.asr_token'),
+        ));
     }
 
     public function test_resume_advances_past_a_legacy_committed_item(): void

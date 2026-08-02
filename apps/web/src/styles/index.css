@@ -584,6 +584,29 @@ button {
   font-size: 1.25rem;
 }
 
+.staff-login-form__remember {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.staff-login-form__remember input {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.15rem;
+  accent-color: var(--color-primary);
+}
+
+.staff-login-form__remember small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
 .staff-login-form__notice {
   margin: 0;
   color: var(--color-text-secondary);

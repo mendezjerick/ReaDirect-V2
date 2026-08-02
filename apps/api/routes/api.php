@@ -24,6 +24,7 @@ use App\Http\Controllers\SchoolAdminTeacherDashboardController;
 use App\Http\Controllers\SchoolAdminWorkspaceController;
 use App\Http\Controllers\StaffAuthController;
 use App\Http\Controllers\StaffRealtimeController;
+use App\Http\Controllers\StaffSecurityController;
 use App\Http\Controllers\SystemAdminAgentsAiController;
 use App\Http\Controllers\SystemAdminEquivalenceController;
 use App\Http\Controllers\SystemAdminGuestController;
@@ -54,6 +55,14 @@ Route::prefix('staff')->group(function (): void {
     Route::middleware('staff.auth')->group(function (): void {
         Route::get('/session', [StaffAuthController::class, 'show']);
         Route::post('/logout', [StaffAuthController::class, 'destroy']);
+        Route::post('/security/email-verification', [StaffSecurityController::class, 'requestEmailVerification'])
+            ->middleware('throttle:staff-security-code-request');
+        Route::post('/security/email-verification/confirm', [StaffSecurityController::class, 'verifyEmail'])
+            ->middleware('throttle:staff-security-code-verify');
+        Route::post('/security/password-change-code', [StaffSecurityController::class, 'requestPasswordChangeCode'])
+            ->middleware('throttle:staff-security-code-request');
+        Route::put('/security/password', [StaffSecurityController::class, 'updatePassword'])
+            ->middleware('throttle:staff-security-code-verify');
         Route::get('/realtime/config', [StaffRealtimeController::class, 'config']);
         Route::post('/realtime/probe', [StaffRealtimeController::class, 'probe']);
 
@@ -136,7 +145,11 @@ Route::prefix('staff')->group(function (): void {
 });
 
 Route::prefix('learners')->group(function (): void {
-    Route::post('/login', [LearnerAuthController::class, 'store']);
+    Route::post('/login', [LearnerAuthController::class, 'store'])
+        ->middleware('throttle:learner-login');
+});
+
+Route::prefix('learners')->middleware('learner.auth')->group(function (): void {
     Route::get('/session', [LearnerAuthController::class, 'show']);
     Route::post('/logout', [LearnerAuthController::class, 'destroy']);
     Route::get('/experience/settings', [LearnerExperienceController::class, 'show']);

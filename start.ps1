@@ -15,6 +15,9 @@ param(
     [ValidateRange(1, 65535)]
     [int]$ReverbPort = 8080,
 
+    [ValidateNotNullOrEmpty()]
+    [string]$BindAddress = '127.0.0.1',
+
     [ValidateRange(30, 600)]
     [int]$SpeechStartupTimeoutSeconds = 240,
 
@@ -31,11 +34,12 @@ $runtimeDirectory = Join-Path $repositoryRoot '.runtime'
 $logDirectory = Join-Path $runtimeDirectory 'logs'
 $serviceManifestPath = Join-Path $runtimeDirectory 'services.json'
 $stopRequestPath = Join-Path $runtimeDirectory 'stop-requested'
-$bindAddress = '0.0.0.0'
 $runningProcesses = [System.Collections.Generic.List[object]]::new()
 $serviceResults = [System.Collections.Generic.List[object]]::new()
 $previousReverbPort = [Environment]::GetEnvironmentVariable('REVERB_PORT', 'Process')
 $previousReverbServerPort = [Environment]::GetEnvironmentVariable('REVERB_SERVER_PORT', 'Process')
+$previousAsrServiceToken = [Environment]::GetEnvironmentVariable('ASR_SERVICE_TOKEN', 'Process')
+$previousTtsServiceToken = [Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process')
 
 function Write-Section {
     param([Parameter(Mandatory)][string]$Title)
@@ -165,6 +169,20 @@ function Start-ManagedProcess {
     $runningProcesses.Add($processRecord)
     Save-ServiceManifest
     return $processRecord
+}
+
+function New-SecureServiceToken {
+    $bytes = New-Object byte[] 32
+    $generator = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+
+    try {
+        $generator.GetBytes($bytes)
+    }
+    finally {
+        $generator.Dispose()
+    }
+
+    return [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
 }
 
 function Start-ManagedBackgroundProcess {
@@ -319,6 +337,12 @@ Write-Host "Repository: $repositoryRoot"
 try {
     [Environment]::SetEnvironmentVariable('REVERB_PORT', [string]$ReverbPort, 'Process')
     [Environment]::SetEnvironmentVariable('REVERB_SERVER_PORT', [string]$ReverbPort, 'Process')
+    if ([string]::IsNullOrWhiteSpace($previousAsrServiceToken)) {
+        [Environment]::SetEnvironmentVariable('ASR_SERVICE_TOKEN', (New-SecureServiceToken), 'Process')
+    }
+    if ([string]::IsNullOrWhiteSpace($previousTtsServiceToken)) {
+        [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', (New-SecureServiceToken), 'Process')
+    }
 
     $corepackPath = Get-RequiredCommandPath `
         -Command 'corepack' `
@@ -527,4 +551,6 @@ finally {
     Remove-Item -LiteralPath $stopRequestPath -Force -ErrorAction SilentlyContinue
     [Environment]::SetEnvironmentVariable('REVERB_PORT', $previousReverbPort, 'Process')
     [Environment]::SetEnvironmentVariable('REVERB_SERVER_PORT', $previousReverbServerPort, 'Process')
+    [Environment]::SetEnvironmentVariable('ASR_SERVICE_TOKEN', $previousAsrServiceToken, 'Process')
+    [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', $previousTtsServiceToken, 'Process')
 }

@@ -26,6 +26,32 @@ final class StaffSessionResolver
             abort(401, 'The staff session has expired or was revoked.');
         }
 
+        if ($session->remembered) {
+            $deviceId = $request->header('X-ReaDirect-Device');
+            $deviceHash = is_string($deviceId)
+                ? hash_hmac('sha256', $deviceId, (string) config('app.key'))
+                : '';
+            if (! is_string($session->device_hash)
+                || ! hash_equals($session->device_hash, $deviceHash)) {
+                $session->forceFill(['revoked_at' => now()])->save();
+                abort(401, 'The staff session has expired or was revoked.');
+            }
+        }
+
+        if ($session->staffUser->role === 'system_admin') {
+            $canonicalSessionId = StaffSession::query()
+                ->whereHas('staffUser', fn ($query) => $query->where('role', 'system_admin'))
+                ->whereNull('revoked_at')
+                ->where('expires_at', '>', now())
+                ->latest('id')
+                ->value('id');
+
+            if ($canonicalSessionId !== $session->id) {
+                $session->forceFill(['revoked_at' => now()])->save();
+                abort(401, 'The staff session has expired or was revoked.');
+            }
+        }
+
         return $session;
     }
 }
