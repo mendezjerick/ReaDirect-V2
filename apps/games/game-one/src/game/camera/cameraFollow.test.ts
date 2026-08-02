@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getWorldSize } from "../map/prototypeMap";
 import { getCameraCenter } from "./cameraFollow";
 
 describe("camera follow", () => {
@@ -24,12 +25,18 @@ describe("camera follow", () => {
   });
 
   it("clamps against the redesigned village's far edge", () => {
+    const viewportWidth = 640;
+    const viewportHeight = 360;
     const camera = getCameraCenter({
       target: { x: 4000, y: 4000 },
-      viewportWidth: 640,
-      viewportHeight: 360
+      viewportWidth,
+      viewportHeight
     });
+    const world = getWorldSize();
 
-    expect(camera).toEqual({ x: 1408, y: 908 });
+    expect(camera).toEqual({
+      x: world.width - viewportWidth / 2,
+      y: world.height - viewportHeight / 2
+    });
   });
 });

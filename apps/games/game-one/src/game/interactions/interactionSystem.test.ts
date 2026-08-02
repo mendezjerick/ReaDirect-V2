@@ -1,13 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
+import { LANDMARK_IDS } from "../content/landmarks";
 import { NPC_IDS } from "../content/npcs";
+import { SHOP_IDS } from "../content/shops";
 import { createInteractionGuard, getInteractionTargets, selectClosestInteraction, type InteractionTarget } from "./interactionSystem";
 
 describe("interaction system", () => {
-  it("provides all required unique NPC targets without obsolete mission items", () => {
+  it("provides all NPCs and readable landmarks as unique interaction targets", () => {
     const targets = getInteractionTargets();
-    expect(targets.map((target) => target.npcId)).toEqual(NPC_IDS);
-    expect(new Set(targets.map((target) => target.id)).size).toBe(NPC_IDS.length);
-    expect(targets.every((target) => target.kind === "npc")).toBe(true);
+    const npcTargets = targets.filter((target) => target.kind === "npc");
+    const landmarkTargets = targets.filter((target) => target.kind === "landmark");
+    expect(npcTargets.map((target) => target.npcId)).toEqual(NPC_IDS);
+    expect(landmarkTargets.map((target) => target.landmarkId)).toEqual(LANDMARK_IDS);
+    const shopTargets = targets.filter((target) => target.kind === "shop");
+    expect(shopTargets.map((target) => target.shopId)).toEqual(SHOP_IDS);
+    expect(new Set(targets.map((target) => target.id)).size).toBe(NPC_IDS.length + LANDMARK_IDS.length + SHOP_IDS.length);
   });
 
   it("selects the nearest enabled target and clears it after leaving range", () => {
@@ -33,6 +39,49 @@ describe("interaction system", () => {
     const map = { columns: 10, rows: 10, tileSize: 32, collision: [{ id: "wall", x: 18, y: -8, width: 8, height: 16 }] };
     expect(selectClosestInteraction({ x: 0, y: 0 }, targets, { allowedNpcId: "miss-estelle", collisionMap: map })).toBeNull();
     expect(selectClosestInteraction({ x: 0, y: 0 }, targets, { allowedNpcId: "market-vendor", collisionMap: map })?.id).toBe("vendor");
+  });
+
+  it("allows optional lore characters without letting them replace a nearby mission target", () => {
+    const missionTarget = target("estelle", 30, 0);
+    const loreTarget = {
+      ...target("yuuri", 8, 0),
+      npcId: "miss-yuuri" as const,
+      optional: true
+    };
+
+    expect(
+      selectClosestInteraction(
+        { x: 0, y: 0 },
+        [loreTarget],
+        { allowedNpcId: "miss-estelle" }
+      )?.id
+    ).toBe("yuuri");
+    expect(
+      selectClosestInteraction(
+        { x: 0, y: 0 },
+        [loreTarget, missionTarget],
+        { allowedNpcId: "miss-estelle" }
+      )?.id
+    ).toBe("estelle");
+  });
+
+  it("allows readable landmarks without replacing a nearby mission target", () => {
+    const missionTarget = target("estelle", 30, 0);
+    const landmark: InteractionTarget = {
+      id: "landmark:village-guide-sign",
+      kind: "landmark",
+      label: "Read sign",
+      description: "Read sign.",
+      position: { x: 8, y: 0 },
+      enabled: true,
+      optional: true,
+      landmarkId: "village-guide-sign"
+    };
+
+    expect(selectClosestInteraction({ x: 0, y: 0 }, [landmark], { allowedNpcId: "miss-estelle" })?.id)
+      .toBe("landmark:village-guide-sign");
+    expect(selectClosestInteraction({ x: 0, y: 0 }, [landmark, missionTarget], { allowedNpcId: "miss-estelle" })?.id)
+      .toBe("estelle");
   });
 
   it("guards one interaction press from rapid duplicate activation", () => {

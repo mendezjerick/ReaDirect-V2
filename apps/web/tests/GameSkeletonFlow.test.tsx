@@ -1,10 +1,12 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
   waitFor,
   within,
 } from "@testing-library/react";
+import { lazy, Suspense, type ReactElement } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,28 +15,26 @@ import {
   GameLobbySkeletonProvider,
   RequireSkeletonGameProfile,
 } from "@readirect/game-lobby";
+import { GameAlphaRoutePage } from "@readirect/game-alpha";
 import { GameZeroRoutePage } from "@readirect/game-zero";
 import { GameTwoRoutePage } from "@readirect/game-two";
 import { GameOneHostPage } from "../src/features/game-one/GameOneHostPage";
 
-vi.mock(
-  "../../games/game-one/src/game/kaplay/createKaplayGame",
-  () => ({
-    createKaplayGame: () => ({
-      canvas: document.createElement("canvas"),
-      pause: vi.fn(),
-      resume: vi.fn(),
-      setTouchDirection: vi.fn(),
-      setAnalogVector: vi.fn(),
-      interact: vi.fn(() => false),
-      setFishingInteraction: vi.fn(),
-      setMissionState: vi.fn(),
-      resetMission: vi.fn(),
-      clearInput: vi.fn(),
-      destroy: vi.fn(),
-    }),
+vi.mock("../../games/game-one/src/game/kaplay/createKaplayGame", () => ({
+  createKaplayGame: () => ({
+    canvas: document.createElement("canvas"),
+    pause: vi.fn(),
+    resume: vi.fn(),
+    setTouchDirection: vi.fn(),
+    setAnalogVector: vi.fn(),
+    interact: vi.fn(() => false),
+    setFishingInteraction: vi.fn(),
+    setMissionState: vi.fn(),
+    resetMission: vi.fn(),
+    clearInput: vi.fn(),
+    destroy: vi.fn(),
   }),
-);
+}));
 
 const learnerSession = {
   token: "game-one-route-token",
@@ -70,9 +70,7 @@ const fetchMock = vi.fn(
   async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (
-      url.endsWith(
-        "/api/learners/games/chronicles-of-the-lost-kingdom/save",
-      )
+      url.endsWith("/api/learners/games/chronicles-of-the-lost-kingdom/save")
     ) {
       if ((init?.method ?? "GET") === "PUT") {
         const request = JSON.parse(String(init?.body)) as {
@@ -123,10 +121,10 @@ function renderGameRoutes(initialRoute = "/learner/games") {
         <Routes>
           <Route path="/learner/games" element={<GameLobbyPage />} />
           <Route
-            path="/learner/games/game-zero"
+            path="/learner/games/game-alpha"
             element={
               <RequireSkeletonGameProfile>
-                <GameZeroRoutePage />
+                <GameAlphaRoutePage />
               </RequireSkeletonGameProfile>
             }
           />
@@ -135,6 +133,14 @@ function renderGameRoutes(initialRoute = "/learner/games") {
             element={
               <RequireSkeletonGameProfile>
                 <GameOneHostPage />
+              </RequireSkeletonGameProfile>
+            }
+          />
+          <Route
+            path="/learner/games/game-zero"
+            element={
+              <RequireSkeletonGameProfile>
+                <GameZeroRoutePage />
               </RequireSkeletonGameProfile>
             }
           />
@@ -164,20 +170,25 @@ function createUsername(username = "Reader7") {
 }
 
 describe("authenticated game lobby route flow", () => {
-  it("lists Game Zero first and opens its reserved route", async () => {
+  it("lists Space Letter first in the approved order and opens its route", async () => {
     renderGameRoutes();
     createUsername();
 
     const gameButtons = await screen.findAllByRole("button", {
-      name: /^Open Game/,
+      name: /^Open/,
     });
     expect(
       gameButtons.map((button) => button.getAttribute("aria-label")),
-    ).toEqual(["Open Game Zero", "Open Game One", "Open Game Two"]);
+    ).toEqual([
+      "Open Space Letter",
+      "Open Readscape",
+      "Open Game Zero",
+      "Open Game Two",
+    ]);
 
     fireEvent.click(gameButtons[0]);
     expect(
-      await screen.findByRole("heading", { name: "Game Zero" }),
+      await screen.findByRole("heading", { name: "Alphabet Defender" }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Back to Lobby" }));
     expect(
@@ -221,16 +232,19 @@ describe("authenticated game lobby route flow", () => {
     createUsername();
     expect(await screen.findByText(/^Reader7#\d{4}$/)).toBeInTheDocument();
     expect(
+      screen.getByRole("button", { name: "Open Space Letter" }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("button", { name: "Open Game Zero" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Open Game One" }),
+      screen.getByRole("button", { name: "Open Readscape" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Open Game Two" }),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Open Game One" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Readscape" }));
     expect(
       await screen.findByRole("heading", {
         name: /Chronicles of the Lost Kingdom/,
@@ -286,5 +300,63 @@ describe("authenticated game lobby route flow", () => {
       }),
     ).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows the shared cube and disables lobby actions while a game route loads", async () => {
+    let finishLoading!: () => void;
+    const DeferredGame = lazy(
+      () =>
+        new Promise<{ default: () => ReactElement }>((resolve) => {
+          finishLoading = () =>
+            resolve({ default: () => <h1>Readscape loaded</h1> });
+        }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={["/learner/games"]}>
+        <GameLobbySkeletonProvider>
+          <Suspense fallback={<div>Route fallback</div>}>
+            <Routes>
+              <Route path="/learner/games" element={<GameLobbyPage />} />
+              <Route
+                path="/learner/games/game-one"
+                element={<DeferredGame />}
+              />
+            </Routes>
+          </Suspense>
+        </GameLobbySkeletonProvider>
+      </MemoryRouter>,
+    );
+
+    createUsername();
+
+    expect(
+      screen.getByRole("img", { name: "Space Letter preview" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Readscape preview" }),
+    ).toBeInTheDocument();
+
+    const readscapeButton = screen.getByRole("button", {
+      name: "Open Readscape",
+    });
+    fireEvent.click(readscapeButton);
+
+    expect(readscapeButton).toBeDisabled();
+    expect(readscapeButton).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(
+      screen.getByRole("status", { name: "Loading Readscape" }),
+    ).toContainElement(document.querySelector(".clara-speech-loader__cube"));
+    expect(screen.queryByText("Route fallback")).not.toBeInTheDocument();
+    screen
+      .getAllByRole("button")
+      .forEach((button) => expect(button).toBeDisabled());
+
+    await act(async () => finishLoading());
+
+    expect(
+      await screen.findByRole("heading", { name: "Readscape loaded" }),
+    ).toBeInTheDocument();
   });
 });

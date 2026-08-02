@@ -146,7 +146,7 @@ export const MISSIONS: readonly MissionDefinition[] = [
     questions: questions("plaza-welcome", [
       {
         id: "plaza-start-place",
-        prompt: "Where does the community reading activity begin?",
+        prompt: "Where does reading begin?",
         answers: ["Central plaza", "Old bridge", "Market area", "Forest trail"],
         correctIndex: 0,
         skill: "where",
@@ -158,7 +158,7 @@ export const MISSIONS: readonly MissionDefinition[] = [
       },
       {
         id: "plaza-next-stop",
-        prompt: "Where should you go after placing the sign?",
+        prompt: "Where do you go next?",
         answers: ["The market", "The bridge", "The forest", "The east homes"],
         correctIndex: 0,
         skill: "sequence",
@@ -208,7 +208,7 @@ export const MISSIONS: readonly MissionDefinition[] = [
     questions: questions("market-supplies", [
       {
         id: "market-mango-count",
-        prompt: "How many mangoes does the order request?",
+        prompt: "How many mangoes are needed?",
         answers: ["Three", "Two", "One", "Four"],
         correctIndex: 0,
         skill: "detail",
@@ -220,7 +220,7 @@ export const MISSIONS: readonly MissionDefinition[] = [
       },
       {
         id: "market-second-item",
-        prompt: "What should be added second?",
+        prompt: "What goes in second?",
         answers: ["The water pitchers", "The folded cloth", "The mangoes", "The welcome sign"],
         correctIndex: 0,
         skill: "sequence",
@@ -232,7 +232,7 @@ export const MISSIONS: readonly MissionDefinition[] = [
       },
       {
         id: "market-recipient",
-        prompt: "Who should receive the packed supplies?",
+        prompt: "Who gets the supplies?",
         answers: ["Lolo Ambo", "Miss Estelle", "Bridge Keeper", "Market Vendor"],
         correctIndex: 0,
         skill: "who",
@@ -282,7 +282,7 @@ export const MISSIONS: readonly MissionDefinition[] = [
     questions: questions("village-delivery", [
       {
         id: "delivery-mango-place",
-        prompt: "Which object stays at the market table?",
+        prompt: "What stays at the market?",
         answers: ["The mangoes", "The water pitchers", "The folded cloth", "The welcome sign"],
         correctIndex: 0,
         skill: "what",
@@ -294,7 +294,7 @@ export const MISSIONS: readonly MissionDefinition[] = [
       },
       {
         id: "delivery-cloth-person",
-        prompt: "Who should receive the folded cloth?",
+        prompt: "Who gets the cloth?",
         answers: ["Bridge Keeper", "Market Vendor", "Miss Estelle", "Lolo Ambo"],
         correctIndex: 0,
         skill: "who",
@@ -306,8 +306,8 @@ export const MISSIONS: readonly MissionDefinition[] = [
       },
       {
         id: "delivery-cloth-purpose",
-        prompt: "Why does the Bridge Keeper need the cloth?",
-        answers: ["To mark a safe waiting place", "To cover the mangoes", "To repair a house", "To wrap the welcome sign"],
+        prompt: "Why is the cloth needed?",
+        answers: ["To mark a safe waiting spot", "To cover the mangoes", "To fix a house", "To wrap the sign"],
         correctIndex: 0,
         skill: "why",
         category: "meaning",
@@ -356,8 +356,8 @@ export const MISSIONS: readonly MissionDefinition[] = [
     questions: questions("bridge-safety", [
       {
         id: "bridge-cross-method",
-        prompt: "How should readers cross after the signal?",
-        answers: ["In one line while holding the rail", "In pairs while running", "One at a time without the rail", "Across the grass beside the bridge"],
+        prompt: "How do readers cross?",
+        answers: ["In one line, holding the rail", "In pairs, while running", "Alone, without the rail", "On the grass"],
         correctIndex: 0,
         skill: "how",
         category: "sequence-cause",
@@ -368,8 +368,8 @@ export const MISSIONS: readonly MissionDefinition[] = [
       },
       {
         id: "bridge-after-crossing",
-        prompt: "What should a reader do after reaching the other side?",
-        answers: ["Move away from the bridge entrance", "Wait in the middle of the bridge", "Return to the cloth", "Put mangoes on the rail"],
+        prompt: "What happens after crossing?",
+        answers: ["Move away from the bridge", "Wait on the bridge", "Return to the cloth", "Put mangoes on the rail"],
         correctIndex: 0,
         skill: "sequence",
         category: "sequence-cause",
@@ -380,8 +380,8 @@ export const MISSIONS: readonly MissionDefinition[] = [
       },
       {
         id: "bridge-wet-path",
-        prompt: "Why should a reader stop if the path is wet?",
-        answers: ["The Bridge Keeper needs to know about the hazard", "The market order must be changed", "The welcome sign must be moved", "The pitchers need more water"],
+        prompt: "Why stop on a wet path?",
+        answers: ["Tell the Bridge Keeper it is unsafe", "Change the market list", "Move the welcome sign", "Add water to the pitchers"],
         correctIndex: 0,
         skill: "cause-and-effect",
         category: "meaning",
@@ -412,11 +412,12 @@ export const MISSIONS: readonly MissionDefinition[] = [
       format: "Trail Guide",
       title: "Route to the Outdoor Reading Stop",
       pages: [
-        "Cross the old bridge. Follow the narrow river path. Pass one sunflower. Walk toward the row of trees.",
-        "Turn right at the trees. The left path goes to the east homes. The outdoor stop is beyond the trees."
+        "Cross the old bridge. Go through Mang Yato's open farm gate. Pass one sunflower and walk to the row of trees.",
+        "Mang Panda fixed a sign at the trees. Turn right for the outdoor reading stop. The left path goes to the east homes.",
+        "Miss Yuuri brings books to the outdoor reading stop. The books are for the readers who arrive there."
       ]
     },
-    facts: ["Follow the river after the bridge.", "Pass one sunflower before the row of trees.", "Turn right at the trees; left leads to the east homes."],
+    facts: ["Mang Yato's open farm gate leads to one sunflower.", "Mang Panda's sign says to turn right at the trees.", "Miss Yuuri brings books for readers at the outdoor stop."],
     requiredInteractions: ["Read the trail guide", "Choose the route at the trees", "Answer every route question"],
     action: action(
       "forest-route",
@@ -430,39 +431,39 @@ export const MISSIONS: readonly MissionDefinition[] = [
     questions: questions("forest-route", [
       {
         id: "forest-first-landmark",
-        prompt: "Which landmark comes before the row of trees?",
+        prompt: "What is past the farm gate?",
         answers: ["A single sunflower", "The market table", "The welcome sign", "The east homes"],
         correctIndex: 0,
         skill: "sequence",
         category: "sequence-cause",
-        hint: "Trace the route from the bridge through the first paragraph.",
-        explanation: "The route passes a single sunflower before reaching the row of trees.",
-        correctFeedback: "Correct. The sunflower confirms you are still on the route.",
-        incorrectFeedback: "Almost! Find the landmark before the trees."
+        hint: "Read the first part of the guide after Mang Yato's gate.",
+        explanation: "The guide says to pass one sunflower after the open farm gate.",
+        correctFeedback: "Correct. The sunflower confirms you are on Mang Yato's route.",
+        incorrectFeedback: "Almost! Read what is past the open gate."
       },
       {
         id: "forest-left-route",
-        prompt: "Where does the left path lead?",
-        answers: ["The east homes", "The outdoor reading stop", "The market area", "The central plaza"],
+        prompt: "Which way does Panda's sign point?",
+        answers: ["Right at the trees", "Left to the east homes", "Back to the bridge", "Into the market"],
         correctIndex: 0,
         skill: "where",
         category: "character-setting",
-        hint: "The guide warns against the left path and names its destination.",
-        explanation: "The left path leads toward the east homes.",
-        correctFeedback: "Right. The left path returns toward the east homes.",
-        incorrectFeedback: "Almost! Read where the left path goes."
+        hint: "Read Mang Panda's sign in the second part of the guide.",
+        explanation: "Mang Panda's sign points right at the trees to reach the outdoor reading stop.",
+        correctFeedback: "Right. Mang Panda's sign points right at the trees.",
+        incorrectFeedback: "Almost! Check which way the sign points."
       },
       {
         id: "forest-route-evidence",
-        prompt: "Which detail best shows you chose the correct route?",
-        answers: ["The outdoor stop appears beyond the trees", "The bridge is behind the market", "The pitchers are beside the sunflower", "The welcome sign is in the east homes"],
+        prompt: "Why does Yuuri bring books?",
+        answers: ["For readers at the stop", "For the market crate", "For the bridge rail", "For the east homes"],
         correctIndex: 0,
         skill: "inference",
         category: "meaning",
-        hint: "Use the final sentence to identify what should appear after the correct turn.",
-        explanation: "Finding the outdoor reading stop beyond the trees confirms the right turn was correct.",
-        correctFeedback: "Correct. Reaching the stop beyond the trees confirms the route.",
-        incorrectFeedback: "Almost! Find what appears after the right turn."
+        hint: "Think about who will arrive at the outdoor reading stop.",
+        explanation: "The books are for readers, so Miss Yuuri takes them to the outdoor reading stop.",
+        correctFeedback: "Correct. Miss Yuuri prepares books for the readers.",
+        incorrectFeedback: "Almost! Think about who needs books at the stop."
       }
     ]),
     completionCondition: "The correct trail is selected and all route questions are answered.",
@@ -488,10 +489,16 @@ export const MISSIONS: readonly MissionDefinition[] = [
       pages: [
         "Readers begin at the plaza welcome sign. Next, they visit the market table. They use the water pitchers at the plaza.",
         "Readers wait on the cloth at the bridge. They cross in one line and hold the rail. Then they pass the sunflower and turn right at the trees.",
+        "Miss Yuuri brings the books. Mang Panda checks the trail signs. Mr. Kikushibu tells the Lost Kingdom story.",
         "The plaza, market, bridge, and forest route are ready. Miss Estelle opens the program at the welcome sign."
       ]
     },
-    facts: ["The journey starts at the plaza sign.", "The market, bridge, and forest steps happen in order.", "Miss Estelle opens the program after all areas are ready."],
+    facts: [
+      "The journey starts at the plaza sign.",
+      "The market, bridge, and forest steps happen in order.",
+      "Miss Yuuri, Mang Panda, and Mr. Kikushibu help prepare the reading journey.",
+      "Miss Estelle opens the program after all areas are ready."
+    ],
     requiredInteractions: ["Read the program message", "Choose where to begin the program", "Answer every final question"],
     action: action(
       "community-finale",
@@ -505,7 +512,7 @@ export const MISSIONS: readonly MissionDefinition[] = [
     questions: questions("community-finale", [
       {
         id: "final-journey-order",
-        prompt: "Which order matches the program message?",
+        prompt: "What is the correct order?",
         answers: ["Plaza, market, bridge, forest route", "Market, forest route, plaza, bridge", "Bridge, east homes, market, plaza", "Forest route, bridge, market, east homes"],
         correctIndex: 0,
         skill: "sequence",
@@ -516,21 +523,21 @@ export const MISSIONS: readonly MissionDefinition[] = [
         incorrectFeedback: "Almost! Follow the journey from the welcome sign."
       },
       {
-        id: "final-bridge-rule",
-        prompt: "Which safety detail remains important during the complete journey?",
-        answers: ["Cross in one line while holding the rail", "Run after passing the sunflower", "Wait at the market table", "Turn left at the row of trees"],
+        id: "final-kingdom-story",
+        prompt: "Who tells the kingdom story?",
+        answers: ["Mr. Kikushibu", "Miss Yuuri", "Mang Panda", "Mang Yato"],
         correctIndex: 0,
-        skill: "detail",
+        skill: "who",
         category: "direct-detail",
-        hint: "Find the action readers take at the old bridge.",
-        explanation: "The final message repeats the instruction to cross in one line while holding the rail.",
-        correctFeedback: "Right. The bridge safety rule is part of the final journey.",
-        incorrectFeedback: "That is not the bridge safety detail repeated in the message."
+        hint: "Read the part about the Lost Kingdom.",
+        explanation: "Mr. Kikushibu shares the story of the Lost Kingdom.",
+        correctFeedback: "Right. Mr. Kikushibu shares the kingdom story.",
+        incorrectFeedback: "Almost! Find who tells the Lost Kingdom story."
       },
       {
         id: "final-ready-condition",
-        prompt: "When can the community activity begin?",
-        answers: ["When the plaza, market, bridge, and route are ready", "When only the mangoes are packed", "When the left forest path is chosen", "When the pitchers reach the bridge"],
+        prompt: "When can reading begin?",
+        answers: ["When all four places are ready", "When only the mangoes are packed", "When the left path is chosen", "When pitchers reach the bridge"],
         correctIndex: 0,
         skill: "cause-and-effect",
         category: "meaning",
@@ -541,12 +548,12 @@ export const MISSIONS: readonly MissionDefinition[] = [
       },
       {
         id: "final-main-idea",
-        prompt: "What is the program message mainly about?",
-        answers: ["How the prepared places connect into one reading journey", "Why the market should close early", "How to build a new bridge", "Why readers should stay at the east homes"],
+        prompt: "What is the message about?",
+        answers: ["How the places form one reading trip", "Why the market closes early", "How to build a bridge", "Why readers stay at the east homes"],
         correctIndex: 0,
         skill: "main-idea",
         category: "meaning",
-        hint: "Think about what all three paragraphs explain together.",
+        hint: "Think about what all four parts explain together.",
         explanation: "The message combines the prepared locations and instructions into one community reading journey.",
         correctFeedback: "Correct. Your work connected every reading and location into one journey.",
         incorrectFeedback: "Almost! Think about how the places connect."

@@ -1,16 +1,40 @@
 import { describe, expect, it } from "vitest";
-import { NPCS, NPC_IDS } from "./npcs";
-import { MAP_LANDMARKS, PROTOTYPE_MAP, isWalkablePoint } from "../map/prototypeMap";
+import { AMBIENT_NPCS, NPCS, NPC_IDS, STATIONARY_NPCS } from "./npcs";
+import { MAP_LANDMARKS, PROTOTYPE_MAP, TILE_SIZE, isWalkablePoint } from "../map/prototypeMap";
 import { canOccupy, type Rectangle } from "../physics/collision";
 
 describe("Phase 3 NPC map placement", () => {
   it("uses stable unique identifiers and documents every temporary sprite mapping", () => {
     expect(NPCS.map((npc) => npc.id)).toEqual(NPC_IDS);
-    expect(new Set(NPCS.map((npc) => npc.id)).size).toBe(5);
+    expect(new Set(NPCS.map((npc) => npc.id)).size).toBe(8);
     expect(NPCS.every((npc) => npc.temporarySpriteMapping.length > 0)).toBe(true);
     expect(NPCS.every((npc) => npc.optionalDialogue.en.length > 0 && npc.optionalDialogue.fil.length > 0)).toBe(true);
     expect(NPCS.filter((npc) => npc.id === "miss-estelle")).toHaveLength(1);
     expect(NPCS.filter((npc) => npc.id === "mang-yato")).toHaveLength(1);
+    expect(AMBIENT_NPCS.map(({ id }) => id)).toEqual([
+      "miss-yuuri",
+      "mang-panda",
+      "mr-kikushibu"
+    ]);
+    expect(STATIONARY_NPCS).toHaveLength(5);
+    expect(NPCS.find(({ id }) => id === "mr-kikushibu")).toMatchObject({
+      areaKey: "north-gate",
+      position: { x: 31.5 * TILE_SIZE, y: 6.5 * TILE_SIZE }
+    });
+  });
+
+  it("gives each ambient character a clear bilingual lore role", () => {
+    expect(AMBIENT_NPCS.map(({ role }) => role)).toEqual([
+      "librarian",
+      "carpenter",
+      "history-teacher"
+    ]);
+    for (const npc of AMBIENT_NPCS) {
+      expect(npc.roleTitle.en).toBeTruthy();
+      expect(npc.roleTitle.fil).toBeTruthy();
+      expect(npc.optionalDialogue.en.join(" ")).toMatch(/map|kingdom|route|sign/i);
+      expect(npc.optionalDialogue.fil.join(" ")).toMatch(/mapa|kingdom|daan|sign/i);
+    }
   });
 
   it("keeps a walkable interaction approach for every NPC", () => {
@@ -30,15 +54,26 @@ describe("Phase 3 NPC map placement", () => {
     }
   });
 
-  it("places the market vendor behind the counter with interaction in front", () => {
+  it("places the market vendor outside the shop entrance", () => {
     const vendor = NPCS.find((npc) => npc.id === "market-vendor")!;
-    const counter = PROTOTYPE_MAP.visualObjects.find((object) => object.id === "market-counter")!;
+    const shop = PROTOTYPE_MAP.visualObjects.find((object) => object.id === "market-shop")!;
 
-    expect(vendor.position.y).toBeLessThan(counter.depthY);
-    expect(vendor.renderDepth).toBeLessThan(counter.depthY);
+    expect(vendor.position.y).toBeGreaterThan(shop.depthY);
+    expect(vendor.renderDepth).toBeGreaterThan(shop.depthY);
     expect(vendor.interactionPosition).toEqual(MAP_LANDMARKS.marketFront);
-    expect(vendor.interactionPosition.y).toBeGreaterThan(counter.hitbox!.y + counter.hitbox!.height);
-    expect(overlaps(vendor.collisionBase, counter.hitbox!)).toBe(false);
+    expect(vendor.interactionPosition.y).toBeGreaterThan(shop.hitbox!.y + shop.hitbox!.height);
+    expect(overlaps(vendor.collisionBase, shop.hitbox!)).toBe(false);
+  });
+
+  it("places the Bridge Keeper beside the south-east bridge entrance", () => {
+    const keeper = NPCS.find((npc) => npc.id === "bridge-keeper")!;
+
+    expect(keeper.position).toEqual({ x: 36.5 * TILE_SIZE, y: 14.5 * TILE_SIZE });
+    expect(keeper.interactionPosition).toEqual({ x: 35.5 * TILE_SIZE, y: 14.5 * TILE_SIZE });
+    expect(isWalkablePoint(keeper.position)).toBe(true);
+    expect(canOccupy(keeper.interactionPosition, 12, PROTOTYPE_MAP)).toBe(true);
+    expect(keeper.position.x).toBeGreaterThan(MAP_LANDMARKS.bridgeSouth.x);
+    expect(keeper.position.x - MAP_LANDMARKS.bridgeSouth.x).toBe(TILE_SIZE * 6);
   });
 
   it("gives every NPC a unique visual position and collision base", () => {

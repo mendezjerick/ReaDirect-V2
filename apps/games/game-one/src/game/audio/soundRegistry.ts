@@ -24,6 +24,7 @@ export const RPG_SOUNDS = {
   "footstep-grass": sound({ id: "footstep-grass", category: "footsteps", terrainOrLocationId: "grass", baseVolume: 0.055, loop: false, fadeMs: 25, priority: 4, cooldownMs: 320, frequency: 230 }),
   "footstep-stone": sound({ id: "footstep-stone", category: "footsteps", terrainOrLocationId: "stone", baseVolume: 0.055, loop: false, fadeMs: 18, priority: 4, cooldownMs: 290, frequency: 310 }),
   "footstep-wood": sound({ id: "footstep-wood", category: "footsteps", terrainOrLocationId: "wood", baseVolume: 0.06, loop: false, fadeMs: 20, priority: 4, cooldownMs: 310, frequency: 190 }),
+  "swim-wave": sound({ id: "swim-wave", category: "ambience", terrainOrLocationId: "water", baseVolume: 0.045, loop: false, fadeMs: 30, priority: 4, cooldownMs: 380, frequency: 140 }),
   "ambience-village": sound({ id: "ambience-village", category: "ambience", terrainOrLocationId: "village", baseVolume: 0.018, loop: true, fadeMs: 650, priority: 5, cooldownMs: 0, frequency: 96 }),
   "ambience-market": sound({ id: "ambience-market", category: "ambience", terrainOrLocationId: "market-area", baseVolume: 0.016, loop: true, fadeMs: 650, priority: 5, cooldownMs: 0, frequency: 118 }),
   "ambience-forest": sound({ id: "ambience-forest", category: "ambience", terrainOrLocationId: "forest", baseVolume: 0.015, loop: true, fadeMs: 700, priority: 5, cooldownMs: 0, frequency: 82 }),
@@ -52,5 +53,9 @@ export const LOCATION_AMBIENCE: Record<MapAreaKey, RpgSoundId> = {
   "twin-waterfalls": "ambience-water",
   "south-lane": "ambience-village",
   "farm-woodland": "ambience-forest",
+  "east-riverbank": "ambience-water",
+  "south-riverbend": "ambience-forest",
+  "south-river-cove": "ambience-water",
+  "east-river-channel": "ambience-water",
   "tree-border": "ambience-forest"
 };

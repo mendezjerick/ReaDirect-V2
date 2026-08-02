@@ -36,359 +36,366 @@ type MissionTranslation = {
 
 export const FILIPINO_MISSION_TRANSLATIONS: Readonly<Record<MissionId, MissionTranslation>> = {
   "plaza-welcome": {
-    location: "gitnang liwasan",
-    situation: "Naghahanda ang nayon para sa sabayang pagbasa.",
-    objective: "Kausapin si Miss Estelle sa gitnang liwasan",
+    location: "gitnang plaza",
+    situation: "Naghahanda ang lahat para sa sama-samang pagbasa.",
+    objective: "Kausapin si Miss Estelle sa gitnang plaza",
     objectiveHelp: "Lumapit kay Miss Estelle. Piliin ang Kausapin.",
     briefing: [
-      "Magbabasa nang sama-sama ang nayon. Tulungan mo kaming maghanda.",
-      "Basahin ang paunawa. Hanapin kung saan ilalagay ang karatula."
+      "Magbabasa nang sama-sama ang lahat. Tulungan mo kaming maghanda.",
+      "Basahin ang mensahe. Hanapin kung saan ilalagay ang karatula."
     ],
     reading: {
-      format: "Paunawa sa Komunidad",
-      title: "Kung Saan Magsisimula ang Paglalakbay sa Pagbasa",
+      format: "Mensahe",
+      title: "Saan Magsisimula ang Pagbasa",
       pages: [
-        "Magsisimula ngayong hapon ang pagbasa. Gaganapin ito sa gitnang liwasan.",
-        "Maghihintay si Miss Estelle sa tabi ng daan. Ilagay roon ang karatula. Pagkatapos, pumunta sa palengke."
+        "Magsisimula ngayong hapon ang pagbasa. Gagawin ito sa gitnang plaza.",
+        "Nasa tabi ng daan si Miss Estelle. Ilagay doon ang karatula. Pagkatapos, pumunta sa palengke."
       ]
     },
-    facts: ["Magsisimula ang gawain sa gitnang liwasan.", "Ilalagay ang karatula sa tabi ng daan sa liwasan.", "Ang palengke ang susunod."],
-    requiredInteractions: ["Basahin ang paunawa", "Ilagay ang karatula sa tabi ng daan sa liwasan", "Sagutin ang lahat ng tanong sa paunawa"],
+    facts: ["Magsisimula ang pagbasa sa gitnang plaza.", "Ilalagay ang karatula sa tabi ng daan.", "Ang palengke ang susunod."],
+    requiredInteractions: ["Basahin ang mensahe", "Ilagay ang karatula sa tabi ng daan", "Sagutin ang mga tanong"],
     action: {
-      prompt: "Saan mo ilalagay ang karatula ng pagsalubong?",
-      choices: ["Sa tabi ng daan sa gitnang liwasan", "Sa lumang tulay", "Sa likod ng palengke", "Sa daan sa gubat"],
-      hint: "Binanggit sa paunawa ang panimulang lugar at ang eksaktong puwesto sa tabi nito.",
+      prompt: "Saan ilalagay ang welcome sign?",
+      choices: ["Sa tabi ng daan sa plaza", "Sa lumang tulay", "Sa likod ng palengke", "Sa daan sa gubat"],
+      hint: "Basahin kung saan naghihintay si Miss Estelle.",
       correctFeedback: "Tama! Nasa tabi na ng daan ang karatula.",
       incorrectFeedback: "Muntik na! Basahin muli ang ikalawang pangungusap."
     },
     questions: [
       {
         id: "plaza-start-place",
-        prompt: "Saan magsisimula ang gawaing pagbasa para sa komunidad?",
-        choices: ["Gitnang liwasan", "Lumang tulay", "Palengke", "Daan sa gubat"],
-        hint: "Tingnan ang unang pangungusap ng paunawa.",
-        explanation: "Sinasabi sa paunawa na magsisimula ang gawain sa gitnang liwasan.",
-        correctFeedback: "Tama. Magtitipon ang mga mambabasa sa gitnang liwasan.",
-        incorrectFeedback: "Muntik na! Hanapin kung saan magsisimula ang gawain."
+        prompt: "Saan magsisimula ang pagbasa?",
+        choices: ["Gitnang plaza", "Lumang tulay", "Palengke", "Daan sa gubat"],
+        hint: "Tingnan ang unang bahagi ng mensahe.",
+        explanation: "Magsisimula ang pagbasa sa gitnang plaza.",
+        correctFeedback: "Tama. Magkikita ang lahat sa gitnang plaza.",
+        incorrectFeedback: "Muntik na! Hanapin kung saan magsisimula."
       },
       {
         id: "plaza-next-stop",
-        prompt: "Saan ka pupunta pagkatapos ilagay ang karatula?",
+        prompt: "Saan ka susunod na pupunta?",
         choices: ["Sa palengke", "Sa tulay", "Sa gubat", "Sa silangang mga bahay"],
-        hint: "Basahin ang huling bahagi ng paunawa.",
-        explanation: "Sinasabi sa paunawa na ilagay ang karatula bago pumunta sa palengke.",
-        correctFeedback: "Tama. Ang palengke ang susunod na hintuan.",
+        hint: "Basahin ang huling bahagi ng mensahe.",
+        explanation: "Pupunta sa palengke pagkatapos ilagay ang karatula.",
+        correctFeedback: "Tama. Palengke ang susunod.",
         incorrectFeedback: "Muntik na! Basahin kung saan pupunta pagkatapos."
       }
     ],
-    completionCondition: "Nailagay nang tama ang karatula at nasagot ang dalawang tanong sa paunawa.",
-    worldResult: "May karatula na ng pagsalubong sa daan sa gitnang liwasan.",
-    reward: "Lasong Pagsalubong"
+    completionCondition: "Nailagay ang karatula at nasagot ang dalawang tanong.",
+    worldResult: "May welcome sign na sa daan sa gitnang plaza.",
+    reward: "Welcome Ribbon"
   },
   "market-supplies": {
     location: "palengke",
-    situation: "Kailangan ng mga mesa sa gawain ang tamang dami ng kagamitan na nakaayos ayon sa nakasulat.",
-    objective: "Puntahan ang Tindero sa Palengke para sa mga kagamitan",
+    situation: "Kailangan ng tamang dami at ayos ng mga gamit.",
+    objective: "Puntahan ang Tindero para sa mga gamit",
     objectiveHelp: "Pumunta sa palengke. Kausapin ang Tindero.",
     briefing: [
-      "Nagpadala si Miss Estelle ng listahan. Ilagay sa tamang ayos ang mga gamit.",
+      "Nagbigay si Miss Estelle ng listahan. Ayusin ang mga gamit.",
       "Basahin ang listahan. Piliin ang unang ilalagay."
     ],
     reading: {
-      format: "Listahan ng mga Kagamitan",
-      title: "Mga Kagamitan para sa Mesa ng Pagbasa",
+      format: "Listahan ng mga Gamit",
+      title: "Mga Gamit sa Reading Table",
       pages: [
-        "Maghanda ng tatlong mangga. Kumuha ng dalawang pitsel at isang nakatiklop na mantel.",
-        "Ilagay muna ang mantel. Isunod ang mga pitsel. Ilagay sa ibabaw ang mga mangga. Dalhin ang kahon kay Lolo Ambo."
+        "Maghanda ng tatlong mangga. Kumuha ng dalawang pitsel at isang nakatuping tela.",
+        "Ilagay muna ang tela. Isunod ang mga pitsel. Ilagay sa ibabaw ang mga mangga. Dalhin ang kahon kay Lolo Ambo."
       ]
     },
-    facts: ["May tatlong mangga.", "May dalawang pitsel ng tubig.", "Unang ilalagay ang mantel at dadalhin ang mga kagamitan kay Lolo Ambo."],
+    facts: ["May tatlong mangga.", "May dalawang pitsel ng tubig.", "Unang ilalagay ang tela. Kay Lolo Ambo ang kahon."],
     requiredInteractions: ["Basahin ang listahan", "Piliin ang unang ilalagay", "Sagutin ang lahat ng tanong sa listahan"],
     action: {
       prompt: "Ano ang una mong ilalagay sa kahon?",
-      choices: ["Ang nakatiklop na mantel", "Ang tatlong mangga", "Ang dalawang pitsel ng tubig", "Isang bakanteng basket"],
-      hint: "Ipinaliliwanag sa ikalawang bahagi kung ano ang dapat nakalatag sa ilalim.",
-      correctFeedback: "Tama! Patag ang mantel sa ilalim.",
+      choices: ["Ang nakatuping tela", "Ang tatlong mangga", "Ang dalawang pitsel", "Isang bakanteng basket"],
+      hint: "Basahin kung ano ang unang ilalagay.",
+      correctFeedback: "Tama! Nasa ilalim ang tela.",
       incorrectFeedback: "Muntik na! Basahin muli ang ayos."
     },
     questions: [
       {
         id: "market-mango-count",
-        prompt: "Ilang mangga ang hinihingi sa listahan?",
+        prompt: "Ilang mangga ang kailangan?",
         choices: ["Tatlo", "Dalawa", "Isa", "Apat"],
-        hint: "May bilang bago ang salitang mangga sa unang pangungusap.",
-        explanation: "Tatlong mangga ang hinihingi sa listahan.",
+        hint: "Tingnan ang bilang ng mangga.",
+        explanation: "Tatlong mangga ang kailangan.",
         correctFeedback: "Tama. Tatlong mangga ang ilalagay sa kahon.",
         incorrectFeedback: "Muntik na! Tingnan muli ang bilang ng mangga."
       },
       {
         id: "market-second-item",
         prompt: "Ano ang pangalawang ilalagay?",
-        choices: ["Mga pitsel ng tubig", "Nakatiklop na mantel", "Mga mangga", "Karatula ng pagsalubong"],
-        hint: "Sundan ang mga salitang una, isunod, at saka.",
-        explanation: "Isusunod ang mga pitsel pagkatapos ng mantel at bago ang mga mangga.",
+        choices: ["Mga pitsel", "Nakatuping tela", "Mga mangga", "Welcome sign"],
+        hint: "Tingnan kung ano ang kasunod ng tela.",
+        explanation: "Pangalawa ang mga pitsel.",
         correctFeedback: "Tama. Pangalawang ilalagay ang mga pitsel.",
         incorrectFeedback: "Muntik na! Sundan muli ang ayos."
       },
       {
         id: "market-recipient",
-        prompt: "Sino ang tatanggap ng mga kagamitan?",
+        prompt: "Sino ang kukuha ng mga gamit?",
         choices: ["Lolo Ambo", "Miss Estelle", "Bridge Keeper", "Tindero sa Palengke"],
-        hint: "Binanggit sa huling pangungusap ang taong malapit sa silangang mga bahay.",
-        explanation: "Sinasabi sa listahan na ipadala ang lahat kay Lolo Ambo.",
-        correctFeedback: "Tama. Naghihintay si Lolo Ambo sa mga kagamitan.",
+        hint: "Tingnan ang pangalan sa huling pangungusap.",
+        explanation: "Dadalhin ang kahon kay Lolo Ambo.",
+        correctFeedback: "Tama. Kay Lolo Ambo ang mga gamit.",
         incorrectFeedback: "Muntik na! Hanapin kung sino ang tatanggap."
       }
     ],
-    completionCondition: "Nailagay sa tamang ayos ang mga kagamitan at nasagot ang lahat ng tanong.",
-    worldResult: "Ligtas nang nakahanda ang mga kagamitan para ihatid.",
-    reward: "Tanda ng Kagamitan"
+    completionCondition: "Naayos ang mga gamit at nasagot ang mga tanong.",
+    worldResult: "Handa nang dalhin ang mga gamit.",
+    reward: "Supply Token"
   },
   "village-delivery": {
     location: "silangang mga bahay",
-    situation: "May tala si Lolo Ambo para sa mga kagamitan.",
-    objective: "Ihatid ang mga kagamitan kay Lolo Ambo malapit sa silangang mga bahay",
+    situation: "May note si Lolo Ambo para sa mga gamit.",
+    objective: "Dalhin ang mga gamit kay Lolo Ambo",
     objectiveHelp: "Pumunta sa silangang bahay. Kausapin si Lolo Ambo.",
     briefing: [
-      "Ligtas ang kahon. Sinasabi ng tala kung saan ilalagay ang bawat gamit.",
-      "Basahin ang tala. Hanapin kung saan dadalhin ang mga pitsel."
+      "Ayos ang kahon. Nasa note kung saan ilalagay ang bawat gamit.",
+      "Basahin ang note. Hanapin kung saan dadalhin ang mga pitsel."
     ],
     reading: {
-      format: "Tala sa Paghahatid",
-      title: "Tala para sa mga Hintuan ng Gawain",
+      format: "Delivery Note",
+      title: "Saan Dadalhin ang mga Gamit",
       pages: [
-        "Iwan ang mga mangga sa mesa sa palengke. Dalhin ang dalawang pitsel sa mesa sa liwasan.",
-        "Ibigay ang mantel sa Bridge Keeper. Mamarkahan nito ang ligtas na hintayan."
+        "Iwan ang mga mangga sa mesa sa palengke. Dalhin ang dalawang pitsel sa mesa sa plaza.",
+        "Ibigay ang tela sa Bridge Keeper. Ilagay ito sa ligtas na waiting area."
       ]
     },
-    facts: ["Mananatili ang mga mangga sa mesa sa palengke.", "Pupunta ang mga pitsel sa mesa ng pagbasa sa liwasan.", "Pupunta ang mantel sa Bridge Keeper."],
-    requiredInteractions: ["Basahin ang tala", "Piliin ang pupuntahan ng mga pitsel", "Sagutin ang lahat ng tanong sa tala"],
+    facts: ["Sa palengke ang mga mangga.", "Sa mesa sa plaza ang mga pitsel.", "Sa Bridge Keeper ang tela."],
+    requiredInteractions: ["Basahin ang note", "Piliin kung saan dadalhin ang mga pitsel", "Sagutin ang mga tanong"],
     action: {
-      prompt: "Saan mo dadalhin ang dalawang pitsel ng tubig?",
-      choices: ["Sa mesa ng pagbasa sa gitnang liwasan", "Sa hintayan sa lumang tulay", "Sa mesa ng meryenda sa palengke", "Sa daan sa gubat"],
-      hint: "Itugma ang bagay sa unang talata sa lugar na pupuntahan nito.",
-      correctFeedback: "Tama! Nasa mesa sa liwasan ang mga pitsel.",
+      prompt: "Saan dadalhin ang mga pitsel?",
+      choices: ["Sa reading table sa plaza", "Sa lumang tulay", "Sa mesa sa palengke", "Sa daan sa gubat"],
+      hint: "Hanapin ang pangungusap tungkol sa mga pitsel.",
+      correctFeedback: "Tama! Nasa mesa sa plaza ang mga pitsel.",
       incorrectFeedback: "Muntik na! Hanapin ang pangungusap tungkol sa mga pitsel."
     },
     questions: [
       {
         id: "delivery-mango-place",
-        prompt: "Aling bagay ang mananatili sa mesa sa palengke?",
-        choices: ["Mga mangga", "Mga pitsel ng tubig", "Nakatiklop na mantel", "Karatula ng pagsalubong"],
-        hint: "Itinambal sa unang pangungusap ang isang bagay sa meryenda.",
-        explanation: "Mananatili ang mga mangga sa mesa sa palengke para sa meryenda.",
+        prompt: "Ano ang maiiwan sa palengke?",
+        choices: ["Mga mangga", "Mga pitsel", "Nakatuping tela", "Welcome sign"],
+        hint: "Basahin ang unang pangungusap.",
+        explanation: "Maiiwan ang mga mangga sa mesa sa palengke.",
         correctFeedback: "Tama. Mananatili ang mga mangga sa mesa sa palengke.",
         incorrectFeedback: "May ibang pupuntahan ang bagay na iyon. Balikan ang unang pangungusap."
       },
       {
         id: "delivery-cloth-person",
-        prompt: "Sino ang tatanggap ng nakatiklop na mantel?",
+        prompt: "Sino ang kukuha ng tela?",
         choices: ["Bridge Keeper", "Tindero sa Palengke", "Miss Estelle", "Lolo Ambo"],
-        hint: "Binanggit sa ikalawang talata ang taong nangangailangan ng mantel.",
-        explanation: "Sinasabi sa tala na dalhin ang mantel sa Bridge Keeper.",
-        correctFeedback: "Tama. Kailangan ng Bridge Keeper ang mantel.",
+        hint: "Basahin ang pangungusap tungkol sa tela.",
+        explanation: "Dadalhin ang tela sa Bridge Keeper.",
+        correctFeedback: "Tama. Sa Bridge Keeper ang tela.",
         incorrectFeedback: "Muntik na! Tingnan ang ikalawang bahagi."
       },
       {
         id: "delivery-cloth-purpose",
-        prompt: "Bakit kailangan ng Bridge Keeper ang mantel?",
-        choices: ["Upang markahan ang ligtas na hintayan", "Upang takpan ang mga mangga", "Upang ayusin ang isang bahay", "Upang balutin ang karatula"],
-        hint: "Sinasabi sa huling pangungusap kung ano ang mamarkahan ng mantel.",
-        explanation: "Mamarkahan ng mantel ang ligtas na hintayan sa tabi ng lumang tulay.",
-        correctFeedback: "Tama. Magiging malinaw ang ligtas na hintayan dahil sa mantel.",
-        incorrectFeedback: "Muntik na! Basahin kung ano ang mamarkahan ng mantel."
+        prompt: "Para saan ang tela?",
+        choices: ["Para sa ligtas na waiting area", "Para takpan ang mangga", "Para ayusin ang bahay", "Para balutin ang sign"],
+        hint: "Basahin ang huling pangungusap.",
+        explanation: "Ipinapakita ng tela ang ligtas na waiting area.",
+        correctFeedback: "Tama. Makikita na ang ligtas na waiting area.",
+        incorrectFeedback: "Muntik na! Basahin kung saan ilalagay ang tela."
       }
     ],
-    completionCondition: "Naihatid nang tama ang mga pitsel at nasagot ang lahat ng tanong sa tala.",
-    worldResult: "Nasa tamang hintuan na ang mga kagamitan.",
-    reward: "Tatak ng Paghahatid"
+    completionCondition: "Nadala ang mga pitsel at nasagot ang mga tanong.",
+    worldResult: "Nasa tamang lugar na ang mga gamit.",
+    reward: "Delivery Stamp"
   },
   "bridge-safety": {
     location: "lumang tulay",
-    situation: "Kailangang ligtas na makatawid ang mga mambabasa sa lumang tulay papunta sa panlabas na hintuan ng pagbasa.",
-    objective: "Dalhin ang mantel sa Bridge Keeper sa lumang tulay",
+    situation: "Kailangang ligtas tumawid ang mga mambabasa sa lumang tulay.",
+    objective: "Dalhin ang tela sa Bridge Keeper",
     objectiveHelp: "Pumunta sa lumang tulay. Kausapin ang Bridge Keeper.",
     briefing: [
-      "Mamarkahan ng mantel ang hintayan. Kailangan nating tumawid nang ligtas.",
+      "Ilagay ang tela sa waiting area. Kailangan nating tumawid nang ligtas.",
       "Basahin ang mga hakbang. Piliin ang unang gagawin."
     ],
     reading: {
-      format: "Mga Tagubilin sa Kaligtasan",
-      title: "Pagtawid sa Lumang Tulay",
+      format: "Mga Hakbang sa Kaligtasan",
+      title: "Paano Tumawid sa Tulay",
       pages: [
-        "Una, maghintay sa mantel. Tumawid kapag nagtaas ng kamay ang Bridge Keeper. Pumila at humawak sa rehas.",
+        "Una, maghintay sa tela. Tumawid kapag nagtaas ng kamay ang Bridge Keeper. Pumila at humawak sa gilid.",
         "Lumayo matapos tumawid. Bigyan ng puwang ang susunod. Kapag basa ang daan, huminto at sabihin sa Bridge Keeper."
       ]
     },
-    facts: ["Maghintay muna sa mantel.", "Tumawid nang isang hanay habang hawak ang rehas.", "Lumayo sa pasukan pagkatapos tumawid at ipaalam kung basa ang daan."],
-    requiredInteractions: ["Basahin ang mga tagubilin", "Piliin ang unang gagawin sa tulay", "Sagutin ang lahat ng tanong sa kaligtasan"],
+    facts: ["Maghintay muna sa tela.", "Pumila at humawak sa gilid.", "Lumayo pagkatapos tumawid. Sabihin kung basa ang daan."],
+    requiredInteractions: ["Basahin ang mga hakbang", "Piliin ang unang gagawin", "Sagutin ang mga tanong"],
     action: {
       prompt: "Ano ang una mong gagawin sa tulay?",
-      choices: ["Maghintay sa mantel", "Tumakbong mag-isa patawid", "Pumunta sa gubat", "Lumayo agad sa kabilang pasukan"],
-      hint: "Nagsisimula sa salitang Una ang mga tagubilin.",
-      correctFeedback: "Tama! Minarkahan ng mantel ang hintayan.",
+      choices: ["Maghintay sa tela", "Tumakbong mag-isa", "Pumunta sa gubat", "Lumayo agad sa tulay"],
+      hint: "Basahin ang unang hakbang.",
+      correctFeedback: "Tama! Dito ang waiting area.",
       incorrectFeedback: "Muntik na! Basahin muli ang unang hakbang."
     },
     questions: [
       {
         id: "bridge-cross-method",
-        prompt: "Paano tatawid ang mga mambabasa pagkatapos ng hudyat?",
-        choices: ["Isang hanay habang hawak ang rehas", "Magkapares habang tumatakbo", "Isa-isa nang hindi humahawak sa rehas", "Sa damuhan sa tabi ng tulay"],
-        hint: "Basahin ang tagubiling nagsisimula sa Sunod.",
-        explanation: "Dapat tumawid ang mga mambabasa nang isang hanay at humawak sa rehas.",
-        correctFeedback: "Tama. Nagiging maayos ang pagtawid kapag isang hanay at hawak ang rehas.",
+        prompt: "Paano sila tatawid?",
+        choices: ["Nakapila at hawak ang gilid", "Magkapares at tumatakbo", "Mag-isa at walang hawak", "Sa damuhan"],
+        hint: "Basahin kung paano pipila.",
+        explanation: "Dapat pumila at humawak sa gilid.",
+        correctFeedback: "Tama. Pumila at humawak sa gilid.",
         incorrectFeedback: "Muntik na! Basahin kung paano tatawid."
       },
       {
         id: "bridge-after-crossing",
-        prompt: "Ano ang gagawin pagkatapos makarating sa kabilang panig?",
-        choices: ["Lumayo sa pasukan ng tulay", "Maghintay sa gitna ng tulay", "Bumalik sa mantel", "Maglagay ng mangga sa rehas"],
-        hint: "Nasa simula ng ikalawang talata ang gagawin pagkatapos tumawid.",
-        explanation: "Lalayo ang mga mambabasa sa pasukan upang may puwang ang susunod.",
-        correctFeedback: "Tama. Ang paglayo sa pasukan ay nagbibigay-daan sa susunod na mambabasa.",
+        prompt: "Ano ang gagawin pagkatapos tumawid?",
+        choices: ["Lumayo sa tulay", "Maghintay sa gitna", "Bumalik sa tela", "Maglagay ng mangga"],
+        hint: "Basahin ang unang linya sa pangalawang bahagi.",
+        explanation: "Lalayo sila para may lugar ang susunod.",
+        correctFeedback: "Tama. May lugar na ang susunod.",
         incorrectFeedback: "Muntik na! Basahin ang gagawin matapos tumawid."
       },
       {
         id: "bridge-wet-path",
-        prompt: "Bakit kailangang huminto kapag basa ang daan?",
-        choices: ["Kailangang malaman ng Bridge Keeper ang panganib", "Kailangang baguhin ang listahan sa palengke", "Kailangang ilipat ang karatula", "Kailangan pa ng tubig sa mga pitsel"],
-        hint: "Gamitin ang huling tagubilin at isipin kung bakit mapanganib ang basang lupa.",
-        explanation: "Maaaring delikado ang basang daan kaya dapat itong sabihin sa Bridge Keeper.",
-        correctFeedback: "Tama. Nakakatulong sa kaligtasan ang pagsabi tungkol sa basang daan.",
+        prompt: "Bakit hihinto sa basang daan?",
+        choices: ["Para sabihing delikado ito", "Para baguhin ang listahan", "Para ilipat ang sign", "Para dagdagan ang tubig"],
+        hint: "Basahin ang huling hakbang.",
+        explanation: "Delikado ang basang daan. Dapat sabihin ito sa Bridge Keeper.",
+        correctFeedback: "Tama. Mas ligtas kapag nagsabi ka.",
         incorrectFeedback: "Muntik na! Hanapin kung sino ang dapat sabihan."
       }
     ],
-    completionCondition: "Namarkahan ang hintayan, napili ang ligtas na unang hakbang, at nasagot ang lahat ng tanong.",
-    worldResult: "May malinaw nang hintayan at maayos na paraan ng pagtawid sa lumang tulay.",
-    reward: "Pahintulot sa Tulay"
+    completionCondition: "Handa ang waiting area at nasagot ang mga tanong.",
+    worldResult: "Handa na ang ligtas na tawiran sa lumang tulay.",
+    reward: "Bridge Pass"
   },
   "forest-route": {
     location: "daan sa tabi ng ilog",
-    situation: "Nasa kabila ng tulay ang susunod na hintuan.",
+    situation: "Nasa kabila ng tulay ang susunod na reading area.",
     objective: "Tanungin ang Bridge Keeper tungkol sa daan sa gubat",
     objectiveHelp: "Kausapin muli ang Bridge Keeper. Kunin ang gabay.",
     briefing: [
-      "Handa na ang tulay. Gamitin ang gabay papunta sa panlabas na hintuan.",
-      "Tingnan ang mga palatandaan. Pagkatapos, pumili ng daan."
+      "Handa na ang tulay. Gamitin ang guide papunta sa reading area.",
+      "Tingnan ang mga tanda. Pagkatapos, pumili ng daan."
     ],
     reading: {
-      format: "Gabay sa Daan",
-      title: "Daan Patungo sa Panlabas na Hintuan ng Pagbasa",
+      format: "Guide sa Daan",
+      title: "Daan Papunta sa Reading Area",
       pages: [
-        "Tumawid sa lumang tulay. Sundan ang makitid na daan. Lampasan ang isang sunflower. Maglakad patungo sa mga puno.",
-        "Kumanan sa mga puno. Ang kaliwang daan ay papunta sa mga bahay. Nasa kabila ng mga puno ang hintuan."
+        "Tumawid sa lumang tulay. Dumaan sa bukas na gate ni Mang Yato. Lampasan ang isang sunflower at pumunta sa mga puno.",
+        "Inayos ni Mang Panda ang sign sa mga puno. Kumanan para sa reading area. Ang kaliwang daan ay papunta sa mga bahay.",
+        "May dalang libro si Miss Yuuri sa reading area. Para ito sa mga mambabasang darating doon."
       ]
     },
-    facts: ["Sundan ang ilog pagkatapos ng tulay.", "Lampasan ang isang sunflower bago ang hanay ng mga puno.", "Kumanan sa mga puno; ang kaliwa ay papunta sa silangang mga bahay."],
+    facts: ["May sunflower sa lampas ng bukas na gate ni Mang Yato.", "Sabi ng sign ni Mang Panda, kumanan sa mga puno.", "May dalang libro si Miss Yuuri para sa mga mambabasa sa reading area."],
     requiredInteractions: ["Basahin ang gabay", "Piliin ang daan sa mga puno", "Sagutin ang lahat ng tanong sa daan"],
     action: {
-      prompt: "Aling daan ang pipiliin mo sa hanay ng mga puno?",
-      choices: ["Kumanan sa kabila ng mga puno", "Kumaliwa patungo sa silangang mga bahay", "Bumalik sa lumang tulay", "Lumabas sa daan sa sunflower"],
-      hint: "Ipinaghahambing sa ikalawang talata ang tamang liko at ang daan patungo sa silangang mga bahay.",
-      correctFeedback: "Tama! Narating mo ang panlabas na hintuan.",
+      prompt: "Saan ka liliko sa mga puno?",
+      choices: ["Kumanan sa mga puno", "Kumaliwa sa mga bahay", "Bumalik sa tulay", "Lumabas sa sunflower"],
+      hint: "Basahin kung saan papunta ang kanan at kaliwa.",
+      correctFeedback: "Tama! Nasa reading area ka na.",
       incorrectFeedback: "Muntik na! Ihambing muli ang kanan at kaliwa."
     },
     questions: [
       {
         id: "forest-first-landmark",
-        prompt: "Aling palatandaan ang mauuna bago ang hanay ng mga puno?",
-        choices: ["Nag-iisang sunflower", "Mesa sa palengke", "Karatula ng pagsalubong", "Silangang mga bahay"],
-        hint: "Sundan ang daan mula sa tulay sa unang talata.",
-        explanation: "Daraanan ang nag-iisang sunflower bago makarating sa hanay ng mga puno.",
-        correctFeedback: "Tama. Ipinapakita ng sunflower na nasa tamang daan ka pa.",
-        incorrectFeedback: "Muntik na! Hanapin ang palatandaan bago ang mga puno."
+        prompt: "Ano ang lampas sa gate?",
+        choices: ["Isang sunflower", "Mesa sa palengke", "Welcome sign", "Mga bahay"],
+        hint: "Basahin ang unang bahagi pagkatapos ng gate ni Mang Yato.",
+        explanation: "May isang sunflower sa lampas ng bukas na gate.",
+        correctFeedback: "Tama. May sunflower sa daan ni Mang Yato.",
+        incorrectFeedback: "Muntik na! Tingnan kung ano ang lampas ng bukas na gate."
       },
       {
         id: "forest-left-route",
-        prompt: "Saan patungo ang kaliwang daan?",
-        choices: ["Sa silangang mga bahay", "Sa panlabas na hintuan", "Sa palengke", "Sa gitnang liwasan"],
-        hint: "Nagbabala ang gabay tungkol sa kaliwang daan at binanggit ang pupuntahan nito.",
-        explanation: "Patungo sa silangang mga bahay ang kaliwang daan.",
-        correctFeedback: "Tama. Pabalik sa silangang mga bahay ang kaliwang daan.",
-        incorrectFeedback: "Muntik na! Basahin kung saan papunta ang kaliwa."
+        prompt: "Saan ang turo ng sign ni Panda?",
+        choices: ["Kanan sa mga puno", "Kaliwa sa mga bahay", "Balik sa tulay", "Papunta sa palengke"],
+        hint: "Basahin ang sign ni Mang Panda sa ikalawang bahagi.",
+        explanation: "Kanan sa mga puno ang turo ng sign ni Mang Panda.",
+        correctFeedback: "Tama. Kanan ang turo ng sign ni Mang Panda.",
+        incorrectFeedback: "Muntik na! Tingnan kung saan ang turo ng sign."
       },
       {
         id: "forest-route-evidence",
-        prompt: "Aling detalye ang nagpapatunay na tama ang napili mong daan?",
-        choices: ["Makikita ang panlabas na hintuan sa kabila ng mga puno", "Nasa likod ng palengke ang tulay", "Nasa tabi ng sunflower ang mga pitsel", "Nasa silangang mga bahay ang karatula"],
-        hint: "Gamitin ang huling pangungusap upang malaman kung ano ang makikita pagkatapos ng tamang liko.",
-        explanation: "Ang pagkakita sa hintuan sa kabila ng mga puno ang patunay na tama ang pagliko.",
-        correctFeedback: "Tama. Pinatutunayan ng hintuan sa kabila ng mga puno na tama ang daan.",
-        incorrectFeedback: "Muntik na! Hanapin ang makikita matapos kumanan."
+        prompt: "Bakit may libro si Yuuri?",
+        choices: ["Para sa mga mambabasa", "Para sa kahon sa palengke", "Para sa gilid ng tulay", "Para sa mga bahay"],
+        hint: "Isipin kung sino ang pupunta sa reading area.",
+        explanation: "Para sa mga mambabasa ang dalang libro ni Miss Yuuri.",
+        correctFeedback: "Tama. May libro si Miss Yuuri para sa mga mambabasa.",
+        incorrectFeedback: "Muntik na! Isipin kung sino ang kailangan ng libro sa reading area."
       }
     ],
-    completionCondition: "Napili ang tamang daan at nasagot ang lahat ng tanong tungkol sa ruta.",
-    worldResult: "Kumpirmado na ang ligtas na daan patungo sa panlabas na hintuan.",
-    reward: "Tanda sa Daan"
+    completionCondition: "Napili ang tamang daan at nasagot ang mga tanong.",
+    worldResult: "Alam na natin ang ligtas na daan sa reading area.",
+    reward: "Trail Marker"
   },
   "community-finale": {
-    location: "gitnang liwasan",
+    location: "gitnang plaza",
     situation: "Handa na si Miss Estelle na simulan ang pagbasa.",
-    objective: "Bumalik kay Miss Estelle para sa huling mensahe ng gawain",
-    objectiveHelp: "Bumalik sa liwasan. Kausapin si Miss Estelle.",
+    objective: "Bumalik kay Miss Estelle para sa huling mensahe",
+    objectiveHelp: "Bumalik sa plaza. Kausapin si Miss Estelle.",
     briefing: [
-      "Inihanda mo ang bawat hintuan. Ginawa mo ring ligtas ang tulay.",
-      "Basahin ang huling mensahe. Pag-ugnayin ang buong paglalakbay."
+      "Inihanda mo ang bawat lugar. Ginawa mo ring ligtas ang tulay.",
+      "Basahin ang huling mensahe. Tingnan ang buong reading trip."
     ],
     reading: {
       format: "Mensahe ng Programa",
-      title: "Ang Paglalakbay sa Pagbasa ng Komunidad",
+      title: "Ang Reading Trip",
       pages: [
-        "Magsisimula ang mga mambabasa sa karatula sa liwasan. Sunod ang palengke. Gagamitin nila ang mga pitsel sa liwasan.",
-        "Maghihintay sila sa mantel sa tulay. Tatawid sila nang isang hanay at hahawak sa rehas. Lalampas sila sa sunflower at kakanan sa mga puno.",
-        "Handa na ang liwasan, palengke, tulay, at daan sa gubat. Bubuksan ni Miss Estelle ang programa sa karatula."
+        "Magsisimula ang mga mambabasa sa sign sa plaza. Sunod ang palengke. Gagamitin nila ang mga pitsel sa plaza.",
+        "Maghihintay sila sa tela sa tulay. Pipila sila at hahawak sa gilid. Lalampas sila sa sunflower at kakanan sa mga puno.",
+        "Dala ni Miss Yuuri ang mga libro. Tinitingnan ni Mang Panda ang mga sign sa daan. Ikinukuwento ni Mr. Kikushibu ang Lost Kingdom.",
+        "Handa na ang plaza, palengke, tulay, at daan sa gubat. Sisimulan ni Miss Estelle ang programa sa sign."
       ]
     },
-    facts: ["Magsisimula ang paglalakbay sa karatula sa liwasan.", "Magkakasunod ang palengke, tulay, at daan sa gubat.", "Bubuksan ni Miss Estelle ang programa kapag handa na ang lahat."],
-    requiredInteractions: ["Basahin ang mensahe ng programa", "Piliin ang pagsisimulan", "Sagutin ang lahat ng huling tanong"],
+    facts: [
+      "Magsisimula sa sign sa plaza.",
+      "Sunod ang palengke, tulay, at daan sa gubat.",
+      "Tumutulong sina Miss Yuuri, Mang Panda, at Mr. Kikushibu sa reading trip.",
+      "Sisimulan ni Miss Estelle ang programa kapag handa na ang lahat."
+    ],
+    requiredInteractions: ["Basahin ang mensahe", "Piliin ang simula", "Sagutin ang mga tanong"],
     action: {
-      prompt: "Saan mo gagabayan ang mga mambabasa upang simulan ang buong paglalakbay?",
-      choices: ["Sa karatula sa gitnang liwasan", "Sa hanay ng mga puno", "Sa kabilang panig ng lumang tulay", "Sa silangang mga bahay"],
-      hint: "Parehong binanggit sa una at huling talata ang pagsisimulan.",
-      correctFeedback: "Tama! Magtitipon ang mga mambabasa sa karatula.",
+      prompt: "Saan magsisimula ang reading trip?",
+      choices: ["Sa sign sa gitnang plaza", "Sa mga puno", "Sa kabila ng tulay", "Sa mga bahay"],
+      hint: "Basahin kung saan ang simula.",
+      correctFeedback: "Tama! Magkikita ang lahat sa sign.",
       incorrectFeedback: "Muntik na! Hanapin kung saan magsisimula."
     },
     questions: [
       {
         id: "final-journey-order",
-        prompt: "Aling ayos ang kapareho ng nasa mensahe ng programa?",
-        choices: ["Liwasan, palengke, tulay, daan sa gubat", "Palengke, daan sa gubat, liwasan, tulay", "Tulay, silangang mga bahay, palengke, liwasan", "Daan sa gubat, tulay, palengke, silangang mga bahay"],
-        hint: "Sundan ang paglalakbay mula sa unang talata hanggang sa ikalawa.",
-        explanation: "Magsisimula sa liwasan, pupunta sa palengke, tatawid sa tulay, at susundan ang daan sa gubat.",
-        correctFeedback: "Tama. Pinag-uugnay ng ayos na iyon ang apat na inihandang lugar.",
-        incorrectFeedback: "Muntik na! Sundan ang biyahe mula sa karatula."
+        prompt: "Ano ang tamang ayos?",
+        choices: ["Plaza, palengke, tulay, gubat", "Palengke, gubat, plaza, tulay", "Tulay, mga bahay, palengke, plaza", "Gubat, tulay, palengke, mga bahay"],
+        hint: "Sundan ang mga lugar mula sa simula.",
+        explanation: "Plaza muna, palengke, tulay, at gubat.",
+        correctFeedback: "Tama. Iyan ang ayos ng apat na lugar.",
+        incorrectFeedback: "Muntik na! Sundan ang mga lugar mula sa sign."
       },
       {
-        id: "final-bridge-rule",
-        prompt: "Aling tuntunin sa kaligtasan ang mahalaga pa rin sa buong paglalakbay?",
-        choices: ["Tumawid nang isang hanay habang hawak ang rehas", "Tumakbo pagkatapos lampasan ang sunflower", "Maghintay sa mesa sa palengke", "Kumaliwa sa hanay ng mga puno"],
-        hint: "Hanapin ang gagawin ng mga mambabasa sa lumang tulay.",
-        explanation: "Inuulit sa huling mensahe ang pagtawid nang isang hanay habang hawak ang rehas.",
-        correctFeedback: "Tama. Bahagi ng buong paglalakbay ang tuntunin sa tulay.",
-        incorrectFeedback: "Hindi iyan ang tuntunin sa tulay na inulit sa mensahe."
+        id: "final-kingdom-story",
+        prompt: "Sino ang may kuwento ng kingdom?",
+        choices: ["Si Mr. Kikushibu", "Si Miss Yuuri", "Si Mang Panda", "Si Mang Yato"],
+        hint: "Basahin ang bahagi tungkol sa Lost Kingdom.",
+        explanation: "Si Mr. Kikushibu ang nagkukuwento tungkol sa Lost Kingdom.",
+        correctFeedback: "Tama. Si Mr. Kikushibu ang may kuwento ng kingdom.",
+        incorrectFeedback: "Muntik na! Hanapin kung sino ang may kuwento ng Lost Kingdom."
       },
       {
         id: "final-ready-condition",
-        prompt: "Kailan maaaring magsimula ang gawain ng komunidad?",
-        choices: ["Kapag handa ang liwasan, palengke, tulay, at daan", "Kapag mga mangga lamang ang nakahanda", "Kapag pinili ang kaliwang daan", "Kapag dinala ang mga pitsel sa tulay"],
-        hint: "Nakalista sa huling talata ang kailangang maging handa bago magsimula.",
-        explanation: "Magsisimula ang gawain kapag handa na ang apat na bahagi ng paglalakbay.",
-        correctFeedback: "Tama. Sinusuportahan na ng bawat handang bahagi ang gawain ng komunidad.",
+        prompt: "Kailan puwedeng magsimula ang pagbasa?",
+        choices: ["Kapag handa ang apat na lugar", "Kapag handa ang mga mangga", "Kapag pinili ang kaliwa", "Kapag nasa tulay ang pitsel"],
+        hint: "Basahin kung ano ang dapat handa.",
+        explanation: "Magsisimula kapag handa ang apat na lugar.",
+        correctFeedback: "Tama. Handa na ang lahat.",
         incorrectFeedback: "Muntik na! Hanapin kung ano ang dapat maging handa."
       },
       {
         id: "final-main-idea",
-        prompt: "Tungkol saan higit sa lahat ang mensahe ng programa?",
-        choices: ["Kung paano nag-uugnay ang mga inihandang lugar sa isang paglalakbay sa pagbasa", "Kung bakit dapat magsara nang maaga ang palengke", "Kung paano gumawa ng bagong tulay", "Kung bakit dapat manatili ang mga mambabasa sa silangang mga bahay"],
-        hint: "Isipin kung ano ang ipinapaliwanag ng tatlong talata kapag pinagsama.",
-        explanation: "Pinag-uugnay ng mensahe ang mga inihandang lugar at tagubilin sa isang paglalakbay sa pagbasa.",
-        correctFeedback: "Tama. Pinag-ugnay ng iyong ginawa ang bawat binasa at lugar sa isang paglalakbay.",
-        incorrectFeedback: "Muntik na! Isipin kung paano nag-uugnay ang mga lugar."
+        prompt: "Tungkol saan ang mensahe?",
+        choices: ["Sa reading trip ng mga lugar", "Sa pagsara ng palengke", "Sa paggawa ng tulay", "Sa pananatili sa mga bahay"],
+        hint: "Isipin ang sinasabi ng buong mensahe.",
+        explanation: "Tungkol ito sa reading trip sa lahat ng lugar.",
+        correctFeedback: "Tama. Pinagdugtong mo ang lahat ng lugar.",
+        incorrectFeedback: "Muntik na! Isipin ang lahat ng lugar."
       }
     ],
-    completionCondition: "Napili ang tamang pagsisimulan at nasagot ang lahat ng huling tanong.",
-    worldResult: "Bukas na ang gawaing pagbasa ng komunidad at handa ang bawat hintuan at daan.",
-    reward: "Badge ng Mambabasa ng Komunidad"
+    completionCondition: "Napili ang tamang simula at nasagot ang mga tanong.",
+    worldResult: "Bukas na ang reading activity. Handa ang bawat lugar.",
+    reward: "Community Reader Badge"
   }
 };
 

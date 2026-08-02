@@ -16,6 +16,16 @@ import {
 import { CONTENT_VERSION_ID, type GameLanguage } from "../localization/language";
 import type { GameOneRemoteSave } from "../../host/GameOneHostAdapter";
 import { createInitialMissionState, type MissionState } from "../mission/missionState";
+import {
+  DEFAULT_PLAYABLE_CHARACTER_ID,
+  isPlayableCharacterId,
+  type PlayableCharacterId
+} from "../player/playableCharacters";
+import {
+  createInitialShopTaskState,
+  restoreShopTaskState,
+  type ShopTaskState
+} from "../shop/shopTask";
 
 export const GAME_ONE_SAVE_SCHEMA_VERSION = 1;
 
@@ -23,6 +33,8 @@ export type HydratedGameOneProgress = {
   mission: MissionState;
   exploration: ExplorationProgress;
   tutorial: TutorialState;
+  characterId: PlayableCharacterId;
+  shopTask: ShopTaskState;
   revision: number;
 };
 
@@ -34,6 +46,8 @@ export function createInitialGameOneProgress(
     mission: createInitialMissionState(rounds, language),
     exploration: createInitialExplorationProgress(),
     tutorial: restoreTutorialProgress(null),
+    characterId: DEFAULT_PLAYABLE_CHARACTER_ID,
+    shopTask: createInitialShopTaskState(),
     revision: 0
   };
 }
@@ -66,6 +80,10 @@ export function hydrateGameOneProgress(
     mission,
     exploration,
     tutorial: restoreTutorialProgress(state.tutorial),
+    characterId: isPlayableCharacterId(state.characterId)
+      ? state.characterId
+      : DEFAULT_PLAYABLE_CHARACTER_ID,
+    shopTask: restoreShopTaskState(state.shopTask),
     revision: save.revision
   };
 }
@@ -73,13 +91,17 @@ export function hydrateGameOneProgress(
 export function createGameOneSaveState(
   mission: MissionState,
   exploration: ExplorationProgress,
-  tutorial: TutorialState
+  tutorial: TutorialState,
+  characterId: PlayableCharacterId,
+  shopTask: ShopTaskState
 ): Record<string, unknown> {
   return {
     contentVersionId: CONTENT_VERSION_ID,
     mission: createStoredMissionProgress(mission),
     exploration,
-    tutorial: createStoredTutorialProgress(tutorial)
+    tutorial: createStoredTutorialProgress(tutorial),
+    characterId,
+    shopTask
   };
 }
 

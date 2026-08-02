@@ -21,6 +21,19 @@ import {
   ROAMING_ANIMAL_ASSET_KEY,
   ROAMING_ANIMAL_FRAMES
 } from "../assets/generatedAnimalAssets";
+import {
+  BOAT_OAR_ASSET_KEY,
+  BOAT_WAKE_ASSET_KEY,
+  BOAT_WAKE_FRAMES,
+  createBoatOarSprite,
+  createBoatWakeSpriteSheet,
+  getBoatAnimationState
+} from "../assets/generatedBoatEffects";
+import {
+  createVillageDecorSpriteSheet,
+  VILLAGE_DECOR_ASSET_KEY,
+  VILLAGE_DECOR_FRAMES
+} from "../assets/generatedVillageDecorAssets";
 import { createGameInputState, directionForKey, type Direction } from "../input/gameInput";
 import {
   getAnimatedWaterFrame,
@@ -28,6 +41,8 @@ import {
   getTerrainAtPoint,
   getTerrainSprite,
   getTileKind,
+  isSwimmableRiverPosition,
+  isSwimmableRiverPoint,
   PROTOTYPE_MAP,
   TILE_SIZE,
   WATER_ANIMATION_PHASES,
@@ -35,12 +50,23 @@ import {
 } from "../map/prototypeMap";
 import {
   getBaseFrameForFacing,
+  getBoatRidingFrame,
   getFacingFromInput,
+  getSpriteFlipXForFacing,
+  getSwimmingBobOffset,
+  getSwimmingFrameForFacing,
+  getSwimmingStrokeAngle,
   getWalkFrameForFacing,
   movePlayer,
   PLAYER_CONFIG,
   type Facing
 } from "../player/playerMovement";
+import {
+  getPlayableCharacter,
+  getPlayableCharacterRenderOffsetY,
+  type PlayableCharacter,
+  type PlayableCharacterId
+} from "../player/playableCharacters";
 import {
   CONNECTED_TALL_GRASS_ASSET_KEY,
   createConnectedTallGrassTileset,
@@ -56,7 +82,7 @@ import {
   TALL_GRASS_FOREGROUND_FRAME,
   TALL_GRASS_SOURCE_TILE_SIZE
 } from "../player/connectedTallGrass";
-import { NPCS, type NpcId } from "../content/npcs";
+import { NPCS, STATIONARY_NPCS, type NpcId } from "../content/npcs";
 import { getSafeGuidePoints, shouldShowGuideDots } from "../navigation/navigationModel";
 import { FISHING_SPOTS, type FishingSpot } from "../fishing/fishingSystem";
 import { createCollisionLookup, type Point } from "../physics/collision";
@@ -66,7 +92,24 @@ import {
   selectClosestInteraction,
   type InteractionTarget
 } from "../interactions/interactionSystem";
+import type { ShopId } from "../content/shops";
 import { advanceRoamingAnimal, createRoamingAnimalStates } from "../world/roamingAnimals";
+import { advanceAmbientWalker, createAmbientWalkerStates } from "../world/ambientWalkers";
+import {
+  getNearestSwimmableRiverPosition,
+  getNearestSwimExitPoint,
+  getSwimEntryPoint
+} from "../world/swimming";
+import {
+  boardRiverBoat,
+  createRiverBoatState,
+  getNearestRiverBoatLanding,
+  getRiverBoatProximity,
+  leaveRiverBoat,
+  moveRiverBoat,
+  RIVER_BOAT,
+  type RiverBoatProximity
+} from "../world/riverBoat";
 
 const IS_DEVELOPMENT =
   (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
@@ -76,7 +119,7 @@ const RENDER_PIXEL_BUDGET = 960 * 540;
 
 const MISSION_COLLISION = [
   ...PROTOTYPE_MAP.collision,
-  ...NPCS.map((npc) => ({
+  ...STATIONARY_NPCS.map((npc) => ({
     id: `npc-${npc.id}-base`,
     ...npc.collisionBase
   }))
@@ -113,7 +156,9 @@ type KaplayRuntime = {
   text?: (content: string, options?: Record<string, unknown>) => unknown;
   pos?: (x: number, y: number) => unknown;
   color?: (...rgb: number[]) => unknown;
-  scale?: (scale: number) => unknown;
+  scale?: (x: number, y?: number) => unknown;
+  circle?: (radius: number) => unknown;
+  opacity?: (opacity?: number) => unknown;
   anchor?: (anchor: string) => unknown;
   outline?: (width: number, color?: unknown) => unknown;
   rotate?: (angle: number) => unknown;
@@ -136,6 +181,13 @@ type KaplayRuntime = {
   }) => void;
 };
 
+type SwimWaterlineNode = {
+  hidden?: boolean;
+  pos?: { x: number; y: number };
+  scale?: { x: number; y: number };
+  z?: number;
+};
+
 export type KaplayFactory = (options: KaplayCanvasOptions) => KaplayRuntime;
 
 export type KaplayGameController = {
@@ -145,6 +197,8 @@ export type KaplayGameController = {
   setTouchDirection: (direction: Direction, active: boolean) => void;
   setAnalogVector: (vector: Point) => void;
   interact: () => boolean;
+  isSwimmingActionAvailable: () => boolean;
+  swimIntoRiver: () => boolean;
   setFishingInteraction: (spot: FishingSpot | null) => void;
   setMissionState: (state: {
     activityCompleted: boolean;
@@ -155,11 +209,26 @@ export type KaplayGameController = {
   clearInput: () => void;
   destroy: () => void;
 };
+const SWIMMING_COLLISION = MISSION_COLLISION.filter((obstacle) => !obstacle.id.startsWith("water-"));
+const SWIMMING_COLLISION_MAP = {
+  ...MISSION_COLLISION_MAP,
+  collision: SWIMMING_COLLISION,
+  getNearbyCollision: createCollisionLookup(SWIMMING_COLLISION, TILE_SIZE * 2),
+  isWalkablePoint: undefined
+};
+const SWIMMING_SPEED = 92;
+
+export type RiverBoatUiState = {
+  riding: boolean;
+  actionAvailable: boolean;
+  proximity: RiverBoatProximity;
+};
 
 export type CreateKaplayGameOptions = {
   config?: GameConfig;
   kaplayFactory?: KaplayFactory;
   initialPosition?: Point;
+  characterId?: PlayableCharacterId;
   onInteractionTargetChange?: (target: InteractionTarget | null) => void;
   onInteractionPromptPosition?: (position: { x: number; y: number } | null) => void;
   onPlayerNavigationChange?: (state: {
@@ -173,9 +242,12 @@ export type CreateKaplayGameOptions = {
     terrain: ReturnType<typeof getTerrainAtPoint>;
     area: ReturnType<typeof getMapAreaAtPoint>;
   }) => void;
+  onSwimmingAudioState?: (state: { swimming: boolean; moving: boolean }) => void;
   onKeyboardDirectionChange?: (direction: Direction, active: boolean) => void;
   onInteract?: (target: InteractionTarget) => void;
+  onEnterShop?: (shopId: ShopId) => void;
   onFish?: (spot: FishingSpot) => void;
+  onRiverBoatStateChange?: (state: RiverBoatUiState) => void;
 };
 
 export function createKaplayGame(
@@ -237,13 +309,15 @@ export function createKaplayGame(
       onInteractionPromptPosition: options.onInteractionPromptPosition,
       onPlayerNavigationChange: options.onPlayerNavigationChange,
       onMovementAudioState: options.onMovementAudioState,
+      onSwimmingAudioState: options.onSwimmingAudioState,
       onPlayerPositionChange: IS_DEVELOPMENT
         ? (position) => {
             canvas.dataset.playerX = String(Math.round(position.x));
             canvas.dataset.playerY = String(Math.round(position.y));
           }
-        : undefined
-    }, options.initialPosition ?? PROTOTYPE_MAP.startPosition);
+        : undefined,
+      onRiverBoatStateChange: options.onRiverBoatStateChange
+    }, options.initialPosition ?? PROTOTYPE_MAP.startPosition, getPlayableCharacter(options.characterId));
     updateController = sceneController.updateController;
 
     resizeObserver = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(resize);
@@ -286,6 +360,8 @@ export function createKaplayGame(
       input.setAnalogVector(vector);
     },
     interact: () => activateInteraction(),
+    isSwimmingActionAvailable: () => sceneController?.isSwimmingActionAvailable?.() ?? false,
+    swimIntoRiver: () => sceneController?.swimIntoRiver?.() ?? false,
     setFishingInteraction: (spot) => {
       activeFishingSpot = spot;
     },
@@ -369,13 +445,20 @@ export function createKaplayGame(
   }
 
   function activateInteraction() {
-    if (!interactionEnabled || (!activeInteraction && !activeFishingSpot)) {
+    const boatActionAvailable = sceneController?.isBoatActionAvailable?.() ?? false;
+    const swimmingActionAvailable = sceneController?.isSwimmingActionAvailable?.() ?? false;
+    const isSwimming = sceneController?.isSwimming?.() ?? false;
+    if (!interactionEnabled || (!activeInteraction && !activeFishingSpot && !boatActionAvailable && !swimmingActionAvailable)) {
       return false;
     }
 
     return interactionGuard.activate(() => {
-      if (activeInteraction) options.onInteract?.(activeInteraction);
+      if (isSwimming && swimmingActionAvailable) sceneController?.swimIntoRiver?.();
+      else if (activeInteraction?.kind === "shop") options.onEnterShop?.(activeInteraction.shopId);
+      else if (activeInteraction) options.onInteract?.(activeInteraction);
       else if (activeFishingSpot) options.onFish?.(activeFishingSpot);
+      else if (boatActionAvailable) sceneController?.interactWithBoat?.();
+      else sceneController?.swimIntoRiver?.();
     });
   }
 }
@@ -415,9 +498,12 @@ function renderPrototypeScene(
     onInteractionPromptPosition?: (position: { x: number; y: number } | null) => void;
     onPlayerNavigationChange?: CreateKaplayGameOptions["onPlayerNavigationChange"];
     onMovementAudioState?: CreateKaplayGameOptions["onMovementAudioState"];
+    onSwimmingAudioState?: CreateKaplayGameOptions["onSwimmingAudioState"];
     onPlayerPositionChange?: (position: { x: number; y: number }) => void;
+    onRiverBoatStateChange?: CreateKaplayGameOptions["onRiverBoatStateChange"];
   },
-  initialPosition: Point
+  initialPosition: Point,
+  playerCharacter: PlayableCharacter
 ) {
   const initialViewport = getRuntimeViewport(runtime, config);
   const reducedMotion = typeof window !== "undefined"
@@ -446,6 +532,20 @@ function renderPrototypeScene(
     createRoamingAnimalSpriteSheet(),
     { sliceX: ROAMING_ANIMAL_FRAMES, sliceY: 1 }
   );
+  runtime.loadSprite?.(
+    BOAT_WAKE_ASSET_KEY,
+    createBoatWakeSpriteSheet(),
+    { sliceX: BOAT_WAKE_FRAMES, sliceY: 1 }
+  );
+  runtime.loadSprite?.(
+    BOAT_OAR_ASSET_KEY,
+    createBoatOarSprite()
+  );
+  runtime.loadSprite?.(
+    VILLAGE_DECOR_ASSET_KEY,
+    createVillageDecorSpriteSheet(),
+    { sliceX: VILLAGE_DECOR_FRAMES, sliceY: 1 }
+  );
   const terrainView = {
     camera: getCameraCenter({
       target: initialPosition,
@@ -466,15 +566,22 @@ function renderPrototypeScene(
     renderFoundationScene(runtime, config);
     return {
       setMissionState: () => undefined,
+      isSwimming: () => false,
+      isSwimmingActionAvailable: () => false,
+      swimIntoRiver: () => false,
       reset: () => undefined
     };
   }
 
   const missionObjects = renderMissionObjects(runtime);
   const roamingAnimals = renderRoamingAnimals(runtime, reducedMotion);
+  const interactionTargets = getInteractionTargets();
+  const ambientWalkers = renderAmbientWalkers(runtime, reducedMotion, interactionTargets);
+  const riverBoat = renderRiverBoat(runtime, reducedMotion);
 
   let position = { ...initialPosition };
   let facing: Facing = "down";
+  let swimming = false;
   let animationClock = 0;
   let worldAnimationClock = 0;
   let grassUpdateAccumulator = GRASS_UPDATE_INTERVAL;
@@ -488,22 +595,65 @@ function renderPrototypeScene(
   let lastCameraPosition = { ...terrainView.camera };
   let lastMovementAudioKey = "";
   let lastInteractionKey = "";
+  let lastBoatUiKey = "";
+  let lastSwimPromptKey = "";
   let lastPromptUpdateAt = -Infinity;
   let activeTargetNpcId: NpcId | null = null;
   let activeGrassPatches: ReturnType<typeof getTouchingTallGrassPatches> = [];
   const grassReactionEnds = new Map<string, number>();
-  const interactionTargets = getInteractionTargets();
   const player = runtime.add([
-    runtime.sprite("learner-walk", { frame: getBaseFrameForFacing(facing) }),
-    runtime.pos(position.x, position.y),
+    runtime.sprite(GAME_ASSETS[playerCharacter.assetKey].key, {
+      frame: getBaseFrameForFacing(facing, playerCharacter.spriteLayout)
+    }),
+    runtime.pos(position.x, position.y + getPlayableCharacterRenderOffsetY(playerCharacter, facing)),
     runtime.anchor("center"),
-    runtime.scale(2),
-    runtime.z(position.y)
+    runtime.scale(playerCharacter.spriteScale),
+    ...(runtime.rotate ? [runtime.rotate(0)] : []),
+    runtime.z(position.y + getPlayableCharacterRenderOffsetY(playerCharacter, facing))
   ]) as {
     pos?: { x: number; y: number };
     frame?: number;
     z?: number;
+    flipX?: boolean;
+    angle?: number;
   } | undefined;
+  const swimRipple = runtime.add([
+    runtime.sprite(BOAT_WAKE_ASSET_KEY, { frame: 0 }),
+    runtime.pos(position.x, position.y + 12),
+    runtime.anchor("center"),
+    runtime.scale(0.6),
+    runtime.z(position.y - 2)
+  ]) as {
+    hidden?: boolean;
+    pos?: { x: number; y: number };
+    frame?: number;
+    z?: number;
+  } | undefined;
+  if (swimRipple) swimRipple.hidden = true;
+  const swimFoam = runtime.circle && runtime.color && runtime.opacity
+    ? runtime.add([
+        runtime.circle(18),
+        runtime.pos(position.x, position.y + 9),
+        runtime.anchor("center"),
+        runtime.scale(1.25, 0.5),
+        runtime.color(188, 239, 244),
+        runtime.opacity(0.72),
+        runtime.z(position.y + 1)
+      ]) as SwimWaterlineNode | undefined
+    : undefined;
+  const swimWaterline = runtime.circle && runtime.color && runtime.opacity
+    ? runtime.add([
+        runtime.circle(16),
+        runtime.pos(position.x, position.y + 10),
+        runtime.anchor("center"),
+        runtime.scale(1.2, 0.62),
+        runtime.color(103, 211, 231),
+        runtime.opacity(0.98),
+        runtime.z(position.y + 2)
+      ]) as SwimWaterlineNode | undefined
+    : undefined;
+  if (swimFoam) swimFoam.hidden = true;
+  if (swimWaterline) swimWaterline.hidden = true;
   const grassPool = Array.from({ length: GRASS_CONTACT_POOL_SIZE }, () => {
     const grass = runtime.add!([
       runtime.sprite!(CONNECTED_TALL_GRASS_ASSET_KEY, { frame: TALL_GRASS_FOREGROUND_FRAME }),
@@ -539,16 +689,38 @@ function renderPrototypeScene(
     }
 
     const previousPosition = position;
-    if (isMoving) {
+    if (swimming && !isSwimmableRiverPosition(position, PLAYER_CONFIG.radius)) {
+      // Older entries could place the player's center in water while their body overlapped a bank.
+      // Bring that state back inside the usable river channel before applying movement.
+      const recoveredPosition = getNearestSwimmableRiverPosition(position, PLAYER_CONFIG.radius);
+      if (recoveredPosition) position = recoveredPosition;
+    }
+
+    if (riverBoat.isRiding()) {
+      riverBoat.move(vector, dt);
+      position = riverBoat.getPosition();
+    } else if (isMoving) {
+      const swimCandidate = {
+        x: position.x + vector.x * SWIMMING_SPEED * dt,
+        y: position.y + vector.y * SWIMMING_SPEED * dt
+      };
+      const shouldUseSwimmingMovement = swimming || isSwimmableRiverPoint(swimCandidate);
       position = movePlayer({
         position,
         input: vector,
         deltaSeconds: dt,
-        map: MISSION_COLLISION_MAP,
-        radius: PLAYER_CONFIG.radius
+        map: shouldUseSwimmingMovement ? SWIMMING_COLLISION_MAP : MISSION_COLLISION_MAP,
+        radius: PLAYER_CONFIG.radius,
+        speed: shouldUseSwimmingMovement ? SWIMMING_SPEED : PLAYER_CONFIG.speedPixelsPerSecond,
+        isPositionAllowed: shouldUseSwimmingMovement
+          ? (point) => isSwimmableRiverPosition(point, PLAYER_CONFIG.radius)
+          : undefined
       });
     }
+    swimming = !riverBoat.isRiding() && isSwimmableRiverPoint(position);
     const actuallyMoving = Math.hypot(position.x - previousPosition.x, position.y - previousPosition.y) > 0.01;
+    callbacks.onSwimmingAudioState?.({ swimming, moving: actuallyMoving });
+    riverBoat.updateAnimation(worldAnimationClock, actuallyMoving);
     const terrain = getTerrainAtPoint(position);
     const area = getMapAreaAtPoint(position);
     const movementAudioKey = `${actuallyMoving}:${terrain.id}:${area.key}`;
@@ -564,14 +736,59 @@ function renderPrototypeScene(
     }
 
     if (player?.pos) {
-      player.pos.x = position.x;
-      player.pos.y = position.y;
+      const renderPosition = riverBoat.isRiding() ? riverBoat.getRenderPosition() : position;
+      const spriteOffsetY = getPlayableCharacterRenderOffsetY(
+        playerCharacter,
+        facing,
+        riverBoat.isRiding()
+      );
+      player.pos.x = renderPosition.x;
+      player.pos.y = renderPosition.y + spriteOffsetY + (swimming ? getSwimmingBobOffset(worldAnimationClock, reducedMotion) : 0);
     }
     if (player) {
-      player.z = position.y;
-      player.frame = actuallyMoving
-        ? getWalkFrameForFacing(facing, Math.floor(animationClock * 8))
-        : getBaseFrameForFacing(facing);
+      const spriteOffsetY = getPlayableCharacterRenderOffsetY(
+        playerCharacter,
+        facing,
+        riverBoat.isRiding()
+      );
+      player.z = position.y + spriteOffsetY + (riverBoat.isRiding() ? 2 : 0);
+      player.frame = riverBoat.isRiding()
+        ? getBoatRidingFrame(facing, worldAnimationClock, actuallyMoving, playerCharacter.spriteLayout)
+        : swimming
+        ? getSwimmingFrameForFacing(facing, worldAnimationClock, playerCharacter.spriteLayout, actuallyMoving)
+        : actuallyMoving
+        ? getWalkFrameForFacing(facing, Math.floor(animationClock * 8), playerCharacter.spriteLayout)
+        : getBaseFrameForFacing(facing, playerCharacter.spriteLayout);
+      player.flipX = getSpriteFlipXForFacing(facing, playerCharacter.spriteLayout);
+      player.angle = swimming
+        ? getSwimmingStrokeAngle(facing, worldAnimationClock, actuallyMoving, reducedMotion)
+        : 0;
+    }
+    if (swimRipple) {
+      swimRipple.hidden = !swimming;
+      swimRipple.frame = reducedMotion ? 0 : Math.floor(worldAnimationClock * 8) % BOAT_WAKE_FRAMES;
+      if (swimRipple.pos) {
+        swimRipple.pos.x = position.x;
+        swimRipple.pos.y = position.y + 12;
+      }
+      swimRipple.z = position.y - 2;
+    }
+    const waterlinePulse = reducedMotion ? 0 : Math.sin(worldAnimationClock * 9) * 0.05;
+    for (const [node, yOffset, zOffset, scaleX, scaleY] of [
+      [swimFoam, 9, 1, 1.25, 0.5],
+      [swimWaterline, 10, 2, 1.2, 0.62]
+    ] as const) {
+      if (!node) continue;
+      node.hidden = !swimming;
+      if (node.pos) {
+        node.pos.x = position.x;
+        node.pos.y = position.y + yOffset + getSwimmingBobOffset(worldAnimationClock, reducedMotion) * 0.25;
+      }
+      if (node.scale) {
+        node.scale.x = scaleX + waterlinePulse;
+        node.scale.y = scaleY - waterlinePulse * 0.35;
+      }
+      node.z = position.y + zOffset;
     }
     const grassTileKey = getTallGrassTileKey(position);
     const enteredGrass = actuallyMoving && grassTileKey !== null && grassTileKey !== lastGrassTileKey;
@@ -615,15 +832,50 @@ function renderPrototypeScene(
       missionObjects.updateAnimation(worldAnimationClock, reducedMotion);
     }
     roamingAnimals.update(dt, worldAnimationClock, position);
+    ambientWalkers.update(dt, worldAnimationClock, position);
 
-    const interaction = selectClosestInteraction(
+    const boatProximity = getRiverBoatProximity(
       position,
-      interactionTargets,
-      {
-        activeTargetId: lastInteractionKey === "none" ? null : lastInteractionKey.split(":").slice(0, 2).join(":"),
-        collisionMap: PROTOTYPE_MAP
-      }
+      facing,
+      riverBoat.getState()
     );
+    const boatUiState: RiverBoatUiState = {
+      riding: riverBoat.isRiding(),
+      actionAvailable: swimming
+        ? false
+        : riverBoat.isRiding()
+          ? !actuallyMoving
+          : boatProximity === "ready",
+      proximity: boatProximity
+    };
+    const boatUiKey = `${boatUiState.riding}:${boatUiState.actionAvailable}:${boatUiState.proximity}`;
+    const boatStateChanged = boatUiKey !== lastBoatUiKey;
+    if (boatStateChanged) {
+      lastBoatUiKey = boatUiKey;
+      callbacks.onRiverBoatStateChange?.(boatUiState);
+    }
+    const swimActionPoint = riverBoat.isRiding()
+      ? null
+      : swimming
+        ? position
+        : getSwimEntryPoint(position, facing, PLAYER_CONFIG.radius);
+    const swimPromptKey = swimActionPoint
+      ? `${swimming ? "exit" : "enter"}:${Math.round(swimActionPoint.x)}:${Math.round(swimActionPoint.y)}`
+      : "none";
+    const swimPromptChanged = swimPromptKey !== lastSwimPromptKey;
+    if (swimPromptChanged) lastSwimPromptKey = swimPromptKey;
+
+    const interaction = riverBoat.isRiding() || swimming
+      ? null
+      : selectClosestInteraction(
+          position,
+          interactionTargets,
+          {
+            activeTargetId: lastInteractionKey === "none" ? null : lastInteractionKey.split(":").slice(0, 2).join(":"),
+            allowedNpcId: activeTargetNpcId ?? undefined,
+            collisionMap: PROTOTYPE_MAP
+          }
+        );
     const interactionKey = interaction ? `${interaction.id}:${interaction.enabled}` : "none";
     const interactionChanged = interactionKey !== lastInteractionKey;
     if (interactionChanged) {
@@ -656,18 +908,30 @@ function renderPrototypeScene(
       mapRenderer.updateVisibility(camera, viewport);
       missionObjects.updateVisibility(camera, viewport);
       roamingAnimals.updateVisibility(camera, viewport);
+      ambientWalkers.updateVisibility(camera, viewport);
+      riverBoat.updateVisibility(camera, viewport);
     }
     if (
       interactionChanged
+      || boatStateChanged
+      || swimPromptChanged
       || viewportChanged
       || (
         interaction !== null
-        && cameraChanged
+        && (cameraChanged || interaction.optional === true)
         && worldAnimationClock - lastPromptUpdateAt >= INTERACTION_PROMPT_UPDATE_INTERVAL
       )
     ) {
       lastPromptUpdateAt = worldAnimationClock;
-      callbacks.onInteractionPromptPosition?.(getInteractionPromptPosition(interaction, camera, viewport));
+      callbacks.onInteractionPromptPosition?.(
+        interaction
+          ? getInteractionPromptPosition(interaction, camera, viewport)
+          : boatUiState.actionAvailable
+            ? getWorldPromptPosition(riverBoat.getPosition(), camera, viewport)
+            : swimActionPoint
+              ? getWorldPromptPosition(swimActionPoint, camera, viewport)
+              : null
+      );
     }
   });
 
@@ -675,9 +939,70 @@ function renderPrototypeScene(
   mapRenderer.updateVisibility(terrainView.camera, initialViewport);
   missionObjects.updateVisibility(terrainView.camera, initialViewport);
   roamingAnimals.updateVisibility(terrainView.camera, initialViewport);
+  ambientWalkers.updateVisibility(terrainView.camera, initialViewport);
+  riverBoat.updateVisibility(terrainView.camera, initialViewport);
 
   return {
     updateController,
+    isSwimming: () => swimming,
+    isBoatActionAvailable: () => {
+      if (swimming) return false;
+      const vector = input.getVector();
+      const boatMoving = vector.x !== 0 || vector.y !== 0;
+      return riverBoat.isRiding()
+        ? !boatMoving
+        : getRiverBoatProximity(position, facing, riverBoat.getState()) === "ready";
+    },
+    isSwimmingActionAvailable: () => !riverBoat.isRiding()
+      && (swimming || getSwimEntryPoint(position, facing, PLAYER_CONFIG.radius) !== null),
+    swimIntoRiver: () => {
+      if (riverBoat.isRiding()) return false;
+      if (swimming) {
+        const exitPoint = getNearestSwimExitPoint(position, MISSION_COLLISION_MAP, PLAYER_CONFIG.radius);
+        if (!exitPoint) return false;
+        position = exitPoint;
+        swimming = false;
+        lastSwimPromptKey = "";
+        lastInteractionKey = "";
+        const terrain = getTerrainAtPoint(position);
+        const area = getMapAreaAtPoint(position);
+        callbacks.onPlayerNavigationChange?.({ position: { ...position }, facing, terrain, area });
+        callbacks.onPlayerPositionChange?.(position);
+        callbacks.onInteractionPromptPosition?.(null);
+        return true;
+      }
+      const entryPoint = getSwimEntryPoint(position, facing, PLAYER_CONFIG.radius);
+      if (!entryPoint) return false;
+      position = entryPoint;
+      swimming = true;
+      lastNavigationPosition = { ...position };
+      const terrain = getTerrainAtPoint(position);
+      const area = getMapAreaAtPoint(position);
+      callbacks.onPlayerNavigationChange?.({ position: { ...position }, facing, terrain, area });
+      callbacks.onPlayerPositionChange?.(position);
+      return true;
+    },
+    interactWithBoat: () => {
+      const proximity = getRiverBoatProximity(position, facing, riverBoat.getState());
+      if (riverBoat.isRiding()) {
+        const vector = input.getVector();
+        if (vector.x !== 0 || vector.y !== 0) return false;
+        const landing = getNearestRiverBoatLanding(riverBoat.getState(), MISSION_COLLISION_MAP);
+        if (!landing) return false;
+        riverBoat.leave();
+        position = { ...landing.position };
+      } else {
+        if (proximity !== "ready") return false;
+        riverBoat.board();
+        position = riverBoat.getPosition();
+      }
+      lastBoatUiKey = "";
+      lastSwimPromptKey = "";
+      lastInteractionKey = "";
+      callbacks.onInteractionTargetChange?.(null);
+      callbacks.onInteractionPromptPosition?.(null);
+      return true;
+    },
     setMissionState: (state: { activityCompleted: boolean; targetNpcId?: NpcId | null; showPath?: boolean }) => {
       const nextTargetNpcId = state.activityCompleted ? null : state.targetNpcId ?? null;
       if (nextTargetNpcId !== activeTargetNpcId) {
@@ -693,6 +1018,7 @@ function renderPrototypeScene(
     reset: () => {
       position = { ...PROTOTYPE_MAP.startPosition };
       facing = "down";
+      swimming = false;
       animationClock = 0;
       worldAnimationClock = 0;
       grassUpdateAccumulator = GRASS_UPDATE_INTERVAL;
@@ -713,21 +1039,253 @@ function renderPrototypeScene(
       runtime.setCamPos?.(lastCameraPosition.x, lastCameraPosition.y);
       mapRenderer.updateVisibility(lastCameraPosition, lastViewport);
       lastInteractionKey = "";
+      lastBoatUiKey = "";
       activeTargetNpcId = null;
       if (player?.pos) {
         player.pos.x = position.x;
-        player.pos.y = position.y;
+        player.pos.y = position.y + getPlayableCharacterRenderOffsetY(playerCharacter, facing);
       }
-      if (player) player.frame = getBaseFrameForFacing(facing);
+      if (player) player.frame = getBaseFrameForFacing(facing, playerCharacter.spriteLayout);
+      if (swimRipple) swimRipple.hidden = true;
+      if (swimFoam) swimFoam.hidden = true;
+      if (swimWaterline) swimWaterline.hidden = true;
       grassReactionEnds.clear();
       grassPool.forEach((grass) => { if (grass) grass.hidden = true; });
       missionObjects.reset();
       roamingAnimals.reset();
+      ambientWalkers.reset();
+      riverBoat.reset();
       missionObjects.updateVisibility(lastCameraPosition, lastViewport);
       roamingAnimals.updateVisibility(lastCameraPosition, lastViewport);
+      ambientWalkers.updateVisibility(lastCameraPosition, lastViewport);
+      riverBoat.updateVisibility(lastCameraPosition, lastViewport);
       callbacks.onInteractionTargetChange?.(null);
       callbacks.onInteractionPromptPosition?.(null);
+      callbacks.onRiverBoatStateChange?.({
+        riding: false,
+        actionAvailable: false,
+        proximity: "hidden"
+      });
       callbacks.onPlayerPositionChange?.(position);
+    }
+  };
+}
+
+function renderRiverBoat(runtime: KaplayRuntime, reducedMotion: boolean) {
+  type BoatNode = {
+    hidden?: boolean;
+    pos?: { x: number; y: number };
+    z?: number;
+    frame?: number;
+    angle?: number;
+  };
+  let state = createRiverBoatState();
+  let animation = getBoatAnimationState(0, false, reducedMotion);
+  let culled = false;
+  const wake = runtime.add?.([
+    runtime.sprite!(BOAT_WAKE_ASSET_KEY, { frame: 0 }),
+    runtime.pos!(state.position.x - 28, state.position.y),
+    runtime.anchor!("center"),
+    runtime.scale!(1),
+    runtime.z!(state.position.y - 4)
+  ]) as BoatNode | undefined;
+  const node = runtime.add?.([
+    runtime.sprite!(RIVER_BOAT.assetKey),
+    runtime.pos!(state.position.x, state.position.y),
+    runtime.anchor!("center"),
+    runtime.scale!(1),
+    runtime.z!(state.position.y - 1)
+  ]) as BoatNode | undefined;
+  const oars = [-1, 1].map((side) => runtime.add?.([
+    runtime.sprite!(BOAT_OAR_ASSET_KEY),
+    runtime.pos!(state.position.x - 2, state.position.y + side * 12),
+    runtime.anchor!("center"),
+    runtime.scale!(1),
+    runtime.rotate?.(0),
+    runtime.z!(state.position.y + 1)
+  ]) as BoatNode | undefined);
+
+  const syncNode = () => {
+    const renderY = state.position.y + animation.bobOffset;
+    const rotation = boatRotationForFacing(state.facing);
+    const wakeOffset = rotateOffset(-28, 0, rotation);
+    if (node?.pos) {
+      node.pos.x = state.position.x;
+      node.pos.y = renderY;
+    }
+    if (node) {
+      node.angle = rotation;
+      node.z = state.position.y - 1;
+      node.hidden = culled;
+    }
+    if (wake?.pos) {
+      wake.pos.x = state.position.x + wakeOffset.x;
+      wake.pos.y = renderY + wakeOffset.y;
+    }
+    if (wake) {
+      wake.angle = rotation;
+      wake.z = state.position.y - 4;
+      wake.frame = animation.wakeFrame;
+      wake.hidden = culled || !state.riding || !animation.wakeVisible;
+    }
+    oars.forEach((oar, index) => {
+      if (!oar) return;
+      const side = index === 0 ? -1 : 1;
+      const offset = rotateOffset(-2, side * 12, rotation);
+      if (oar.pos) {
+        oar.pos.x = state.position.x + offset.x;
+        oar.pos.y = renderY + offset.y;
+      }
+      oar.angle = rotation + (
+        side < 0
+          ? -24 + animation.oarAngle
+          : 24 - animation.oarAngle
+      );
+      oar.z = state.position.y + 1;
+      oar.hidden = culled || !state.riding;
+    });
+  };
+  syncNode();
+
+  return {
+    getState: () => state,
+    getPosition: () => ({ ...state.position }),
+    getRenderPosition: () => ({
+      x: state.position.x,
+      y: state.position.y + animation.bobOffset
+    }),
+    isRiding: () => state.riding,
+    move(input: Point, deltaSeconds: number) {
+      state = moveRiverBoat(state, input, deltaSeconds);
+      syncNode();
+    },
+    board() {
+      state = boardRiverBoat(state);
+      syncNode();
+    },
+    leave() {
+      state = leaveRiverBoat(state);
+      syncNode();
+    },
+    updateAnimation(animationClock: number, moving: boolean) {
+      animation = getBoatAnimationState(animationClock, state.riding && moving, reducedMotion);
+      syncNode();
+    },
+    updateVisibility(camera: Point, viewport: { width: number; height: number }) {
+      const margin = TILE_SIZE * 3;
+      culled = state.position.x < camera.x - viewport.width / 2 - margin
+        || state.position.x > camera.x + viewport.width / 2 + margin
+        || state.position.y < camera.y - viewport.height / 2 - margin
+        || state.position.y > camera.y + viewport.height / 2 + margin;
+      syncNode();
+    },
+    reset() {
+      state = createRiverBoatState();
+      animation = getBoatAnimationState(0, false, reducedMotion);
+      syncNode();
+    }
+  };
+}
+
+function boatRotationForFacing(facing: Facing) {
+  if (facing === "down") return 90;
+  if (facing === "left") return 180;
+  if (facing === "up") return -90;
+  return 0;
+}
+
+function rotateOffset(x: number, y: number, angleDegrees: number) {
+  const radians = angleDegrees * (Math.PI / 180);
+  return {
+    x: x * Math.cos(radians) - y * Math.sin(radians),
+    y: x * Math.sin(radians) + y * Math.cos(radians)
+  };
+}
+
+function renderAmbientWalkers(
+  runtime: KaplayRuntime,
+  reducedMotion: boolean,
+  interactionTargets: readonly InteractionTarget[]
+) {
+  type WalkerNode = {
+    hidden?: boolean;
+    pos?: { x: number; y: number };
+    z?: number;
+    frame?: number;
+  };
+  let states = createAmbientWalkerStates();
+  const nodes = states.map((state) => runtime.add?.([
+    runtime.sprite!(state.assetKey, { frame: getBaseFrameForFacing(state.facing) }),
+    runtime.pos!(state.position.x, state.position.y),
+    runtime.anchor!("center"),
+    runtime.scale!(2),
+    runtime.z!(state.position.y)
+  ]) as WalkerNode | undefined);
+  const labels = states.map((state) => runtime.add?.([
+    runtime.text!(state.displayName, { size: 8 }),
+    runtime.pos!(state.position.x, state.position.y - 26),
+    runtime.anchor!("center"),
+    runtime.color!(255, 255, 255),
+    runtime.outline?.(1),
+    runtime.z!(1999)
+  ]) as WalkerNode | undefined);
+
+  const syncNodes = (animationClock: number) => {
+    states.forEach((state, index) => {
+      const node = nodes[index];
+      const label = labels[index];
+      if (node) {
+        if (node.pos) {
+          node.pos.x = state.position.x;
+          node.pos.y = state.position.y;
+        }
+        node.z = state.position.y;
+        node.frame = state.moving && !reducedMotion
+          ? getWalkFrameForFacing(state.facing, Math.floor(animationClock * 7))
+          : getBaseFrameForFacing(state.facing);
+      }
+      if (label?.pos) {
+        label.pos.x = state.position.x;
+        label.pos.y = state.position.y - 26;
+      }
+      const interactionTarget = interactionTargets.find(
+        (target) => target.kind === "npc" && target.npcId === state.id
+      );
+      if (interactionTarget) {
+        interactionTarget.position = { ...state.position };
+        interactionTarget.indicatorPosition = { ...state.position };
+      }
+    });
+  };
+
+  return {
+    update(deltaSeconds: number, elapsedSeconds: number, playerPosition: Point) {
+      const adjustedDelta = reducedMotion ? deltaSeconds * 0.5 : deltaSeconds;
+      states = states.map((state) =>
+        advanceAmbientWalker(
+          state,
+          adjustedDelta,
+          elapsedSeconds,
+          MISSION_COLLISION_MAP,
+          playerPosition
+        )
+      );
+      syncNodes(elapsedSeconds);
+    },
+    updateVisibility(camera: Point, viewport: { width: number; height: number }) {
+      const margin = TILE_SIZE * 2;
+      states.forEach((state, index) => {
+        const hidden = state.position.x < camera.x - viewport.width / 2 - margin
+          || state.position.x > camera.x + viewport.width / 2 + margin
+          || state.position.y < camera.y - viewport.height / 2 - margin
+          || state.position.y > camera.y + viewport.height / 2 + margin;
+        if (nodes[index]) nodes[index]!.hidden = hidden;
+        if (labels[index]) labels[index]!.hidden = hidden;
+      });
+    },
+    reset() {
+      states = createAmbientWalkerStates();
+      syncNodes(0);
     }
   };
 }
@@ -805,6 +1363,14 @@ export function getInteractionPromptPosition(
 ) {
   if (!target) return null;
   const marker = target.indicatorPosition ?? target.position;
+  return getWorldPromptPosition(marker, camera, viewport);
+}
+
+function getWorldPromptPosition(
+  marker: Point,
+  camera: { x: number; y: number },
+  viewport: { width: number; height: number }
+) {
   return {
     x: (marker.x + 30 - camera.x + viewport.width / 2) / viewport.width,
     y: (marker.y - 28 - camera.y + viewport.height / 2) / viewport.height
@@ -924,7 +1490,7 @@ function renderPrototypeMap(
           }
 
           if (!view.reducedMotion) {
-            const phase = Math.floor(view.animationClock / 0.4) % WATER_ANIMATION_PHASES;
+            const phase = Math.floor(view.animationClock / 0.28) % WATER_ANIMATION_PHASES;
             for (let y = top; y <= bottom; y += 1) {
               for (let x = left; x <= right; x += 1) {
                 const frame = getAnimatedWaterFrame(x, y, phase);
@@ -1136,7 +1702,7 @@ function renderMissionObjects(runtime: KaplayRuntime) {
   let targetNpcId: NpcId | null = null;
   let showPath = true;
 
-  for (const npc of NPCS) {
+  for (const npc of STATIONARY_NPCS) {
     const sprite = runtime.add?.([
       runtime.sprite!(npc.assetKey, { frame: 0 }),
       runtime.pos!(npc.position.x, npc.position.y),
@@ -1213,7 +1779,7 @@ function renderMissionObjects(runtime: KaplayRuntime) {
 
   return {
     updateVisibility(camera: { x: number; y: number }, viewport: { width: number; height: number }) {
-      for (const npc of NPCS) {
+      for (const npc of STATIONARY_NPCS) {
         const sprite = npcSprites.get(npc.id);
         if (!sprite) continue;
         sprite.hidden = !isWorldBoundsVisible(
@@ -1233,7 +1799,7 @@ function renderMissionObjects(runtime: KaplayRuntime) {
     },
     setInteractionTarget(target: InteractionTarget | null) {
       nameLabels.forEach((label, npcId) => {
-        label.hidden = target?.npcId !== npcId;
+        label.hidden = target?.kind !== "npc" || target.npcId !== npcId;
       });
     },
     setMissionState(state: { activityCompleted: boolean; targetNpcId?: NpcId | null; showPath?: boolean }) {

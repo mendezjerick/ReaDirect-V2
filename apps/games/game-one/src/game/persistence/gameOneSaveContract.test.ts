@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { MISSIONS } from "../content/missions";
 import { createMissionRounds, createSeededRandom } from "../questions/questionRound";
+import { createInitialShopTaskState } from "../shop/shopTask";
 import {
   createGameOneSaveState,
   createInitialGameOneProgress,
@@ -16,7 +17,13 @@ describe("Game One save contract", () => {
     const state = createGameOneSaveState(
       { ...initial.mission, missionIndex: 1 },
       { ...initial.exploration, fishingParticipation: 2 },
-      { ...initial.tutorial, active: false, finished: true }
+      { ...initial.tutorial, active: false, finished: true },
+      "luffy",
+      {
+        stage: "completed",
+        hintUsed: true,
+        inspectedIds: ["reading-table", "map-shelf", "market-vendor"]
+      }
     );
 
     const hydrated = hydrateGameOneProgress(
@@ -36,6 +43,8 @@ describe("Game One save contract", () => {
     expect(hydrated.mission.language).toBe("fil");
     expect(hydrated.exploration.fishingParticipation).toBe(2);
     expect(hydrated.tutorial.finished).toBe(true);
+    expect(hydrated.characterId).toBe("luffy");
+    expect(hydrated.shopTask).toMatchObject({ stage: "completed", hintUsed: true });
     expect(JSON.stringify(state)).not.toMatch(
       /access_token|authorization|bearer_token|learner_code|learner_id|password|username/i
     );
@@ -57,6 +66,8 @@ describe("Game One save contract", () => {
     expect(hydrated.mission.missionIndex).toBe(0);
     expect(hydrated.exploration.fishingParticipation).toBe(0);
     expect(hydrated.tutorial.active).toBe(true);
+    expect(hydrated.characterId).toBe("yato");
+    expect(hydrated.shopTask).toEqual(createInitialShopTaskState());
   });
 
   it("refuses incompatible or unsafe server saves before they can be overwritten", () => {
@@ -65,7 +76,9 @@ describe("Game One save contract", () => {
     const validState = createGameOneSaveState(
       initial.mission,
       initial.exploration,
-      initial.tutorial
+      initial.tutorial,
+      "yato",
+      createInitialShopTaskState()
     );
 
     expect(() => hydrateGameOneProgress(

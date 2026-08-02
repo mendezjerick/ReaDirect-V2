@@ -1,5 +1,5 @@
 import type { Point } from "../physics/collision";
-import { TILE_SIZE } from "../map/prototypeMap";
+import { getTerrainAtPoint, TILE_SIZE } from "../map/prototypeMap";
 import type { GameLanguage } from "../localization/language";
 
 export type WorldRegionId = "village" | "forest" | "river" | "farm" | "jungle" | "waterfall";
@@ -12,10 +12,10 @@ export type WorldRegion = {
 };
 
 export const WORLD_REGIONS: readonly WorldRegion[] = [
-  region("river", "River", "Ilog", 1, 8, 52, 3, true),
-  region("forest", "Forest", "Kagubatan", 0, 0, 54, 8, true),
+  region("river", "River", "Ilog", 1, 6, 54, 28, true),
+  region("forest", "Forest", "Kagubatan", 0, 0, 62, 7, true),
   region("farm", "Farm Woodland", "Gubat sa Bukid", 33, 23, 16, 10, true),
-  region("village", "Village", "Nayon", 0, 11, 54, 23, true),
+  region("village", "Village", "Nayon", 0, 12, 62, 28, true),
   region("jungle", "Jungle", "Gubat", 0, 0, 0, 0, false),
   region("waterfall", "Waterfall Clearing", "Lunan ng Talon", 0, 0, 0, 0, false)
 ];
@@ -23,7 +23,13 @@ export const WORLD_REGIONS: readonly WorldRegion[] = [
 export const AVAILABLE_WORLD_REGIONS = WORLD_REGIONS.filter((regionDefinition) => regionDefinition.available);
 
 export function getWorldRegionAtPoint(point: Point) {
-  return AVAILABLE_WORLD_REGIONS.find((regionDefinition) => containsPoint(regionDefinition.bounds, point))
+  const terrain = getTerrainAtPoint(point).id;
+  if (terrain === "water" || terrain === "bridge") {
+    return AVAILABLE_WORLD_REGIONS.find((regionDefinition) => regionDefinition.id === "river")!;
+  }
+  return AVAILABLE_WORLD_REGIONS.find((regionDefinition) =>
+    regionDefinition.id !== "river" && containsPoint(regionDefinition.bounds, point)
+  )
     ?? AVAILABLE_WORLD_REGIONS.find((regionDefinition) => regionDefinition.id === "village")!;
 }
 
