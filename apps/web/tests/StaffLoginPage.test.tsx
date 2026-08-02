@@ -18,7 +18,30 @@ import { StaffLoginPage } from "../src/features/staff-auth/StaffLoginPage";
 import {
   getStaffAuthHeaders,
   loadStaffSession,
+  saveStaffSession,
+  type StaffSession,
 } from "../src/features/staff-auth/staffApi";
+
+function rememberedSystemAdminSession(): StaffSession {
+  return {
+    token: "remembered-system-admin-token".repeat(2),
+    staff: {
+      id: 1,
+      username: "system-admin-test",
+      email: null,
+      display_name: "System Administrator",
+      role: "system_admin",
+      school: null,
+      requires_school_setup: false,
+      requires_credential_setup: false,
+    },
+    session: {
+      expires_at: "2099-01-01T00:00:00Z",
+      remembered: true,
+      heartbeat_interval_seconds: null,
+    },
+  };
+}
 
 function renderStaffLogin() {
   const queryClient = createAppQueryClient();
@@ -73,6 +96,108 @@ describe("StaffLoginPage", () => {
       "password",
     );
     expect(screen.getByRole("button", { name: "Sign in" })).toBeEnabled();
+  });
+
+  it("restores a remembered System Admin session before showing the login form", async () => {
+    const session = rememberedSystemAdminSession();
+    window.localStorage.setItem(
+      "readirect.staff-device",
+      "remembered-browser-device",
+    );
+    saveStaffSession(session);
+    const fetchMock = vi.fn().mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({ staff: session.staff, session: session.session }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderStaffLogin();
+
+    expect(
+      screen.getByText("Restoring your staff session..."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Sign in" }),
+    ).not.toBeInTheDocument();
+    expect(await screen.findByText("Dashboard route")).toBeInTheDocument();
+
+    const [, request] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const headers = new Headers(request.headers);
+    expect(headers.get("Authorization")).toBe(`Bearer ${session.token}`);
+    expect(headers.get("X-ReaDirect-Device")).toBe("remembered-browser-device");
+  });
+
+  it("shows the login form when the remembered session is rejected", async () => {
+    const session = rememberedSystemAdminSession();
+    window.localStorage.setItem(
+      "readirect.staff-device",
+      "remembered-browser-device",
+    );
+    saveStaffSession(session);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ message: "Session expired." }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    renderStaffLogin();
+
+    expect(
+      await screen.findByRole("heading", { name: "Welcome back" }),
+    ).toBeInTheDocument();
+    expect(window.localStorage.getItem("readirect.staff-session")).toBeNull();
+  });
+
+  it("keeps a remembered session out of the login form during a transient failure", async () => {
+    const session = rememberedSystemAdminSession();
+    window.localStorage.setItem(
+      "readirect.staff-device",
+      "remembered-browser-device",
+    );
+    saveStaffSession(session);
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("Network unavailable"))
+      .mockImplementationOnce(
+        async () =>
+          new Response(
+            JSON.stringify({ staff: session.staff, session: session.session }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            },
+          ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderStaffLogin();
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "We could not restore your staff session.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Sign in" }),
+    ).not.toBeInTheDocument();
+    expect(
+      window.localStorage.getItem("readirect.staff-session"),
+    ).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Retry session" }));
+
+    expect(await screen.findByText("Dashboard route")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("allows the password to be shown and hidden", () => {

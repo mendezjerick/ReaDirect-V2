@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
@@ -7,7 +7,14 @@ import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
-import { loginStaff, saveStaffSession } from "./staffApi";
+import {
+  clearStaffSession,
+  getCurrentStaffSession,
+  loadStaffSession,
+  loginStaff,
+  saveStaffSession,
+} from "./staffApi";
+import { staffHomeRoute } from "./staffRoutes";
 
 interface StaffLoginForm {
   identifier: string;
@@ -39,28 +46,17 @@ function BackIcon() {
 export function StaffLoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [restoreAttempt, setRestoreAttempt] = useState(0);
+  const [restoreState, setRestoreState] = useState<
+    "checking" | "ready" | "error"
+  >(() => (loadStaffSession() ? "checking" : "ready"));
   const navigationCommit = useButtonCommit();
   const signInCommit = useButtonCommit();
   const loginMutation = useMutation({
     mutationFn: loginStaff,
     onSuccess: (session) => {
       saveStaffSession(session);
-
-      if (session.staff.role === "school_admin") {
-        navigate(
-          session.staff.requires_school_setup
-            ? "/staff/school-admin/setup-school"
-            : "/staff/school-admin",
-        );
-        return;
-      }
-
-      if (session.staff.role === "teacher") {
-        navigate("/staff/teacher");
-        return;
-      }
-
-      navigate("/staff/system-admin");
+      navigate(staffHomeRoute(session), { replace: true });
     },
   });
   const {
@@ -71,6 +67,40 @@ export function StaffLoginPage() {
     defaultValues: { identifier: "", password: "", remember_me: false },
   });
 
+  useEffect(() => {
+    const storedSession = loadStaffSession();
+
+    if (!storedSession) {
+      setRestoreState("ready");
+      return;
+    }
+
+    if (new Date(storedSession.session.expires_at).getTime() <= Date.now()) {
+      clearStaffSession();
+      setRestoreState("ready");
+      return;
+    }
+
+    let active = true;
+    setRestoreState("checking");
+
+    void getCurrentStaffSession()
+      .then((session) => {
+        if (active) {
+          navigate(staffHomeRoute(session), { replace: true });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setRestoreState(loadStaffSession() ? "error" : "ready");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [navigate, restoreAttempt]);
+
   const returnHome = () => {
     navigationCommit.commit(() => navigate("/home"));
   };
@@ -78,6 +108,38 @@ export function StaffLoginPage() {
   const submitLogin = handleSubmit((credentials) => {
     signInCommit.commit(() => loginMutation.mutate(credentials));
   });
+
+  if (restoreState === "checking") {
+    return (
+      <main
+        className="staff-session-required-page"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <p>Restoring your staff session...</p>
+      </main>
+    );
+  }
+
+  if (restoreState === "error") {
+    return (
+      <main
+        className="staff-session-required-page"
+        aria-labelledby="staff-session-restore-title"
+      >
+        <h1 id="staff-session-restore-title">
+          We could not restore your staff session.
+        </h1>
+        <p>
+          Your remembered session is still saved. Check the connection and try
+          again.
+        </p>
+        <BigButton onClick={() => setRestoreAttempt((attempt) => attempt + 1)}>
+          Retry session
+        </BigButton>
+      </main>
+    );
+  }
 
   return (
     <main
