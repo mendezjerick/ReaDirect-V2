@@ -22,10 +22,11 @@ final class AuthenticateStaffSession
         $request->attributes->set('staff_user', $staffUser);
         $request->setUserResolver(static fn () => $staffUser);
 
-        if (
-            $session->last_used_at === null
-            || $session->last_used_at->lt(now()->subMinutes(5))
-        ) {
+        $touchCutoff = now()->subSeconds((int) config(
+            'staff.session_heartbeat_interval_seconds',
+            30,
+        ));
+        if ($session->last_used_at === null || $session->last_used_at->lte($touchCutoff)) {
             $session->forceFill(['last_used_at' => now()])->save();
         }
 

@@ -83,7 +83,9 @@ attempts are recorded in the staff audit log. Logging out releases the slot.
 Teacher and school-administrator accounts retain normal multi-session support.
 The additive migration revokes older pre-existing sysadmin sessions, and the
 session guard continuously reconciles any duplicate state created outside the
-normal login path.
+normal login path. A non-remembered sysadmin session whose browser lease has
+expired is removed before the exclusive-session check, so a closed or crashed
+browser cannot hold the system-wide slot for the full absolute session lifetime.
 
 ## Remembered staff devices
 
@@ -94,6 +96,14 @@ creates a random device identifier. Laravel stores only an HMAC of that value,
 and every remembered-session request must present the matching device header.
 A missing or mismatched binding immediately revokes the session. Raw hardware,
 browser fingerprint, and device identifiers are not stored server-side.
+
+All non-remembered staff sessions also use a short browser lease. The browser
+renews that lease every `STAFF_SESSION_HEARTBEAT_INTERVAL_SECONDS` (30 seconds
+by default). If the browser closes, crashes, or loses its session storage, the
+backend rejects and releases the session after
+`STAFF_NON_REMEMBERED_SESSION_LEASE_SECONDS` (120 seconds by default). The
+lease must remain at least three heartbeat intervals. Remembered sessions are
+intentionally exempt because they are already bound to their remembered device.
 
 ## Staff email binding and password changes
 

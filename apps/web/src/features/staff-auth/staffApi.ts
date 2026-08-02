@@ -25,6 +25,7 @@ const staffIdentitySessionSchema = z.object({
   session: z.object({
     expires_at: z.string(),
     remembered: z.boolean().default(false),
+    heartbeat_interval_seconds: z.number().int().min(10).nullable().default(null),
   }),
 });
 

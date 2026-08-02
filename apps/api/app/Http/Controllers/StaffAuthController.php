@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\StaffAuditLog;
 use App\Models\StaffSession;
 use App\Models\StaffUser;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +48,10 @@ final class StaffAuthController extends Controller
             : null;
         $session = DB::transaction(function () use ($staffUser, $plainToken, $request, $remembered, $deviceHash): ?StaffSession {
             $now = now();
+            $leaseCutoff = $now->copy()->subSeconds((int) config(
+                'staff.non_remembered_session_lease_seconds',
+                120,
+            ));
 
             if ($staffUser->role === 'system_admin') {
                 $systemAdministrators = StaffUser::query()
@@ -59,19 +65,27 @@ final class StaffAuthController extends Controller
                 }
 
                 $systemAdministratorIds = $systemAdministrators->pluck('id');
-                StaffSession::query()
-                    ->whereIn('staff_user_id', $systemAdministratorIds)
-                    ->where(function ($query) use ($now): void {
-                        $query
-                            ->whereNotNull('revoked_at')
-                            ->orWhere('expires_at', '<=', $now);
-                    })
-                    ->delete();
+                $this->deleteInactiveSessions(
+                    StaffSession::query()
+                        ->whereIn('staff_user_id', $systemAdministratorIds),
+                    $now,
+                    $leaseCutoff,
+                );
 
                 $activeSession = StaffSession::query()
                     ->whereIn('staff_user_id', $systemAdministratorIds)
                     ->whereNull('revoked_at')
                     ->where('expires_at', '>', $now)
+                    ->where(function ($query) use ($leaseCutoff): void {
+                        $query
+                            ->where('remembered', true)
+                            ->orWhere(function ($query) use ($leaseCutoff): void {
+                                $query
+                                    ->where('remembered', false)
+                                    ->whereNotNull('last_used_at')
+                                    ->where('last_used_at', '>', $leaseCutoff);
+                            });
+                    })
                     ->first();
                 if ($activeSession !== null) {
                     StaffAuditLog::query()->create([
@@ -88,14 +102,11 @@ final class StaffAuthController extends Controller
                 }
             } else {
                 $staffUser = StaffUser::query()->lockForUpdate()->findOrFail($staffUser->id);
-                StaffSession::query()
-                    ->where('staff_user_id', $staffUser->id)
-                    ->where(function ($query) use ($now): void {
-                        $query
-                            ->whereNotNull('revoked_at')
-                            ->orWhere('expires_at', '<=', $now);
-                    })
-                    ->delete();
+                $this->deleteInactiveSessions(
+                    StaffSession::query()->where('staff_user_id', $staffUser->id),
+                    $now,
+                    $leaseCutoff,
+                );
             }
 
             $session = StaffSession::query()->create([
@@ -165,6 +176,23 @@ final class StaffAuthController extends Controller
         return response()->json(['signed_out' => true]);
     }
 
+    public function heartbeat(Request $request): JsonResponse
+    {
+        /** @var StaffSession $session */
+        $session = $request->attributes->get('staff_session');
+        if (! $session->remembered) {
+            $session->forceFill(['last_used_at' => now()])->save();
+        }
+
+        return response()->json([
+            'active' => true,
+            'expires_at' => $session->expires_at->toIso8601String(),
+        ])->withHeaders([
+            'Cache-Control' => 'no-store, private',
+            'Pragma' => 'no-cache',
+        ]);
+    }
+
     private function serializeSession(StaffSession $session, StaffUser $staffUser): array
     {
         $staffUser->loadMissing('school:id,name');
@@ -191,7 +219,33 @@ final class StaffAuthController extends Controller
             'session' => [
                 'expires_at' => $session->expires_at->toIso8601String(),
                 'remembered' => $session->remembered,
+                'heartbeat_interval_seconds' => $session->remembered
+                    ? null
+                    : (int) config('staff.session_heartbeat_interval_seconds', 30),
             ],
         ];
+    }
+
+    private function deleteInactiveSessions(
+        Builder $query,
+        CarbonInterface $now,
+        CarbonInterface $leaseCutoff,
+    ): void {
+        $query
+            ->where(function ($query) use ($now, $leaseCutoff): void {
+                $query
+                    ->whereNotNull('revoked_at')
+                    ->orWhere('expires_at', '<=', $now)
+                    ->orWhere(function ($query) use ($leaseCutoff): void {
+                        $query
+                            ->where('remembered', false)
+                            ->where(function ($query) use ($leaseCutoff): void {
+                                $query
+                                    ->whereNull('last_used_at')
+                                    ->orWhere('last_used_at', '<=', $leaseCutoff);
+                            });
+                    });
+            })
+            ->delete();
     }
 }
