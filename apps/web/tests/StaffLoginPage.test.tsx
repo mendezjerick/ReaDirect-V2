@@ -15,6 +15,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { createAppQueryClient } from "../src/app/queryClient";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { StaffLoginPage } from "../src/features/staff-auth/StaffLoginPage";
+import {
+  getStaffAuthHeaders,
+  loadStaffSession,
+} from "../src/features/staff-auth/staffApi";
 
 function renderStaffLogin() {
   const queryClient = createAppQueryClient();
@@ -207,6 +211,13 @@ describe("StaffLoginPage", () => {
       '"remembered":true',
     );
     expect(window.sessionStorage.getItem("readirect.staff-session")).toBeNull();
+
+    const storedSession = loadStaffSession();
+    expect(storedSession).not.toBeNull();
+    expect(getStaffAuthHeaders(storedSession!)).toEqual({
+      Authorization: `Bearer ${"r".repeat(64)}`,
+      "X-ReaDirect-Device": payload.device_id,
+    });
   });
 
   it("sends a new School Administrator to mandatory school setup", async () => {

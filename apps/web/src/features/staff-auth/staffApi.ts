@@ -25,7 +25,12 @@ const staffIdentitySessionSchema = z.object({
   session: z.object({
     expires_at: z.string(),
     remembered: z.boolean().default(false),
-    heartbeat_interval_seconds: z.number().int().min(10).nullable().default(null),
+    heartbeat_interval_seconds: z
+      .number()
+      .int()
+      .min(10)
+      .nullable()
+      .default(null),
   }),
 });
 
@@ -778,10 +783,7 @@ export function clearStaffSession(): void {
       method: "POST",
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${session.token}`,
-        ...(session.session.remembered
-          ? { "X-ReaDirect-Device": getStaffDeviceId() }
-          : {}),
+        ...getStaffAuthHeaders(session),
       },
       keepalive: true,
     }).catch(() => undefined);
@@ -802,9 +804,8 @@ export async function staffFetch(
   const headers = new Headers(init.headers);
 
   if (session) {
-    headers.set("Authorization", `Bearer ${session.token}`);
-    if (session.session.remembered) {
-      headers.set("X-ReaDirect-Device", getStaffDeviceId());
+    for (const [name, value] of Object.entries(getStaffAuthHeaders(session))) {
+      headers.set(name, value);
     }
   }
 
@@ -1287,6 +1288,17 @@ function getStaffDeviceId(): string {
   const created = crypto.randomUUID();
   window.localStorage.setItem(staffDeviceStorageKey, created);
   return created;
+}
+
+export function getStaffAuthHeaders(
+  session: StaffSession,
+): Record<string, string> {
+  return {
+    Authorization: `Bearer ${session.token}`,
+    ...(session.session.remembered
+      ? { "X-ReaDirect-Device": getStaffDeviceId() }
+      : {}),
+  };
 }
 
 export async function getSystemAdminOverview(): Promise<SystemAdminOverview> {
