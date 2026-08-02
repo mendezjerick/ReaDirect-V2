@@ -8,6 +8,37 @@ importers:
 
   .: {}
 
+  apps/games/game-alpha:
+    dependencies:
+      pixi.js:
+        specifier: 8.19.0
+        version: 8.19.0
+      react:
+        specifier: 19.2.7
+        version: 19.2.7
+      react-router-dom:
+        specifier: 7.18.1
+        version: 7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+    devDependencies:
+      '@types/react':
+        specifier: 19.2.17
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.17)
+      react-dom:
+        specifier: 19.2.7
+        version: 19.2.7(react@19.2.7)
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.1.5
+        version: 8.1.5(@types/node@26.1.1)(jiti@2.7.0)(terser@5.49.0)
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1)(vite@8.1.5(@types/node@26.1.1)(jiti@2.7.0)(terser@5.49.0))
+
   apps/games/game-one:
     dependencies:
       kaplay:
@@ -80,6 +111,9 @@ importers:
       '@readirect/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      '@readirect/game-alpha':
+        specifier: workspace:*
+        version: link:../games/game-alpha
       '@readirect/game-lobby':
         specifier: workspace:*
         version: link:../games/lobby

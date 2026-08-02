@@ -98,6 +98,12 @@ const GameOneHostPage = lazy(() =>
   })),
 );
 
+const GameAlphaRoutePage = lazy(() =>
+  import("@readirect/game-alpha").then((module) => ({
+    default: module.GameAlphaRoutePage,
+  })),
+);
+
 const GameZeroRoutePage = lazy(() =>
   import("@readirect/game-zero").then((module) => ({
     default: module.GameZeroRoutePage,
@@ -458,10 +464,10 @@ export function App() {
               <Route path="/learner/lessons/6" element={<LessonSixPage />} />
               <Route path="/learner/games" element={<GameLobbyPage />} />
               <Route
-                path="/learner/games/game-zero"
+                path="/learner/games/game-alpha"
                 element={
                   <RequireSkeletonGameProfile>
-                    <GameZeroRoutePage />
+                    <GameAlphaRoutePage />
                   </RequireSkeletonGameProfile>
                 }
               />
@@ -470,6 +476,14 @@ export function App() {
                 element={
                   <RequireSkeletonGameProfile>
                     <GameOneHostPage />
+                  </RequireSkeletonGameProfile>
+                }
+              />
+              <Route
+                path="/learner/games/game-zero"
+                element={
+                  <RequireSkeletonGameProfile>
+                    <GameZeroRoutePage />
                   </RequireSkeletonGameProfile>
                 }
               />

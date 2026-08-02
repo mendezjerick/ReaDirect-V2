@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { GameAlphaCanvas } from "./components/GameAlphaCanvas";
+import { GameAudio } from "./game/audio/GameAudio";
 import "./styles/game-alpha.css";
 
 type Screen = "menu" | "play" | "instructions";
@@ -9,33 +11,57 @@ export function GameAlphaRoutePage() {
   const navigate = useNavigate();
   const [screen, setScreen] = useState<Screen>("menu");
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const menuAudioRef = useRef<GameAudio | null>(null);
 
-  const backToLobby = () => navigate("/learner/games");
+  useEffect(() => {
+    const menuAudio = new GameAudio();
+    menuAudioRef.current = menuAudio;
+    return () => {
+      menuAudioRef.current = null;
+      void menuAudio.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    menuAudioRef.current?.setMuted(!soundEnabled);
+  }, [soundEnabled]);
+
+  const openScreen = (nextScreen: Screen) => {
+    void menuAudioRef.current?.resume();
+    void menuAudioRef.current?.play("menu-select");
+    setScreen(nextScreen);
+  };
+
+  const backToLobby = () => {
+    void menuAudioRef.current?.resume();
+    void menuAudioRef.current?.play("menu-cancel");
+    navigate("/learner/games");
+  };
 
   return (
     <main
       className="game-route game-alpha learner-flow-page"
-      aria-label="Game Alpha"
+      aria-label="Alphabet Defender"
       data-route-focus
       tabIndex={-1}
     >
-      <section className="game-alpha__stage">
+      <section className={`game-alpha__stage game-alpha__stage--${screen}`}>
         {screen === "menu" && (
           <div className="game-alpha__panel">
-            <p className="game-alpha__eyebrow">Game Alpha slot</p>
-            <h1>Game Alpha</h1>
+            <p className="game-alpha__eyebrow">Game Alpha</p>
+            <h1>Alphabet Defender</h1>
             <p className="game-alpha__summary">
-              Replace this screen with an approved KAPLAY or PixiJS game while
-              keeping the route boundary and menu contract intact.
+              Break the hostile formation, rescue captured fighters, and protect
+              the one alphabet ally hidden in every wave.
             </p>
             <div className="game-alpha__actions">
-              <button type="button" onClick={() => setScreen("play")}>
-                Play Demo
+              <button type="button" onClick={() => openScreen("play")}>
+                Play
               </button>
               <button
                 className="game-alpha__secondary"
                 type="button"
-                onClick={() => setScreen("instructions")}
+                onClick={() => openScreen("instructions")}
               >
                 How to Play
               </button>
@@ -63,36 +89,33 @@ export function GameAlphaRoutePage() {
             <p className="game-alpha__eyebrow">Instructions</p>
             <h1>How to Play</h1>
             <p className="game-alpha__summary">
-              Define the educational goal, touch and pointer controls, scoring,
-              progression, and achievements in the game design specification.
+              Move left and right and fire into the colored block formation. One
+              letter from A to Z is your ally in every wave. Shooting it
+              destroys your ship and costs one heart, so choose every shot
+              carefully.
             </p>
-            <button type="button" onClick={() => setScreen("menu")}>
+            <ul className="game-alpha__instructions-list">
+              <li>Colored and patterned blocks are hostile.</li>
+              <li>
+                Commander blocks need two hits and may use a tractor beam.
+              </li>
+              <li>
+                Destroy a commander—not its captive—to form a double ship.
+              </li>
+              <li>Earn an extra heart every 30,000 points.</li>
+            </ul>
+            <button type="button" onClick={() => openScreen("menu")}>
               Back to Menu
             </button>
           </div>
         )}
 
         {screen === "play" && (
-          <div className="game-alpha__play-panel">
-            <div
-              className="game-alpha__canvas-host"
-              aria-label="Game canvas area"
-            >
-              <span>Game engine mounts here</span>
-            </div>
-            <div className="game-alpha__play-actions">
-              <button type="button" onClick={() => setScreen("menu")}>
-                Back to Menu
-              </button>
-              <button
-                className="game-alpha__secondary"
-                type="button"
-                onClick={backToLobby}
-              >
-                Back to Lobby
-              </button>
-            </div>
-          </div>
+          <GameAlphaCanvas
+            soundEnabled={soundEnabled}
+            onSoundEnabledChange={setSoundEnabled}
+            onExit={() => openScreen("menu")}
+          />
         )}
       </section>
     </main>

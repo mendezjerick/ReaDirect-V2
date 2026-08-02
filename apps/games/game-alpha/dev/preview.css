@@ -1,0 +1,21 @@
+.game-alpha-preview {
+  --color-border-strong: #2d5277;
+  --color-border-warm: #8a6c43;
+  --color-surface-frame: #101d35;
+  --color-text-primary: #f7fbff;
+  --color-text-secondary: #b8c8df;
+  --color-text-on-action: #07122d;
+  --color-action-primary: #68d7ff;
+  --color-action-primary-depth: #23688c;
+  --color-action-secondary: #ffe7a6;
+  --color-frame-depth: #735a36;
+  --color-focus: #fff27a;
+  --radius-frame: 1rem;
+  --radius-panel: 0.75rem;
+  --radius-control: 0.65rem;
+  --shadow-panel-depth: 0 10px 0 #08101f;
+  --font-display-family: "Pixelify Sans", ui-monospace, monospace;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #17345d, #050914 68%);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}

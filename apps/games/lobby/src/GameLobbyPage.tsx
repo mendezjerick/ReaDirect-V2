@@ -10,12 +10,12 @@ interface LobbyLocationState {
 
 const gameSlots = [
   {
-    key: "game-zero",
-    title: "Game Zero",
-    description: "Step into a new reading adventure.",
-    label: "New",
-    route: "/learner/games/game-zero",
-    accessibleName: "Open Game Zero",
+    key: "game-alpha",
+    title: "Alphabet Defender",
+    description: "Defend the alphabet in a fast pixel-space battle.",
+    label: "Arcade",
+    route: "/learner/games/game-alpha",
+    accessibleName: "Open Game Alpha",
   },
   {
     key: "game-one",
@@ -24,6 +24,14 @@ const gameSlots = [
     label: "Letters",
     route: "/learner/games/game-one",
     accessibleName: "Open Game One",
+  },
+  {
+    key: "game-zero",
+    title: "Game Zero",
+    description: "Step into a new reading adventure.",
+    label: "New",
+    route: "/learner/games/game-zero",
+    accessibleName: "Open Game Zero",
   },
   {
     key: "game-two",
@@ -35,13 +43,22 @@ const gameSlots = [
   },
 ] as const;
 
-function GameSymbol({ index }: { index: number }) {
-  return index === 0 ? (
+function GameSymbol({
+  gameKey,
+}: {
+  gameKey: (typeof gameSlots)[number]["key"];
+}) {
+  return gameKey === "game-alpha" ? (
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M20 17h24v6h6v18h-6v6H20v-6h-6V23h6v-6Z" />
+      <path d="M24 27h6v6h-6zM34 27h6v6h-6zM26 39h12M29 11h6v6" />
+    </svg>
+  ) : gameKey === "game-zero" ? (
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <path d="M32 9 38 23 53 25 42 36 45 51 32 44 19 51 22 36 11 25 26 23 32 9Z" />
       <path d="M25 31h14M32 24v14" />
     </svg>
-  ) : index === 1 ? (
+  ) : gameKey === "game-one" ? (
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <path d="M13 48V16h18c8 0 14 5 14 13s-6 13-14 13H22" />
       <path d="M22 24h9c3 0 5 2 5 5s-2 5-5 5h-9M49 14v10M44 19h10" />
@@ -170,11 +187,11 @@ export function GameLobbyPage() {
               </div>
 
               <div className="game-lobby__game-grid">
-                {gameSlots.map((game, index) => (
+                {gameSlots.map((game) => (
                   <article className="game-lobby__game-card" key={game.key}>
                     <div className="game-lobby__game-visual">
                       <span className="game-lobby__game-symbol">
-                        <GameSymbol index={index} />
+                        <GameSymbol gameKey={game.key} />
                       </span>
                       <span className="game-lobby__game-label">
                         {game.label}
