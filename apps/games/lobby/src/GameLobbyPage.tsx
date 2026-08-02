@@ -1,29 +1,45 @@
-import { useState, type FormEvent } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useGameLobbySkeleton } from "./GameLobbySkeletonContext";
+import readscapeThumbnail from "./assets/thumbnails/readscape.jpg";
+import spaceLetterThumbnail from "./assets/thumbnails/space-letter.png";
 import "./styles/lobby.css";
 
 interface LobbyLocationState {
   requestedGame?: string;
 }
 
-const gameSlots = [
+type GameKey = "game-alpha" | "game-one" | "game-zero" | "game-two";
+
+interface GameSlot {
+  key: GameKey;
+  title: string;
+  description: string;
+  label: string;
+  route: string;
+  accessibleName: string;
+  thumbnail?: string;
+}
+
+const gameSlots: readonly GameSlot[] = [
   {
     key: "game-alpha",
-    title: "Alphabet Defender",
+    title: "Space Letter",
     description: "Defend the alphabet in a fast pixel-space battle.",
     label: "Arcade",
     route: "/learner/games/game-alpha",
-    accessibleName: "Open Game Alpha",
+    accessibleName: "Open Space Letter",
+    thumbnail: spaceLetterThumbnail,
   },
   {
     key: "game-one",
-    title: "Letter Quest",
+    title: "Readscape",
     description: "Spot the letters and keep your streak going.",
     label: "Letters",
     route: "/learner/games/game-one",
-    accessibleName: "Open Game One",
+    accessibleName: "Open Readscape",
+    thumbnail: readscapeThumbnail,
   },
   {
     key: "game-zero",
@@ -43,11 +59,7 @@ const gameSlots = [
   },
 ] as const;
 
-function GameSymbol({
-  gameKey,
-}: {
-  gameKey: (typeof gameSlots)[number]["key"];
-}) {
+function GameSymbol({ gameKey }: { gameKey: GameKey }) {
   return gameKey === "game-alpha" ? (
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <path d="M20 17h24v6h6v18h-6v6H20v-6h-6V23h6v-6Z" />
@@ -78,9 +90,21 @@ export function GameLobbyPage() {
   const { profile, createProfile } = useGameLobbySkeleton();
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
+  const [launchingGameKey, setLaunchingGameKey] = useState<GameKey | null>(
+    null,
+  );
+  const [, startRouteTransition] = useTransition();
 
   const requestedGame = (location.state as LobbyLocationState | null)
     ?.requestedGame;
+  const launchingGame = gameSlots.find((game) => game.key === launchingGameKey);
+
+  const launchGame = (game: GameSlot) => {
+    if (launchingGameKey) return;
+
+    setLaunchingGameKey(game.key);
+    startRouteTransition(() => navigate(game.route));
+  };
 
   const submitUsername = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -117,6 +141,7 @@ export function GameLobbyPage() {
             className="game-lobby__back-button"
             type="button"
             aria-label="Back to Dashboard"
+            disabled={Boolean(launchingGame)}
             onClick={() => navigate("/learner/dashboard")}
           >
             <span aria-hidden="true">←</span> Dashboard
@@ -190,9 +215,18 @@ export function GameLobbyPage() {
                 {gameSlots.map((game) => (
                   <article className="game-lobby__game-card" key={game.key}>
                     <div className="game-lobby__game-visual">
-                      <span className="game-lobby__game-symbol">
-                        <GameSymbol gameKey={game.key} />
-                      </span>
+                      {game.thumbnail ? (
+                        <img
+                          className="game-lobby__game-thumbnail"
+                          src={game.thumbnail}
+                          alt={`${game.title} preview`}
+                          decoding="async"
+                        />
+                      ) : (
+                        <span className="game-lobby__game-symbol">
+                          <GameSymbol gameKey={game.key} />
+                        </span>
+                      )}
                       <span className="game-lobby__game-label">
                         {game.label}
                       </span>
@@ -205,9 +239,13 @@ export function GameLobbyPage() {
                       className="game-lobby__game-button"
                       type="button"
                       aria-label={game.accessibleName}
-                      onClick={() => navigate(game.route)}
+                      aria-busy={launchingGameKey === game.key || undefined}
+                      disabled={Boolean(launchingGame)}
+                      onClick={() => launchGame(game)}
                     >
-                      Play now
+                      {launchingGameKey === game.key
+                        ? "Loading..."
+                        : "Play now"}
                     </button>
                   </article>
                 ))}
@@ -227,6 +265,26 @@ export function GameLobbyPage() {
           </>
         )}
       </div>
+
+      {launchingGame ? (
+        <div
+          className="clara-speech-loader game-lobby__launch-loader"
+          role="status"
+          aria-live="polite"
+          aria-label={`Loading ${launchingGame.title}`}
+        >
+          <div className="clara-speech-loader__perspective" aria-hidden="true">
+            <div className="clara-speech-loader__cube">
+              <div data-cube-face="front" />
+              <div data-cube-face="back" />
+              <div data-cube-face="right" />
+              <div data-cube-face="left" />
+              <div data-cube-face="top" />
+              <div data-cube-face="bottom" />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
