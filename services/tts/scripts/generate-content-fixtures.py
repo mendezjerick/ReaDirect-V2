@@ -537,7 +537,14 @@ def validate_items(
 ) -> set[str]:
     selected = [item for item in items if item.content_id in selected_ids]
     failures: set[str] = set()
-    with httpx.Client(base_url=args.asr_url, timeout=120.0) as client:
+    token = os.getenv("ASR_SERVICE_TOKEN", "").strip()
+    if len(token) < 32:
+        raise RuntimeError("ASR_SERVICE_TOKEN must contain at least 32 characters")
+    with httpx.Client(
+        base_url=args.asr_url,
+        timeout=120.0,
+        headers={"Authorization": f"Bearer {token}"},
+    ) as client:
         readiness = client.get("/ready")
         readiness.raise_for_status()
         if readiness.json().get("status") != "ready":

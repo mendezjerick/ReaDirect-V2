@@ -9,6 +9,9 @@ import pytest
 import main
 from app.inference_queue import InferenceQueue, InferenceQueueFull, InferenceQueueWaitTimeout
 
+AUTH_HEADERS = {
+    "Authorization": "Bearer asr-test-token-at-least-thirty-two-characters",
+}
 
 async def wait_until(predicate: Callable[[], bool], timeout: float = 1.0) -> None:
     loop = asyncio.get_running_loop()
@@ -234,7 +237,11 @@ def test_both_mu_routes_share_queue_and_health_remains_responsive(monkeypatch) -
 
         async with main.lifespan(main.app):
             transport = httpx.ASGITransport(app=main.app)
-            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            async with httpx.AsyncClient(
+                transport=transport,
+                base_url="http://test",
+                headers=AUTH_HEADERS,
+            ) as client:
                 transcription = asyncio.create_task(
                     client.post(
                         "/mu/transcribe",
@@ -252,7 +259,7 @@ def test_both_mu_routes_share_queue_and_health_remains_responsive(monkeypatch) -
                 )
                 await wait_until(lambda: queue.snapshot()["waiting"] == 1)
 
-                health = await asyncio.wait_for(client.get("/ready"), timeout=0.2)
+                health = await asyncio.wait_for(client.get("/internal/status"), timeout=0.2)
                 assert health.status_code == 200
                 assert health.json()["inference_queue"]["active"] == 1
                 assert health.json()["inference_queue"]["waiting"] == 1

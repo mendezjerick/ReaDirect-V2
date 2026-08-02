@@ -1,10 +1,16 @@
 <?php
 
+use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\AuthenticateLearnerSession;
 use App\Http\Middleware\AuthenticateStaffSession;
+use App\Http\Middleware\EnforceHttps;
 use App\Http\Middleware\RequireStaffRole;
+use App\Http\Middleware\TrustHosts;
+use App\Http\Middleware\TrustProxies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\TrustProxies as FrameworkTrustProxies;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,7 +26,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ],
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->replace(FrameworkTrustProxies::class, TrustProxies::class);
+        $middleware->append([
+            TrustHosts::class,
+            AddSecurityHeaders::class,
+            EnforceHttps::class,
+        ]);
+
         $middleware->alias([
+            'learner.auth' => AuthenticateLearnerSession::class,
             'staff.auth' => AuthenticateStaffSession::class,
             'staff.role' => RequireStaffRole::class,
         ]);

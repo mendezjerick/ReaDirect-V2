@@ -310,6 +310,7 @@ final class LearnerPortalLaunchService
     public function launch(Learner $learner, StaffUser $actor, string $targetKey): array
     {
         return DB::transaction(function () use ($learner, $actor, $targetKey): array {
+            $learner = Learner::query()->lockForUpdate()->findOrFail($learner->id);
             $learner = $this->resetService->reset($learner, $actor);
             $isDashboardTarget = $targetKey === 'learner-dashboard';
             $isLessonTarget = str_starts_with($targetKey, 'lesson-');

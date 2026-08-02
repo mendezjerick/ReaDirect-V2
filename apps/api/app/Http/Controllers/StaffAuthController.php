@@ -7,6 +7,7 @@ use App\Models\StaffSession;
 use App\Models\StaffUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -18,6 +19,8 @@ final class StaffAuthController extends Controller
         $credentials = $request->validate([
             'identifier' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'max:255'],
+            'remember_me' => ['sometimes', 'boolean'],
+            'device_id' => ['nullable', 'required_if:remember_me,true', 'string', 'max:64', 'regex:/^[A-Za-z0-9_-]+$/'],
         ]);
 
         $staffUser = StaffUser::query()
@@ -36,31 +39,99 @@ final class StaffAuthController extends Controller
             ]);
         }
 
-        StaffAuditLog::query()->create([
-            'staff_user_id' => $staffUser->id,
-            'action_key' => 'staff.login',
-            'description' => 'Signed in to the development staff workspace.',
-            'metadata' => [
-                'ip_address' => $request->ip(),
-            ],
-        ]);
-
-        StaffSession::query()
-            ->where('staff_user_id', $staffUser->id)
-            ->where(function ($query): void {
-                $query
-                    ->whereNotNull('revoked_at')
-                    ->orWhere('expires_at', '<=', now());
-            })
-            ->delete();
-
         $plainToken = Str::random(64);
-        $session = StaffSession::query()->create([
-            'staff_user_id' => $staffUser->id,
-            'token_hash' => hash('sha256', $plainToken),
-            'last_used_at' => now(),
-            'expires_at' => now()->addHours(max(1, (int) config('staff.session_lifetime_hours', 8))),
-        ]);
+        $remembered = ($credentials['remember_me'] ?? false) === true;
+        $deviceHash = $remembered
+            ? hash_hmac('sha256', $credentials['device_id'], (string) config('app.key'))
+            : null;
+        $session = DB::transaction(function () use ($staffUser, $plainToken, $request, $remembered, $deviceHash): ?StaffSession {
+            $now = now();
+
+            if ($staffUser->role === 'system_admin') {
+                $systemAdministrators = StaffUser::query()
+                    ->where('role', 'system_admin')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get();
+                $staffUser = $systemAdministrators->firstWhere('id', $staffUser->id);
+                if (! $staffUser instanceof StaffUser || ! $staffUser->is_active) {
+                    return null;
+                }
+
+                $systemAdministratorIds = $systemAdministrators->pluck('id');
+                StaffSession::query()
+                    ->whereIn('staff_user_id', $systemAdministratorIds)
+                    ->where(function ($query) use ($now): void {
+                        $query
+                            ->whereNotNull('revoked_at')
+                            ->orWhere('expires_at', '<=', $now);
+                    })
+                    ->delete();
+
+                $activeSession = StaffSession::query()
+                    ->whereIn('staff_user_id', $systemAdministratorIds)
+                    ->whereNull('revoked_at')
+                    ->where('expires_at', '>', $now)
+                    ->first();
+                if ($activeSession !== null) {
+                    StaffAuditLog::query()->create([
+                        'staff_user_id' => $staffUser->id,
+                        'action_key' => 'staff.login_blocked_exclusive_session',
+                        'description' => 'A system administrator login was blocked because another session is active.',
+                        'metadata' => [
+                            'ip_address' => $request->ip(),
+                            'active_session_id' => $activeSession->id,
+                        ],
+                    ]);
+
+                    return null;
+                }
+            } else {
+                $staffUser = StaffUser::query()->lockForUpdate()->findOrFail($staffUser->id);
+                StaffSession::query()
+                    ->where('staff_user_id', $staffUser->id)
+                    ->where(function ($query) use ($now): void {
+                        $query
+                            ->whereNotNull('revoked_at')
+                            ->orWhere('expires_at', '<=', $now);
+                    })
+                    ->delete();
+            }
+
+            $session = StaffSession::query()->create([
+                'staff_user_id' => $staffUser->id,
+                'token_hash' => hash('sha256', $plainToken),
+                'remembered' => $remembered,
+                'device_hash' => $deviceHash,
+                'last_used_at' => $now,
+                'expires_at' => $remembered
+                    ? $now->copy()->addDays((int) config('staff.remembered_session_lifetime_days', 30))
+                    : $now->copy()->addHours(max(1, (int) config('staff.session_lifetime_hours', 8))),
+            ]);
+
+            StaffAuditLog::query()->create([
+                'staff_user_id' => $staffUser->id,
+                'action_key' => 'staff.login',
+                'description' => 'Signed in to the staff workspace.',
+                'metadata' => [
+                    'ip_address' => $request->ip(),
+                ],
+            ]);
+
+            return $session;
+        });
+
+        if ($session === null) {
+            return response()->json([
+                'message' => 'A system administrator session is already active.',
+                'code' => 'system_admin_session_active',
+            ], 409)->withHeaders([
+                'Cache-Control' => 'no-store, private',
+                'Pragma' => 'no-cache',
+            ]);
+        }
+
+        $staffUser = $session->staffUser;
 
         return response()->json([
             'token' => $plainToken,
@@ -103,6 +174,7 @@ final class StaffAuthController extends Controller
                 'id' => $staffUser->id,
                 'username' => $staffUser->username,
                 'email' => $staffUser->email,
+                'email_verified_at' => $staffUser->email_verified_at?->toIso8601String(),
                 'display_name' => $staffUser->display_name,
                 'role' => $staffUser->role,
                 'school' => $staffUser->school ? [
@@ -118,6 +190,7 @@ final class StaffAuthController extends Controller
             ],
             'session' => [
                 'expires_at' => $session->expires_at->toIso8601String(),
+                'remembered' => $session->remembered,
             ],
         ];
     }

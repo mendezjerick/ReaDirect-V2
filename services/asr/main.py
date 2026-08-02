@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hmac
 import json
+import logging
 import os
 import tempfile
 from contextlib import asynccontextmanager
@@ -8,7 +10,6 @@ from pathlib import Path
 from typing import Annotated, Callable
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from readirect_gpu_runtime import GpuCoordinator, InferenceCapacity, ServiceProcessGuard
 
@@ -25,6 +26,11 @@ SERVICE_ROOT = Path(__file__).resolve().parent
 REPOSITORY_ROOT = SERVICE_ROOT.parents[1]
 ALLOWED_AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".webm", ".ogg", ".flac"}
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+MAX_HTTP_REQUEST_BYTES = int(os.getenv("ASR_MAX_HTTP_REQUEST_BYTES", str(26 * 1024 * 1024)))
+SERVICE_TOKEN = os.getenv("ASR_SERVICE_TOKEN", "").strip()
+SERVICE_TOKEN_CONFIGURED = len(SERVICE_TOKEN) >= 32
+PUBLIC_PATHS = frozenset({"/live", "/ready"})
+logger = logging.getLogger("readirect.asr")
 
 
 def _environment_flag(name: str, default: bool) -> bool:
@@ -86,30 +92,60 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title=SERVICE_NAME, version="0.1.0", lifespan=lifespan)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        origin.strip()
-        for origin in os.getenv(
-            "ASR_CORS_ORIGINS",
-            "http://127.0.0.1:8000,http://localhost:8000",
-        ).split(",")
-        if origin.strip()
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
+
+
+@app.middleware("http")
+async def enforce_service_boundary(request: Request, call_next):
+    if request.url.path in PUBLIC_PATHS:
+        return await call_next(request)
+
+    if not SERVICE_TOKEN_CONFIGURED:
+        return JSONResponse(status_code=503, content={"detail": "service_auth_not_configured"})
+
+    scheme, separator, supplied_token = request.headers.get("authorization", "").partition(" ")
+    if (
+        separator == ""
+        or scheme.lower() != "bearer"
+        or not supplied_token
+        or not hmac.compare_digest(supplied_token, SERVICE_TOKEN)
+    ):
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "service_auth_required"},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    content_length = request.headers.get("content-length")
+    if content_length is not None:
+        try:
+            parsed_content_length = int(content_length)
+            if parsed_content_length < 0:
+                return JSONResponse(status_code=400, content={"detail": "invalid_content_length"})
+            if parsed_content_length > MAX_HTTP_REQUEST_BYTES:
+                return JSONResponse(status_code=413, content={"detail": "request_too_large"})
+        except ValueError:
+            return JSONResponse(status_code=400, content={"detail": "invalid_content_length"})
+
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > MAX_HTTP_REQUEST_BYTES:
+            return JSONResponse(status_code=413, content={"detail": "request_too_large"})
+    request._body = bytes(body)
+
+    return await call_next(request)
 
 
 @app.exception_handler(ValueError)
 async def handle_value_error(_: Request, error: ValueError):
-    return JSONResponse(status_code=422, content={"detail": str(error)})
+    logger.warning("ASR request validation failed", exc_info=error)
+    return JSONResponse(status_code=422, content={"detail": "invalid_request"})
 
 
 @app.exception_handler(RuntimeError)
 async def handle_runtime_error(_: Request, error: RuntimeError):
-    return JSONResponse(status_code=503, content={"detail": str(error)})
+    logger.exception("ASR runtime failed", exc_info=error)
+    return JSONResponse(status_code=503, content={"detail": "service_unavailable"})
 
 
 @app.get("/live")
@@ -121,24 +157,25 @@ def live() -> dict[str, str]:
 async def ready() -> dict[str, object]:
     mu = get_mu_transcriber().status()
     queue = inference_queue.snapshot()
-    gpu = _gpu_coordination_status()
-    available = bool(mu["available"]) and bool(queue["healthy"])
+    available = SERVICE_TOKEN_CONFIGURED and bool(mu["available"]) and bool(queue["healthy"])
     return {
         "status": "ready" if available else "not_ready",
         "service": SERVICE_NAME,
-        "mu": mu,
-        "inference_queue": queue,
-        "gpu_coordination": gpu,
-        "capacity": _capacity_status(queue, gpu),
     }
 
 
+@app.get("/internal/status")
 @app.get("/models/status")
 async def model_status() -> dict[str, object]:
+    mu = _sanitized_mu_status()
     queue = inference_queue.snapshot()
     gpu = _gpu_coordination_status()
+    ready = SERVICE_TOKEN_CONFIGURED and bool(mu["available"]) and bool(queue["healthy"])
     return {
-        "mu": get_mu_transcriber().status(),
+        "status": "ready" if ready else "not_ready",
+        "service": SERVICE_NAME,
+        "mu": mu,
+        "service_auth_configured": SERVICE_TOKEN_CONFIGURED,
         "inference_queue": queue,
         "gpu_coordination": gpu,
         "capacity": _capacity_status(queue, gpu),
@@ -148,8 +185,8 @@ async def model_status() -> dict[str, object]:
 @app.post("/mu/resolve-letter")
 async def resolve_letter_with_mu(
     audio: Annotated[UploadFile, File()],
-    expected_letter: Annotated[str, Form()],
-    equivalences: Annotated[str, Form()] = "[]",
+    expected_letter: Annotated[str, Form(min_length=1, max_length=1)],
+    equivalences: Annotated[str, Form(max_length=65536)] = "[]",
 ) -> dict[str, object]:
     try:
         reviewed_equivalences = json.loads(equivalences)
@@ -174,8 +211,8 @@ async def resolve_letter_with_mu(
 @app.post("/mu/transcribe")
 async def transcribe_mu(
     audio: Annotated[UploadFile, File()],
-    expected_text: Annotated[str, Form()] = "",
-    task_type: Annotated[str, Form()] = "word",
+    expected_text: Annotated[str, Form(max_length=4000)] = "",
+    task_type: Annotated[str, Form(max_length=32)] = "word",
     noise_reduction_enabled: Annotated[bool, Form()] = False,
 ) -> dict[str, object]:
     transcriber = get_mu_transcriber()
@@ -229,6 +266,13 @@ def _gpu_coordination_status() -> dict[str, object]:
         **gpu_coordinator.snapshot(),
         "process_guard": gpu_process_guard.snapshot(),
     }
+
+
+def _sanitized_mu_status() -> dict[str, object]:
+    status = dict(get_mu_transcriber().status())
+    load_error = status.pop("load_error", None)
+    status["load_failed"] = load_error is not None
+    return status
 
 
 def _capacity_status(

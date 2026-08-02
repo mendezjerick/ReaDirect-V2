@@ -158,6 +158,7 @@ final class ActivitySpeechPreparationService
     {
         try {
             $response = Http::acceptJson()
+                ->withToken((string) config('speech.tts_token'))
                 ->connectTimeout((int) config('speech.tts_connect_timeout_seconds'))
                 ->timeout((int) config('speech.tts_request_timeout_seconds'))
                 ->post(rtrim((string) config('speech.tts_url'), '/').'/warmup', [

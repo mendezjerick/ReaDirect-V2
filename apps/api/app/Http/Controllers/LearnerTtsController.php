@@ -248,6 +248,7 @@ final class LearnerTtsController extends Controller
     ): Response|JsonResponse {
         try {
             $speech = Http::accept('audio/wav')
+                ->withToken((string) config('speech.tts_token'))
                 ->connectTimeout((int) config('speech.tts_connect_timeout_seconds'))
                 ->timeout((int) config('speech.tts_request_timeout_seconds'))
                 ->post(rtrim((string) config('speech.tts_url'), '/').'/synthesize', [

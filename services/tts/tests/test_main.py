@@ -10,6 +10,11 @@ from starlette.testclient import TestClient
 import main
 
 
+AUTH_HEADERS = {
+    "Authorization": "Bearer tts-test-token-at-least-thirty-two-characters",
+}
+
+
 def test_synthesis_text_replaces_exclamation_marks_with_periods() -> None:
     request = main.SynthesisRequest(
         text="Good work!! Let us read!",
@@ -105,21 +110,22 @@ def test_health_reports_model_and_profile_runtime_state(monkeypatch, tmp_path: P
     install_fake_model(monkeypatch, tmp_path)
     main.runtime.prepare_profiles(["result"])
 
-    with TestClient(main.app) as client:
-        response = client.get("/health")
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
+        response = client.get("/internal/status")
 
     assert response.status_code == 200
     assert response.json() == {
         "service": "tts",
         "status": "ready",
         "runtime_ready": True,
+        "service_auth_configured": True,
         "model_ready": True,
         "device": "cpu",
         "warming": False,
         "profiles_ready": ["result"],
         "profiles_warming": [],
         "profiles_failed": [],
-        "model_error": None,
+        "model_load_failed": False,
         "inference_queue": {
             "healthy": True,
             "accepting": True,
@@ -173,8 +179,8 @@ def test_health_reports_model_and_profile_runtime_state(monkeypatch, tmp_path: P
 
 
 def test_health_is_not_ready_until_the_model_is_resident() -> None:
-    with TestClient(main.app) as client:
-        response = client.get("/health")
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
+        response = client.get("/internal/status")
 
     assert response.status_code == 200
     assert response.json()["status"] == "not_ready"
@@ -192,9 +198,9 @@ def test_service_start_begins_model_only_warmup(monkeypatch, tmp_path: Path) -> 
     monkeypatch.setattr(main.runtime, "_load_model", load_model)
     monkeypatch.setattr(main, "STARTUP_WARMUP_ENABLED", True)
 
-    with TestClient(main.app) as client:
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
         assert loaded.wait(timeout=2)
-        response = client.get("/health")
+        response = client.get("/internal/status")
 
     assert response.status_code == 200
     assert response.json()["model_ready"] is True
@@ -208,10 +214,10 @@ def test_warmup_prepares_only_requested_profiles_and_reuses_the_prompt_cache(
 ) -> None:
     model = install_fake_model(monkeypatch, tmp_path)
 
-    with TestClient(main.app) as client:
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
         first = client.post("/warmup", json={"profiles": ["result"]})
         second = client.post("/warmup", json={"profiles": ["result"]})
-        health = client.get("/health")
+        health = client.get("/internal/status")
 
     assert first.status_code == 200
     assert first.json() == {
@@ -270,7 +276,7 @@ def test_synthesis_uses_the_prepared_semantic_profile_and_returns_wav(
 
     monkeypatch.setattr(main, "cache_path_for", lambda request, path: output)
 
-    with TestClient(main.app) as client:
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
         response = client.post(
             "/synthesize",
             json={"text": "Hello, reader!", "reference": "introduce"},
@@ -310,9 +316,9 @@ def test_failed_profile_preparation_is_reported_without_marking_it_ready(
 
     monkeypatch.setattr(model.tts_model, "build_prompt_cache", fail_prompt_cache)
 
-    with TestClient(main.app) as client:
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
         warmup_response = client.post("/warmup", json={"profiles": ["result"]})
-        health_response = client.get("/health")
+        health_response = client.get("/internal/status")
 
     assert warmup_response.status_code == 503
     assert health_response.status_code == 200
@@ -320,8 +326,35 @@ def test_failed_profile_preparation_is_reported_without_marking_it_ready(
     assert health_response.json()["profiles_failed"] == ["result"]
 
 
+def test_service_boundary_requires_authentication_and_limits_requests(monkeypatch) -> None:
+    client = TestClient(main.app)
+
+    assert client.get("/health").status_code == 200
+    assert client.get("/openapi.json").status_code == 401
+    assert client.get(
+        "/openapi.json",
+        headers={"Authorization": "Bearer wrong-token"},
+    ).status_code == 401
+    assert client.get("/openapi.json", headers=AUTH_HEADERS).status_code == 200
+    assert client.get(
+        "/openapi.json",
+        headers={**AUTH_HEADERS, "Content-Length": str(main.MAX_HTTP_REQUEST_BYTES + 1)},
+    ).status_code == 413
+
+    monkeypatch.setattr(main, "MAX_HTTP_REQUEST_BYTES", 64)
+    assert client.post(
+        "/openapi.json",
+        content=iter([b"a" * 40, b"b" * 40]),
+        headers=AUTH_HEADERS,
+    ).status_code == 413
+
+    monkeypatch.setattr(main, "SERVICE_TOKEN_CONFIGURED", False)
+    assert client.get("/openapi.json", headers=AUTH_HEADERS).status_code == 503
+    assert client.get("/health").json()["status"] == "not_ready"
+
+
 def test_warmup_rejects_unknown_or_duplicate_profiles() -> None:
-    with TestClient(main.app) as client:
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
         unknown = client.post("/warmup", json={"profiles": ["narrator"]})
         duplicate = client.post("/warmup", json={"profiles": ["result", "result"]})
 
@@ -373,7 +406,7 @@ def test_reference_conditioning_does_not_boost_a_quiet_mono_file(
 
 
 def test_synthesis_rejects_an_unknown_reference() -> None:
-    with TestClient(main.app) as client:
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
         response = client.post(
             "/synthesize",
             json={"text": "Hello", "reference": "arbitrary-file"},

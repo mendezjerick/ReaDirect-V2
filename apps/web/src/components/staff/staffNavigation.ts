@@ -81,6 +81,10 @@ export const systemAdminNavigationGroups: StaffNavigationGroup[] = [
       },
     ],
   },
+  {
+    label: "Account",
+    items: [{ label: "Account security", to: "/staff/security" }],
+  },
 ];
 
 export const schoolAdminNavigationGroups: StaffNavigationGroup[] = [
@@ -114,6 +118,10 @@ export const schoolAdminNavigationGroups: StaffNavigationGroup[] = [
         to: "/staff/school-admin/teacher-dashboards",
       },
     ],
+  },
+  {
+    label: "Account",
+    items: [{ label: "Account security", to: "/staff/security" }],
   },
 ];
 
@@ -155,5 +163,9 @@ export const teacherNavigationGroups: StaffNavigationGroup[] = [
       { label: "Analytics", to: "/staff/teacher/analytics" },
       { label: "Audio review", to: "/staff/teacher/audio-review" },
     ],
+  },
+  {
+    label: "Account",
+    items: [{ label: "Account security", to: "/staff/security" }],
   },
 ];

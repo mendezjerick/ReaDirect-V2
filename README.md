@@ -45,6 +45,11 @@ Start every currently configured ReaDirect service from the repository root:
 .\start.ps1
 ```
 
+Services bind to `127.0.0.1` by default. An intentional LAN-only development
+session can opt in to another interface with `-BindAddress`, provided the host
+firewall and network are trusted. ASR and TTS must never be exposed directly to
+an untrusted network.
+
 Stop the services without relying on the active launcher terminal:
 
 ```powershell

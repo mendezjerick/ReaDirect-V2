@@ -116,6 +116,12 @@ const StaffLoginPage = lazy(() =>
   })),
 );
 
+const StaffSecurityPage = lazy(() =>
+  import("./features/staff-auth/StaffSecurityPage").then((module) => ({
+    default: module.StaffSecurityPage,
+  })),
+);
+
 const SystemAdminDashboardPage = lazy(() =>
   import("./features/staff-dashboard/SystemAdminDashboardPage").then(
     (module) => ({ default: module.SystemAdminDashboardPage }),
@@ -476,6 +482,15 @@ export function App() {
                 }
               />
               <Route path="/staff/login" element={<StaffLoginPage />} />
+              <Route
+                element={
+                  <RequireStaffRole
+                    allowedRoles={["system_admin", "school_admin", "teacher"]}
+                  />
+                }
+              >
+                <Route path="/staff/security" element={<StaffSecurityPage />} />
+              </Route>
               <Route
                 element={<RequireStaffRole allowedRoles={["system_admin"]} />}
               >
