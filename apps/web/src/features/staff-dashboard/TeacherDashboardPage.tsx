@@ -398,12 +398,18 @@ export function TeacherDashboardPage() {
                   render: (activity) => (
                     <StaffBadge
                       tone={
-                        activity.status === "completed" ? "success" : "accent"
+                        activity.status === "skipped"
+                          ? "warning"
+                          : activity.status === "completed"
+                            ? "success"
+                            : "accent"
                       }
                     >
-                      {activity.status === "completed"
-                        ? "Completed"
-                        : "In progress"}
+                      {activity.status === "skipped"
+                        ? "Skipped"
+                        : activity.status === "completed"
+                          ? "Completed"
+                          : "In progress"}
                     </StaffBadge>
                   ),
                 },

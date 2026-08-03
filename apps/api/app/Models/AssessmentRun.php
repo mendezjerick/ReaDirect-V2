@@ -16,11 +16,16 @@ final class AssessmentRun extends Model
 
     public const STATUS_COMPLETED = 'completed';
 
+    public const COMPLETION_MODE_STANDARD = 'standard';
+
+    public const COMPLETION_MODE_SKIPPED = 'skipped';
+
     protected $fillable = [
         'learner_id',
         'assessment_type',
         'content_version',
         'status',
+        'completion_mode',
         'stage',
         'current_item_index',
         'content_snapshot',
@@ -42,6 +47,7 @@ final class AssessmentRun extends Model
         'story_selected_at',
         'part_two_completed_at',
         'assessment_completed_at',
+        'skipped_at',
     ];
 
     protected function casts(): array
@@ -63,6 +69,7 @@ final class AssessmentRun extends Model
             'story_selected_at' => 'datetime',
             'part_two_completed_at' => 'datetime',
             'assessment_completed_at' => 'datetime',
+            'skipped_at' => 'datetime',
         ];
     }
 

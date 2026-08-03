@@ -74,6 +74,8 @@ const lessonSixStateSchema = z.object({
       message: z.string(),
       achievement_key: z.string(),
       achievement_name: z.string(),
+      completed_lesson_count: z.number().int().min(1).max(6),
+      final_assessment_ready: z.boolean(),
       resolved_count: z.number().int().nonnegative(),
       total: z.literal(5),
       lessons: z.array(

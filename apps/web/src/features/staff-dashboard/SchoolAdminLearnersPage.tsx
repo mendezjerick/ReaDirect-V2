@@ -20,13 +20,7 @@ import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { clearStaffSession, loadStaffSession } from "../staff-auth/staffApi";
 import { getSchoolAdminLearners } from "./schoolAdminApi";
-
-function stageLabel(stage: string) {
-  return stage
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
+import { readingPathStageLabel, readingPathSummary } from "./readingPathLabels";
 
 export function SchoolAdminLearnersPage() {
   const navigate = useNavigate();
@@ -163,7 +157,14 @@ export function SchoolAdminLearnersPage() {
               {
                 key: "stage",
                 label: "Progress",
-                render: (learner) => stageLabel(learner.progress_stage),
+                render: (learner) => (
+                  <span className="staff-primary-value">
+                    <strong>
+                      {readingPathStageLabel(learner.reading_path)}
+                    </strong>
+                    <small>{readingPathSummary(learner.reading_path)}</small>
+                  </span>
+                ),
               },
               {
                 key: "action",

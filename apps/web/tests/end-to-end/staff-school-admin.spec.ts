@@ -36,6 +36,9 @@ test("School Administrator completes school setup before opening the dashboard",
       body: JSON.stringify(schoolAdminWithoutSchool),
     });
   });
+  await page.route("**/api/staff/session/heartbeat", async (route) => {
+    await route.fulfill({ status: 204 });
+  });
   await page.route("**/api/staff/session", async (route) => {
     const session = schoolSetupComplete
       ? schoolAdminWithSchool
@@ -46,6 +49,19 @@ test("School Administrator completes school setup before opening the dashboard",
       body: JSON.stringify({
         staff: session.staff,
         session: session.session,
+      }),
+    });
+  });
+  await page.route("**/api/staff/realtime/config", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        enabled: false,
+        app_key: null,
+        auth_endpoint: "/api/staff/broadcasting/auth",
+        channel: "staff.users.2",
+        data_channels: ["schools.3"],
       }),
     });
   });
@@ -115,6 +131,7 @@ test("School Administrator completes school setup before opening the dashboard",
             active_learners: 1,
             learners_with_evidence: 1,
             assessment_skips: 1,
+            whole_diagnostic_skips: 0,
             lesson_skips: 0,
             review_recommended_items: 1,
             teaching_priorities: 1,

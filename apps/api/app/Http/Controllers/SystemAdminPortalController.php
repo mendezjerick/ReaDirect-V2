@@ -10,12 +10,17 @@ use App\Models\LearnerSession;
 use App\Models\StaffUser;
 use App\Services\LearnerPortalLaunchService;
 use App\Services\LearnerProgressResetService;
+use App\Services\LearnerReadingPathService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 final class SystemAdminPortalController extends Controller
 {
+    public function __construct(
+        private readonly LearnerReadingPathService $readingPaths,
+    ) {}
+
     public function show(StaffUser $staffUser): JsonResponse
     {
         $this->assertSystemAdministrator($staffUser);
@@ -97,6 +102,7 @@ final class SystemAdminPortalController extends Controller
             ->where('expires_at', '>', now())
             ->latest()
             ->first();
+        $readingPath = $this->readingPaths->snapshot($learner, $progress);
 
         return [
             'learner' => [
@@ -111,6 +117,7 @@ final class SystemAdminPortalController extends Controller
                 'is_active' => $learner->is_active,
                 'analytics_excluded' => true,
                 'progress_stage' => $progress->stage,
+                'reading_path' => $readingPath,
                 'last_reset_at' => $learner->progress_reset_at?->toIso8601String(),
                 'active_standard_sessions' => LearnerSession::query()
                     ->where('learner_id', $learner->id)
@@ -141,6 +148,7 @@ final class SystemAdminPortalController extends Controller
         );
 
         return [
+            'reading_path' => $this->readingPaths->snapshot($learner, $progress),
             'learner' => [
                 'id' => $learner->id,
                 'learner_code' => $learner->learner_code,

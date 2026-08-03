@@ -21,6 +21,11 @@ final class SchoolAdminInstructionalInsightsTest extends TestCase
         $northTeacher = $this->teacher('north-teacher', $northfield);
         $southTeacher = $this->teacher('south-teacher', $southfield);
         $northLearner = $this->learner('AA230', $northfield, $northTeacher);
+        $skippedDiagnosticLearner = $this->learner(
+            'AA232',
+            $northfield,
+            $northTeacher,
+        );
         $southLearner = $this->learner('AA231', $southfield, $southTeacher);
         $portalLearner = $this->learner(
             'KW000',
@@ -30,6 +35,9 @@ final class SchoolAdminInstructionalInsightsTest extends TestCase
         );
 
         $diagnostic = $this->assessment($northLearner);
+        $this->assessment($skippedDiagnosticLearner)->forceFill([
+            'completion_mode' => AssessmentRun::COMPLETION_MODE_SKIPPED,
+        ])->save();
         $this->assessmentSkip($diagnostic, 'task-1a', 'letter-a');
         $this->assessmentSkip($diagnostic, 'task-2b', 'word-cat');
         $this->assessmentSkip(
@@ -77,9 +85,10 @@ final class SchoolAdminInstructionalInsightsTest extends TestCase
             ->assertJsonPath('school.name', 'Northfield Elementary School')
             ->assertJsonPath('read_only', true)
             ->assertJsonPath('rules_version', 'school-instructional-insights-v1')
-            ->assertJsonPath('summary.active_learners', 1)
+            ->assertJsonPath('summary.active_learners', 2)
             ->assertJsonPath('summary.learners_with_evidence', 1)
             ->assertJsonPath('summary.assessment_skips', 2)
+            ->assertJsonPath('summary.whole_diagnostic_skips', 1)
             ->assertJsonPath('summary.lesson_skips', 1)
             ->assertJsonPath('summary.review_recommended_items', 1)
             ->assertJsonPath('summary.teaching_priorities', 2)

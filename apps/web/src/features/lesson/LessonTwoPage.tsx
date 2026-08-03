@@ -405,7 +405,11 @@ export function LessonTwoPage() {
           </>
         }
         eyebrow="Milestone reached"
-        title="Lesson 2 Results"
+        title={
+          lesson.completion?.final_assessment_ready
+            ? lesson.completion.title
+            : "Lesson 2 Results"
+        }
         itemPanelClassName="assessment-item-panel--result"
         itemContent={
           <LearnerActivityResult
@@ -432,10 +436,16 @@ export function LessonTwoPage() {
             onClick={() => {
               recorder.stopPlayback();
               playbackRef.current?.stop();
-              navigate("/learner/dashboard");
+              navigate(
+                lesson.completion?.final_assessment_ready
+                  ? "/learner/final-assessment/part-one"
+                  : "/learner/dashboard",
+              );
             }}
           >
-            Continue
+            {lesson.completion?.final_assessment_ready
+              ? "Start Final Assessment"
+              : "Continue"}
           </BigButton>
         }
         claraEmotion="happy"

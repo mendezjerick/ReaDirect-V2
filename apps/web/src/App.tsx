@@ -25,9 +25,9 @@ const LearnerLoginPage = lazy(() =>
   })),
 );
 
-const LessonIntroPage = lazy(() =>
+const ReadingJourneyMenuPage = lazy(() =>
   import("./features/lesson-intro/LessonIntroPage").then((module) => ({
-    default: module.LessonIntroPage,
+    default: module.ReadingJourneyMenuPage,
   })),
 );
 
@@ -422,7 +422,7 @@ export function App() {
               />
               <Route
                 path="/learner/lesson-intro"
-                element={<LessonIntroPage />}
+                element={<ReadingJourneyMenuPage />}
               />
               <Route
                 path="/learner/learn-with-clara"

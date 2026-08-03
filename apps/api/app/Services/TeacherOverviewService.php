@@ -61,12 +61,16 @@ final class TeacherOverviewService
                 ->latest('id')
                 ->get();
 
+        $standardDiagnosticRuns = $assessmentRuns
+            ->where('assessment_type', AssessmentRun::TYPE_DIAGNOSTIC)
+            ->filter(fn (AssessmentRun $run): bool => $run->completion_mode
+                !== AssessmentRun::COMPLETION_MODE_SKIPPED);
         $diagnosticPartOneRuns = $this->latestRunsByLearner(
-            $assessmentRuns->where('assessment_type', AssessmentRun::TYPE_DIAGNOSTIC)
+            $standardDiagnosticRuns
                 ->whereNotNull('part_one_level'),
         );
         $completedDiagnosticRuns = $this->latestRunsByLearner(
-            $assessmentRuns->where('assessment_type', AssessmentRun::TYPE_DIAGNOSTIC)
+            $standardDiagnosticRuns
                 ->where('status', AssessmentRun::STATUS_COMPLETED),
         );
         $completedFinalRuns = $this->latestRunsByLearner(
@@ -187,7 +191,10 @@ final class TeacherOverviewService
                         ? 'final_assessment'
                         : 'diagnostic_assessment',
                     'title' => $assessmentLabel,
-                    'status' => $completed ? 'completed' : 'in_progress',
+                    'status' => $run->completion_mode
+                        === AssessmentRun::COMPLETION_MODE_SKIPPED
+                            ? 'skipped'
+                            : ($completed ? 'completed' : 'in_progress'),
                     'occurred_at' => $occurredAt?->toIso8601String(),
                     'sort_at' => $occurredAt?->getTimestamp() ?? 0,
                 ];

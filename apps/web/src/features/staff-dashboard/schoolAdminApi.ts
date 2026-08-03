@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { learnerReadingPathSchema } from "../learner-auth/learnerApi";
 import { staffFetch } from "../staff-auth/staffApi";
 import {
   teacherLearnerDetailSchema,
@@ -46,6 +47,7 @@ const schoolLearnerSchema = z.object({
   section: z.string().nullable(),
   is_active: z.boolean(),
   progress_stage: z.string(),
+  reading_path: learnerReadingPathSchema,
   teacher: z
     .object({
       id: z.number().int().positive(),
@@ -61,6 +63,7 @@ const schoolLearnerListSchema = z.object({
 
 const reportAssessmentSchema = z.object({
   status: z.enum(["not_started", "active", "completed"]),
+  completion_mode: z.enum(["standard", "skipped"]).default("standard"),
   score: z.number().int().nullable(),
   profile: z.string().nullable(),
   completed_at: z.string().nullable(),
@@ -147,6 +150,7 @@ const schoolAdminInstructionalInsightsSchema = z.object({
     active_learners: z.number().int().nonnegative(),
     learners_with_evidence: z.number().int().nonnegative(),
     assessment_skips: z.number().int().nonnegative(),
+    whole_diagnostic_skips: z.number().int().nonnegative(),
     lesson_skips: z.number().int().nonnegative(),
     review_recommended_items: z.number().int().nonnegative(),
     teaching_priorities: z.number().int().nonnegative(),

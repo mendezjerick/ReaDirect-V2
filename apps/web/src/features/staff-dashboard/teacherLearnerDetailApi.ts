@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { learnerReadingPathSchema } from "../learner-auth/learnerApi";
 import { staffFetch } from "../staff-auth/staffApi";
 
 const nullableDateSchema = z.string().nullable();
@@ -9,6 +10,7 @@ const assessmentSummarySchema = z
     run_id: z.number().int().positive(),
     assessment_type: z.enum(["diagnostic", "final"]),
     status: z.string(),
+    completion_mode: z.enum(["standard", "skipped"]),
     stage: z.string(),
     part_one_branch: z.string().nullable(),
     task_scores: z.object({
@@ -132,6 +134,7 @@ export const teacherLearnerDetailSchema = z.object({
     final_assessment_completed_at: nullableDateSchema,
     last_confirmed_at: nullableDateSchema,
   }),
+  reading_path: learnerReadingPathSchema,
   assessments: z.object({
     diagnostic: assessmentSummarySchema,
     final: assessmentSummarySchema,

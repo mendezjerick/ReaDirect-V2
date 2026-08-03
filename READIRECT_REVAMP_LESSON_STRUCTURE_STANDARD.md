@@ -22,29 +22,31 @@ preservation, and the narrower runtime-feedback boundary are defined by
 `READIRECT_REVAMP_LIGHTWEIGHT_MODE_AND_HYBRID_TTS_STANDARD.md`. Those choices
 must not change the lesson state machine, scoring, attempts, or unlocks below.
 
-## Course-Level Lesson Unlock Sequence
+## Course-Level Lesson Access
 
-The developer-made required lesson set is sequential.
+The developer-made required lesson set is selected from the Reading Journey
+Menu after the Diagnostic gate. Lesson numbering defines content order, not an
+access sequence.
 
 ~~~text
-Complete Diagnostic Assessment
-    -> unlock required lesson 1
-    -> complete required lesson 1
-    -> unlock required lesson 2
-    -> continue one lesson at a time
-    -> complete the final required lesson
+Complete or skip Diagnostic Assessment
+    -> unlock required lessons 1 through 6 together
+    -> learner starts or resumes any unfinished lesson
+    -> complete six distinct required lessons in any order
     -> unlock Final Assessment
 ~~~
 
 Rules:
 
-- Required lessons remain locked before Diagnostic Assessment completion.
+- Required lessons remain locked before Diagnostic Assessment completion or an
+  auditable whole-Diagnostic skip.
 - Diagnostic score does not select a different lesson or starting point.
-- Only the first incomplete required lesson is available as the current
-  required lesson.
-- Completing the current required lesson unlocks the next lesson in the
-  centrally defined order.
-- Learners cannot skip a locked required lesson.
+- All six required lessons become available together after that gate.
+- Each lesson independently reports not started, in progress, or completed and
+  resumes from its own server-confirmed checkpoint.
+- Completing a lesson never locks or reorders another unfinished lesson.
+- The Final Assessment remains locked until six distinct canonical lesson keys
+  are complete.
 - Completion and unlock state are authoritative server data.
 - Restarting the application, opening the Game Lobby, or playing a game does not
   change required lesson progression.
@@ -80,34 +82,34 @@ Save behavior:
 - Enforce ownership on every load and write so one account can never read,
   overwrite, or continue another account's lesson save.
 - Never use a game save table for lesson progress.
-- Never unlock the next required lesson from an in-progress save.
+- Never count an in-progress save toward Final Assessment readiness.
 - Mark the lesson completed only after every required part succeeds.
-- Preserve the completed record after the next lesson unlocks.
+- Preserve the completed record while the other lessons remain independently
+  available.
 
 If the learner exits, returns to the dashboard, refreshes, signs out, or later
-signs in again, the current required lesson resumes from its latest confirmed
-account-owned save state. The dashboard primary action reads Continue Lesson
-followed by its number or title. If the lesson has never been started, it reads
-Start Lesson followed by its number or title.
+signs in again, every in-progress lesson resumes from its latest confirmed
+account-owned save state. The Reading Journey Menu labels each lesson Start,
+Resume, or Completed from the authoritative per-lesson snapshot.
 
 ### Session Freshness And Next-Activity Routing
 
 The authenticated learner-session endpoint is the only client-readable source
-of truth for Dashboard progression, earned achievements, and next-activity
-routing. Browser session storage and in-memory query data are bootstrap caches,
-not progression authority.
+of truth for Dashboard progression, the Reading Journey Menu, earned
+achievements, and activity routing. Browser session storage and in-memory query
+data are bootstrap caches, not progression authority.
 
 - After a diagnostic, lesson, or final-assessment completion transaction, the
   Dashboard must reconcile the learner session when it opens.
-- Lesson Intro must reconcile the same session before enabling Continue or
-  deriving the next route.
+- The route-compatible `/learner/lesson-intro` Reading Journey Menu must
+  reconcile the same session before presenting activity states.
 - The confirmed response updates both the shared query cache and the browser
   session mirror.
 - Never send a learner to a lesson, assessment, or achievement state using a
-  stale cached `current_required_lesson_order` or achievement list.
+  stale cursor, completion count, or achievement list.
 - A successful completion must be usable immediately: returning to Dashboard
-  and selecting its primary action opens the newly unlocked next activity
-  without requiring refresh, reopening the page, or signing out.
+  and opening the Reading Journey Menu shows the fresh independent lesson and
+  Final Assessment states without requiring refresh, reopening, or sign-out.
 
 If a save request fails, the interface must not claim that the newest position
 was saved. It must retain the pending checkpoint long enough to retry when
@@ -781,8 +783,8 @@ The persistence boundary is:
   independent mastery.
 - Next advances only after the response owns a terminal approved outcome.
 - Skip stores `SKIPPED` and advances immediately; it is not a numeric zero.
-- Completion, Lesson 2 unlock, and `reading.letter_leader` award occur in one
-  database transaction.
+- Completion, `reading.letter_leader`, and the fresh reading-path snapshot occur
+  in one database transaction.
 
 The current terminal outcome values are:
 
@@ -883,8 +885,8 @@ Slice 1 establishes Lesson 2's server-owned start and resume boundary:
   single active `required-lesson-2` run.
 - `GET /api/learners/lessons/lesson-2/{lessonRun}` reloads the exact saved run
   for its authenticated owner.
-- Start is allowed only while Lesson 2 is the learner's current required
-  lesson.
+- Start is allowed after the Diagnostic completion-or-skip gate. It creates,
+  resumes, or reopens only the learner's own Lesson 2 run.
 - A run locks ten unique active word targets from the Version 1 CSV: five for
   Display Word and five different targets for Highlighted Sentence Word.
 - The immutable snapshot and current position reuse `lesson_runs`.
@@ -918,9 +920,9 @@ engine:
   terminal.
 - Completing Mission 1 moves to Mission 2 without replacing the locked
   content snapshot.
-- Completing Mission 2 atomically completes the run, advances
-  `current_required_lesson_order` to 3, and grants
-  `reading.word_wizard` (`Word Wizard`).
+- Completing Mission 2 atomically completes the run, grants
+  `reading.word_wizard` (`Word Wizard`), and recomputes the distinct completed
+  lesson count.
 - The completion payload reports real independent-mastery totals for both
   missions and the shared results composition.
 - Shared results center a bounded two-card segment row when an activity has
@@ -946,10 +948,10 @@ personalized diagnosis in effective hybrid mode; published-only mode substitutes
 the general line. Terminal correct and incorrect outcomes are always distinct
 published speech. The activity manifest warms only profiles required by the
 effective mode, and playback waits for the mounted Clara stage's ready signal.
-After Lesson 3 is unlocked, reopening the
-Lesson 2 route returns the learner's completed run and shared result rather
-than creating a duplicate. Its fixed completion line may replay after Clara is
-ready without warming the next lesson's dynamic profiles.
+Reopening the Lesson 2 route after completion returns the learner's committed
+run and shared result rather than creating a duplicate. Its fixed completion
+line may replay after Clara is ready without warming another lesson's dynamic
+profiles.
 
 ### Lesson 2 Page Portal Checkpoints
 
@@ -966,8 +968,8 @@ existing progress first, and creates a completed Diagnostic prerequisite plus
 Ready Reader. It then creates a completed Lesson 1 prerequisite run and Letter
 Leader before the selected Lesson 2 run. The active portal route includes the
 real Lesson 2 run ID, so refresh calls the normal authenticated show endpoint
-and cannot select a new snapshot. Completed portal state advances the required
-lesson order to 3 and persists Word Wizard. Portal prerequisites are
+and cannot select a new snapshot. Completed portal state persists Word Wizard
+and a completed Lesson 2 reading-path entry. Portal prerequisites are
 identifiable in response evidence and never invent audio or ASR attempt rows.
 
 ## Implemented Lesson 3 Runtime and Teaching Engine
@@ -978,8 +980,8 @@ in `content/lessons/v1/lesson-3-phrases.csv`.
 - `POST /api/learners/lessons/lesson-3/start` creates or resumes one active
   `required-lesson-3` run; `GET /api/learners/lessons/lesson-3/{lessonRun}`
   restores that exact owned snapshot.
-- Start is permitted only when the learner's current required lesson order is
-  3. A completed run remains reopenable after progression advances.
+- Start is permitted after the Diagnostic completion-or-skip gate. A completed
+  run remains reopenable while other lessons remain unfinished.
 - Five unique unused phrase targets are selected and locked under
   `required.lesson-3.phrase-targets`. A new selection cycle begins only when
   fewer than five unused phrases remain.
@@ -1003,8 +1005,8 @@ in `content/lessons/v1/lesson-3-phrases.csv`.
 - Each phrase enters word by word from left to right, then remains still. The
   page otherwise uses the exact shared assessment/lesson activity shell,
   recorder, Clara dock, vertical actions, loaders, and responsive composition.
-- Completing all five items atomically advances required lesson order to 4 and
-  grants `reading.phrase_pro` (`Phrase Pro`).
+- Completing all five items atomically grants `reading.phrase_pro` (`Phrase
+  Pro`) and recomputes the distinct completed lesson count.
 - The shared result displays one centered Phrases mission tile, the real
   independent-mastery total, and the Phrase Pro achievement.
 
@@ -1027,8 +1029,8 @@ System Administrator Page Portals expose:
 Both destinations reset `KW000`, then persist completed Diagnostic, Lesson 1,
 and Lesson 2 prerequisites with Ready Reader, Letter Leader, and Word Wizard.
 The active route contains the real Lesson 3 run ID. The completed destination
-advances required lesson order to 4 and grants Phrase Pro without fabricating
-audio or ASR attempts.
+grants Phrase Pro and marks Lesson 3 completed without fabricating audio or ASR
+attempts.
 
 ## Implemented Lesson 4 Runtime and Teaching Engine
 
@@ -1038,8 +1040,8 @@ rows in `content/lessons/v1/lesson-4-sentences.csv`.
 - `POST /api/learners/lessons/lesson-4/start` creates or resumes one active
   `required-lesson-4` run; `GET /api/learners/lessons/lesson-4/{lessonRun}`
   restores that exact owned snapshot.
-- Start is permitted only at required lesson order 4. Five unique unused
-  sentence targets are selected and locked under
+- Start is permitted after the Diagnostic completion-or-skip gate. Five unique
+  unused sentence targets are selected and locked under
   `required.lesson-4.sentence-targets`; a cycle restarts only when fewer than
   five unused targets remain.
 - The browser receives `display_sentence` and display text, never the hidden
@@ -1056,9 +1058,9 @@ rows in `content/lessons/v1/lesson-4-sentences.csv`.
 - Sentence words enter from left to right, then remain still while the learner
   records. The complete sentence sits in one large responsive vector panel so
   short and long approved rows remain readable without page scrolling.
-- Completing all five items advances required lesson order to 5, grants
-  `reading.sentence_star` (`Sentence Star`), and opens the shared one-segment
-  lesson result.
+- Completing all five items grants `reading.sentence_star` (`Sentence Star`),
+  recomputes the distinct completed lesson count, and opens the shared one-
+  segment lesson result.
 
 Lesson 4 currently owns 33 fixed published Clara lines: one instruction, one completion,
 four ordinal cues, seven support lines, and one demonstration for every active
@@ -1076,8 +1078,8 @@ only when the effective manifest requires them.
 
 Both destinations reset `KW000`, persist completed Diagnostic and Lessons 1
 through 3 prerequisites with their achievements, and navigate using the real
-Lesson 4 run ID. Completion advances the portal learner to required lesson
-order 5 without fabricating audio or ASR attempt rows.
+Lesson 4 run ID. Completion marks Lesson 4 completed without fabricating audio
+or ASR attempt rows.
 
 ## Implemented Lesson 5 Runtime
 
@@ -1087,9 +1089,9 @@ Lesson 5 is one single-item Short Passage mission backed by the five approved
 - `POST /api/learners/lessons/lesson-5/start` creates or resumes one active
   `required-lesson-5` run; `GET /api/learners/lessons/lesson-5/{lessonRun}`
   restores that exact owned snapshot.
-- Start is permitted only at required lesson order 5. One unused passage is
-  selected and locked under `required.lesson-5.passage-targets`. Refresh and
-  resume never replace it.
+- Start is permitted after the Diagnostic completion-or-skip gate. One unused
+  passage is selected and locked under `required.lesson-5.passage-targets`.
+  Refresh and resume never replace it.
 - The passage is one academic item and Version 1 renders its complete 50-word
   text as one continuous page. `authored_pages[0]` is the only displayed page;
   the learner must not paginate or scroll while recording.
@@ -1113,8 +1115,8 @@ Lesson 5 is one single-item Short Passage mission backed by the five approved
   response selected from the server-owned accuracy band while this result is
   visible.
 - `Next` calls the explicit `continue-review` endpoint. Only then does Laravel
-  complete the run, advance required lesson order to 6, grant
-  `reading.passage_explorer`, and return the shared Lesson Complete result.
+  complete the run, grant `reading.passage_explorer`, recompute the distinct
+  completed lesson count, and return the shared Lesson Complete result.
 - A skipped passage produces a neutral passage result with no fabricated word
   alignment or reading speed.
 

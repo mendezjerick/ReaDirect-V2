@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LearnerAchievement;
 use App\Models\LessonItemAttempt;
 use App\Models\LessonResponse;
 use App\Models\LessonRun;
 use App\Services\LearnerAssessmentAsr;
+use App\Services\LearnerLessonAccessService;
+use App\Services\LearnerLessonCompletionService;
 use App\Services\LearnerSessionResolver;
 use App\Services\LessonContentCatalog;
 use App\Services\LessonOneSupportPresentation;
@@ -26,6 +27,8 @@ final class LearnerLessonOneController extends Controller
 
     public function __construct(
         private readonly LearnerSessionResolver $sessions,
+        private readonly LearnerLessonAccessService $lessonAccess,
+        private readonly LearnerLessonCompletionService $lessonCompletion,
         private readonly LessonContentCatalog $content,
         private readonly LearnerAssessmentAsr $asr,
         private readonly LessonTeachingStateMachine $teaching,
@@ -36,23 +39,13 @@ final class LearnerLessonOneController extends Controller
     public function start(Request $request): JsonResponse
     {
         $session = $this->sessions->resolve($request);
-        $run = LessonRun::query()
-            ->where('learner_id', $session->learner_id)
-            ->where('lesson_key', 'required-lesson-1')
-            ->where('status', LessonRun::STATUS_ACTIVE)
-            ->latest('id')->first();
-
-        if (! $run) {
-            $run = DB::transaction(fn (): LessonRun => LessonRun::query()->create([
-                'learner_id' => $session->learner_id,
-                'lesson_key' => 'required-lesson-1',
-                'content_version' => 'v1',
-                'status' => LessonRun::STATUS_ACTIVE,
-                'mission_key' => 'mission-1',
-                'current_item_index' => 0,
-                'content_snapshot' => $this->content->lessonOneSnapshot($session->learner_id),
-            ]));
-        }
+        $run = $this->lessonAccess->startOrResume(
+            $session->learner,
+            'required-lesson-1',
+            fn (): array => $this->content->lessonOneSnapshot(
+                $session->learner_id,
+            ),
+        );
 
         return response()->json($this->serialize($run));
     }
@@ -268,7 +261,12 @@ final class LearnerLessonOneController extends Controller
     private function ownedRun(Request $request, LessonRun $run): LessonRun
     {
         $session = $this->sessions->resolve($request);
-        abort_unless($run->learner_id === $session->learner_id, 404);
+        abort_unless(
+            $run->learner_id === $session->learner_id
+                && $run->lesson_key === 'required-lesson-1',
+            404,
+        );
+        $this->lessonAccess->authorize($session->learner);
 
         return $run;
     }
@@ -301,18 +299,9 @@ final class LearnerLessonOneController extends Controller
             return;
         }
 
-        $run->forceFill(['status' => LessonRun::STATUS_COMPLETED, 'completed_at' => now()])->save();
-        $progress = $run->learner->progressState;
-        if ($progress) {
-            $progress->forceFill([
-                'stage' => 'required_lessons',
-                'current_required_lesson_order' => max(2, (int) $progress->current_required_lesson_order),
-                'last_confirmed_at' => now(),
-            ])->save();
-        }
-        LearnerAchievement::query()->firstOrCreate(
-            ['learner_id' => $run->learner_id, 'achievement_key' => 'reading.letter_leader'],
-            ['awarded_at' => now(), 'evidence' => ['lesson_run_id' => $run->id]],
+        $this->lessonCompletion->complete(
+            $run,
+            'reading.letter_leader',
         );
     }
 
@@ -443,7 +432,7 @@ final class LearnerLessonOneController extends Controller
                 ];
             })->values()->all();
 
-            $completion = [
+            $completion = $this->lessonCompletion->completionPayload($run, [
                 'title' => 'Lesson 1 complete!',
                 'achievement_key' => 'reading.letter_leader',
                 'achievement_name' => 'Letter Leader',
@@ -453,7 +442,7 @@ final class LearnerLessonOneController extends Controller
                 )->count(),
                 'maximum' => $responses->count(),
                 'segments' => $segments,
-            ];
+            ]);
         }
 
         $teaching = $run->status === LessonRun::STATUS_COMPLETED

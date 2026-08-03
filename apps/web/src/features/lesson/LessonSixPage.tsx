@@ -67,7 +67,7 @@ function AllLessonsComplete({ state }: { state: LessonSixState }) {
       <p>{state.completion?.message}</p>
       <div
         className="lesson-six-completion__path"
-        aria-label="Six completed lessons"
+        aria-label="Reading lesson completion status"
       >
         {(state.completion?.lessons ?? []).map((lesson) => (
           <span
@@ -246,6 +246,9 @@ export function LessonSixPage() {
   }
 
   const completed = lesson.status === "completed";
+  const finalAssessmentReady = Boolean(
+    lesson.completion?.final_assessment_ready,
+  );
   const canAdvance = lesson.teaching.can_advance && speechComplete;
   const canSubmit =
     Boolean(selectedChoice) &&
@@ -258,9 +261,15 @@ export function LessonSixPage() {
       }
       leadingIcon={<DockActionIcon kind="next" />}
       disabled={controlsUnavailable}
-      onClick={() => navigate("/learner/dashboard")}
+      onClick={() =>
+        navigate(
+          finalAssessmentReady
+            ? "/learner/final-assessment/part-one"
+            : "/learner/dashboard",
+        )
+      }
     >
-      Continue
+      {finalAssessmentReady ? "Start Final Assessment" : "Continue"}
     </BigButton>
   ) : canAdvance ? (
     <BigButton
@@ -347,8 +356,18 @@ export function LessonSixPage() {
           ) : null}
         </>
       }
-      eyebrow={completed ? "Reading path complete" : "Lesson 6 - Mission 1"}
-      title={completed ? "All Lessons Complete" : "Answer the questions"}
+      eyebrow={
+        completed
+          ? finalAssessmentReady
+            ? "Reading path complete"
+            : "Milestone reached"
+          : "Lesson 6 - Mission 1"
+      }
+      title={
+        completed
+          ? (lesson.completion?.title ?? "Lesson 6 complete.")
+          : "Answer the questions"
+      }
       headerAside={
         completed ? undefined : (
           <LessonProgressRail

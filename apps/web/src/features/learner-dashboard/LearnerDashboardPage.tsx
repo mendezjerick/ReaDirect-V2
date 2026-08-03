@@ -7,14 +7,7 @@ import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { ReadingJourneyAchievementIcon } from "../achievements/ReadingJourneyAchievementIcon";
 import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
-import {
-  prepareClaraSpeech,
-  unlockClaraAudio,
-} from "../clara-audio/claraSpeech";
-import {
-  activitySpeechScopeForProgress,
-  prepareActivitySpeech,
-} from "../clara-audio/activitySpeechReadiness";
+import { unlockClaraAudio } from "../clara-audio/claraSpeech";
 import {
   clearLearnerSession,
   getLearnerSession,
@@ -78,7 +71,11 @@ export function LearnerDashboardPage() {
     queryFn: () => getLearnerSession(storedSession?.token ?? ""),
     enabled: Boolean(storedSession?.token),
     initialData: storedSession
-      ? { learner: storedSession.learner, session: storedSession.session }
+      ? {
+          reading_path: storedSession.reading_path,
+          learner: storedSession.learner,
+          session: storedSession.session,
+        }
       : undefined,
     // The learner may have just completed an assessment or lesson. Always
     // reconcile this shared progression snapshot when the dashboard opens.
@@ -92,14 +89,13 @@ export function LearnerDashboardPage() {
     },
   });
   const learner = sessionQuery.data?.learner;
-  const isLessonFlow = learner?.progress.stage === "required_lessons";
   const isFinalAssessment = learner?.progress.stage === "final_assessment";
   const isReadingJourneyComplete =
     learner?.progress.stage === "reading_journey_complete";
-  const currentLesson = learner?.progress.current_required_lesson_order ?? 1;
-  const activitySpeechScope = learner
-    ? activitySpeechScopeForProgress(learner.progress)
-    : null;
+  const completedLessonCount =
+    sessionQuery.data?.reading_path.lessons.filter(
+      (lesson) => lesson.status === "completed",
+    ).length ?? 0;
   const earnedAchievements = new Set(learner?.achievement_keys ?? []);
   const earnedReadingAchievementCount = readingJourneyAchievements.filter(
     (achievement) => earnedAchievements.has(achievement.key),
@@ -124,20 +120,6 @@ export function LearnerDashboardPage() {
     }
   }, [sessionQuery.data, storedSession?.token]);
 
-  useEffect(() => {
-    if (
-      !storedSession?.token ||
-      !activitySpeechScope ||
-      sessionQuery.isFetching
-    ) {
-      return;
-    }
-
-    void prepareActivitySpeech(storedSession.token, activitySpeechScope).catch(
-      () => undefined,
-    );
-  }, [activitySpeechScope, sessionQuery.isFetching, storedSession?.token]);
-
   const openGames = () => {
     gamesCommit.commit(() => navigate("/learner/games"));
   };
@@ -151,22 +133,7 @@ export function LearnerDashboardPage() {
     learnWithClaraCommit.commit(() => navigate("/learner/learn-with-clara"));
   };
 
-  const openNextReadingActivity = () => {
-    if (isReadingJourneyComplete) {
-      return;
-    }
-    unlockClaraAudio();
-
-    if (storedSession?.token) {
-      void prepareClaraSpeech("lesson-intro", storedSession.token);
-      if (activitySpeechScope) {
-        void prepareActivitySpeech(
-          storedSession.token,
-          activitySpeechScope,
-        ).catch(() => undefined);
-      }
-    }
-
+  const openReadingJourney = () => {
     readingCommit.commit(() => navigate("/learner/lesson-intro"));
   };
 
@@ -260,52 +227,33 @@ export function LearnerDashboardPage() {
             <LearningIcon />
           </div>
           <div className="learner-dashboard__primary-copy">
-            <p className="learner-dashboard__next-label">Your next step</p>
+            <p className="learner-dashboard__next-label">
+              Your Reading Journey
+            </p>
             <h2>
-              {isLessonFlow
-                ? `Continue Lesson ${currentLesson}.`
-                : isFinalAssessment
-                  ? "Show what you learned."
-                  : isReadingJourneyComplete
-                    ? "Your Reading Journey is complete."
-                    : "Find your reading starting point."}
+              {isReadingJourneyComplete
+                ? "Your Reading Journey is complete."
+                : "Choose your next reading activity."}
             </h2>
             <p>
-              {isLessonFlow
-                ? "Your exact place is saved and ready."
-                : isFinalAssessment
-                  ? "Your Final Assessment is ready."
-                  : isReadingJourneyComplete
-                    ? "You completed all eight reading milestones."
-                    : "Complete this once to open your lessons."}
+              {isReadingJourneyComplete
+                ? "You completed all eight reading milestones. You can still review your journey."
+                : completedLessonCount > 0
+                  ? `${completedLessonCount} of 6 lessons complete. Choose any available activity.`
+                  : "Start with the Diagnostic Assessment, then choose any available lesson."}
             </p>
           </div>
           <BigButton
             className="learner-dashboard__primary-action"
-            aria-label={
-              isLessonFlow
-                ? `Continue Lesson ${currentLesson}`
-                : isFinalAssessment
-                  ? "Start Final Assessment"
-                  : isReadingJourneyComplete
-                    ? "Reading Journey complete"
-                    : "Start Diagnostic Assessment"
-            }
-            variant={isReadingJourneyComplete ? "unavailable" : "primary"}
-            disabled={isReadingJourneyComplete}
+            aria-label="Open Reading Journey"
+            variant="primary"
             committing={readingCommit.committing}
-            onClick={openNextReadingActivity}
+            onClick={openReadingJourney}
           >
-            {isLessonFlow
-              ? `Continue Lesson ${currentLesson}`
-              : isFinalAssessment
-                ? "Start Final Assessment"
-                : isReadingJourneyComplete
-                  ? "Journey Complete"
-                  : "Start Diagnostic"}
+            Open Journey
           </BigButton>
           <p className="learner-dashboard__notice" aria-live="polite">
-            {readingCommit.committing ? "Getting Ma'am Clara ready..." : ""}
+            {readingCommit.committing ? "Opening your journey..." : ""}
           </p>
         </Surface>
 

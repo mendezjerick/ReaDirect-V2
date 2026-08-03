@@ -64,6 +64,8 @@ final class TeacherAssessmentReviewService
                         'full_name' => $this->fullName($learner),
                     ],
                     'status' => $status,
+                    'completion_mode' => $run?->completion_mode
+                        ?? AssessmentRun::COMPLETION_MODE_STANDARD,
                     'part_one_score' => $run?->part_one_score,
                     'part_one_level' => $run?->part_one_level,
                     'reading_accuracy_percent' => $run?->reading_accuracy_percent,
@@ -89,6 +91,12 @@ final class TeacherAssessmentReviewService
                 'ready' => $rows->where('status', 'ready')->count(),
                 'in_progress' => $rows->where('status', 'in_progress')->count(),
                 'completed' => $rows->where('status', 'completed')->count(),
+                'skipped_assessments' => $rows
+                    ->where(
+                        'completion_mode',
+                        AssessmentRun::COMPLETION_MODE_SKIPPED,
+                    )
+                    ->count(),
                 'with_skipped_items' => $rows
                     ->filter(fn (array $row): bool => $row['skipped_items_count'] > 0)
                     ->count(),

@@ -55,6 +55,7 @@ describe("SchoolAdminDashboardPage", () => {
                 assessment_type: "diagnostic",
                 assessment_label: "Diagnostic Assessment",
                 status: "completed",
+                completion_mode: "standard",
                 score: 82,
                 profile: "Developing Reader",
                 occurred_at: "2026-07-25T10:00:00Z",

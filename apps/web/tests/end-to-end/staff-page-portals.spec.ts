@@ -12,6 +12,15 @@ const portalState = {
     last_reset_at: null,
     active_standard_sessions: 1,
     active_portal_run: null,
+    reading_path: {
+      diagnostic: { status: "required", score: null },
+      lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+        order,
+        status: "not_started",
+      })),
+      completed_lesson_count: 0,
+      final_assessment: { status: "locked" },
+    },
   },
   portal_launch: {
     available: true,
@@ -110,6 +119,41 @@ test("System Admin Page Portals protects Kristen across viewports", async ({
       }),
     );
   });
+  await page.route("**/api/staff/session/heartbeat", async (route) => {
+    await route.fulfill({ status: 204 });
+  });
+  await page.route("**/api/staff/session", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        staff: {
+          id: 1,
+          username: "rd07170",
+          email: null,
+          display_name: "System Administrator",
+          role: "system_admin",
+          school: null,
+          requires_school_setup: false,
+          requires_credential_setup: false,
+        },
+        session: { expires_at: "2099-01-01T00:00:00Z" },
+      }),
+    });
+  });
+  await page.route("**/api/staff/realtime/config", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        enabled: false,
+        app_key: null,
+        auth_endpoint: "/api/staff/broadcasting/auth",
+        channel: "staff.users.1",
+        data_channels: ["staff.system"],
+      }),
+    });
+  });
   await page.route(
     "**/api/staff/system-admin/1/page-portals**",
     async (route) => {
@@ -138,7 +182,7 @@ test("System Admin Page Portals protects Kristen across viewports", async ({
     page.getByRole("heading", { name: "Page portals" }),
   ).toBeVisible();
   await expect(page.getByText("Kristen Rhine Wright")).toBeVisible();
-  await expect(page.getByText("Excluded")).toBeVisible();
+  await expect(page.getByText("Excluded", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Open Rhyme Yes / No portal" }),
   ).toBeVisible();

@@ -79,6 +79,64 @@ test("uses the theme-specific static Clara portrait without mounting Live2D", as
   expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
+test("uses the dawn static Clara portrait without mounting Live2D", async () => {
+  window.localStorage.setItem("readirect.theme", "t3");
+  saveLearnerSession({
+    token: "learner-dawn-token",
+    learner: {
+      id: 3,
+      learner_code: "DW003",
+      full_name: "Dawn Learner",
+      first_name: "Dawn",
+      account_purpose: "standard",
+      school: null,
+      grade_level: null,
+      section: null,
+      progress: {
+        stage: "required_lessons",
+        current_required_lesson_order: 1,
+      },
+      achievement_keys: [],
+    },
+    session: { expires_at: "2026-08-02T00:00:00Z" },
+  });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          revision: "setting-1-1",
+          display_mode: "static",
+          speech_mode: "published_only",
+        }),
+        { status: 200 },
+      ),
+    ),
+  );
+  const { container } = render(
+    <MemoryRouter initialEntries={["/learner/assessment/part-one"]}>
+      <ThemeProvider>
+        <LearnerExperienceProvider>
+          <ClaraStage />
+        </LearnerExperienceProvider>
+      </ThemeProvider>
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => {
+    expect(container.querySelector(".clara-stage")).toHaveAttribute(
+      "data-clara-display-mode",
+      "static",
+    );
+  });
+
+  expect(container.querySelector(".clara-stage__static-image")).toHaveAttribute(
+    "src",
+    "/assets/live2d/clara/stills/clara-t3.png",
+  );
+  expect(container.querySelector(".clara-stage__canvas")).toBeNull();
+});
+
 test("uses the public intro contract before mounting Clara on the landing page", async () => {
   const fetchMock = vi.fn().mockResolvedValue(
     new Response(

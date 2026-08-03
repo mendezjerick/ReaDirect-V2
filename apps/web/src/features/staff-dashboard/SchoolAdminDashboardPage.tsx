@@ -249,8 +249,10 @@ export function SchoolAdminDashboardPage() {
                       <span className="staff-primary-value">
                         <strong>{activity.assessment_label}</strong>
                         <small>
-                          {activity.status.replaceAll("_", " ")} ·{" "}
-                          {formatAssessmentDate(activity.occurred_at)}
+                          {activity.completion_mode === "skipped"
+                            ? "skipped · Score 0"
+                            : activity.status.replaceAll("_", " ")}{" "}
+                          · {formatAssessmentDate(activity.occurred_at)}
                         </small>
                       </span>
                     ),

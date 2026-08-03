@@ -27,6 +27,9 @@ test("Teacher login opens the assigned class dashboard", async ({ page }) => {
       body: JSON.stringify(teacherSession),
     });
   });
+  await page.route("**/api/staff/session/heartbeat", async (route) => {
+    await route.fulfill({ status: 204 });
+  });
   await page.route("**/api/staff/session", async (route) => {
     await route.fulfill({
       status: 200,
@@ -34,6 +37,19 @@ test("Teacher login opens the assigned class dashboard", async ({ page }) => {
       body: JSON.stringify({
         staff: teacherSession.staff,
         session: teacherSession.session,
+      }),
+    });
+  });
+  await page.route("**/api/staff/realtime/config", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        enabled: false,
+        app_key: null,
+        auth_endpoint: "/api/staff/broadcasting/auth",
+        channel: "staff.users.3",
+        data_channels: ["teachers.3"],
       }),
     });
   });

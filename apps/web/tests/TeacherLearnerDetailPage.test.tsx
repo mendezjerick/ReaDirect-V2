@@ -45,24 +45,24 @@ function learnerDetailPayload(): TeacherLearnerDetail {
   const lessons: TeacherLearnerDetail["lessons"] = Array.from(
     { length: 6 },
     (_, index) => ({
-    lesson_key: `required-lesson-${index + 1}`,
-    order: index + 1,
-    title: [
-      "Letter names",
-      "Word reading",
-      "Phrase reading",
-      "Sentence reading",
-      "Passage reading",
-      "Comprehension",
-    ][index],
-    status: "not_started",
-    current_mission_key: null,
-    current_item_index: null,
-    items_total: 0,
-    items_recorded: 0,
-    completed_at: null,
-    performance: emptyPerformance,
-    items: [],
+      lesson_key: `required-lesson-${index + 1}`,
+      order: index + 1,
+      title: [
+        "Letter names",
+        "Word reading",
+        "Phrase reading",
+        "Sentence reading",
+        "Passage reading",
+        "Comprehension",
+      ][index],
+      status: "not_started",
+      current_mission_key: null,
+      current_item_index: null,
+      items_total: 0,
+      items_recorded: 0,
+      completed_at: null,
+      performance: emptyPerformance,
+      items: [],
     }),
   );
 
@@ -154,17 +154,27 @@ function learnerDetailPayload(): TeacherLearnerDetail {
     progression: {
       recorded: true,
       stage: "required_lessons",
-      stage_label: "Required Lesson 3",
+      stage_label: "Reading lessons · 1 of 6 complete",
       current_required_lesson_order: 3,
       diagnostic_completed_at: "2026-07-24T10:00:00Z",
       final_assessment_completed_at: null,
       last_confirmed_at: "2026-07-25T10:00:00Z",
+    },
+    reading_path: {
+      diagnostic: { status: "completed", score: 81 },
+      lessons: ([1, 2, 3, 4, 5, 6] as const).map((order) => ({
+        order,
+        status: order === 1 ? "completed" : "not_started",
+      })),
+      completed_lesson_count: 1,
+      final_assessment: { status: "locked" },
     },
     assessments: {
       diagnostic: {
         run_id: 8,
         assessment_type: "diagnostic",
         status: "completed",
+        completion_mode: "standard",
         stage: "assessment_complete",
         part_one_branch: "high",
         task_scores: { task_1a: 8, task_2a: 10, task_2b: 7 },
@@ -250,7 +260,8 @@ describe("TeacherLearnerDetailPage", () => {
     expect(
       await screen.findByRole("heading", { name: "Dorothy Gale Wright" }),
     ).toBeVisible();
-    expect(screen.getByText("Required Lesson 3")).toBeVisible();
+    expect(screen.getByText("Reading lessons · 1 of 6 complete")).toBeVisible();
+    expect(screen.getByText("1 of 6")).toBeVisible();
     expect(screen.getByText("Transitioning Reader")).toBeVisible();
     expect(screen.getByText("Item 1: A a")).toBeVisible();
     expect(screen.getByRole("heading", { name: "bag" })).toBeVisible();

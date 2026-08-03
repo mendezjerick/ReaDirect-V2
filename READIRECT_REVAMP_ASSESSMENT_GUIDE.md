@@ -49,17 +49,17 @@ Excluded:
 
 ## Assessment Placement In The Learner Flow
 
-The Diagnostic Assessment is the first required learner-dashboard action.
-Required lessons remain locked until the Diagnostic Assessment run is complete.
-Completion unlocks the first required lesson, regardless of the resulting score
-or reading profile.
+The Diagnostic Assessment is the first required learner-dashboard activity.
+Required lessons remain locked until the Diagnostic run is complete or the
+learner confirms a whole-Diagnostic skip. That skip is one auditable completed
+run with completion mode `skipped` and aggregate score `0`; it does not create
+fabricated item responses. Either outcome unlocks Lessons 1 through 6 together,
+regardless of score or reading profile. Assessment results remain evidence;
+they do not choose, reorder, or replace lessons.
 
-The Final Assessment remains locked until every required sequential lesson is
-complete. Diagnostic and Final Assessment scores remain assessment evidence;
-they do not choose, reorder, skip, or replace lessons.
-
-The learner dashboard owns which current action is displayed. The lesson
-standard owns sequential lesson unlocking.
+The Final Assessment remains locked until six distinct required lesson keys are
+complete. The learner dashboard opens the Reading Journey Menu, and the
+server-authoritative reading-path snapshot owns activity availability.
 
 ## Assessment Shape
 
@@ -504,8 +504,8 @@ Skip behavior, React pages, and published item cues:
   stores a distinct zero-score skipped response and opens the next question or
   Passage Results.
 - Passage Results advances to the original Part 2 Results score page. For the
-  Diagnostic Assessment, Assessment Complete commits Ready Reader and advances
-  progression to required Lesson 1. For the Final Assessment, continuing from
+  Diagnostic Assessment, Assessment Complete commits Ready Reader and makes all
+  six required lessons available. For the Final Assessment, continuing from
   the last valid result atomically completes the run, records
   `final_assessment_completed_at`, grants ReaDirect Champion, changes progression
   to `reading_journey_complete`, and only then exposes the Reading Journey

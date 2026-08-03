@@ -214,11 +214,14 @@ export function TeacherReportsPage() {
                     render: (learner) => (
                       <span className="staff-primary-value">
                         <strong>
-                          {assessmentLabel(learner.diagnostic.status)}
+                          {learner.diagnostic.completion_mode === "skipped"
+                            ? "Skipped"
+                            : assessmentLabel(learner.diagnostic.status)}
                         </strong>
                         <small>
-                          {learner.diagnostic.score ?? "—"} ·{" "}
-                          {learner.diagnostic.profile ?? "No profile"}
+                          {learner.diagnostic.completion_mode === "skipped"
+                            ? `Score ${learner.diagnostic.score ?? 0} · Skipped`
+                            : `${learner.diagnostic.score ?? "—"} · ${learner.diagnostic.profile ?? "No profile"}`}
                         </small>
                       </span>
                     ),

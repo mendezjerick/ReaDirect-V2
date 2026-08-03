@@ -69,4 +69,45 @@ describe("Lesson 3 API", () => {
       expect.objectContaining({ method: "POST" }),
     );
   });
+
+  it("accepts the shared sixth-completion result contract", async () => {
+    const completedState = {
+      ...lessonThreeState,
+      status: "completed",
+      item: null,
+      completion: {
+        title: "You finished all six reading lessons.",
+        message: "Your Final Assessment is now ready.",
+        achievement_key: "reading.phrase_pro",
+        achievement_name: "Phrase Pro",
+        completed_lesson_count: 6,
+        final_assessment_ready: true,
+        score: 5,
+        maximum: 5,
+        segments: [
+          {
+            mission_key: "mission-1",
+            label: "Phrases",
+            score: 5,
+            maximum: 5,
+            status: "Complete",
+          },
+        ],
+        lessons: Array.from({ length: 6 }, (_, index) => ({
+          lesson: index + 1,
+          complete: true,
+        })),
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue(Response.json(completedState));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(startLessonThree("learner-token")).resolves.toMatchObject({
+      status: "completed",
+      completion: {
+        completed_lesson_count: 6,
+        final_assessment_ready: true,
+      },
+    });
+  });
 });

@@ -173,8 +173,18 @@ describe("IntroPage", () => {
     boundsSpy.mockRestore();
   });
 
-  it("switches and persists the selected theme immediately", () => {
-    renderIntro();
+  it("switches and persists the selected theme without reloading Live2D", async () => {
+    const { container } = renderIntro();
+
+    await act(async () => {
+      await vi.dynamicImportSettled();
+    });
+    act(() => live2dMocks.setState?.("ready"));
+    act(() => {
+      document
+        .querySelector(".clara-stage__loader-cover")
+        ?.dispatchEvent(new Event("animationend", { bubbles: true }));
+    });
 
     const winterTheme = screen.getByRole("button", {
       name: "Use Winter theme",
@@ -190,6 +200,25 @@ describe("IntroPage", () => {
     expect(document.documentElement).toHaveAttribute("data-theme", "t2");
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t2");
     expect(document.querySelector(".clara-stage__canvas")).toBeTruthy();
+    expect(container.querySelector(".clara-stage")).toHaveAttribute(
+      "data-live2d-state",
+      "ready",
+    );
+    expect(document.querySelector(".clara-stage__loader")).toBeNull();
+  });
+
+  it("offers and persists the dawn theme", () => {
+    renderIntro();
+
+    const dawnTheme = screen.getByRole("button", {
+      name: "Use Dawn theme",
+    });
+
+    fireEvent.click(dawnTheme);
+
+    expect(dawnTheme).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement).toHaveAttribute("data-theme", "t3");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t3");
   });
 
   it("shows the press commit before continuing to the home route", async () => {

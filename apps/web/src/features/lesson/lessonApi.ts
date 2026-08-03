@@ -99,8 +99,11 @@ const lessonTeachingSchema = z.object({
 const lessonCompletionSchema = z
   .object({
     title: z.string(),
+    message: z.string(),
     achievement_key: z.string(),
     achievement_name: z.string(),
+    completed_lesson_count: z.number().int().min(1).max(6),
+    final_assessment_ready: z.boolean(),
     score: z.number().int().nonnegative(),
     maximum: z.number().int().nonnegative(),
     segments: z.array(
@@ -110,6 +113,12 @@ const lessonCompletionSchema = z
         score: z.number().int().nonnegative(),
         maximum: z.number().int().nonnegative(),
         status: z.string(),
+      }),
+    ),
+    lessons: z.array(
+      z.object({
+        lesson: z.number().int().min(1).max(6),
+        complete: z.boolean(),
       }),
     ),
   })

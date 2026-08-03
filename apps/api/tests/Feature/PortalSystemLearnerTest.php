@@ -75,6 +75,9 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('learner.learner_code', 'KW000')
             ->assertJsonPath('learner.analytics_excluded', true)
             ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
+            ->assertJsonPath('learner.reading_path.diagnostic.status', 'required')
+            ->assertJsonPath('learner.reading_path.completed_lesson_count', 0)
+            ->assertJsonPath('learner.reading_path.final_assessment.status', 'locked')
             ->assertJsonPath('portal_launch.available', true)
             ->assertJsonPath('portal_launch.targets.0.key', 'learner-dashboard')
             ->assertJsonCount(40, 'portal_launch.targets');
@@ -96,6 +99,11 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('launch.target_key', 'learner-dashboard')
             ->assertJsonPath('launch.route', '/learner/dashboard')
             ->assertJsonPath('launch.learner_session.learner.learner_code', 'KW000')
+            ->assertJsonPath(
+                'launch.learner_session.reading_path.diagnostic.status',
+                'required',
+            )
+            ->assertJsonPath('launch.learner_session.reading_path.completed_lesson_count', 0)
             ->assertJsonPath(
                 'launch.learner_session.learner.progress.stage',
                 'before_diagnostic',

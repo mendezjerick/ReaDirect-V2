@@ -18,6 +18,7 @@ import {
   type PortalTargetKey,
   resetPortalSystemLearner,
 } from "../staff-auth/staffApi";
+import { readingPathStageLabel, readingPathSummary } from "./readingPathLabels";
 
 function formatDate(value: string | null): string {
   if (!value) {
@@ -28,13 +29,6 @@ function formatDate(value: string | null): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
-}
-
-function readableStage(value: string): string {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 export function SystemAdminPagePortalsPage() {
@@ -162,7 +156,11 @@ export function SystemAdminPagePortalsPage() {
                 <dl className="staff-portal-facts">
                   <div>
                     <dt>Current checkpoint</dt>
-                    <dd>{readableStage(learner.progress_stage)}</dd>
+                    <dd>{readingPathStageLabel(learner.reading_path)}</dd>
+                  </div>
+                  <div>
+                    <dt>Reading path</dt>
+                    <dd>{readingPathSummary(learner.reading_path)}</dd>
                   </div>
                   <div>
                     <dt>Active reader sessions</dt>

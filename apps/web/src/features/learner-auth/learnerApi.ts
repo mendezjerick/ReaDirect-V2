@@ -7,6 +7,57 @@ const learnerProgressSchema = z.object({
   current_required_lesson_order: z.number().int().positive().nullable(),
 });
 
+const lessonOrderSchema = z.union([
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+  z.literal(4),
+  z.literal(5),
+  z.literal(6),
+]);
+
+export const learnerReadingPathSchema = z
+  .object({
+    diagnostic: z.object({
+      status: z.enum(["required", "in_progress", "completed", "skipped"]),
+      score: z.number().int().nullable(),
+    }),
+    lessons: z
+      .array(
+        z.object({
+          order: lessonOrderSchema,
+          status: z.enum(["not_started", "in_progress", "completed"]),
+        }),
+      )
+      .length(6),
+    completed_lesson_count: z.number().int().min(0).max(6),
+    final_assessment: z.object({
+      status: z.enum(["locked", "available", "in_progress", "completed"]),
+    }),
+  })
+  .refine(
+    (path) => new Set(path.lessons.map((lesson) => lesson.order)).size === 6,
+    { message: "Reading path must contain each lesson exactly once." },
+  )
+  .refine(
+    (path) =>
+      path.completed_lesson_count ===
+      path.lessons.filter((lesson) => lesson.status === "completed").length,
+    { message: "Completed lesson count must match lesson statuses." },
+  );
+
+export type LearnerReadingPath = z.infer<typeof learnerReadingPathSchema>;
+
+const legacyReadingPath: LearnerReadingPath = {
+  diagnostic: { status: "required", score: null },
+  lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+    order: lessonOrderSchema.parse(order),
+    status: "not_started" as const,
+  })),
+  completed_lesson_count: 0,
+  final_assessment: { status: "locked" },
+};
+
 const learnerAccountSchema = z.object({
   id: z.number().int().positive(),
   learner_code: z.string().regex(/^[A-Z]{2}\d{3}$/),
@@ -21,8 +72,13 @@ const learnerAccountSchema = z.object({
 });
 
 const learnerSessionSchema = z.object({
+  reading_path: learnerReadingPathSchema.default(legacyReadingPath),
   learner: learnerAccountSchema,
   session: z.object({ expires_at: z.string() }),
+});
+
+const diagnosticSkipResponseSchema = z.object({
+  reading_path: learnerReadingPathSchema,
 });
 
 const learnerLoginResponseSchema = learnerSessionSchema.extend({
@@ -52,6 +108,10 @@ interface StoredLearnerSession extends LearnerSession {
   token: string;
 }
 
+type StoredLearnerSessionInput = Omit<StoredLearnerSession, "reading_path"> & {
+  reading_path?: LearnerReadingPath;
+};
+
 async function readApiError(response: Response): Promise<string> {
   const body: unknown = await response.json().catch(() => null);
   const parsed = learnerApiErrorSchema.safeParse(body);
@@ -67,10 +127,12 @@ async function readApiError(response: Response): Promise<string> {
   );
 }
 
-export function saveLearnerSession(session: StoredLearnerSession): void {
+export function saveLearnerSession(session: StoredLearnerSessionInput): void {
+  const normalizedSession = learnerLoginResponseSchema.parse(session);
+
   window.sessionStorage.setItem(
     learnerSessionStorageKey,
-    JSON.stringify(session),
+    JSON.stringify(normalizedSession),
   );
 }
 
@@ -143,6 +205,24 @@ export async function getLearnerSession(
   }
 
   return learnerSessionSchema.parse(await response.json());
+}
+
+export async function skipDiagnostic(
+  token: string,
+): Promise<LearnerReadingPath> {
+  const response = await fetch("/api/learners/assessments/diagnostic/skip", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return diagnosticSkipResponseSchema.parse(await response.json()).reading_path;
 }
 
 export async function getLearnerExperienceSettings(

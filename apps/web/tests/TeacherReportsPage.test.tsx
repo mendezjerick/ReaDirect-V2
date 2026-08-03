@@ -61,8 +61,9 @@ describe("TeacherReportsPage", () => {
               stage_label: "Required lessons",
               diagnostic: {
                 status: "completed",
-                score: 81,
-                profile: "Transitioning Reader",
+                completion_mode: "skipped",
+                score: 0,
+                profile: "Low Emerging Reader",
                 completed_at: "2026-07-24T12:00:00Z",
               },
               required_lessons_completed: 2,
@@ -98,9 +99,7 @@ describe("TeacherReportsPage", () => {
       screen.getByRole("heading", { name: "Class Progress Report" }),
     ).toBeVisible();
     expect(await screen.findByText("Dorothy Gale Wright")).toBeVisible();
-    expect(
-      screen.getByText("Transitioning Reader", { exact: false }),
-    ).toBeVisible();
+    expect(screen.getByText("Score 0 · Skipped")).toBeVisible();
     expect(screen.getByText("2 of 6")).toBeVisible();
     expect(screen.getByText("1 skips · 1 flags")).toBeVisible();
     expect(fetchMock).toHaveBeenCalledTimes(1);

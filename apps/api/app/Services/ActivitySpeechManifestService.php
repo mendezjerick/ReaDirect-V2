@@ -2,9 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\AssessmentRun;
 use App\Models\LearnerPortalRun;
-use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
 use DomainException;
 use LogicException;
@@ -13,16 +11,9 @@ final class ActivitySpeechManifestService
 {
     public function __construct(
         private readonly LearnerSpeechPolicy $speechPolicy,
+        private readonly LearnerLessonAccessService $lessonAccess,
+        private readonly LearnerFinalAssessmentAccessService $finalAssessmentAccess,
     ) {}
-
-    private const PART_TWO_ASSESSMENT_STAGES = [
-        'story-selection',
-        'task-3a',
-        'task-3b',
-        'passage-results',
-        'part-2-results',
-        'assessment-complete',
-    ];
 
     /**
      * @return array{
@@ -33,9 +24,13 @@ final class ActivitySpeechManifestService
      *     requires_runtime: bool
      * }
      */
-    public function forSession(LearnerSession $session): array
-    {
-        return $this->forActivity($this->activityKeyForSession($session));
+    public function forSession(
+        LearnerSession $session,
+        string $requestedActivity,
+    ): array {
+        $this->authorizeActivity($session, $requestedActivity);
+
+        return $this->forActivity($requestedActivity);
     }
 
     /**
@@ -121,9 +116,11 @@ final class ActivitySpeechManifestService
         ];
     }
 
-    private function activityKeyForSession(LearnerSession $session): string
-    {
-        $session->loadMissing('learner.progressState');
+    private function authorizeActivity(
+        LearnerSession $session,
+        string $requestedActivity,
+    ): void {
+        $session->loadMissing('learner');
 
         if ($session->session_type === 'portal') {
             $portalRun = LearnerPortalRun::query()
@@ -145,79 +142,34 @@ final class ActivitySpeechManifestService
                 );
             }
 
-            return $activityKey;
-        }
-
-        $progress = $session->learner->progressState;
-        $stage = $progress?->stage ?? LearnerProgressState::BASELINE_STAGE;
-
-        if (in_array($stage, [
-            LearnerProgressState::BASELINE_STAGE,
-            LearnerProgressState::FINAL_ASSESSMENT_STAGE,
-            LearnerProgressState::READING_JOURNEY_COMPLETE_STAGE,
-        ], true)) {
-            $assessmentType = $stage === LearnerProgressState::BASELINE_STAGE
-                ? AssessmentRun::TYPE_DIAGNOSTIC
-                : AssessmentRun::TYPE_FINAL;
-            $activeAssessmentStage = AssessmentRun::query()
-                ->where('learner_id', $session->learner_id)
-                ->where('assessment_type', $assessmentType)
-                ->where(function ($query) use ($assessmentType): void {
-                    $query->where('status', AssessmentRun::STATUS_ACTIVE);
-                    if ($assessmentType === AssessmentRun::TYPE_FINAL) {
-                        $query->orWhere(function ($completed): void {
-                            $completed
-                                ->where('status', AssessmentRun::STATUS_COMPLETED)
-                                ->where('stage', 'assessment-complete');
-                        });
-                    }
-                })
-                ->latest('updated_at')
-                ->value('stage');
-
-            if (is_string($activeAssessmentStage)
-                && in_array($activeAssessmentStage, self::PART_TWO_ASSESSMENT_STAGES, true)) {
-                return $assessmentType === AssessmentRun::TYPE_FINAL
-                    ? 'assessment-final-part-two'
-                    : 'assessment-part-two';
+            if ($activityKey !== $requestedActivity) {
+                throw new DomainException(
+                    'The requested activity is not available for this learner.',
+                );
             }
 
-            return 'assessment-part-one';
+            return;
         }
 
-        if ($stage === 'required_lessons'
-            && (int) $progress?->current_required_lesson_order === 1) {
-            return 'lesson-1';
-        }
+        $diagnosticPassed = $this->lessonAccess
+            ->hasPassedDiagnosticGate($session->learner);
+        $finalAssessmentAvailable = $this->finalAssessmentAccess
+            ->isAvailable($session->learner);
+        $isLesson = preg_match('/^lesson-[1-6]$/', $requestedActivity) === 1;
+        $isAuthorized = match (true) {
+            $isLesson => $diagnosticPassed,
+            $requestedActivity === 'assessment-part-one' => ! $diagnosticPassed
+                || $finalAssessmentAvailable,
+            $requestedActivity === 'assessment-part-two' => ! $diagnosticPassed,
+            $requestedActivity === 'assessment-final-part-two' => $finalAssessmentAvailable,
+            default => false,
+        };
 
-        if ($stage === 'required_lessons'
-            && (int) $progress?->current_required_lesson_order === 2) {
-            return 'lesson-2';
+        if (! $isAuthorized) {
+            throw new DomainException(
+                'The requested activity is not available for this learner.',
+            );
         }
-
-        if ($stage === 'required_lessons'
-            && (int) $progress?->current_required_lesson_order === 3) {
-            return 'lesson-3';
-        }
-
-        if ($stage === 'required_lessons'
-            && (int) $progress?->current_required_lesson_order === 4) {
-            return 'lesson-4';
-        }
-
-        if ($stage === 'required_lessons'
-            && (int) $progress?->current_required_lesson_order === 5) {
-            return 'lesson-5';
-        }
-
-        if ($stage === 'required_lessons'
-            && (int) $progress?->current_required_lesson_order === 6) {
-            return 'lesson-6';
-        }
-
-        throw new DomainException(
-            "No activity speech destination is available for learner stage {$stage}.",
-        );
     }
 
     /** @return list<string> */

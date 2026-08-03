@@ -36,6 +36,8 @@ final class SchoolAdminOverviewService
             ->where('assessment_type', AssessmentRun::TYPE_DIAGNOSTIC)
             ->unique('learner_id');
         $partOneCounts = $latestDiagnostic
+            ->filter(fn (AssessmentRun $run): bool => $run->completion_mode
+                !== AssessmentRun::COMPLETION_MODE_SKIPPED)
             ->pluck('part_one_level')
             ->filter(fn (mixed $value): bool => is_string($value))
             ->countBy();
@@ -95,6 +97,8 @@ final class SchoolAdminOverviewService
                         ? 'Final Assessment'
                         : 'Diagnostic Assessment',
                     'status' => $run->status,
+                    'completion_mode' => $run->completion_mode
+                        ?? AssessmentRun::COMPLETION_MODE_STANDARD,
                     'score' => $run->final_reading_score,
                     'profile' => $run->final_reading_profile,
                     'occurred_at' => $occurredAt?->toIso8601String(),

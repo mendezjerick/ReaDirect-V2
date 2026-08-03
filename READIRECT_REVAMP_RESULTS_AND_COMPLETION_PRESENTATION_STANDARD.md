@@ -92,7 +92,7 @@ Eligible Part 2 branch
 Required lesson
   -> Lesson Complete
   -> newly earned achievement presentation
-  -> Learner Dashboard with the next lesson unlocked
+  -> Reading Journey Menu with every unfinished lesson still available
 
 Final Assessment
   -> valid branch result page or pages
@@ -481,23 +481,25 @@ an already acknowledged achievement as newly earned.
 
 ### Required Lessons Complete Variant
 
-Lesson 6 completion uses a specialized variant of the shared Lesson Complete
-page because it also marks completion of the six-lesson sequence.
+Whichever lesson becomes the sixth distinct completed lesson uses a specialized
+variant of the shared Lesson Complete page. Lesson number does not determine
+Final Assessment readiness.
 
 Required settled content:
 
 - Hero message: `You finished all six reading lessons.`.
-- Six fixed lesson tiles in canonical order. The first five are already settled;
-  the sixth stamps into place last.
+- Six fixed lesson tiles in canonical order. Five are already settled; the
+  newly completed lesson stamps into place last regardless of its number.
 - Ma'am Clara in `happy + speaking` for one short published praise line.
 - The shared `Question Detective` achievement presentation when newly earned.
 - A clear confirmation that the Final Assessment is now ready.
 - Primary action: `Back to my reading path`.
 
-The completion transaction must atomically complete Lesson 6, grant
-`reading.question_detective`, and change progression to the Final Assessment
-stage before this page renders. This page is not the Reading Journey Finale and
-must not present ReaDirect Champion or an eight-of-eight collection.
+The completion transaction must atomically complete the selected lesson, count
+six distinct canonical lesson keys, grant `reading.question_detective`, and
+change progression to the Final Assessment stage before this page renders. This
+page is not the Reading Journey Finale and must not present ReaDirect Champion
+or an eight-of-eight collection.
 
 ## Assessment Complete Contract
 
@@ -505,8 +507,8 @@ The Diagnostic completion page confirms:
 
 - `Assessment complete!`.
 - A short supportive message.
-- `Your first lesson is ready` after the committed progression response confirms
-  the unlock.
+- `Your reading lessons are ready` after the committed progression response
+  confirms that all six lessons are available.
 - Ready Reader achievement presentation when newly earned.
 - Primary action: `Back to my reading path`.
 

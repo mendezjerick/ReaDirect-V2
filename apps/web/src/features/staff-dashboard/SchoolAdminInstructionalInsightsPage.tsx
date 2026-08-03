@@ -124,7 +124,11 @@ export function SchoolAdminInstructionalInsightsPage() {
             >
               {[
                 ["Active learners", insights.summary.active_learners],
-                ["Assessment skips", insights.summary.assessment_skips],
+                [
+                  "Diagnostics skipped",
+                  insights.summary.whole_diagnostic_skips,
+                ],
+                ["Assessment-item skips", insights.summary.assessment_skips],
                 ["Lesson-item skips", insights.summary.lesson_skips],
                 [
                   "Saved review flags",

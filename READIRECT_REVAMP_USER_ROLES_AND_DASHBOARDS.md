@@ -54,26 +54,25 @@ labels.
 
 Assessments provide assessment evidence and fixed progression gates.
 
-Every learner follows the same required sequence:
+Every learner follows the same gated reading path:
 
 ~~~text
 Diagnostic Assessment
-    -> sequential required lessons
+    -> six independently selectable required lessons
     -> Final Assessment
 ~~~
 
-Required lessons remain locked until the learner completes the Diagnostic
-Assessment. Completion unlocks the first required lesson. The assessment score
-is stored and reported, but it does not place the learner into a different
-starting track, reorder lessons, skip lessons, or select different lesson
-content.
+Required lessons remain locked until the learner completes or explicitly skips
+the Diagnostic Assessment. A whole-Diagnostic skip stores an auditable score of
+zero. Either outcome unlocks all six lessons together. The learner may start or
+resume them in any order; the assessment score does not place the learner into
+a different track or select different lesson content.
 
-Required lessons unlock sequentially. Completing the current required lesson
-unlocks the next required lesson. Completing the full required lesson sequence
-unlocks the Final Assessment.
+Completing six distinct required lessons unlocks the Final Assessment.
 
 Lessons are the ReaDirect learning content unit. ReaDirect includes a
-developer-made minimum lesson set, and that required set is sequential.
+developer-made six-lesson set whose numbering is canonical display order, not
+an access restriction.
 
 ## System Administrator
 
@@ -151,8 +150,8 @@ The System Administrator Learners workspace is a global, read-only directory:
   every portal-system Learner are excluded before serialization, totals, search,
   or filtering.
 - Each Learner row shows the persisted account status, school, Grade and
-  Section, assigned Teacher, progress stage, current required lesson order, and
-  Diagnostic and Final Assessment completion state.
+  Section, assigned Teacher, authoritative reading-path label, Diagnostic
+  status, distinct completed-lesson count, and Final Assessment state.
 - Passwords, sessions, audio, response evidence, and portal progress are not
   included in the directory response.
 - Search and account-status filtering are client-side views of the same
@@ -322,35 +321,32 @@ System Administrator page portal and ASR review tools:
   These records are marked as portal-created evidence, remain exclusive to
   `KW000`, and are excluded from all analytics. They must never be created for a
   standard Learner.
-- Lesson 1 through Lesson 5 Page Portals are active because all five lessons
-  now own
-  real persisted runs, responses, progression, achievements, and reload
-  routes. Lesson 1 exposes each of its three mission starts and its completed
-  result. Lesson 2 exposes both mission starts and its completed result.
-  Lesson 3 exposes its phrase mission and completed result. Lesson 4 exposes
-  its sentence mission and completed result. Lesson 5 exposes passage reading,
-  the dedicated passage result, and its completed result.
+- Lesson 1 through Lesson 6 Page Portals are active because all six lessons own
+  real persisted runs, responses, progression, achievements, and reload routes.
+  Each lesson exposes its implemented mission, support, review, and completion
+  checkpoints.
 - Opening a lesson portal first creates Kristen's persisted completed
   Diagnostic run and Ready Reader award. A Lesson 2 portal then creates a
   persisted completed Lesson 1 run and Letter Leader award before the selected
   Lesson 2 checkpoint. Mission 2 includes five persisted Mission 1 responses.
-  The completed destination includes all ten Lesson 2 responses, advances the
-  required lesson order to 3, and grants Word Wizard.
+  The completed destination includes all ten Lesson 2 responses, marks Lesson 2
+  completed, and grants Word Wizard.
 - A Lesson 3 portal additionally persists completed Lesson 2 and Word Wizard.
-  Its completion destination persists all five phrase responses, advances the
-  required lesson order to 4, and grants Phrase Pro.
+  Its completion destination persists all five phrase responses, marks Lesson 3
+  completed, and grants Phrase Pro.
 - A Lesson 4 portal additionally persists completed Lesson 3 and Phrase Pro.
-  Its completion destination persists all five sentence responses, advances
-  the required lesson order to 5, and grants Sentence Star.
+  Its completion destination persists all five sentence responses, marks Lesson
+  4 completed, and grants Sentence Star.
 - A Lesson 5 portal additionally persists completed Lesson 4 and Sentence
   Star. It exposes the active passage, dedicated passage result, and completion
-  destinations. Completion advances required lesson order to 6 and grants
-  Passage Explorer.
+  destinations. Completion marks Lesson 5 completed and grants Passage
+  Explorer.
 - Portal prerequisite responses use the same lesson tables and teaching-state
   fields but are explicitly marked `portal_prerequisite`; they do not fabricate
   learner audio or ASR attempts.
-- Lesson destinations beyond Lesson 5 remain unavailable until their real save
-  and progression workflows are implemented.
+- Portal prerequisite ordering exists only to build a reproducible visual
+  checkpoint for `KW000`; it is not a normal learner access gate. Normal lesson
+  access depends only on Diagnostic completion or skip.
 - IsoLetter Sandbox is the direct Nu testing page for isolated-letter audio.
   Nu is Mu's letter mode. The page shows the expected letter, raw and normalized
   Mu transcript, resolved A-Z/`SILENCE`/`UNKNOWN` class, matched alias, mapping
@@ -702,47 +698,44 @@ Portals, IsoLetter Sandbox, True Sandbox, or Equivalence Book.
 
 Dashboard entry: Learner Dashboard.
 
-The Learner Dashboard gives the learner a simple reading path and next action.
-The confirmed learner flow is Diagnostic Assessment, sequential required
-lessons, then Final Assessment.
+The Learner Dashboard gives the learner a simple entry into the Reading Journey
+Menu. The confirmed learner flow is the Diagnostic gate, six independently
+selectable required lessons, then the Final Assessment.
 
-The dashboard has one fixed primary-action position. Its control keeps the same
-large size and location while its label and behavior change with the
-authenticated account's persisted progress:
+The dashboard has one fixed primary-action position. It opens the Reading
+Journey Menu without preparing Clara speech or a cursor-derived activity:
 
 ~~~text
-Before Diagnostic completion:
-Start or Resume Diagnostic Assessment
+Before journey completion:
+Open My Reading Journey
 
-After Diagnostic completion:
-Start Lesson <number or title> when no saved attempt exists
-Continue Lesson <number or title> when an incomplete saved attempt exists
-
-After all required lessons:
-Start or Resume Final Assessment
+Inside the menu:
+Diagnostic = Start, Resume, Completed, or Skipped
+Each lesson = Locked, Start, Resume, or Completed
+Final Assessment = Locked, Start, Resume, or Completed
 
 After Final Assessment completion:
-Reading Journey Complete (settled, non-navigating state)
+Reading Journey Complete remains settled and cannot create another run
 ~~~
 
-Only the currently required primary action is shown. The previous action
-disappears when its stage is complete. Leaving an incomplete lesson for the
-dashboard does not reset it. The fixed primary action becomes Continue Lesson
-and resumes the learner from the latest confirmed lesson save state.
+The menu always renders the Diagnostic, all six lessons, and the Final
+Assessment from the authoritative reading-path snapshot. Leaving an incomplete
+lesson for the dashboard does not reset it; that lesson returns as Resume while
+other unfinished lessons remain available.
 
 It contains:
 
 - Learner identity, display name, learner code, and current stage.
-- One dominant fixed-position primary next action.
+- One dominant fixed-position action that opens My Reading Journey.
 - Part 1 Score summary.
 - Final reading profile when available.
 - A clearly visible but secondary Games action.
 - A prominent achievement holder with fixed badge positions, earned
   achievement artwork, and locked silhouettes with visible criteria.
-- Diagnostic Assessment start or resume action.
-- Current required lesson start or continue action when unlocked.
-- Saved position and completion state for the current required lesson.
-- Final Assessment start or resume action when available.
+- Diagnostic Assessment state and the secondary whole-Diagnostic skip action.
+- Independent Start, Resume, and Completed state for each required lesson.
+- Saved position and completion state for every started lesson.
+- Final Assessment state, locked until all six distinct lessons are complete.
 - A settled Reading Journey Complete primary card after Final Assessment
   completion; it must not create another Final Assessment run.
 - Latest Diagnostic Assessment task scores.
@@ -752,8 +745,8 @@ It contains:
 
 Learner controls include:
 
-- Use the one current primary action for Diagnostic Assessment, the current
-  sequential lesson, or Final Assessment.
+- Open the Reading Journey Menu from the dashboard primary action and select an
+  available assessment or lesson there.
 - Open the Game Lobby through a smaller secondary action.
 - View progress.
 - View achievements.
@@ -822,8 +815,15 @@ management screens.
   Assessment terminology based on the run type being shown.
 - Assessment results do not create lesson placement or different learner
   starting tracks.
-- Diagnostic Assessment completion unlocks the first required lesson.
-- Required lessons unlock one at a time in their defined order.
+- Staff labels and reports use the authoritative Diagnostic status, distinct
+  completed-lesson count, and Final Assessment state. They must not infer a
+  current lesson from `current_required_lesson_order`.
+- A whole-Diagnostic skip counts as Diagnostic complete and displays `Skipped ·
+  Score 0`, but it is excluded from measured Part 1 and reading-profile
+  distributions. It is counted separately from item-level assessment skips.
+- Diagnostic Assessment completion or a confirmed whole-Diagnostic skip unlocks
+  all six required lessons together.
+- Required lessons remain independently selectable until completed.
 - Final Assessment completion changes progression to
   `reading_journey_complete`, records its completion timestamp, and prevents
   the dashboard primary action from restarting the assessment.
@@ -831,11 +831,15 @@ management screens.
   authenticated learner or verified guest.
 - Leaving a lesson for the dashboard or closing the application preserves the
   latest confirmed lesson position.
-- An incomplete saved lesson changes the primary action to Continue Lesson and
+- An incomplete saved lesson appears as Resume in the Reading Journey Menu and
   resumes at that saved position.
 - One account can never load, overwrite, or continue another account's lesson
   save state.
-- Completion of all required lessons unlocks the Final Assessment.
+- Completion of six distinct canonical required lesson keys unlocks the Final
+  Assessment.
+- Diagnostic skip, arbitrary lesson completion, and sixth-lesson completion
+  publish staff realtime updates that refresh learner detail, reports,
+  analytics, directories, overview metrics, and Page Portals within role scope.
 - Lesson dashboards use lesson terminology only.
 
 ## Out Of Scope

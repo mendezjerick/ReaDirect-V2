@@ -9,6 +9,10 @@ use App\Models\LearnerProgressState;
 
 final class SystemAdminLearnerDirectoryService
 {
+    public function __construct(
+        private readonly LearnerReadingPathService $readingPaths,
+    ) {}
+
     public function build(): array
     {
         $learners = Learner::query()
@@ -18,7 +22,9 @@ final class SystemAdminLearnerDirectoryService
                 'teacher:id,username,display_name,is_active',
                 'progressState',
             ])
-            ->get()
+            ->get();
+        $readingPaths = $this->readingPaths->snapshots($learners);
+        $learners = $learners
             ->sortBy(fn (Learner $learner): string => implode('|', [
                 mb_strtolower($learner->school?->name ?? ''),
                 mb_strtolower($learner->last_name),
@@ -26,7 +32,7 @@ final class SystemAdminLearnerDirectoryService
                 $learner->learner_code,
             ]))
             ->values()
-            ->map(function (Learner $learner): array {
+            ->map(function (Learner $learner) use ($readingPaths): array {
                 $progress = $learner->progressState;
 
                 return [
@@ -58,6 +64,7 @@ final class SystemAdminLearnerDirectoryService
                         'final_assessment_completed' => $progress?->final_assessment_completed_at !== null,
                         'last_confirmed_at' => $progress?->last_confirmed_at?->toIso8601String(),
                     ],
+                    'reading_path' => $readingPaths->get($learner->id),
                     'created_at' => $learner->created_at?->toIso8601String(),
                 ];
             });

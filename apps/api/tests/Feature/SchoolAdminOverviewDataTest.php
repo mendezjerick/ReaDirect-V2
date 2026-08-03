@@ -29,6 +29,7 @@ final class SchoolAdminOverviewDataTest extends TestCase
             ->assertJsonPath('part_one_distribution.3.label', 'Grade Ready')
             ->assertJsonPath('part_one_distribution.3.value', 1)
             ->assertJsonCount(1, 'recent_assessment_activity')
+            ->assertJsonPath('recent_assessment_activity.0.completion_mode', 'standard')
             ->assertJsonPath(
                 'recent_assessment_activity.0.learner_code',
                 'AA250',

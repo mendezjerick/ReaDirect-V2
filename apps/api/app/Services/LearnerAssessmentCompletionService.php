@@ -44,7 +44,9 @@ final class LearnerAssessmentCompletionService
 
             $run->forceFill([
                 'status' => AssessmentRun::STATUS_COMPLETED,
+                'completion_mode' => AssessmentRun::COMPLETION_MODE_STANDARD,
                 'assessment_completed_at' => $completedAt,
+                'skipped_at' => null,
             ])->save();
 
             LearnerAchievement::query()->firstOrCreate(

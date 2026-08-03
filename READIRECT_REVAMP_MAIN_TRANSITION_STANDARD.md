@@ -258,7 +258,9 @@ Learner login -> Learner dashboard (after successful authentication)
 This list changes only when the project owner explicitly approves another
 placement.
 
-The Learner dashboard -> Lesson Intro handoff deliberately uses the shared
-button press-commit delay followed by direct route navigation. It must not use
-the full or white Link Start transition. Lesson Intro owns its own Clara loading
-reveal after the route mounts.
+The Learner Dashboard -> Reading Journey Menu handoff deliberately uses the
+shared button press-commit delay followed by direct navigation to the
+route-compatible `/learner/lesson-intro` path. It must not use the full or white
+Link Start transition. The menu renders immediately and must not mount Clara,
+prepare Clara narration, preload a cursor-derived activity, or show a Continue
+gate.

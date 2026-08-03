@@ -70,14 +70,20 @@ function AssessmentSummary({ label, assessment }: AssessmentSummaryProps) {
         meta={
           <StaffBadge
             tone={
-              assessment?.status === "completed"
-                ? "success"
-                : assessment
-                  ? "accent"
-                  : "muted"
+              assessment?.completion_mode === "skipped"
+                ? "warning"
+                : assessment?.status === "completed"
+                  ? "success"
+                  : assessment
+                    ? "accent"
+                    : "muted"
             }
           >
-            {assessment ? humanize(assessment.status) : "Not started"}
+            {assessment?.completion_mode === "skipped"
+              ? "Skipped"
+              : assessment
+                ? humanize(assessment.status)
+                : "Not started"}
           </StaffBadge>
         }
       />
@@ -111,7 +117,10 @@ function AssessmentSummary({ label, assessment }: AssessmentSummaryProps) {
               },
               {
                 label: "Reading profile",
-                value: assessment.final_reading_profile ?? "Pending",
+                value:
+                  assessment.completion_mode === "skipped"
+                    ? "Not measured · Diagnostic skipped"
+                    : (assessment.final_reading_profile ?? "Pending"),
               },
             ]}
           />
@@ -482,10 +491,18 @@ export function TeacherLearnerDetailPage() {
                 <StaffFactGrid
                   facts={[
                     {
-                      label: "Diagnostic completed",
-                      value: formatDate(
-                        detailQuery.data.progression.diagnostic_completed_at,
-                      ),
+                      label: "Diagnostic status",
+                      value:
+                        detailQuery.data.reading_path.diagnostic.status ===
+                        "skipped"
+                          ? "Skipped · Score 0"
+                          : humanize(
+                              detailQuery.data.reading_path.diagnostic.status,
+                            ),
+                    },
+                    {
+                      label: "Lessons completed",
+                      value: `${detailQuery.data.reading_path.completed_lesson_count} of 6`,
                     },
                     {
                       label: "Final completed",

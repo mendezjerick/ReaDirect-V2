@@ -147,12 +147,17 @@ final class TeacherAnalyticsService
     /** @param Collection<int, AssessmentRun> $runs */
     private function skippedCount(Collection $runs): int
     {
-        return $runs
-            ->flatMap(fn (AssessmentRun $run): Collection => $run->responses)
-            ->filter(
-                fn ($response): bool => $response->response_type === 'skipped'
-                    || $response->decision === 'SKIPPED',
-            )
-            ->count();
+        return $runs->sum(function (AssessmentRun $run): int {
+            if ($run->completion_mode === AssessmentRun::COMPLETION_MODE_SKIPPED) {
+                return 1;
+            }
+
+            return $run->responses
+                ->filter(
+                    fn ($response): bool => $response->response_type === 'skipped'
+                        || $response->decision === 'SKIPPED',
+                )
+                ->count();
+        });
     }
 }

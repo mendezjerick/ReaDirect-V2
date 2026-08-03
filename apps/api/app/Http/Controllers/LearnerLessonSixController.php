@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LearnerAchievement;
 use App\Models\LessonItemAttempt;
 use App\Models\LessonResponse;
 use App\Models\LessonRun;
+use App\Services\LearnerLessonAccessService;
+use App\Services\LearnerLessonCompletionService;
 use App\Services\LearnerSessionResolver;
 use App\Services\LessonContentCatalog;
 use Illuminate\Http\JsonResponse;
@@ -21,68 +22,21 @@ final class LearnerLessonSixController extends Controller
 
     public function __construct(
         private readonly LearnerSessionResolver $sessions,
+        private readonly LearnerLessonAccessService $lessonAccess,
+        private readonly LearnerLessonCompletionService $lessonCompletion,
         private readonly LessonContentCatalog $content,
     ) {}
 
     public function start(Request $request): JsonResponse
     {
         $session = $this->sessions->resolve($request);
-        $progress = $session->learner->progressState;
-
-        if ($progress?->stage === 'final_assessment') {
-            $completedRun = LessonRun::query()
-                ->where('learner_id', $session->learner_id)
-                ->where('lesson_key', self::LESSON_KEY)
-                ->where('status', LessonRun::STATUS_COMPLETED)
-                ->latest('completed_at')
-                ->latest('id')
-                ->first();
-
-            abort_unless(
-                $completedRun,
-                409,
-                'Lesson 6 is not the learner\'s current required lesson.',
-            );
-
-            return response()->json($this->serialize($completedRun));
-        }
-
-        abort_unless(
-            $progress?->stage === 'required_lessons'
-                && (int) $progress->current_required_lesson_order === 6,
-            409,
-            'Lesson 6 is not the learner\'s current required lesson.',
+        $run = $this->lessonAccess->startOrResume(
+            $session->learner,
+            self::LESSON_KEY,
+            fn (): array => $this->content->lessonSixSnapshot(
+                $session->learner_id,
+            ),
         );
-
-        $run = DB::transaction(function () use ($session): LessonRun {
-            DB::table('learners')
-                ->where('id', $session->learner_id)
-                ->lockForUpdate()
-                ->first();
-
-            $activeRun = LessonRun::query()
-                ->where('learner_id', $session->learner_id)
-                ->where('lesson_key', self::LESSON_KEY)
-                ->where('status', LessonRun::STATUS_ACTIVE)
-                ->latest('id')
-                ->first();
-
-            if ($activeRun) {
-                return $activeRun;
-            }
-
-            return LessonRun::query()->create([
-                'learner_id' => $session->learner_id,
-                'lesson_key' => self::LESSON_KEY,
-                'content_version' => 'v1',
-                'status' => LessonRun::STATUS_ACTIVE,
-                'mission_key' => 'mission-1',
-                'current_item_index' => 0,
-                'content_snapshot' => $this->content->lessonSixSnapshot(
-                    $session->learner_id,
-                ),
-            ]);
-        });
 
         return response()->json($this->serialize($run));
     }
@@ -358,6 +312,7 @@ final class LearnerLessonSixController extends Controller
                 && $run->lesson_key === self::LESSON_KEY,
             404,
         );
+        $this->lessonAccess->authorize($session->learner);
 
         return $run;
     }
@@ -412,29 +367,9 @@ final class LearnerLessonSixController extends Controller
             return;
         }
 
-        $run->forceFill([
-            'status' => LessonRun::STATUS_COMPLETED,
-            'completed_at' => now(),
-        ])->save();
-
-        $progress = $run->learner->progressState;
-        if ($progress) {
-            $progress->forceFill([
-                'stage' => 'final_assessment',
-                'current_required_lesson_order' => null,
-                'last_confirmed_at' => now(),
-            ])->save();
-        }
-
-        LearnerAchievement::query()->firstOrCreate(
-            [
-                'learner_id' => $run->learner_id,
-                'achievement_key' => 'reading.question_detective',
-            ],
-            [
-                'awarded_at' => now(),
-                'evidence' => ['lesson_run_id' => $run->id],
-            ],
+        $this->lessonCompletion->complete(
+            $run,
+            'reading.question_detective',
         );
     }
 
@@ -550,20 +485,13 @@ final class LearnerLessonSixController extends Controller
                 'requires_speech_completion' => true,
             ],
             'completion' => $run->status === LessonRun::STATUS_COMPLETED
-                ? [
-                    'title' => 'You finished all six reading lessons.',
-                    'message' => 'Your Final Assessment is now ready.',
+                ? $this->lessonCompletion->completionPayload($run, [
+                    'title' => 'Lesson 6 complete.',
                     'achievement_key' => 'reading.question_detective',
                     'achievement_name' => 'Question Detective',
                     'resolved_count' => $resolvedCount,
                     'total' => 5,
-                    'lessons' => collect(range(1, 6))->map(
-                        fn (int $lesson): array => [
-                            'lesson' => $lesson,
-                            'complete' => true,
-                        ],
-                    )->all(),
-                ]
+                ])
                 : null,
         ];
     }

@@ -31,9 +31,7 @@ function saveTeacherSession() {
 function renderPage() {
   return render(
     <QueryClientProvider client={createAppQueryClient()}>
-      <MemoryRouter
-        initialEntries={["/staff/teacher/assessments/diagnostic"]}
-      >
+      <MemoryRouter initialEntries={["/staff/teacher/assessments/diagnostic"]}>
         <Routes>
           <Route
             path="/staff/teacher/assessments/diagnostic"
@@ -69,7 +67,8 @@ describe("TeacherDiagnosticAssessmentPage", () => {
             ready: 0,
             in_progress: 0,
             completed: 1,
-            with_skipped_items: 1,
+            skipped_assessments: 1,
+            with_skipped_items: 0,
           },
           learners: [
             {
@@ -97,14 +96,15 @@ describe("TeacherDiagnosticAssessmentPage", () => {
                 full_name: "Dorothy Gale Wright",
               },
               status: "completed",
-              part_one_score: 25,
-              part_one_level: "Light Refresher",
-              reading_accuracy_percent: 82,
-              comprehension_score: 4,
-              comprehension_percent: 80,
-              final_reading_score: 81,
-              final_reading_profile: "Transitioning Reader",
-              skipped_items_count: 1,
+              completion_mode: "skipped",
+              part_one_score: 0,
+              part_one_level: "Full Refresher",
+              reading_accuracy_percent: 0,
+              comprehension_score: 0,
+              comprehension_percent: 0,
+              final_reading_score: 0,
+              final_reading_profile: "Low Emerging Reader",
+              skipped_items_count: 0,
               completed_at: "2026-07-20T09:30:00+00:00",
               last_activity_at: "2026-07-20T09:30:00+00:00",
             },
@@ -124,18 +124,19 @@ describe("TeacherDiagnosticAssessmentPage", () => {
     const dorothy = await screen.findByText("Dorothy Gale Wright");
     const dorothyRow = dorothy.closest<HTMLElement>('[role="row"]');
     expect(dorothyRow).not.toBeNull();
-    expect(within(dorothyRow!).getByText("Light Refresher")).toBeVisible();
-    expect(within(dorothyRow!).getByText("Transitioning Reader")).toBeVisible();
-    expect(within(dorothyRow!).getByText("Completed")).toBeVisible();
+    expect(within(dorothyRow!).getByText("Full Refresher")).toBeVisible();
+    expect(within(dorothyRow!).getByText("Low Emerging Reader")).toBeVisible();
+    expect(
+      within(dorothyRow!).getByText("Skipped", { selector: ".staff-badge" }),
+    ).toBeVisible();
+    expect(within(dorothyRow!).getByText("Whole assessment")).toBeVisible();
     expect(screen.getByText("Alice Maple Reader")).toBeVisible();
     expect(screen.queryByText("Reset password")).not.toBeInTheDocument();
     const [requestUrl, requestInit] = fetchMock.mock.calls[0] as [
       string,
       RequestInit,
     ];
-    expect(requestUrl).toBe(
-      "/api/staff/teacher/3/assessments/diagnostic",
-    );
+    expect(requestUrl).toBe("/api/staff/teacher/3/assessments/diagnostic");
     expect(new Headers(requestInit.headers).get("Authorization")).toBe(
       `Bearer ${"teacher-session-token".repeat(4)}`,
     );
