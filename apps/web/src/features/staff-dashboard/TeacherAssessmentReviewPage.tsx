@@ -131,6 +131,10 @@ export function TeacherAssessmentReviewPage({
         { label: "In progress", value: metrics?.in_progress ?? null },
         { label: "Completed", value: metrics?.completed ?? null },
         {
+          label: "Skipped assessments",
+          value: metrics?.skipped_assessments ?? null,
+        },
+        {
           label: "With skipped items",
           value: metrics?.with_skipped_items ?? null,
         },
@@ -139,6 +143,10 @@ export function TeacherAssessmentReviewPage({
         { label: "Pending", value: metrics?.pending ?? null },
         { label: "In progress", value: metrics?.in_progress ?? null },
         { label: "Completed", value: metrics?.completed ?? null },
+        {
+          label: "Skipped assessments",
+          value: metrics?.skipped_assessments ?? null,
+        },
         {
           label: "With skipped items",
           value: metrics?.with_skipped_items ?? null,
@@ -257,7 +265,9 @@ export function TeacherAssessmentReviewPage({
                       <StaffBadge
                         tone={
                           row.status === "completed"
-                            ? "success"
+                            ? row.completion_mode === "skipped"
+                              ? "warning"
+                              : "success"
                             : row.status === "pending"
                               ? "warning"
                               : row.status === "not_ready"
@@ -265,7 +275,9 @@ export function TeacherAssessmentReviewPage({
                                 : "accent"
                         }
                       >
-                        {statusLabel(row.status)}
+                        {row.completion_mode === "skipped"
+                          ? "Skipped"
+                          : statusLabel(row.status)}
                       </StaffBadge>
                       <small>{formatDate(row.last_activity_at)}</small>
                     </span>
@@ -290,7 +302,10 @@ export function TeacherAssessmentReviewPage({
                   key: "skipped",
                   label: "Skipped",
                   width: "minmax(4rem, 0.5fr)",
-                  render: (row) => row.skipped_items_count,
+                  render: (row) =>
+                    row.completion_mode === "skipped"
+                      ? "Whole assessment"
+                      : row.skipped_items_count,
                 },
                 {
                   key: "review",

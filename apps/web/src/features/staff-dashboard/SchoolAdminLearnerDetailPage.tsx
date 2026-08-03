@@ -146,10 +146,7 @@ export function SchoolAdminLearnerDetailPage() {
                 <StaffSectionHeader
                   eyebrow="Persisted progression"
                   title={detailQuery.data.progression.stage_label}
-                  description={`Current required lesson: ${
-                    detailQuery.data.progression
-                      .current_required_lesson_order ?? "Not applicable"
-                  }`}
+                  description={`${detailQuery.data.reading_path.completed_lesson_count} of 6 lessons complete · Diagnostic ${detailQuery.data.reading_path.diagnostic.status.replaceAll("_", " ")}`}
                 />
               </StaffCard>
               <StaffCard>

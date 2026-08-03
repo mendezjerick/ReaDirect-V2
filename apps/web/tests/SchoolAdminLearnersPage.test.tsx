@@ -42,6 +42,15 @@ describe("SchoolAdminLearnersPage", () => {
                 section: "Maple",
                 is_active: true,
                 progress_stage: "required_lessons",
+                reading_path: {
+                  diagnostic: { status: "skipped", score: 0 },
+                  lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+                    order,
+                    status: order === 4 ? "completed" : "not_started",
+                  })),
+                  completed_lesson_count: 1,
+                  final_assessment: { status: "locked" },
+                },
                 teacher: {
                   id: 8,
                   name: "Teacher",
@@ -69,6 +78,7 @@ describe("SchoolAdminLearnersPage", () => {
     expect(await screen.findByText("Dorothy Gale Wright")).toBeVisible();
     expect(screen.getByText("AA220")).toBeVisible();
     expect(screen.getByText("teacher-maple")).toBeVisible();
+    expect(screen.getByText(/Diagnostic skipped · Score 0/)).toBeVisible();
     expect(screen.getByText(/KW000/)).toBeVisible();
     expect(screen.queryByText("Reset progress")).not.toBeInTheDocument();
   });

@@ -9,7 +9,7 @@ const webRoot = path.resolve(scriptDirectory, "..");
 const repositoryRoot = path.resolve(webRoot, "../..");
 const themeId = process.env.CLARA_THEME_ID ?? "t1";
 
-if (themeId !== "t1" && themeId !== "t2") {
+if (themeId !== "t1" && themeId !== "t2" && themeId !== "t3") {
   throw new Error(`Unsupported Clara fallback theme: ${themeId}`);
 }
 

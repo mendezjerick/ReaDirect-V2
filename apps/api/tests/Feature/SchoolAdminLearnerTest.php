@@ -38,6 +38,7 @@ final class SchoolAdminLearnerTest extends TestCase
             ->assertJsonCount(1, 'learners')
             ->assertJsonPath('learners.0.learner_code', 'AA220')
             ->assertJsonPath('learners.0.teacher.username', 'north-teacher')
+            ->assertJsonPath('learners.0.reading_path.completed_lesson_count', 0)
             ->assertJsonMissing(['learner_code' => 'KW000'])
             ->assertJsonMissing(['learner_code' => 'AA221']);
 
@@ -47,6 +48,7 @@ final class SchoolAdminLearnerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('learner.learner_code', 'AA220')
             ->assertJsonPath('progression.stage', 'required_lessons')
+            ->assertJsonPath('reading_path.completed_lesson_count', 0)
             ->assertJsonPath('class_context.teacher.username', 'north-teacher')
             ->assertJsonMissingPath('learner.password')
             ->assertJsonMissingPath('learner.raw_transcript')

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\LessonResponse;
 use App\Models\LessonRun;
 use App\Services\LearnerAssessmentAsr;
+use App\Services\LearnerLessonAccessService;
+use App\Services\LearnerLessonCompletionService;
 use App\Services\LearnerSessionResolver;
 use App\Services\LessonContentCatalog;
 use App\Services\LessonFiveSupportPresentation;
@@ -19,6 +21,8 @@ final class LearnerLessonFiveController extends LearnerSpokenTextLessonControlle
 {
     public function __construct(
         LearnerSessionResolver $sessions,
+        LearnerLessonAccessService $lessonAccess,
+        LearnerLessonCompletionService $lessonCompletion,
         LessonContentCatalog $content,
         LearnerAssessmentAsr $asr,
         SpeechEquivalenceResolver $equivalenceResolver,
@@ -30,6 +34,8 @@ final class LearnerLessonFiveController extends LearnerSpokenTextLessonControlle
     ) {
         parent::__construct(
             $sessions,
+            $lessonAccess,
+            $lessonCompletion,
             $content,
             $asr,
             $equivalenceResolver,

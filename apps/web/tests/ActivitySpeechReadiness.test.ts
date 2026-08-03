@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  activitySpeechScopeForProgress,
   clearActivitySpeechPreparation,
   prepareActivitySpeech,
 } from "../src/features/clara-audio/activitySpeechReadiness";
@@ -40,7 +39,7 @@ describe("activity speech readiness", () => {
     const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);
 
-      if (url.endsWith("/activity-manifest")) {
+      if (url.includes("/activity-manifest?activity=lesson-1")) {
         return Promise.resolve(Response.json(manifest));
       }
 
@@ -58,6 +57,13 @@ describe("activity speech readiness", () => {
     ]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(readinessRequests).toBe(1);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/learners/tts/activity-readiness",
+      expect.objectContaining({
+        body: JSON.stringify({ activity: "lesson-1" }),
+      }),
+    );
   });
 
   it("removes failed requests so retry performs a fresh preparation", async () => {
@@ -83,18 +89,18 @@ describe("activity speech readiness", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it("maps learner progress to the activity that opens next", () => {
-    expect(
-      activitySpeechScopeForProgress({
-        stage: "before_diagnostic",
-        current_required_lesson_order: null,
-      }),
-    ).toBe("assessment-part-one");
-    expect(
-      activitySpeechScopeForProgress({
-        stage: "required_lessons",
-        current_required_lesson_order: 1,
-      }),
-    ).toBe("lesson-1");
+  it("rejects a manifest for a different activity", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          Response.json({ ...manifest, activity: "lesson-2" }),
+        ),
+    );
+
+    await expect(
+      prepareActivitySpeech("learner-token", "lesson-1"),
+    ).rejects.toThrow("invalid activity status");
   });
 });

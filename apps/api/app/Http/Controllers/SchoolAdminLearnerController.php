@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Learner;
 use App\Models\LearnerProgressState;
 use App\Models\StaffUser;
+use App\Services\LearnerReadingPathService;
 use App\Services\TeacherLearnerDetailService;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -13,6 +14,7 @@ final class SchoolAdminLearnerController extends Controller
 {
     public function __construct(
         private readonly TeacherLearnerDetailService $details,
+        private readonly LearnerReadingPathService $readingPaths,
     ) {}
 
     public function index(StaffUser $staffUser): JsonResponse
@@ -25,7 +27,9 @@ final class SchoolAdminLearnerController extends Controller
             ->where('account_purpose', Learner::PURPOSE_STANDARD)
             ->orderBy('last_name')
             ->orderBy('first_name')
-            ->get()
+            ->get();
+        $readingPaths = $this->readingPaths->snapshots($learners);
+        $learners = $learners
             ->map(fn (Learner $learner): array => [
                 'id' => $learner->id,
                 'learner_code' => $learner->learner_code,
@@ -35,6 +39,7 @@ final class SchoolAdminLearnerController extends Controller
                 'is_active' => (bool) $learner->is_active,
                 'progress_stage' => $learner->progressState?->stage
                     ?? LearnerProgressState::BASELINE_STAGE,
+                'reading_path' => $readingPaths->get($learner->id),
                 'teacher' => $learner->teacher ? [
                     'id' => $learner->teacher->id,
                     'name' => $learner->teacher->display_name,

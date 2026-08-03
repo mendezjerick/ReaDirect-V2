@@ -4,6 +4,7 @@ import { staffFetch } from "../staff-auth/staffApi";
 
 const assessmentSummarySchema = z.object({
   status: z.enum(["not_started", "active", "completed"]),
+  completion_mode: z.enum(["standard", "skipped"]).default("standard"),
   score: z.number().int().nullable(),
   profile: z.string().nullable(),
   completed_at: z.string().nullable(),

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Learner;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
+use App\Models\LessonRun;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -112,6 +113,18 @@ final class LearnerLessonSixTest extends TestCase
     public function test_finishing_lesson_six_unlocks_final_assessment(): void
     {
         [$token, $learner] = $this->learnerSession('C');
+        foreach (range(1, 5) as $order) {
+            LessonRun::query()->create([
+                'learner_id' => $learner->id,
+                'lesson_key' => "required-lesson-{$order}",
+                'content_version' => 'v1',
+                'status' => LessonRun::STATUS_COMPLETED,
+                'mission_key' => 'mission-1',
+                'current_item_index' => 0,
+                'content_snapshot' => [],
+                'completed_at' => now()->subMinute(),
+            ]);
+        }
         $state = $this->withToken($token)
             ->post('/api/learners/lessons/lesson-6/start')
             ->json();

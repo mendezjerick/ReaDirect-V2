@@ -55,7 +55,7 @@ export function ClaraStage({
   const onLoadStateChangeRef = useRef(onLoadStateChange);
   const stageRef = useRef<HTMLElement>(null);
   const revealCoverRef = useRef<HTMLSpanElement>(null);
-  const renderedModeRef = useRef<string | null>(null);
+  const renderedContentRef = useRef<string | null>(null);
   const [loaderOrigin, setLoaderOrigin] = useState({ x: 0, y: 0 });
   const presentation: ClaraPresentationState = {
     emotion,
@@ -70,24 +70,32 @@ export function ClaraStage({
   const staticSource =
     theme === "t2"
       ? "/assets/live2d/clara/stills/clara-t2.png"
-      : "/assets/live2d/clara/stills/clara-default.png";
+      : theme === "t3"
+        ? "/assets/live2d/clara/stills/clara-t3.png"
+        : "/assets/live2d/clara/stills/clara-default.png";
+  // Live2D updates its palette from the document theme in place.  Only a
+  // static portrait depends on this source, so do not treat a Live2D theme
+  // change as a new render that needs the stage loader.
+  const renderedContent =
+    displayMode === "static"
+      ? `static:${staticSource}`
+      : (displayMode ?? "resolving");
 
   onLoadStateChangeRef.current = onLoadStateChange;
 
   useEffect(() => {
-    const renderedMode = `${displayMode ?? "resolving"}:${staticSource}`;
-    if (renderedModeRef.current === null) {
-      renderedModeRef.current = renderedMode;
+    if (renderedContentRef.current === null) {
+      renderedContentRef.current = renderedContent;
       return;
     }
 
-    if (renderedModeRef.current === renderedMode) {
+    if (renderedContentRef.current === renderedContent) {
       return;
     }
 
-    renderedModeRef.current = renderedMode;
+    renderedContentRef.current = renderedContent;
     setLoadState("loading");
-  }, [displayMode, staticSource]);
+  }, [renderedContent]);
 
   useLayoutEffect(() => {
     const stage = stageRef.current;

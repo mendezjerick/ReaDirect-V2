@@ -9,6 +9,7 @@
   --asset-home-background-desktop: var(--asset-learner-flow-background-desktop);
   --asset-theme-t1-preview: url("/assets/backgrounds/T1mobile.png");
   --asset-theme-t2-preview: url("/assets/backgrounds/T2mobile.jpg");
+  --asset-theme-t3-preview: url("/assets/backgrounds/T3mobile.png");
 
   --font-display-family:
     "Fredoka", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;

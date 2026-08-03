@@ -158,6 +158,13 @@ final class SchoolAdminInstructionalInsightsService
                     fn (AssessmentRun $run): string => "{$run->learner_id}:{$run->assessment_type}",
                 )
                 ->values();
+        $wholeDiagnosticSkips = $assessmentRuns
+            ->where('assessment_type', AssessmentRun::TYPE_DIAGNOSTIC)
+            ->where(
+                'completion_mode',
+                AssessmentRun::COMPLETION_MODE_SKIPPED,
+            )
+            ->count();
 
         foreach ($assessmentRuns as $run) {
             foreach ($run->responses as $response) {
@@ -293,6 +300,7 @@ final class SchoolAdminInstructionalInsightsService
                 'learners_with_evidence' => $affectedLearners,
                 'assessment_skips' => collect($assessmentRows)
                     ->sum(fn (array $row): int => $row['diagnostic_skips'] + $row['final_skips']),
+                'whole_diagnostic_skips' => $wholeDiagnosticSkips,
                 'lesson_skips' => collect($lessonRows)->sum('skipped_items'),
                 'review_recommended_items' => collect($lessonRows)
                     ->sum('review_recommended_items'),

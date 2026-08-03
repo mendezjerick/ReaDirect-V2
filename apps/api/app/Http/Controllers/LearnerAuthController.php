@@ -7,6 +7,7 @@ use App\Models\LearnerAchievement;
 use App\Models\LearnerPortalRun;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
+use App\Services\LearnerReadingPathService;
 use App\Services\LearnerSessionResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ final class LearnerAuthController extends Controller
 {
     public function __construct(
         private readonly LearnerSessionResolver $sessionResolver,
+        private readonly LearnerReadingPathService $readingPath,
     ) {}
 
     public function store(Request $request): JsonResponse
@@ -145,6 +147,7 @@ final class LearnerAuthController extends Controller
         ]);
 
         return [
+            'reading_path' => $this->readingPath->snapshot($learner, $progress),
             'learner' => [
                 'id' => $learner->id,
                 'learner_code' => $learner->learner_code,

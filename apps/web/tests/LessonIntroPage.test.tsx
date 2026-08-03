@@ -1,96 +1,28 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useLocation } from "react-router-dom";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ThemeProvider } from "../src/features/theme/ThemeProvider";
-import { QueryClientProvider } from "@tanstack/react-query";
 import { createAppQueryClient } from "../src/app/queryClient";
+import { ReadingJourneyMenuPage } from "../src/features/lesson-intro/LessonIntroPage";
+import type { LearnerReadingPath } from "../src/features/learner-auth/learnerApi";
+import { ThemeProvider } from "../src/features/theme/ThemeProvider";
 
-const speechMocks = vi.hoisted(() => ({
-  prepare: vi.fn(),
-  play: vi.fn(),
-}));
-
-const activityPreparationMocks = vi.hoisted(() => ({
-  hook: vi.fn(),
-  retry: vi.fn(),
-  state: {
-    status: "ready",
-    manifest: {
-      activity: "assessment-part-one",
-      published_groups: ["assessment-part-one-fixed"],
-      published_speech_keys: [],
-      runtime_profiles: [],
-      requires_runtime: false,
-    },
-    readiness: null,
-    error: "",
-    runtimeRequired: false,
-    showRuntimeLoader: false,
-  } as {
-    status: "idle" | "preparing" | "ready" | "error";
-    manifest: {
-      activity: string;
-      published_groups: string[];
-      published_speech_keys: string[];
-      runtime_profiles: string[];
-      requires_runtime: boolean;
-    } | null;
-    readiness: null;
-    error: string;
-    runtimeRequired: boolean;
-    showRuntimeLoader: boolean;
-  },
-}));
-
-const live2dMocks = vi.hoisted(() => ({
-  setState: undefined as
-    ((state: "loading" | "ready" | "error") => void) | undefined,
-}));
-
-vi.mock("../src/features/clara-audio/claraSpeech", () => ({
-  prepareClaraSpeech: speechMocks.prepare,
-  playClaraSpeech: speechMocks.play,
-}));
-
-vi.mock("../src/features/clara-audio/useActivitySpeechPreparation", () => ({
-  useActivitySpeechPreparation: activityPreparationMocks.hook,
-}));
-
-vi.mock("../src/features/intro/live2d/ClaraLive2DCanvas", async () => {
-  const { useEffect } = await import("react");
-
-  return {
-    ClaraLive2DCanvas: ({
-      onStateChange,
-    }: {
-      onStateChange: (state: "loading" | "ready" | "error") => void;
-    }) => {
-      useEffect(() => {
-        live2dMocks.setState = onStateChange;
-        return () => {
-          live2dMocks.setState = undefined;
-        };
-      }, [onStateChange]);
-
-      return <canvas className="clara-stage__canvas" aria-hidden="true" />;
-    },
-  };
-});
-
-vi.mock("motion/react", async (importOriginal) => {
-  const motion = await importOriginal<typeof import("motion/react")>();
-
-  return {
-    ...motion,
-    useReducedMotion: () => true,
-  };
-});
-
-import { LessonIntroPage } from "../src/features/lesson-intro/LessonIntroPage";
+const freshPath: LearnerReadingPath = {
+  diagnostic: { status: "required", score: null },
+  lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+    order: order as 1 | 2 | 3 | 4 | 5 | 6,
+    status: "not_started" as const,
+  })),
+  completed_lesson_count: 0,
+  final_assessment: { status: "locked" },
+};
 
 const learnerSession = {
   token: "learner-token",
+  reading_path: freshPath,
   learner: {
     id: 1,
     learner_code: "KW000",
@@ -104,14 +36,28 @@ const learnerSession = {
       stage: "before_diagnostic",
       current_required_lesson_order: null,
     },
+    achievement_keys: [],
   },
   session: { expires_at: "2026-07-20T12:00:00+00:00" },
 };
 
-function renderLessonIntro() {
+function LocationProbe() {
+  const location = useLocation();
+  return <div>Current route: {location.pathname}</div>;
+}
+
+function sessionResponse(readingPath: LearnerReadingPath) {
+  return {
+    reading_path: readingPath,
+    learner: learnerSession.learner,
+    session: learnerSession.session,
+  };
+}
+
+function renderReadingJourney(readingPath: LearnerReadingPath = freshPath) {
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify(learnerSession),
+    JSON.stringify({ ...learnerSession, reading_path: readingPath }),
   );
 
   return render(
@@ -119,8 +65,11 @@ function renderLessonIntro() {
       <ThemeProvider>
         <QueryClientProvider client={createAppQueryClient()}>
           <Routes>
-            <Route path="/learner/lesson-intro" element={<LessonIntroPage />} />
-            <Route path="/learner/login" element={<div>Login route</div>} />
+            <Route
+              path="/learner/lesson-intro"
+              element={<ReadingJourneyMenuPage />}
+            />
+            <Route path="*" element={<LocationProbe />} />
           </Routes>
         </QueryClientProvider>
       </ThemeProvider>
@@ -128,157 +77,179 @@ function renderLessonIntro() {
   );
 }
 
-describe("LessonIntroPage", () => {
+describe("ReadingJourneyMenuPage", () => {
   beforeEach(() => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            learner: learnerSession.learner,
-            session: learnerSession.session,
-          }),
-          { status: 200, headers: { "Content-Type": "application/json" } },
-        ),
-      ),
+      vi.fn().mockResolvedValue(Response.json(sessionResponse(freshPath))),
     );
-    activityPreparationMocks.state = {
-      status: "ready",
-      manifest: {
-        activity: "assessment-part-one",
-        published_groups: ["assessment-part-one-fixed"],
-        published_speech_keys: [],
-        runtime_profiles: [],
-        requires_runtime: false,
-      },
-      readiness: null,
-      error: "",
-      runtimeRequired: false,
-      showRuntimeLoader: false,
-    };
-    activityPreparationMocks.hook.mockImplementation(() => ({
-      ...activityPreparationMocks.state,
-      retry: activityPreparationMocks.retry,
-    }));
   });
 
   afterEach(() => {
     window.sessionStorage.clear();
-    live2dMocks.setState = undefined;
+    vi.unstubAllGlobals();
     vi.clearAllMocks();
   });
 
-  it("enables Continue only after Clara's audio finishes", async () => {
-    let finishPlayback: (() => void) | undefined;
-    const finished = new Promise<void>((resolve) => {
-      finishPlayback = resolve;
-    });
-    speechMocks.prepare.mockResolvedValue(new Blob(["wave"]));
-    speechMocks.play.mockResolvedValue({ finished, stop: vi.fn() });
+  it("shows only the Diagnostic as available for a fresh learner without Clara", async () => {
+    const { container } = renderReadingJourney();
 
-    const { container } = renderLessonIntro();
-    const continueButton = screen.getByRole("button", { name: "Continue" });
-
-    expect(continueButton).toBeDisabled();
-    expect(continueButton).toHaveClass("big-button--unavailable");
-    expect(container.querySelector(".clara-stage")).toHaveAttribute(
-      "data-clara-emotion",
-      "happy",
-    );
-
-    await waitFor(() => expect(speechMocks.prepare).toHaveBeenCalledOnce());
-    await act(async () => undefined);
-    expect(speechMocks.play).not.toHaveBeenCalled();
-
-    await waitFor(() => expect(live2dMocks.setState).toBeTypeOf("function"));
-    act(() => live2dMocks.setState?.("ready"));
-
-    await waitFor(() =>
-      expect(container.querySelector(".clara-stage")).toHaveAttribute(
-        "data-clara-speaking",
-        "true",
-      ),
-    );
-    expect(continueButton).toBeDisabled();
-    expect(continueButton).toHaveClass("big-button--unavailable");
-
-    await act(async () => finishPlayback?.());
-
-    await waitFor(() => expect(continueButton).toBeEnabled());
-    expect(continueButton).toHaveClass("big-button--primary");
-    expect(continueButton).not.toHaveClass("big-button--unavailable");
-    expect(container.querySelector(".clara-stage")).toHaveAttribute(
-      "data-clara-speaking",
-      "false",
-    );
-    expect(screen.getByText("Ready!")).toBeInTheDocument();
-  });
-
-  it("shows the centered TTS loader only after the model loader is gone", async () => {
-    activityPreparationMocks.state = {
-      ...activityPreparationMocks.state,
-      status: "preparing",
-      manifest: {
-        activity: "lesson-1",
-        published_groups: ["lesson-1-fixed"],
-        published_speech_keys: ["lesson-1-mission-1"],
-        runtime_profiles: ["result"],
-        requires_runtime: true,
-      },
-      runtimeRequired: true,
-      showRuntimeLoader: true,
-    };
-    let finishPreparing: ((speech: Blob) => void) | undefined;
-    const prepared = new Promise<Blob>((resolve) => {
-      finishPreparing = resolve;
-    });
-    speechMocks.prepare.mockReturnValue(prepared);
-    speechMocks.play.mockResolvedValue({
-      finished: Promise.resolve(),
-      stop: vi.fn(),
-    });
-
-    renderLessonIntro();
-
-    await waitFor(() => expect(speechMocks.prepare).toHaveBeenCalledOnce());
-    expect(document.querySelector(".clara-stage__loader-wave")).toBeTruthy();
-    expect(document.querySelector(".clara-speech-loader")).toBeNull();
-
-    await waitFor(() => expect(live2dMocks.setState).toBeTypeOf("function"));
-    act(() => live2dMocks.setState?.("ready"));
-
-    expect(document.querySelector(".clara-stage__loader")).toBeNull();
-    expect(document.querySelector(".clara-speech-loader")).toBeTruthy();
     expect(
-      screen.getByRole("status", {
-        name: "Preparing Ma'am Clara's voice",
+      screen.getByRole("heading", { name: "My Reading Journey" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("0 of 6 lessons complete"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Diagnostic Assessment. Start. Find your best starting point",
       }),
-    ).toBeInTheDocument();
+    ).toHaveClass("big-button--primary");
 
-    activityPreparationMocks.state = {
-      ...activityPreparationMocks.state,
-      status: "ready",
-      showRuntimeLoader: false,
+    for (const order of [1, 2, 3, 4, 5, 6]) {
+      expect(
+        screen.getByRole("button", {
+          name: `Lesson ${order}. Locked. Waiting for your starting check`,
+        }),
+      ).toHaveClass("big-button--unavailable");
+    }
+
+    expect(
+      screen.getByRole("button", {
+        name: "Final Assessment. Locked. Complete 6 more lessons",
+      }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Skip Diagnostic" }),
+    ).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
+    expect(
+      container.querySelectorAll(
+        'img.reading-journey-card__book-icon[src="/assets/icons/book.png"]',
+      ),
+    ).toHaveLength(6);
+    expect(container.querySelector(".clara-stage")).toBeNull();
+    expect(container.querySelector(".clara-speech-loader")).toBeNull();
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+  });
+
+  it("shows independent Start, Resume, and Completed lesson states", async () => {
+    const user = userEvent.setup();
+    const readingPath: LearnerReadingPath = {
+      diagnostic: { status: "completed", score: 17 },
+      lessons: [
+        { order: 1, status: "completed" },
+        { order: 2, status: "not_started" },
+        { order: 3, status: "in_progress" },
+        { order: 4, status: "not_started" },
+        { order: 5, status: "not_started" },
+        { order: 6, status: "completed" },
+      ],
+      completed_lesson_count: 2,
+      final_assessment: { status: "locked" },
     };
-    await act(async () => finishPreparing?.(new Blob(["wave"])));
+    vi.mocked(fetch).mockResolvedValue(
+      Response.json(sessionResponse(readingPath)),
+    );
+    renderReadingJourney(readingPath);
 
-    await waitFor(() =>
-      expect(document.querySelector(".clara-speech-loader")).toBeNull(),
+    expect(screen.getByText("Completed · Score 17")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Lesson 1. Completed. Lesson completed",
+      }),
+    ).toHaveClass("big-button--completed");
+    expect(
+      screen.getByRole("button", {
+        name: "Lesson 2. Start. Ready when you are",
+      }),
+    ).toHaveClass("big-button--primary");
+    const resumeLesson = screen.getByRole("button", {
+      name: "Lesson 3. Resume. Continue from your saved place",
+    });
+    expect(resumeLesson).toHaveClass("big-button--primary");
+    expect(
+      screen.queryByRole("button", { name: "Skip Diagnostic" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", {
+        name: "Final Assessment. Locked. Complete 4 more lessons",
+      }),
+    ).toBeDisabled();
+
+    await user.click(resumeLesson);
+    expect(
+      screen.getByText("Current route: /learner/lessons/3"),
+    ).toBeInTheDocument();
+  });
+
+  it("confirms that skipping records score zero and unlocks every lesson", async () => {
+    const user = userEvent.setup();
+    const skippedPath: LearnerReadingPath = {
+      ...freshPath,
+      diagnostic: { status: "skipped", score: 0 },
+    };
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      return Promise.resolve(
+        url.endsWith("/assessments/diagnostic/skip")
+          ? Response.json({ reading_path: skippedPath })
+          : Response.json(sessionResponse(freshPath)),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderReadingJourney();
+
+    await user.click(screen.getByRole("button", { name: "Skip Diagnostic" }));
+    const dialog = screen.getByRole("alertdialog", {
+      name: "Skip the Diagnostic?",
+    });
+    expect(dialog).toHaveTextContent("score of 0");
+    expect(dialog).toHaveTextContent("All six reading lessons will unlock");
+
+    await user.click(
+      screen.getByRole("button", { name: "Skip and unlock lessons" }),
+    );
+
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    expect(screen.getByText("Skipped · Score 0")).toBeInTheDocument();
+    for (const order of [1, 2, 3, 4, 5, 6]) {
+      expect(
+        screen.getByRole("button", {
+          name: `Lesson ${order}. Start. Ready when you are`,
+        }),
+      ).toBeEnabled();
+    }
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/learners/assessments/diagnostic/skip",
+      expect.objectContaining({ method: "POST" }),
     );
   });
 
-  it("keeps Continue disabled and offers retry when speech fails", async () => {
-    speechMocks.prepare.mockRejectedValue(new Error("TTS unavailable"));
-
-    renderLessonIntro();
-
-    expect(
-      await screen.findByText("Ma'am Clara needs another try."),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Continue" })).toHaveClass(
-      "big-button--unavailable",
+  it("offers the Final Assessment after all six lessons are complete", async () => {
+    const user = userEvent.setup();
+    const completePath: LearnerReadingPath = {
+      diagnostic: { status: "completed", score: 22 },
+      lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+        order: order as 1 | 2 | 3 | 4 | 5 | 6,
+        status: "completed" as const,
+      })),
+      completed_lesson_count: 6,
+      final_assessment: { status: "available" },
+    };
+    vi.mocked(fetch).mockResolvedValue(
+      Response.json(sessionResponse(completePath)),
     );
-    expect(screen.getByRole("button", { name: "Try again" })).toBeEnabled();
+    renderReadingJourney(completePath);
+
+    const finalButton = screen.getByRole("button", {
+      name: "Final Assessment. Start. Show how much your reading has grown",
+    });
+    expect(finalButton).toBeEnabled();
+    await user.click(finalButton);
+    expect(
+      screen.getByText("Current route: /learner/final-assessment/part-one"),
+    ).toBeInTheDocument();
   });
 });

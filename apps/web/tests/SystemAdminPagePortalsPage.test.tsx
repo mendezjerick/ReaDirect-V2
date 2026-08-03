@@ -12,6 +12,16 @@ import { createAppQueryClient } from "../src/app/queryClient";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { SystemAdminPagePortalsPage } from "../src/features/staff-dashboard/SystemAdminPagePortalsPage";
 
+const readingPath = {
+  diagnostic: { status: "required" as const, score: null },
+  lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+    order,
+    status: "not_started" as const,
+  })),
+  completed_lesson_count: 0,
+  final_assessment: { status: "locked" as const },
+};
+
 const response = {
   learner: {
     id: 10,
@@ -21,6 +31,7 @@ const response = {
     is_active: true,
     analytics_excluded: true,
     progress_stage: "before_diagnostic",
+    reading_path: readingPath,
     last_reset_at: null,
     active_standard_sessions: 1,
     active_portal_run: null,
@@ -242,6 +253,7 @@ describe("SystemAdminPagePortalsPage", () => {
         route: "/learner/assessment/part-one",
         learner_session: {
           token: "portal-token",
+          reading_path: readingPath,
           learner: {
             id: 10,
             learner_code: "KW000",

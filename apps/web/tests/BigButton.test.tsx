@@ -31,6 +31,14 @@ describe("BigButton", () => {
     expect(button).not.toHaveClass("big-button--primary");
   });
 
+  it("uses the fixed completed treatment without disabling review", () => {
+    render(<BigButton variant="completed">Completed</BigButton>);
+
+    const button = screen.getByRole("button", { name: "Completed" });
+    expect(button).toBeEnabled();
+    expect(button).toHaveClass("big-button--completed");
+  });
+
   it("supports the tall shared primary action variant", () => {
     render(<BigButton variant="primary-vertical">Submit</BigButton>);
 

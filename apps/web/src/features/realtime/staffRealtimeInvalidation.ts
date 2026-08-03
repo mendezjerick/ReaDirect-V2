@@ -68,8 +68,11 @@ function appendSystemAdminQueryKeys(
       add("system-admin-teachers");
       break;
     case "learners":
+      add("system-admin-learners");
+      break;
     case "learner-detail":
       add("system-admin-learners");
+      add("system-admin-page-portals");
       break;
     case "operations":
       add("system-admin-operations");

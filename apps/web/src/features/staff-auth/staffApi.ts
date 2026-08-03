@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { learnerReadingPathSchema } from "../learner-auth/learnerApi";
+
 const staffSchoolSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
@@ -51,6 +53,7 @@ const schoolAssessmentActivitySchema = z.object({
   assessment_type: z.enum(["diagnostic", "final"]),
   assessment_label: z.string(),
   status: z.string(),
+  completion_mode: z.enum(["standard", "skipped"]),
   score: z.number().int().nullable(),
   profile: z.string().nullable(),
   occurred_at: z.string().nullable(),
@@ -85,7 +88,7 @@ const teacherRecentActivitySchema = z.object({
     "lesson",
   ]),
   title: z.string(),
-  status: z.enum(["completed", "in_progress"]),
+  status: z.enum(["completed", "in_progress", "skipped"]),
   occurred_at: z.string().nullable(),
 });
 
@@ -285,6 +288,7 @@ const systemAdminLearnerDirectorySchema = z.object({
         final_assessment_completed: z.boolean(),
         last_confirmed_at: z.string().nullable(),
       }),
+      reading_path: learnerReadingPathSchema,
       created_at: z.string().nullable(),
     }),
   ),
@@ -674,6 +678,7 @@ const portalSystemLearnerSchema = z.object({
     is_active: z.boolean(),
     analytics_excluded: z.literal(true),
     progress_stage: z.string(),
+    reading_path: learnerReadingPathSchema,
     last_reset_at: z.string().nullable(),
     active_standard_sessions: z.number().int().nonnegative(),
     active_portal_run: z
@@ -694,6 +699,7 @@ const portalSystemLearnerSchema = z.object({
 
 const portalLearnerSessionSchema = z.object({
   token: z.string().min(1),
+  reading_path: learnerReadingPathSchema,
   learner: z.object({
     id: z.number().int().positive(),
     learner_code: z.literal("KW000"),

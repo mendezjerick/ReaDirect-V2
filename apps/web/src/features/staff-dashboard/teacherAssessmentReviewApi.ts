@@ -13,6 +13,7 @@ const teacherAssessmentReviewSchema = z.object({
     ready: z.number().int().nonnegative(),
     in_progress: z.number().int().nonnegative(),
     completed: z.number().int().nonnegative(),
+    skipped_assessments: z.number().int().nonnegative().default(0),
     with_skipped_items: z.number().int().nonnegative(),
   }),
   learners: z.array(
@@ -29,6 +30,7 @@ const teacherAssessmentReviewSchema = z.object({
         "in_progress",
         "completed",
       ]),
+      completion_mode: z.enum(["standard", "skipped"]).default("standard"),
       part_one_score: z.number().int().nullable(),
       part_one_level: z.string().nullable(),
       reading_accuracy_percent: z.number().int().nullable(),

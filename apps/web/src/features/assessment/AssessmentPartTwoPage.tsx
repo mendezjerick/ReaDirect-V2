@@ -15,10 +15,7 @@ import {
   type ClaraSpeechPlayback,
 } from "../clara-audio/claraSpeech";
 import { ClaraSpeechWarmupLoader } from "../clara-audio/ClaraSpeechWarmupLoader";
-import {
-  clearActivitySpeechPreparation,
-  prepareActivitySpeech,
-} from "../clara-audio/activitySpeechReadiness";
+import { clearActivitySpeechPreparation } from "../clara-audio/activitySpeechReadiness";
 import { useActivitySpeechPreparation } from "../clara-audio/useActivitySpeechPreparation";
 import { ClaraStage } from "../intro/ClaraStage";
 import { LearnerActivityResult } from "../learner-activity/LearnerActivityResult";
@@ -577,8 +574,7 @@ export function AssessmentPartTwoPage({
     state.stage === "story-selection"
       ? selectedStory !== null
       : isPassage
-        ? recorder.audio !== null &&
-          recorder.state !== "recording"
+        ? recorder.audio !== null && recorder.state !== "recording"
         : isComprehension
           ? selectedChoice !== null
           : isResult || isCompletion;
@@ -646,11 +642,6 @@ export function AssessmentPartTwoPage({
       void finishAssessment(session.token, state.run_id, assessmentType)
         .then(({ next_route }) => {
           clearActivitySpeechPreparation(session.token);
-          if (assessmentType === "diagnostic") {
-            void prepareActivitySpeech(session.token, "lesson-1").catch(
-              () => undefined,
-            );
-          }
           navigate(next_route);
         })
         .catch(() => {

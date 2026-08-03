@@ -14,15 +14,6 @@ use Illuminate\Support\Collection;
 final class TeacherReportService
 {
     /** @var array<string, string> */
-    private const STAGE_LABELS = [
-        LearnerProgressState::BASELINE_STAGE => 'Diagnostic pending',
-        'diagnostic_part_one' => 'Diagnostic Part 1',
-        'diagnostic_part_two' => 'Diagnostic Part 2',
-        'required_lessons' => 'Required lessons',
-        LearnerProgressState::FINAL_ASSESSMENT_STAGE => 'Final Assessment ready',
-        LearnerProgressState::READING_JOURNEY_COMPLETE_STAGE => 'Reading Journey complete',
-    ];
-
     /** @return array<string, mixed> */
     public function build(StaffUser $teacher): array
     {
@@ -92,6 +83,10 @@ final class TeacherReportService
             $final = $latestFinal->get($learner->id);
             $stage = $learner->progressState?->stage
                 ?? LearnerProgressState::BASELINE_STAGE;
+            $completedLessonCount = (int) $completedLessons->get(
+                $learner->id,
+                0,
+            );
             $skippedItems = (int) $skipsByLearner->get($learner->id, 0);
             $reviewRecommended = (int) $reviewCounts->get($learner->id, 0);
 
@@ -101,9 +96,12 @@ final class TeacherReportService
                 'learner_name' => $this->fullName($learner),
                 'active' => $learner->is_active,
                 'stage' => $stage,
-                'stage_label' => self::STAGE_LABELS[$stage] ?? 'Progress saved',
+                'stage_label' => $this->stageLabel(
+                    $stage,
+                    $completedLessonCount,
+                ),
                 'diagnostic' => $this->assessmentSummary($diagnostic),
-                'required_lessons_completed' => (int) $completedLessons->get($learner->id, 0),
+                'required_lessons_completed' => $completedLessonCount,
                 'final' => $this->assessmentSummary($final),
                 'skipped_items' => $skippedItems,
                 'review_recommended_items' => $reviewRecommended,
@@ -143,6 +141,8 @@ final class TeacherReportService
     {
         return [
             'status' => $run?->status ?? 'not_started',
+            'completion_mode' => $run?->completion_mode
+                ?? AssessmentRun::COMPLETION_MODE_STANDARD,
             'score' => $run?->final_reading_score,
             'profile' => $run?->final_reading_profile,
             'completed_at' => $run?->assessment_completed_at?->toIso8601String(),
@@ -157,5 +157,18 @@ final class TeacherReportService
             $learner->last_name,
             $learner->suffix,
         ]));
+    }
+
+    private function stageLabel(string $stage, int $completedLessonCount): string
+    {
+        return match ($stage) {
+            LearnerProgressState::BASELINE_STAGE => 'Diagnostic pending',
+            'diagnostic_part_one' => 'Diagnostic Part 1',
+            'diagnostic_part_two' => 'Diagnostic Part 2',
+            LearnerProgressState::REQUIRED_LESSONS_STAGE => "Reading lessons · {$completedLessonCount} of 6 complete",
+            LearnerProgressState::FINAL_ASSESSMENT_STAGE => 'Final Assessment ready',
+            LearnerProgressState::READING_JOURNEY_COMPLETE_STAGE => 'Reading Journey complete',
+            default => 'Progress saved',
+        };
     }
 }

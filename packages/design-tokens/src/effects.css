@@ -8,6 +8,13 @@
   --color-button-unavailable-depth: #484d54;
   --color-button-unavailable-text: #eceef1;
 
+  --color-button-completed-surface: #2f8c62;
+  --color-button-completed-hover: #287a55;
+  --color-button-completed-pressed: #216746;
+  --color-button-completed-border: #1c5d43;
+  --color-button-completed-depth: #174b37;
+  --color-button-completed-text: #ffffff;
+
   --color-link-start-fixed-core: #fff7fd;
   --color-link-start-fixed-cover: #ffffff;
   --color-link-start-fixed-prism-pink: #ff2a8a;

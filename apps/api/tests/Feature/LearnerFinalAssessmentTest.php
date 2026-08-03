@@ -7,6 +7,7 @@ use App\Models\Learner;
 use App\Models\LearnerAchievement;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
+use App\Models\LessonRun;
 use Tests\TestCase;
 
 final class LearnerFinalAssessmentTest extends TestCase
@@ -198,6 +199,20 @@ final class LearnerFinalAssessmentTest extends TestCase
             'last_seen_at' => now(),
             'expires_at' => now()->addHour(),
         ]);
+        if ($stage !== LearnerProgressState::BASELINE_STAGE) {
+            foreach (range(1, 6) as $order) {
+                LessonRun::query()->create([
+                    'learner_id' => $learner->id,
+                    'lesson_key' => "required-lesson-{$order}",
+                    'content_version' => 'v1',
+                    'status' => LessonRun::STATUS_COMPLETED,
+                    'mission_key' => 'mission-1',
+                    'current_item_index' => 0,
+                    'content_snapshot' => [],
+                    'completed_at' => now()->subHour(),
+                ]);
+            }
+        }
 
         return [$token, $learner];
     }

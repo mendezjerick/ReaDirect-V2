@@ -187,7 +187,9 @@ export function SchoolAdminReportsPage() {
                         <strong>{learner.stage_label}</strong>
                         <small>
                           Diagnostic{" "}
-                          {learner.diagnostic.status.replace("_", " ")}
+                          {learner.diagnostic.completion_mode === "skipped"
+                            ? "skipped · Score 0"
+                            : learner.diagnostic.status.replace("_", " ")}
                         </small>
                       </span>
                     ),

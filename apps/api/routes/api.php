@@ -4,6 +4,7 @@ use App\Http\Controllers\LearnerAssessmentPartOneController;
 use App\Http\Controllers\LearnerAssessmentPartTwoController;
 use App\Http\Controllers\LearnerAuthController;
 use App\Http\Controllers\LearnerClaraListeningController;
+use App\Http\Controllers\LearnerDiagnosticSkipController;
 use App\Http\Controllers\LearnerExperienceController;
 use App\Http\Controllers\LearnerGameProfileController;
 use App\Http\Controllers\LearnerGameSaveController;
@@ -153,6 +154,7 @@ Route::prefix('learners')->group(function (): void {
 Route::prefix('learners')->middleware('learner.auth')->group(function (): void {
     Route::get('/session', [LearnerAuthController::class, 'show']);
     Route::post('/logout', [LearnerAuthController::class, 'destroy']);
+    Route::post('/assessments/diagnostic/skip', LearnerDiagnosticSkipController::class);
     Route::get('/experience/settings', [LearnerExperienceController::class, 'show']);
     Route::get('/games/profile', [LearnerGameProfileController::class, 'show']);
     Route::post('/games/profile', [LearnerGameProfileController::class, 'store']);

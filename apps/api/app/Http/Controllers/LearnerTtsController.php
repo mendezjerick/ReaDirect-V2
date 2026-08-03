@@ -32,9 +32,15 @@ final class LearnerTtsController extends Controller
     public function activityManifest(Request $request): JsonResponse
     {
         $session = $this->sessionResolver->resolve($request);
+        $activity = $request->validate([
+            'activity' => ['required', 'string', 'max:80'],
+        ])['activity'];
 
         try {
-            $manifest = $this->activitySpeechManifest->forSession($session);
+            $manifest = $this->activitySpeechManifest->forSession(
+                $session,
+                $activity,
+            );
         } catch (DomainException $error) {
             return response()->json(['message' => $error->getMessage()], 409);
         }
@@ -47,9 +53,15 @@ final class LearnerTtsController extends Controller
     public function activityReadiness(Request $request): JsonResponse
     {
         $session = $this->sessionResolver->resolve($request);
+        $activity = $request->validate([
+            'activity' => ['required', 'string', 'max:80'],
+        ])['activity'];
 
         try {
-            $readiness = $this->activitySpeechPreparation->prepareForSession($session);
+            $readiness = $this->activitySpeechPreparation->prepareForSession(
+                $session,
+                $activity,
+            );
         } catch (DomainException $error) {
             return response()->json(['message' => $error->getMessage()], 409);
         }

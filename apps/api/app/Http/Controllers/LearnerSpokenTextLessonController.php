@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LearnerAchievement;
 use App\Models\LessonItemAttempt;
 use App\Models\LessonResponse;
 use App\Models\LessonRun;
 use App\Services\LearnerAssessmentAsr;
+use App\Services\LearnerLessonAccessService;
+use App\Services\LearnerLessonCompletionService;
 use App\Services\LearnerSessionResolver;
 use App\Services\LessonContentCatalog;
 use App\Services\LessonPracticeTryService;
@@ -26,6 +27,8 @@ abstract class LearnerSpokenTextLessonController extends Controller
 {
     public function __construct(
         protected readonly LearnerSessionResolver $sessions,
+        protected readonly LearnerLessonAccessService $lessonAccess,
+        protected readonly LearnerLessonCompletionService $lessonCompletion,
         protected readonly LessonContentCatalog $content,
         protected readonly LearnerAssessmentAsr $asr,
         protected readonly SpeechEquivalenceResolver $equivalenceResolver,
@@ -57,63 +60,11 @@ abstract class LearnerSpokenTextLessonController extends Controller
     public function start(Request $request): JsonResponse
     {
         $session = $this->sessions->resolve($request);
-        $progress = $session->learner->progressState;
-        if ($progress?->stage === 'required_lessons'
-            && (int) $progress->current_required_lesson_order > $this->lessonNumber()) {
-            $completedRun = LessonRun::query()
-                ->where('learner_id', $session->learner_id)
-                ->where('lesson_key', $this->lessonKey())
-                ->where('status', LessonRun::STATUS_COMPLETED)
-                ->latest('completed_at')
-                ->latest('id')
-                ->first();
-
-            abort_unless(
-                $completedRun,
-                409,
-                "Lesson {$this->lessonNumber()} is not the learner's current required lesson.",
-            );
-
-            return response()->json($this->serialize($completedRun));
-        }
-
-        abort_unless(
-            $progress?->stage === 'required_lessons'
-                && (int) $progress->current_required_lesson_order === $this->lessonNumber(),
-            409,
-            "Lesson {$this->lessonNumber()} is not the learner's current required lesson.",
+        $run = $this->lessonAccess->startOrResume(
+            $session->learner,
+            $this->lessonKey(),
+            fn (): array => $this->contentSnapshot($session->learner_id),
         );
-
-        $run = DB::transaction(function () use ($session): LessonRun {
-            DB::table('learners')
-                ->where('id', $session->learner_id)
-                ->lockForUpdate()
-                ->first();
-
-            $activeRun = LessonRun::query()
-                ->where('learner_id', $session->learner_id)
-                ->where('lesson_key', $this->lessonKey())
-                ->whereIn('status', [
-                    LessonRun::STATUS_ACTIVE,
-                    LessonRun::STATUS_REVIEW,
-                ])
-                ->latest('id')
-                ->first();
-
-            if ($activeRun) {
-                return $activeRun;
-            }
-
-            return LessonRun::query()->create([
-                'learner_id' => $session->learner_id,
-                'lesson_key' => $this->lessonKey(),
-                'content_version' => 'v1',
-                'status' => LessonRun::STATUS_ACTIVE,
-                'mission_key' => 'mission-1',
-                'current_item_index' => 0,
-                'content_snapshot' => $this->contentSnapshot($session->learner_id),
-            ]);
-        });
 
         return response()->json($this->serialize($run));
     }
@@ -427,6 +378,7 @@ abstract class LearnerSpokenTextLessonController extends Controller
                 && $run->lesson_key === $this->lessonKey(),
             404,
         );
+        $this->lessonAccess->authorize($session->learner);
 
         return $run;
     }
@@ -492,30 +444,9 @@ abstract class LearnerSpokenTextLessonController extends Controller
 
     private function completeRun(LessonRun $run): void
     {
-        $run->forceFill([
-            'status' => LessonRun::STATUS_COMPLETED,
-            'completed_at' => now(),
-        ])->save();
-        $progress = $run->learner->progressState;
-        if ($progress) {
-            $progress->forceFill([
-                'stage' => 'required_lessons',
-                'current_required_lesson_order' => max(
-                    $this->lessonNumber() + 1,
-                    (int) $progress->current_required_lesson_order,
-                ),
-                'last_confirmed_at' => now(),
-            ])->save();
-        }
-        LearnerAchievement::query()->firstOrCreate(
-            [
-                'learner_id' => $run->learner_id,
-                'achievement_key' => $this->achievementKey(),
-            ],
-            [
-                'awarded_at' => now(),
-                'evidence' => ['lesson_run_id' => $run->id],
-            ],
+        $this->lessonCompletion->complete(
+            $run,
+            $this->achievementKey(),
         );
     }
 
@@ -800,14 +731,14 @@ abstract class LearnerSpokenTextLessonController extends Controller
             },
         )->values()->all();
 
-        return [
+        return $this->lessonCompletion->completionPayload($run, [
             'title' => "Lesson {$this->lessonNumber()} complete.",
             'achievement_key' => $this->achievementKey(),
             'achievement_name' => $this->achievementName(),
             'score' => $this->masteryScore($responses),
             'maximum' => $responses->count(),
             'segments' => $segments,
-        ];
+        ]);
     }
 
     protected function masteryScore(iterable $responses): int

@@ -13,6 +13,7 @@ describe("staff realtime invalidation", () => {
         "schools",
         "teachers",
         "learners",
+        "learner-detail",
         "operations",
       ]),
     ).toEqual([
@@ -20,6 +21,7 @@ describe("staff realtime invalidation", () => {
       ["system-admin-schools"],
       ["system-admin-teachers"],
       ["system-admin-learners"],
+      ["system-admin-page-portals"],
       ["system-admin-operations"],
     ]);
   });

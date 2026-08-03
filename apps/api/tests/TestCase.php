@@ -363,6 +363,7 @@ abstract class TestCase extends BaseTestCase
             $table->string('assessment_type', 16)->default('diagnostic');
             $table->string('content_version', 24)->default('v1');
             $table->string('status', 24)->default('active');
+            $table->string('completion_mode', 24)->default('standard');
             $table->string('stage', 40)->default('orientation');
             $table->unsignedTinyInteger('current_item_index')->default(0);
             $table->json('content_snapshot');
@@ -384,6 +385,7 @@ abstract class TestCase extends BaseTestCase
             $table->timestamp('story_selected_at')->nullable();
             $table->timestamp('part_two_completed_at')->nullable();
             $table->timestamp('assessment_completed_at')->nullable();
+            $table->timestamp('skipped_at')->nullable();
             $table->timestamps();
         });
 

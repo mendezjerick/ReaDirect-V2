@@ -37,6 +37,15 @@ const directoryResponse = {
         final_assessment_completed: false,
         last_confirmed_at: "2026-07-29T10:00:00+00:00",
       },
+      reading_path: {
+        diagnostic: { status: "completed", score: 72 },
+        lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+          order,
+          status: order === 5 ? "completed" : "not_started",
+        })),
+        completed_lesson_count: 1,
+        final_assessment: { status: "locked" },
+      },
       created_at: "2026-07-20T10:00:00+00:00",
     },
     {
@@ -54,6 +63,15 @@ const directoryResponse = {
         diagnostic_completed: true,
         final_assessment_completed: true,
         last_confirmed_at: "2026-07-28T10:00:00+00:00",
+      },
+      reading_path: {
+        diagnostic: { status: "completed", score: 88 },
+        lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+          order,
+          status: "completed",
+        })),
+        completed_lesson_count: 6,
+        final_assessment: { status: "completed" },
       },
       created_at: "2026-07-21T10:00:00+00:00",
     },
@@ -77,6 +95,15 @@ const directoryResponse = {
         diagnostic_completed: false,
         final_assessment_completed: false,
         last_confirmed_at: null,
+      },
+      reading_path: {
+        diagnostic: { status: "required", score: null },
+        lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+          order,
+          status: "not_started",
+        })),
+        completed_lesson_count: 0,
+        final_assessment: { status: "locked" },
       },
       created_at: "2026-07-22T10:00:00+00:00",
     },
@@ -122,8 +149,8 @@ describe("SystemAdminLearnersPage", () => {
     expect(await screen.findByText("Ana Santos")).toBeVisible();
     expect(screen.getByText("Ben Reyes")).toBeVisible();
     expect(screen.getByText("Cara Lim")).toBeVisible();
-    expect(screen.getByText("Lesson 3")).toBeVisible();
-    expect(screen.getByText("Reading journey complete")).toBeVisible();
+    expect(screen.getByText(/Reading lessons · 1 of 6 complete/)).toBeVisible();
+    expect(screen.getByText("Reading Journey complete")).toBeVisible();
     expect(screen.getByText("Inactive Teacher account")).toBeVisible();
     expect(
       screen.getByText("1 Learner is not assigned to a Teacher."),

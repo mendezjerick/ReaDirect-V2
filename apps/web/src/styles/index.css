@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "@readirect/design-tokens/colors.css";
 @import "@readirect/design-tokens/themes/t2.css";
+@import "@readirect/design-tokens/themes/t3.css";
 @import "@readirect/design-tokens/effects.css";
 
 @font-face {
@@ -170,6 +171,14 @@ button {
   box-shadow: 0 8px 0 var(--color-action-primary-depth);
 }
 
+.big-button--completed {
+  border-width: 3px;
+  border-color: var(--color-button-completed-border);
+  color: var(--color-button-completed-text);
+  background: var(--color-button-completed-surface);
+  box-shadow: 0 8px 0 var(--color-button-completed-depth);
+}
+
 .big-button--unavailable {
   border-width: 3px;
   border-color: var(--color-button-unavailable-border);
@@ -253,6 +262,10 @@ button {
   background: var(--color-action-primary-hover);
 }
 
+.big-button--completed:not(:disabled):hover {
+  background: var(--color-button-completed-hover);
+}
+
 .big-button--primary-vertical:not(:disabled):hover {
   background: var(--color-action-primary-hover);
 }
@@ -276,6 +289,13 @@ button {
   transform: translateY(6px);
   background: var(--color-action-primary-pressed);
   box-shadow: 0 2px 0 var(--color-action-primary-depth);
+}
+
+.big-button--completed:active,
+.big-button--completed[data-press-state="committing"] {
+  transform: translateY(6px);
+  background: var(--color-button-completed-pressed);
+  box-shadow: 0 2px 0 var(--color-button-completed-depth);
 }
 
 .big-button--skip-vertical:active,
@@ -4375,6 +4395,10 @@ textarea.staff-field__control {
 
 .theme-selector__choice[data-theme-option="t2"] {
   background-image: var(--asset-theme-t2-preview);
+}
+
+.theme-selector__choice[data-theme-option="t3"] {
+  background-image: var(--asset-theme-t3-preview);
 }
 
 .theme-selector__choice:hover {

@@ -635,8 +635,15 @@ final class TeacherLearnerTest extends TestCase
             ->assertJsonPath('class_context.grade_level', 1)
             ->assertJsonPath('class_context.section', 'Maple')
             ->assertJsonPath('progression.stage', 'required_lessons')
+            ->assertJsonPath(
+                'progression.stage_label',
+                'Reading lessons · 1 of 6 complete',
+            )
             ->assertJsonPath('progression.current_required_lesson_order', 3)
+            ->assertJsonPath('reading_path.completed_lesson_count', 1)
+            ->assertJsonPath('reading_path.lessons.1.status', 'completed')
             ->assertJsonPath('assessments.diagnostic.part_one_score', 25)
+            ->assertJsonPath('assessments.diagnostic.completion_mode', 'standard')
             ->assertJsonPath('assessments.diagnostic.final_reading_profile', 'Transitioning Reader')
             ->assertJsonPath('assessments.final', null)
             ->assertJsonCount(1, 'skipped_assessment_items')

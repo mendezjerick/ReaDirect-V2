@@ -22,6 +22,7 @@ import {
   clearStaffSession,
   getSystemAdminLearners,
 } from "../staff-auth/staffApi";
+import { readingPathStageLabel, readingPathSummary } from "./readingPathLabels";
 
 type AccountFilter = "all" | "active" | "inactive";
 
@@ -59,38 +60,6 @@ function FinalIcon() {
   );
 }
 
-function progressLabel(
-  stage: string,
-  currentRequiredLessonOrder: number | null,
-): string {
-  if (stage === "before_diagnostic") {
-    return "Before Diagnostic Assessment";
-  }
-
-  if (stage === "final_assessment") {
-    return "Final Assessment";
-  }
-
-  if (stage === "reading_journey_complete") {
-    return "Reading journey complete";
-  }
-
-  if (currentRequiredLessonOrder !== null) {
-    return `Lesson ${currentRequiredLessonOrder}`;
-  }
-
-  const lessonMatch = /^required-lesson-(\d+)$/.exec(stage);
-  if (lessonMatch) {
-    return `Lesson ${lessonMatch[1]}`;
-  }
-
-  return stage
-    .split(/[_-]/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 export function SystemAdminLearnersPage() {
   const navigate = useNavigate();
   const exitCommit = useButtonCommit();
@@ -115,10 +84,8 @@ export function SystemAdminLearnersPage() {
         learner.teacher?.username,
         learner.grade_level === null ? null : `grade ${learner.grade_level}`,
         learner.section,
-        progressLabel(
-          learner.progress.stage,
-          learner.progress.current_required_lesson_order,
-        ),
+        readingPathStageLabel(learner.reading_path),
+        readingPathSummary(learner.reading_path),
       ]
         .filter(Boolean)
         .join(" ")
@@ -328,18 +295,9 @@ export function SystemAdminLearnersPage() {
                   render: (learner) => (
                     <span className="staff-data-table__primary">
                       <strong>
-                        {progressLabel(
-                          learner.progress.stage,
-                          learner.progress.current_required_lesson_order,
-                        )}
+                        {readingPathStageLabel(learner.reading_path)}
                       </strong>
-                      <small>
-                        {learner.progress.final_assessment_completed
-                          ? "Final Assessment completed"
-                          : learner.progress.diagnostic_completed
-                            ? "Diagnostic completed"
-                            : "Diagnostic pending"}
-                      </small>
+                      <small>{readingPathSummary(learner.reading_path)}</small>
                     </span>
                   ),
                 },

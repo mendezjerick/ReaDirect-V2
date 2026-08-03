@@ -123,7 +123,10 @@ final class TeacherReportTest extends TestCase
             ->assertJsonPath('summary.with_review_evidence', 1)
             ->assertJsonCount(1, 'learners')
             ->assertJsonPath('learners.0.learner_code', 'AA000')
-            ->assertJsonPath('learners.0.stage_label', 'Required lessons')
+            ->assertJsonPath(
+                'learners.0.stage_label',
+                'Reading lessons · 2 of 6 complete',
+            )
             ->assertJsonPath('learners.0.diagnostic.score', 81)
             ->assertJsonPath('learners.0.required_lessons_completed', 2)
             ->assertJsonPath('learners.0.final.status', 'not_started')

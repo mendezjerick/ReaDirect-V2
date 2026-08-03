@@ -7,6 +7,7 @@ use App\Models\AssessmentRun;
 use App\Models\LearnerAchievement;
 use App\Services\LearnerAssessmentAsr;
 use App\Services\LearnerAssessmentCompletionService;
+use App\Services\LearnerFinalAssessmentAccessService;
 use App\Services\LearnerSessionResolver;
 use App\Services\PassageReadingResultService;
 use App\Services\SpeechEquivalenceResolver;
@@ -46,12 +47,16 @@ final class LearnerAssessmentPartTwoController extends Controller
         private readonly SpeechEquivalenceResolver $equivalenceResolver,
         private readonly PassageReadingResultService $passageResults,
         private readonly LearnerAssessmentCompletionService $completion,
+        private readonly LearnerFinalAssessmentAccessService $finalAssessmentAccess,
     ) {}
 
     public function show(Request $request): JsonResponse
     {
         $session = $this->sessionResolver->resolve($request);
         $assessmentType = $this->assessmentType($request);
+        if ($assessmentType === AssessmentRun::TYPE_FINAL) {
+            $this->finalAssessmentAccess->authorize($session->learner);
+        }
         $run = AssessmentRun::query()
             ->where('learner_id', $session->learner_id)
             ->where('assessment_type', $assessmentType)
@@ -415,10 +420,14 @@ final class LearnerAssessmentPartTwoController extends Controller
     private function resolveRun(Request $request): AssessmentRun
     {
         $session = $this->sessionResolver->resolve($request);
+        $assessmentType = $this->assessmentType($request);
+        if ($assessmentType === AssessmentRun::TYPE_FINAL) {
+            $this->finalAssessmentAccess->authorize($session->learner);
+        }
         $run = AssessmentRun::query()
             ->whereKey($request->route('assessmentRun'))
             ->where('learner_id', $session->learner_id)
-            ->where('assessment_type', $this->assessmentType($request))
+            ->where('assessment_type', $assessmentType)
             ->where(function ($query): void {
                 $query
                     ->where('status', AssessmentRun::STATUS_ACTIVE)

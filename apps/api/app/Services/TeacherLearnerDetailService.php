@@ -13,6 +13,10 @@ use Illuminate\Support\Collection;
 
 final class TeacherLearnerDetailService
 {
+    public function __construct(
+        private readonly LearnerReadingPathService $readingPaths,
+    ) {}
+
     /** @var array<string, array{order: int, title: string}> */
     private const LESSONS = [
         'required-lesson-1' => ['order' => 1, 'title' => 'Letter names'],
@@ -40,6 +44,7 @@ final class TeacherLearnerDetailService
         $progress = LearnerProgressState::query()
             ->where('learner_id', $learner->id)
             ->first();
+        $readingPath = $this->readingPaths->snapshot($learner, $progress);
 
         $assessmentRuns = AssessmentRun::query()
             ->with(['responses' => fn ($query) => $query->orderBy('item_order')])
@@ -188,13 +193,14 @@ final class TeacherLearnerDetailService
                 'stage_label' => $this->stageLabel(
                     $progress?->stage
                         ?? LearnerProgressState::BASELINE_STAGE,
-                    $progress?->current_required_lesson_order,
+                    $readingPath,
                 ),
                 'current_required_lesson_order' => $progress?->current_required_lesson_order,
                 'diagnostic_completed_at' => $progress?->diagnostic_completed_at?->toIso8601String(),
                 'final_assessment_completed_at' => $progress?->final_assessment_completed_at?->toIso8601String(),
                 'last_confirmed_at' => $progress?->last_confirmed_at?->toIso8601String(),
             ],
+            'reading_path' => $readingPath,
             'assessments' => $assessmentSummaries,
             'skipped_assessment_items' => $skippedAssessmentItems->all(),
             'lessons' => $lessons->all(),
@@ -214,6 +220,8 @@ final class TeacherLearnerDetailService
             'run_id' => $run->id,
             'assessment_type' => $run->assessment_type,
             'status' => $run->status,
+            'completion_mode' => $run->completion_mode
+                ?? AssessmentRun::COMPLETION_MODE_STANDARD,
             'stage' => $run->stage,
             'part_one_branch' => $run->part_one_branch,
             'task_scores' => [
@@ -469,15 +477,13 @@ final class TeacherLearnerDetailService
 
     private function stageLabel(
         string $stage,
-        ?int $currentLessonOrder,
+        array $readingPath,
     ): string {
         return match ($stage) {
             LearnerProgressState::BASELINE_STAGE => 'Diagnostic Assessment not started',
             'diagnostic_assessment' => 'Diagnostic Assessment in progress',
-            'required_lessons' => $currentLessonOrder
-                ? "Required Lesson {$currentLessonOrder}"
-                : 'Required lessons',
-            LearnerProgressState::FINAL_ASSESSMENT_STAGE => 'Final Assessment',
+            'required_lessons' => "Reading lessons · {$readingPath['completed_lesson_count']} of 6 complete",
+            LearnerProgressState::FINAL_ASSESSMENT_STAGE => 'Final Assessment ready',
             LearnerProgressState::READING_JOURNEY_COMPLETE_STAGE => 'Reading journey complete',
             default => $this->humanize($stage),
         };

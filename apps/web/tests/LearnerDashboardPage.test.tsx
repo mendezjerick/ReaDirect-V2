@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -17,28 +17,11 @@ import { RouteTransitionProvider } from "../src/components/transitions/RouteTran
 import { createAppQueryClient } from "../src/app/queryClient";
 
 const claraSpeechMocks = vi.hoisted(() => ({
-  prepare: vi.fn().mockResolvedValue(new Blob()),
   unlock: vi.fn(),
 }));
 
-const activitySpeechMocks = vi.hoisted(() => ({
-  prepare: vi.fn().mockResolvedValue({
-    activity: "assessment-part-one",
-    ready: true,
-  }),
-  clear: vi.fn(),
-}));
-
 vi.mock("../src/features/clara-audio/claraSpeech", () => ({
-  prepareClaraSpeech: claraSpeechMocks.prepare,
   unlockClaraAudio: claraSpeechMocks.unlock,
-}));
-
-vi.mock("../src/features/clara-audio/activitySpeechReadiness", () => ({
-  activitySpeechScopeForProgress: (progress: { stage: string }) =>
-    progress.stage === "required_lessons" ? "lesson-1" : "assessment-part-one",
-  prepareActivitySpeech: activitySpeechMocks.prepare,
-  clearActivitySpeechPreparation: activitySpeechMocks.clear,
 }));
 
 const learnerSession = {
@@ -61,8 +44,33 @@ const learnerSession = {
 };
 
 function renderDashboard(stage = "before_diagnostic") {
+  const completedLessonCount = [
+    "final_assessment",
+    "reading_journey_complete",
+  ].includes(stage)
+    ? 6
+    : 0;
   const activeSession = {
     ...learnerSession,
+    reading_path: {
+      diagnostic: {
+        status: stage === "before_diagnostic" ? "required" : "completed",
+        score: stage === "before_diagnostic" ? null : 8,
+      },
+      lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+        order,
+        status: order <= completedLessonCount ? "completed" : "not_started",
+      })),
+      completed_lesson_count: completedLessonCount,
+      final_assessment: {
+        status:
+          stage === "reading_journey_complete"
+            ? "completed"
+            : stage === "final_assessment"
+              ? "available"
+              : "locked",
+      },
+    },
     learner: {
       ...learnerSession.learner,
       progress: {
@@ -131,7 +139,7 @@ describe("LearnerDashboardPage", () => {
       "learner-dashboard__header-surface",
     );
     const primaryAction = screen.getByRole("button", {
-      name: /start diagnostic assessment/i,
+      name: /open reading journey/i,
     });
     const gameAction = screen.getByRole("button", {
       name: /open game lobby/i,
@@ -139,7 +147,9 @@ describe("LearnerDashboardPage", () => {
 
     expect(primaryAction).toHaveClass("learner-dashboard__primary-action");
     expect(gameAction).toHaveClass("learner-dashboard__games-action");
-    expect(screen.getByText(/open your lessons/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/start with the diagnostic assessment/i),
+    ).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(8);
     expect(
       screen.getByRole("listitem", {
@@ -219,44 +229,38 @@ describe("LearnerDashboardPage", () => {
     expect(screen.getByText("Lobby route")).toBeInTheDocument();
   });
 
-  it("prepares Clara and opens Lesson Intro from the primary action", async () => {
+  it("opens the Reading Journey without preparing Clara", () => {
     renderDashboard();
 
     fireEvent.click(
-      screen.getByRole("button", { name: /start diagnostic assessment/i }),
+      screen.getByRole("button", { name: /open reading journey/i }),
     );
 
-    expect(claraSpeechMocks.unlock).toHaveBeenCalledOnce();
-    expect(claraSpeechMocks.prepare).toHaveBeenCalledWith(
-      "lesson-intro",
-      "learner-token",
-    );
-    await waitFor(() =>
-      expect(activitySpeechMocks.prepare).toHaveBeenCalledWith(
-        "learner-token",
-        "assessment-part-one",
-      ),
-    );
+    expect(claraSpeechMocks.unlock).not.toHaveBeenCalled();
     expect(screen.getByText("Lesson intro route")).toBeInTheDocument();
   });
 
-  it("presents the Final Assessment as the next required action", () => {
+  it("opens the journey when the Final Assessment is available", () => {
     renderDashboard("final_assessment");
 
     expect(
-      screen.getByRole("button", { name: "Start Final Assessment" }),
+      screen.getByRole("button", { name: "Open Reading Journey" }),
     ).toBeEnabled();
-    expect(screen.getByText("Your Final Assessment is ready.")).toBeVisible();
+    expect(
+      screen.getByText(
+        "6 of 6 lessons complete. Choose any available activity.",
+      ),
+    ).toBeVisible();
   });
 
-  it("settles into a non-restarting state after the Reading Journey", () => {
+  it("keeps the completed Reading Journey available for review", () => {
     renderDashboard("reading_journey_complete");
 
     expect(
-      screen.getByRole("button", { name: "Reading Journey complete" }),
-    ).toBeDisabled();
+      screen.getByRole("button", { name: "Open Reading Journey" }),
+    ).toBeEnabled();
     expect(
-      screen.getByText("You completed all eight reading milestones."),
+      screen.getByText(/you can still review your journey/i),
     ).toBeVisible();
   });
 });

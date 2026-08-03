@@ -13,7 +13,7 @@ export type ActivitySpeechPreparationStatus =
 
 export function useActivitySpeechPreparation(
   token: string | undefined,
-  scope: string,
+  activity: string,
   enabled = true,
 ) {
   const [attempt, setAttempt] = useState(0);
@@ -38,7 +38,7 @@ export function useActivitySpeechPreparation(
     setReadiness(null);
     setError("");
 
-    void getActivitySpeechManifest(token, scope)
+    void getActivitySpeechManifest(token, activity)
       .then((result) => {
         if (active) {
           setManifest(result);
@@ -46,7 +46,7 @@ export function useActivitySpeechPreparation(
       })
       .catch(() => undefined);
 
-    void prepareActivitySpeech(token, scope)
+    void prepareActivitySpeech(token, activity)
       .then((result) => {
         if (active) {
           setReadiness(result);
@@ -67,14 +67,14 @@ export function useActivitySpeechPreparation(
     return () => {
       active = false;
     };
-  }, [attempt, enabled, scope, token]);
+  }, [activity, attempt, enabled, token]);
 
   const retry = useCallback(() => {
     if (token) {
-      clearActivitySpeechPreparation(token, scope);
+      clearActivitySpeechPreparation(token, activity);
     }
     setAttempt((current) => current + 1);
-  }, [scope, token]);
+  }, [activity, token]);
 
   return {
     status,

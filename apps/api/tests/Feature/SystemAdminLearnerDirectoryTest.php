@@ -86,6 +86,8 @@ final class SystemAdminLearnerDirectoryTest extends TestCase
             ->assertJsonPath('learners.0.progress.current_required_lesson_order', 3)
             ->assertJsonPath('learners.0.progress.diagnostic_completed', true)
             ->assertJsonPath('learners.0.progress.final_assessment_completed', false)
+            ->assertJsonPath('learners.0.reading_path.completed_lesson_count', 0)
+            ->assertJsonPath('learners.0.reading_path.final_assessment.status', 'locked')
             ->assertJsonPath('learners.1.learner_code', 'BB001')
             ->assertJsonPath('learners.1.is_active', false)
             ->assertJsonPath('learners.1.teacher', null)
@@ -114,6 +116,7 @@ final class SystemAdminLearnerDirectoryTest extends TestCase
                             'final_assessment_completed',
                             'last_confirmed_at',
                         ],
+                        'reading_path',
                         'created_at',
                     ],
                 ],

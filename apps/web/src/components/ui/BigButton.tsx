@@ -2,6 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type BigButtonVariant =
   | "primary"
+  | "completed"
   | "primary-vertical"
   | "unavailable"
   | "unavailable-vertical"

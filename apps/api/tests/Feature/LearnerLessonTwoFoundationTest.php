@@ -76,20 +76,17 @@ final class LearnerLessonTwoFoundationTest extends TestCase
         $this->assertDatabaseCount('lesson_runs', 1);
     }
 
-    public function test_start_rejects_a_learner_whose_current_required_lesson_is_not_two(): void
+    public function test_start_allows_lesson_two_regardless_of_the_legacy_cursor(): void
     {
         [$token] = $this->learnerSession('B', 1);
 
         $this->withToken($token)
             ->postJson('/api/learners/lessons/lesson-2/start')
-            ->assertStatus(409)
-            ->assertJsonPath(
-                'message',
-                'Lesson 2 is not the learner\'s current required lesson.',
-            );
+            ->assertOk()
+            ->assertJsonPath('lesson_key', 'required-lesson-2')
+            ->assertJsonPath('status', LessonRun::STATUS_ACTIVE);
 
-        $this->assertDatabaseCount('lesson_runs', 0);
-        $this->assertDatabaseCount('lesson_target_exposures', 0);
+        $this->assertDatabaseCount('lesson_runs', 1);
     }
 
     public function test_lesson_two_runs_remain_owned_by_the_authenticated_learner(): void

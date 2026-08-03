@@ -39,6 +39,7 @@ describe("SchoolAdminInstructionalInsightsPage", () => {
             active_learners: 18,
             learners_with_evidence: 7,
             assessment_skips: 5,
+            whole_diagnostic_skips: 2,
             lesson_skips: 2,
             review_recommended_items: 3,
             teaching_priorities: 1,

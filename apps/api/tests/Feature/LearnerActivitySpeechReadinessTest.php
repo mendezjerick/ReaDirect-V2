@@ -30,7 +30,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         [, $token] = $this->learnerSession('before_diagnostic');
 
         $this->withToken($token)
-            ->postJson('/api/learners/tts/activity-readiness')
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'assessment-part-one',
+            ])
             ->assertOk()
             ->assertJsonPath('activity', 'assessment-part-one')
             ->assertJsonPath('ready', true)
@@ -57,7 +59,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->postJson('/api/learners/tts/activity-readiness')
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'lesson-1',
+            ])
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-1')
             ->assertJsonPath('ready', true)
@@ -87,7 +91,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->postJson('/api/learners/tts/activity-readiness')
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'lesson-2',
+            ])
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-2')
             ->assertJsonPath('ready', true)
@@ -115,7 +121,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->postJson('/api/learners/tts/activity-readiness')
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'lesson-3',
+            ])
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-3')
             ->assertJsonPath('ready', true)
@@ -141,7 +149,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->postJson('/api/learners/tts/activity-readiness')
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'lesson-4',
+            ])
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-4')
             ->assertJsonPath('ready', true)
@@ -154,9 +164,8 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         ]);
     }
 
-    public function test_browser_payload_cannot_replace_the_server_resolved_activity(): void
+    public function test_explicit_lesson_request_is_rejected_before_diagnostic(): void
     {
-        $this->publishActivity('assessment-part-one');
         [, $token] = $this->learnerSession('before_diagnostic');
 
         $this->withToken($token)
@@ -165,10 +174,11 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
                 'runtime_profiles' => ['result'],
                 'published_groups' => ['lesson-1-fixed'],
             ])
-            ->assertOk()
-            ->assertJsonPath('activity', 'assessment-part-one')
-            ->assertJsonPath('runtime_required', false)
-            ->assertJsonPath('runtime_profiles', []);
+            ->assertStatus(409)
+            ->assertJsonPath(
+                'message',
+                'The requested activity is not available for this learner.',
+            );
 
         Http::assertNothingSent();
     }
@@ -186,7 +196,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         );
 
         $this->withToken($token)
-            ->postJson('/api/learners/tts/activity-readiness')
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'lesson-1',
+            ])
             ->assertServiceUnavailable()
             ->assertJsonPath('activity', 'lesson-1')
             ->assertJsonPath('ready', false)
@@ -207,7 +219,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->postJson('/api/learners/tts/activity-readiness')
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'lesson-1',
+            ])
             ->assertServiceUnavailable()
             ->assertJsonPath('activity', 'lesson-1')
             ->assertJsonPath('ready', false)
@@ -238,7 +252,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->postJson('/api/learners/tts/activity-readiness')
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'assessment-part-two',
+            ])
             ->assertOk()
             ->assertJsonPath('activity', 'assessment-part-two')
             ->assertJsonPath('ready', true)

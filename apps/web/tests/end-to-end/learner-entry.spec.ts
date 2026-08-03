@@ -1,6 +1,18 @@
 import { expect, test } from "@playwright/test";
+import type { LearnerReadingPath } from "../../src/features/learner-auth/learnerApi";
+
+const freshReadingPath: LearnerReadingPath = {
+  diagnostic: { status: "required", score: null },
+  lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
+    order: order as 1 | 2 | 3 | 4 | 5 | 6,
+    status: "not_started",
+  })),
+  completed_lesson_count: 0,
+  final_assessment: { status: "locked" },
+};
 
 const learnerSession = {
+  reading_path: freshReadingPath,
   learner: {
     id: 10,
     learner_code: "KW000",
@@ -21,7 +33,24 @@ const learnerSession = {
 test("Learner entry stays focused and opens the saved learner dashboard", async ({
   page,
 }) => {
+  let readingPath = freshReadingPath;
   await page.route("**/api/learners/**", async (route) => {
+    if (
+      route.request().method() === "POST" &&
+      route.request().url().endsWith("/assessments/diagnostic/skip")
+    ) {
+      readingPath = {
+        ...freshReadingPath,
+        diagnostic: { status: "skipped", score: 0 },
+      };
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ reading_path: readingPath }),
+      });
+      return;
+    }
+
     if (
       route.request().method() === "POST" &&
       route.request().url().endsWith("/login")
@@ -29,7 +58,11 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ token: "learner-e2e-token", ...learnerSession }),
+        body: JSON.stringify({
+          token: "learner-e2e-token",
+          ...learnerSession,
+          reading_path: readingPath,
+        }),
       });
       return;
     }
@@ -37,7 +70,7 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(learnerSession),
+      body: JSON.stringify({ ...learnerSession, reading_path: readingPath }),
     });
   });
 
@@ -65,7 +98,7 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
   await expect(routeTransition).toBeHidden();
   await expect(page.getByText("KW000")).toBeVisible();
   const primaryActionFontSize = await page
-    .getByRole("button", { name: "Start Diagnostic Assessment" })
+    .getByRole("button", { name: "Open Reading Journey" })
     .evaluate((element) => window.getComputedStyle(element).fontSize);
   expect(Number.parseFloat(primaryActionFontSize)).toBeGreaterThanOrEqual(30);
   await expect(page.locator("main.learner-flow-page")).toHaveCSS(
@@ -86,4 +119,43 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
     scrollWidth: document.documentElement.scrollWidth,
   }));
   expect(pageSize.scrollWidth).toBeLessThanOrEqual(pageSize.clientWidth);
+
+  await page.getByRole("button", { name: "Open Reading Journey" }).click();
+  await expect(page).toHaveURL(/\/learner\/lesson-intro$/);
+  await expect(
+    page.getByRole("heading", { name: "My Reading Journey" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("0 of 6 lessons complete")).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "Diagnostic Assessment. Start. Find your best starting point",
+    }),
+  ).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: /Lesson 1\. Locked/ }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: /Final Assessment\. Locked/ }),
+  ).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(0);
+  await expect(page.locator(".clara-stage, .clara-speech-loader")).toHaveCount(
+    0,
+  );
+
+  await page.getByRole("button", { name: "Skip Diagnostic" }).click();
+  const skipDialog = page.getByRole("alertdialog", {
+    name: "Skip the Diagnostic?",
+  });
+  await expect(skipDialog).toContainText("score of 0");
+  await skipDialog
+    .getByRole("button", { name: "Skip and unlock lessons" })
+    .click();
+  await expect(page.getByText("Skipped · Score 0")).toBeVisible();
+  for (const order of [1, 2, 3, 4, 5, 6]) {
+    await expect(
+      page.getByRole("button", {
+        name: `Lesson ${order}. Start. Ready when you are`,
+      }),
+    ).toBeEnabled();
+  }
 });

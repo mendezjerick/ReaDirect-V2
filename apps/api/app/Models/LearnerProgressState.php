@@ -9,6 +9,8 @@ final class LearnerProgressState extends Model
 {
     public const BASELINE_STAGE = 'before_diagnostic';
 
+    public const REQUIRED_LESSONS_STAGE = 'required_lessons';
+
     public const FINAL_ASSESSMENT_STAGE = 'final_assessment';
 
     public const READING_JOURNEY_COMPLETE_STAGE = 'reading_journey_complete';

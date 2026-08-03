@@ -45,8 +45,8 @@ const readinessRequests = new Map<
   CachedRequest<ActivitySpeechReadiness>
 >();
 
-function cacheKey(token: string, scope: string): string {
-  return `${token}:${scope}`;
+function cacheKey(token: string, activity: string): string {
+  return `${token}:${activity}`;
 }
 
 function cachedRequest<T>(
@@ -80,52 +80,54 @@ function responseMessage(body: unknown): string {
   return "Ma'am Clara could not prepare this activity yet.";
 }
 
-export function activitySpeechScopeForProgress(progress: {
-  stage: string;
-  current_required_lesson_order: number | null;
-}): string {
-  return progress.stage === "required_lessons"
-    ? `lesson-${progress.current_required_lesson_order ?? 1}`
-    : "assessment-part-one";
-}
-
 export function getActivitySpeechManifest(
   token: string,
-  scope: string,
+  activity: string,
 ): Promise<ActivitySpeechManifest> {
-  const key = cacheKey(token, scope);
+  const key = cacheKey(token, activity);
 
   return cachedRequest(manifestRequests, key, async () => {
-    const response = await fetch("/api/learners/tts/activity-manifest", {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
+    const response = await fetch(
+      `/api/learners/tts/activity-manifest?activity=${encodeURIComponent(activity)}`,
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
     const body: unknown = await response.json().catch(() => null);
 
     if (!response.ok) {
       throw new Error(responseMessage(body));
     }
 
-    return activitySpeechManifestSchema.parse(body);
+    const manifest = activitySpeechManifestSchema.parse(body);
+
+    if (manifest.activity !== activity) {
+      throw new Error("Ma'am Clara returned an invalid activity status.");
+    }
+
+    return manifest;
   });
 }
 
 export function prepareActivitySpeech(
   token: string,
-  scope: string,
+  activity: string,
 ): Promise<ActivitySpeechReadiness> {
-  const key = cacheKey(token, scope);
+  const key = cacheKey(token, activity);
 
   return cachedRequest(readinessRequests, key, async () => {
-    await getActivitySpeechManifest(token, scope);
+    await getActivitySpeechManifest(token, activity);
     const response = await fetch("/api/learners/tts/activity-readiness", {
       method: "POST",
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({ activity }),
     });
     const body: unknown = await response.json().catch(() => null);
     const parsed = activitySpeechReadinessSchema.safeParse(body);
@@ -136,6 +138,10 @@ export function prepareActivitySpeech(
           ? "Ma'am Clara returned an invalid activity status."
           : responseMessage(body),
       );
+    }
+
+    if (parsed.data.activity !== activity) {
+      throw new Error("Ma'am Clara returned an invalid activity status.");
     }
 
     if (!response.ok || !parsed.data.ready) {
@@ -150,9 +156,9 @@ export function prepareActivitySpeech(
 
 export function clearActivitySpeechPreparation(
   token?: string,
-  scope?: string,
+  activity?: string,
 ): void {
-  const exactKey = token && scope ? cacheKey(token, scope) : null;
+  const exactKey = token && activity ? cacheKey(token, activity) : null;
   const tokenPrefix = token ? `${token}:` : null;
 
   for (const requests of [manifestRequests, readinessRequests]) {

@@ -6,8 +6,11 @@ use App\Enums\StaffRealtimeTopic;
 use App\Events\StaffDataChanged;
 use App\Models\Learner;
 use App\Models\LearnerProgressState;
+use App\Models\LessonRun;
 use App\Models\School;
 use App\Models\StaffUser;
+use App\Services\LearnerDiagnosticSkipService;
+use App\Services\LearnerLessonCompletionService;
 use App\Services\StaffRealtimePublisher;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Support\Facades\DB;
@@ -118,6 +121,70 @@ final class StaffRealtimeDomainEventsTest extends TestCase
         Event::assertNotDispatched(StaffDataChanged::class);
     }
 
+    public function test_diagnostic_skip_publishes_every_affected_staff_view(): void
+    {
+        $school = $this->school();
+        $teacher = $this->teacher($school);
+        $learner = $this->learner($school, $teacher);
+        LearnerProgressState::query()->create([
+            'learner_id' => $learner->id,
+            'stage' => LearnerProgressState::BASELINE_STAGE,
+        ]);
+        Event::fake([StaffDataChanged::class]);
+
+        app(LearnerDiagnosticSkipService::class)->skip($learner);
+
+        Event::assertDispatched(
+            StaffDataChanged::class,
+            fn (StaffDataChanged $event): bool => $event->topics === [
+                'overview',
+                'learners',
+                'learner-detail',
+                'analytics',
+                'reports',
+                'instructional-insights',
+                'assessment-reviews',
+            ],
+        );
+    }
+
+    public function test_out_of_order_sixth_lesson_completion_publishes_final_ready_state(): void
+    {
+        $school = $this->school();
+        $teacher = $this->teacher($school);
+        $learner = $this->learner($school, $teacher);
+        LearnerProgressState::query()->create([
+            'learner_id' => $learner->id,
+            'stage' => LearnerProgressState::REQUIRED_LESSONS_STAGE,
+            'current_required_lesson_order' => 1,
+            'diagnostic_completed_at' => now()->subDay(),
+        ]);
+
+        foreach ([1, 2, 3, 5, 6] as $order) {
+            $this->lessonRun($learner, $order, LessonRun::STATUS_COMPLETED);
+        }
+        $sixthRun = $this->lessonRun($learner, 4, LessonRun::STATUS_ACTIVE);
+        Event::fake([StaffDataChanged::class]);
+
+        app(LearnerLessonCompletionService::class)->complete(
+            $sixthRun,
+            'reading.sentence_star',
+        );
+
+        $this->assertSame(
+            LearnerProgressState::FINAL_ASSESSMENT_STAGE,
+            $learner->progressState()->firstOrFail()->stage,
+        );
+        Event::assertDispatched(
+            StaffDataChanged::class,
+            fn (StaffDataChanged $event): bool => in_array(
+                'learner-detail',
+                $event->topics,
+                true,
+            ) && in_array('reports', $event->topics, true),
+        );
+    }
+
     public function test_teacher_creation_emits_one_school_scoped_directory_signal(): void
     {
         Event::fake([StaffDataChanged::class]);
@@ -214,6 +281,25 @@ final class StaffRealtimeDomainEventsTest extends TestCase
             'grade_level' => 4,
             'section' => 'Maple',
             'is_active' => true,
+        ]);
+    }
+
+    private function lessonRun(
+        Learner $learner,
+        int $order,
+        string $status,
+    ): LessonRun {
+        return LessonRun::query()->create([
+            'learner_id' => $learner->id,
+            'lesson_key' => "required-lesson-{$order}",
+            'content_version' => 'v1',
+            'status' => $status,
+            'mission_key' => 'mission-1',
+            'current_item_index' => 0,
+            'content_snapshot' => [],
+            'completed_at' => $status === LessonRun::STATUS_COMPLETED
+                ? now()->subMinute()
+                : null,
         ]);
     }
 }

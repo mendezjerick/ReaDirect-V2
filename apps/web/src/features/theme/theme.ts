@@ -3,6 +3,7 @@ export const THEME_STORAGE_KEY = "readirect.theme";
 export const THEME_OPTIONS = [
   { id: "t1", label: "Meadow theme" },
   { id: "t2", label: "Winter theme" },
+  { id: "t3", label: "Dawn theme" },
 ] as const;
 
 export type ThemeId = (typeof THEME_OPTIONS)[number]["id"];

@@ -6,6 +6,7 @@
   "exports": {
     "./colors.css": "./src/colors.css",
     "./effects.css": "./src/effects.css",
-    "./themes/t2.css": "./src/themes/t2.css"
+    "./themes/t2.css": "./src/themes/t2.css",
+    "./themes/t3.css": "./src/themes/t3.css"
   }
 }

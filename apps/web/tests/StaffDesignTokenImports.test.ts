@@ -18,6 +18,9 @@ describe("staff and learner design-token stylesheet foundation", () => {
       '@import "@readirect/design-tokens/themes/t2.css";',
     );
     expect(stylesheet).toContain(
+      '@import "@readirect/design-tokens/themes/t3.css";',
+    );
+    expect(stylesheet).toContain(
       '@import "@readirect/design-tokens/effects.css";',
     );
   });

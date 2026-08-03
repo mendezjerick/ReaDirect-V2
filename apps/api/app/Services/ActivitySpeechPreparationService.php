@@ -31,9 +31,14 @@ final class ActivitySpeechPreparationService
      *     message?: string
      * }
      */
-    public function prepareForSession(LearnerSession $session): array
-    {
-        $manifest = $this->manifestService->forSession($session);
+    public function prepareForSession(
+        LearnerSession $session,
+        string $requestedActivity,
+    ): array {
+        $manifest = $this->manifestService->forSession(
+            $session,
+            $requestedActivity,
+        );
         $published = $this->validatePublishedSpeech($manifest['published_speech_keys']);
         $base = [
             'activity' => $manifest['activity'],

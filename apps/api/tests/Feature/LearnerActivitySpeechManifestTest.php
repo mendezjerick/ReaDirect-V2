@@ -7,6 +7,7 @@ use App\Models\Learner;
 use App\Models\LearnerPortalRun;
 use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
+use App\Models\LessonRun;
 use App\Models\StaffUser;
 use App\Services\ActivitySpeechManifestService;
 use Illuminate\Support\Facades\Config;
@@ -20,7 +21,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         $token = $this->learnerSession('before_diagnostic');
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=assessment-part-one')
             ->assertOk()
             ->assertJsonPath('activity', 'assessment-part-one')
             ->assertJsonPath('published_groups.0', 'assessment-part-one-fixed')
@@ -34,7 +35,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         $token = $this->learnerSession('required_lessons', 1);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=lesson-1')
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-1')
             ->assertJsonPath('published_groups.0', 'lesson-1-fixed')
@@ -48,7 +49,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         $token = $this->learnerSession('required_lessons', 2);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=lesson-2')
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-2')
             ->assertJsonPath('published_groups.0', 'lesson-2-fixed')
@@ -63,7 +64,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         $token = $this->learnerSession('required_lessons', 3);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=lesson-3')
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-3')
             ->assertJsonPath('published_groups.0', 'lesson-3-fixed')
@@ -77,7 +78,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         $token = $this->learnerSession('required_lessons', 4);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=lesson-4')
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-4')
             ->assertJsonPath('published_groups.0', 'lesson-4-fixed')
@@ -91,7 +92,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         $token = $this->learnerSession('required_lessons', 5);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=lesson-5')
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-5')
             ->assertJsonPath('published_groups.0', 'lesson-5-fixed')
@@ -105,7 +106,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         $token = $this->learnerSession('required_lessons', 6);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=lesson-6')
             ->assertOk()
             ->assertJsonPath('activity', 'lesson-6')
             ->assertJsonPath('published_groups.0', 'lesson-6-fixed')
@@ -129,7 +130,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         $this->assertFalse($manifest['requires_runtime']);
     }
 
-    public function test_active_part_two_run_overrides_the_baseline_progress_stage(): void
+    public function test_diagnostic_part_two_is_explicitly_available_before_completion(): void
     {
         [$learner, $token] = $this->learnerSessionRecord('before_diagnostic');
         AssessmentRun::query()->create([
@@ -143,7 +144,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=assessment-part-two')
             ->assertOk()
             ->assertJsonPath('activity', 'assessment-part-two')
             ->assertJsonPath('runtime_profiles', [])
@@ -153,9 +154,10 @@ final class LearnerActivitySpeechManifestTest extends TestCase
     public function test_final_assessment_reuses_part_one_and_has_a_finale_part_two_manifest(): void
     {
         [$learner, $token] = $this->learnerSessionRecord('final_assessment');
+        $this->completeAllLessons($learner);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=assessment-part-one')
             ->assertOk()
             ->assertJsonPath('activity', 'assessment-part-one')
             ->assertJsonCount(32, 'published_speech_keys');
@@ -171,7 +173,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=assessment-final-part-two')
             ->assertOk()
             ->assertJsonPath('activity', 'assessment-final-part-two')
             ->assertJsonPath(
@@ -206,7 +208,7 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=assessment-part-two')
             ->assertOk()
             ->assertJsonPath('activity', 'assessment-part-two')
             ->assertJsonPath('runtime_profiles', [])
@@ -214,17 +216,53 @@ final class LearnerActivitySpeechManifestTest extends TestCase
             ->assertJsonCount(14, 'published_speech_keys');
     }
 
-    public function test_unsupported_progress_does_not_silently_fall_back_to_another_manifest(): void
+    public function test_lesson_request_is_rejected_before_the_diagnostic_gate(): void
     {
-        $token = $this->learnerSession('required_lessons', 7);
+        $token = $this->learnerSession('before_diagnostic');
 
         $this->withToken($token)
-            ->getJson('/api/learners/tts/activity-manifest')
+            ->getJson('/api/learners/tts/activity-manifest?activity=lesson-1')
             ->assertStatus(409)
             ->assertJsonPath(
                 'message',
-                'No activity speech destination is available for learner stage required_lessons.',
+                'The requested activity is not available for this learner.',
             );
+    }
+
+    public function test_diagnostic_request_is_rejected_after_the_diagnostic_gate(): void
+    {
+        $token = $this->learnerSession('required_lessons', 1);
+
+        $this->withToken($token)
+            ->getJson('/api/learners/tts/activity-manifest?activity=assessment-part-two')
+            ->assertStatus(409)
+            ->assertJsonPath(
+                'message',
+                'The requested activity is not available for this learner.',
+            );
+    }
+
+    public function test_final_request_is_rejected_until_all_six_lessons_are_complete(): void
+    {
+        $token = $this->learnerSession('required_lessons', 6);
+
+        $this->withToken($token)
+            ->getJson('/api/learners/tts/activity-manifest?activity=assessment-final-part-two')
+            ->assertStatus(409)
+            ->assertJsonPath(
+                'message',
+                'The requested activity is not available for this learner.',
+            );
+    }
+
+    public function test_activity_is_required(): void
+    {
+        $token = $this->learnerSession('before_diagnostic');
+
+        $this->withToken($token)
+            ->getJson('/api/learners/tts/activity-manifest')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('activity');
     }
 
     public function test_manifest_validation_rejects_unknown_published_groups(): void
@@ -306,5 +344,21 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         ]);
 
         return [$learner, $token];
+    }
+
+    private function completeAllLessons(Learner $learner): void
+    {
+        foreach (range(1, 6) as $order) {
+            LessonRun::query()->create([
+                'learner_id' => $learner->id,
+                'lesson_key' => "required-lesson-{$order}",
+                'content_version' => 'v1',
+                'status' => LessonRun::STATUS_COMPLETED,
+                'mission_key' => 'mission-1',
+                'current_item_index' => 0,
+                'content_snapshot' => [],
+                'completed_at' => now()->subMinute(),
+            ]);
+        }
     }
 }
