@@ -104,14 +104,14 @@ final class LearnerIndependentLessonAccessTest extends TestCase
         );
     }
 
-    public function test_skipping_the_diagnostic_unlocks_arbitrary_lessons(): void
+    public function test_zero_score_diagnostic_completion_unlocks_arbitrary_lessons(): void
     {
         [, $token] = $this->authenticatedLearner('IL003');
 
         $this->withToken($token)
             ->postJson('/api/learners/assessments/diagnostic/skip')
             ->assertOk()
-            ->assertJsonPath('reading_path.diagnostic.status', 'skipped');
+            ->assertJsonPath('reading_path.diagnostic.status', 'completed');
 
         $lessonSix = $this->withToken($token)
             ->postJson($this->startRoute(6))

@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 final class LearnerDiagnosticSkipTest extends TestCase
 {
-    public function test_skip_persists_one_auditable_zero_score_diagnostic(): void
+    public function test_skip_records_a_normal_zero_score_low_path_diagnostic(): void
     {
         $school = $this->school();
         $teacher = $this->teacher($school);
@@ -31,7 +31,7 @@ final class LearnerDiagnosticSkipTest extends TestCase
             ->assertOk()
             ->assertHeader('Cache-Control', 'no-store, private')
             ->assertJsonPath('reading_path.diagnostic', [
-                'status' => 'skipped',
+                'status' => 'completed',
                 'score' => 0,
             ])
             ->assertJsonPath('reading_path.completed_lesson_count', 0)
@@ -40,8 +40,9 @@ final class LearnerDiagnosticSkipTest extends TestCase
 
         $run = AssessmentRun::query()->sole();
         $this->assertSame(AssessmentRun::STATUS_COMPLETED, $run->status);
-        $this->assertSame(AssessmentRun::COMPLETION_MODE_SKIPPED, $run->completion_mode);
+        $this->assertSame(AssessmentRun::COMPLETION_MODE_STANDARD, $run->completion_mode);
         $this->assertSame('assessment-complete', $run->stage);
+        $this->assertSame('low', $run->part_one_branch);
         $this->assertSame(0, $run->task_1a_score);
         $this->assertSame(0, $run->task_2a_score);
         $this->assertSame(0, $run->task_2b_score);
@@ -52,9 +53,19 @@ final class LearnerDiagnosticSkipTest extends TestCase
         $this->assertSame(0, $run->comprehension_percent);
         $this->assertSame(0, $run->final_reading_score);
         $this->assertSame('Low Emerging Reader', $run->final_reading_profile);
-        $this->assertNotNull($run->skipped_at);
+        $this->assertSame(50, $run->passage_incorrect_words);
+        $this->assertNull($run->skipped_at);
         $this->assertNotNull($run->assessment_completed_at);
-        $this->assertDatabaseCount('assessment_responses', 0);
+        $this->assertDatabaseCount('assessment_responses', 20);
+        $this->assertSame(20, AssessmentResponse::query()
+            ->where('assessment_run_id', $run->id)
+            ->where('decision', 'INCORRECT')
+            ->where('score', 0)
+            ->count());
+        $this->assertDatabaseMissing('assessment_responses', [
+            'assessment_run_id' => $run->id,
+            'response_type' => 'skipped',
+        ]);
         $this->assertDatabaseHas('learner_progress_states', [
             'learner_id' => $learner->id,
             'stage' => 'required_lessons',
@@ -69,14 +80,14 @@ final class LearnerDiagnosticSkipTest extends TestCase
         $this->authenticateStaff($teacher);
         $this->getJson("/api/staff/teacher/{$teacher->id}/analytics")
             ->assertOk()
-            ->assertJsonPath('assessment_skips.diagnostic', 1);
+            ->assertJsonPath('assessment_skips.diagnostic', 0);
         $this->getJson("/api/staff/teacher/{$teacher->id}/assessments/diagnostic")
             ->assertOk()
-            ->assertJsonPath('metrics.skipped_assessments', 1)
+            ->assertJsonPath('metrics.skipped_assessments', 0)
             ->assertJsonPath('metrics.with_skipped_items', 0)
             ->assertJsonPath(
                 'learners.0.completion_mode',
-                AssessmentRun::COMPLETION_MODE_SKIPPED,
+                AssessmentRun::COMPLETION_MODE_STANDARD,
             )
             ->assertJsonPath('learners.0.final_reading_score', 0)
             ->assertJsonPath('learners.0.skipped_items_count', 0);
@@ -84,16 +95,16 @@ final class LearnerDiagnosticSkipTest extends TestCase
             ->assertOk()
             ->assertJsonPath(
                 'learners.0.diagnostic.completion_mode',
-                AssessmentRun::COMPLETION_MODE_SKIPPED,
+                AssessmentRun::COMPLETION_MODE_STANDARD,
             )
             ->assertJsonPath('learners.0.diagnostic.score', 0);
         $this->getJson("/api/staff/teacher/{$teacher->id}/overview")
             ->assertOk()
             ->assertJsonPath('metrics.diagnostic_complete', 1)
             ->assertJsonPath('metrics.diagnostic_pending', 0)
-            ->assertJsonPath('part_one_distribution.0.value', 0)
-            ->assertJsonPath('diagnostic_reading_profile_distribution.0.value', 0)
-            ->assertJsonPath('recent_learner_activity.0.status', 'skipped');
+            ->assertJsonPath('part_one_distribution.0.value', 1)
+            ->assertJsonPath('diagnostic_reading_profile_distribution.0.value', 1)
+            ->assertJsonPath('recent_learner_activity.0.status', 'completed');
 
         $administrator = StaffUser::query()->create([
             'username' => 'diagnostic-skip-administrator',
@@ -106,15 +117,15 @@ final class LearnerDiagnosticSkipTest extends TestCase
         $this->authenticateStaff($administrator);
         $this->getJson("/api/staff/school-admin/{$administrator->id}/overview")
             ->assertOk()
-            ->assertJsonPath('part_one_distribution.0.value', 0)
+            ->assertJsonPath('part_one_distribution.0.value', 1)
             ->assertJsonPath(
                 'recent_assessment_activity.0.completion_mode',
-                AssessmentRun::COMPLETION_MODE_SKIPPED,
+                AssessmentRun::COMPLETION_MODE_STANDARD,
             )
             ->assertJsonPath('recent_assessment_activity.0.score', 0);
     }
 
-    public function test_skip_reuses_an_active_run_and_is_idempotent(): void
+    public function test_skip_replaces_active_diagnostic_answers_with_zero_score_low_path_answers(): void
     {
         [$learner, $token] = $this->authenticatedLearner('DS002');
         $run = AssessmentRun::query()->create([
@@ -139,15 +150,18 @@ final class LearnerDiagnosticSkipTest extends TestCase
         $first = $this->withToken($token)
             ->postJson('/api/learners/assessments/diagnostic/skip')
             ->assertOk();
-        $skippedAt = $run->fresh()->skipped_at?->toIso8601String();
         $second = $this->withToken($token)
             ->postJson('/api/learners/assessments/diagnostic/skip')
             ->assertOk();
 
         $this->assertSame($first->json('reading_path'), $second->json('reading_path'));
-        $this->assertSame($skippedAt, $run->fresh()->skipped_at?->toIso8601String());
+        $this->assertSame(AssessmentRun::COMPLETION_MODE_STANDARD, $run->fresh()->completion_mode);
         $this->assertDatabaseCount('assessment_runs', 1);
-        $this->assertDatabaseCount('assessment_responses', 1);
+        $this->assertDatabaseCount('assessment_responses', 20);
+        $this->assertDatabaseMissing('assessment_responses', [
+            'assessment_run_id' => $run->id,
+            'item_key' => 'existing-response',
+        ]);
         $this->assertDatabaseCount('learner_achievements', 1);
     }
 

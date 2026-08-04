@@ -25,10 +25,10 @@ const learnerSession = {
   reading_path: freshPath,
   learner: {
     id: 1,
-    learner_code: "KW000",
-    full_name: "Kristen Rhine Wright",
-    first_name: "Kristen",
-    account_purpose: "portal_system",
+    learner_code: "AA001",
+    full_name: "Avery Test Learner",
+    first_name: "Avery",
+    account_purpose: "standard",
     school: null,
     grade_level: null,
     section: null,
@@ -91,7 +91,7 @@ describe("ReadingJourneyMenuPage", () => {
     vi.clearAllMocks();
   });
 
-  it("shows only the Diagnostic as available for a fresh learner without Clara", async () => {
+  it("shows only the Diagnostic as available for a fresh learner", async () => {
     const { container } = renderReadingJourney();
 
     expect(
@@ -184,17 +184,17 @@ describe("ReadingJourneyMenuPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("confirms that skipping records score zero and unlocks every lesson", async () => {
+  it("records a zero-score low-path diagnostic and unlocks every lesson", async () => {
     const user = userEvent.setup();
-    const skippedPath: LearnerReadingPath = {
+    const completedPath: LearnerReadingPath = {
       ...freshPath,
-      diagnostic: { status: "skipped", score: 0 },
+      diagnostic: { status: "completed", score: 0 },
     };
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
       return Promise.resolve(
         url.endsWith("/assessments/diagnostic/skip")
-          ? Response.json({ reading_path: skippedPath })
+          ? Response.json({ reading_path: completedPath })
           : Response.json(sessionResponse(freshPath)),
       );
     });
@@ -205,6 +205,7 @@ describe("ReadingJourneyMenuPage", () => {
     const dialog = screen.getByRole("alertdialog", {
       name: "Skip the Diagnostic?",
     });
+    expect(dialog).toHaveTextContent("every Diagnostic item as incorrect");
     expect(dialog).toHaveTextContent("score of 0");
     expect(dialog).toHaveTextContent("All six reading lessons will unlock");
 
@@ -213,7 +214,7 @@ describe("ReadingJourneyMenuPage", () => {
     );
 
     await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
-    expect(screen.getByText("Skipped · Score 0")).toBeInTheDocument();
+    expect(screen.getByText("Completed · Score 0")).toBeInTheDocument();
     for (const order of [1, 2, 3, 4, 5, 6]) {
       expect(
         screen.getByRole("button", {

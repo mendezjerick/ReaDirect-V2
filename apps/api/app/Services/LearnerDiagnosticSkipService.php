@@ -2,14 +2,19 @@
 
 namespace App\Services;
 
+use App\Models\AssessmentResponse;
 use App\Models\AssessmentRun;
 use App\Models\Learner;
-use App\Models\LearnerAchievement;
 use App\Models\LearnerProgressState;
 use Illuminate\Support\Facades\DB;
 
 final class LearnerDiagnosticSkipService
 {
+    public function __construct(
+        private readonly AssessmentContentCatalog $contentCatalog,
+        private readonly LearnerAssessmentCompletionService $completion,
+    ) {}
+
     public function skip(Learner $learner): AssessmentRun
     {
         return DB::transaction(function () use ($learner): AssessmentRun {
@@ -42,6 +47,7 @@ final class LearnerDiagnosticSkipService
                 'The Diagnostic Assessment cannot be skipped after the Final Assessment is available.',
             );
 
+            $snapshot = $this->contentCatalog->assessmentSnapshot();
             $completedRun = AssessmentRun::query()
                 ->where('learner_id', $learner->id)
                 ->where('assessment_type', AssessmentRun::TYPE_DIAGNOSTIC)
@@ -51,13 +57,11 @@ final class LearnerDiagnosticSkipService
                 ->first();
 
             if ($completedRun !== null) {
-                abort_unless(
-                    $completedRun->completion_mode === AssessmentRun::COMPLETION_MODE_SKIPPED,
-                    409,
-                    'The Diagnostic Assessment has already been completed.',
-                );
+                if ($this->isZeroScoreDiagnostic($completedRun, $snapshot)) {
+                    return $completedRun;
+                }
 
-                return $completedRun;
+                abort(409, 'The Diagnostic Assessment has already been completed.');
             }
 
             abort_if(
@@ -78,55 +82,97 @@ final class LearnerDiagnosticSkipService
                 'assessment_type' => AssessmentRun::TYPE_DIAGNOSTIC,
                 'content_version' => 'v1',
                 'status' => AssessmentRun::STATUS_ACTIVE,
-                'completion_mode' => AssessmentRun::COMPLETION_MODE_STANDARD,
                 'stage' => 'orientation',
                 'current_item_index' => 0,
-                'content_snapshot' => [],
+                'content_snapshot' => $snapshot,
             ]);
 
-            $skippedAt = now();
+            // A whole-diagnostic skip follows the normal low path: every
+            // administered item is incorrect, while Task 2B is not administered.
+            AssessmentResponse::query()
+                ->where('assessment_run_id', $run->id)
+                ->delete();
+
             $run->forceFill([
-                'status' => AssessmentRun::STATUS_COMPLETED,
-                'completion_mode' => AssessmentRun::COMPLETION_MODE_SKIPPED,
+                'content_snapshot' => $snapshot,
                 'stage' => 'assessment-complete',
                 'current_item_index' => 0,
+                'part_one_branch' => 'low',
                 'task_1a_score' => 0,
                 'task_2a_score' => 0,
                 'task_2b_score' => 0,
                 'part_one_score' => 0,
                 'part_one_level' => 'Full Refresher',
-                'passage_incorrect_words' => 0,
+                'passage_incorrect_words' => 50,
                 'reading_accuracy_percent' => 0,
                 'comprehension_score' => 0,
                 'comprehension_percent' => 0,
                 'final_reading_score' => 0,
                 'final_reading_profile' => 'Low Emerging Reader',
-                'assessment_completed_at' => $skippedAt,
-                'skipped_at' => $skippedAt,
+                'part_one_completed_at' => now(),
             ])->save();
 
-            $progress->forceFill([
-                'stage' => 'required_lessons',
-                'current_required_lesson_order' => 1,
-                'diagnostic_completed_at' => $skippedAt,
-                'last_confirmed_at' => $skippedAt,
-            ])->save();
+            $this->recordZeroScoreResponses($run, $snapshot);
 
-            LearnerAchievement::query()->firstOrCreate(
-                [
-                    'learner_id' => $learner->id,
-                    'achievement_key' => 'reading.ready_reader',
-                ],
-                [
-                    'awarded_at' => $skippedAt,
-                    'evidence' => [
-                        'assessment_run_id' => $run->id,
-                        'completion_mode' => AssessmentRun::COMPLETION_MODE_SKIPPED,
-                    ],
-                ],
-            );
-
-            return $run->fresh();
+            return $this->completion->complete($run);
         });
+    }
+
+    /** @param array<string, list<array<string, string>>> $snapshot */
+    private function recordZeroScoreResponses(AssessmentRun $run, array $snapshot): void
+    {
+        foreach ($snapshot['task-1a'] as $item) {
+            AssessmentResponse::query()->create([
+                'assessment_run_id' => $run->id,
+                'task_key' => 'task-1a',
+                'item_key' => $item['item_key'],
+                'item_order' => (int) $item['sort_order'],
+                'response_type' => 'speech',
+                'raw_transcript' => '',
+                'scoring_transcript' => 'NO_RESPONSE',
+                'decision' => 'INCORRECT',
+                'score' => 0,
+                'evidence' => [
+                    'diagnostic_skip' => true,
+                    'response_committed' => true,
+                ],
+            ]);
+        }
+
+        foreach ($snapshot['task-2a'] as $item) {
+            AssessmentResponse::query()->create([
+                'assessment_run_id' => $run->id,
+                'task_key' => 'task-2a',
+                'item_key' => $item['item_key'],
+                'item_order' => (int) $item['sort_order'],
+                'response_type' => 'choice',
+                'selected_response' => $item['correct_response'] === 'yes' ? 'no' : 'yes',
+                'decision' => 'INCORRECT',
+                'score' => 0,
+                'evidence' => [
+                    'diagnostic_skip' => true,
+                    'response_committed' => true,
+                ],
+            ]);
+        }
+    }
+
+    /** @param array<string, list<array<string, string>>> $snapshot */
+    private function isZeroScoreDiagnostic(AssessmentRun $run, array $snapshot): bool
+    {
+        $expectedResponses = count($snapshot['task-1a']) + count($snapshot['task-2a']);
+        $responses = $run->responses()->get();
+
+        return $run->completion_mode === AssessmentRun::COMPLETION_MODE_STANDARD
+            && $run->part_one_branch === 'low'
+            && $run->task_1a_score === 0
+            && $run->task_2a_score === 0
+            && $run->task_2b_score === 0
+            && $run->part_one_score === 0
+            && $run->final_reading_score === 0
+            && $responses->count() === $expectedResponses
+            && $responses->every(fn (AssessmentResponse $response): bool => $response->decision === 'INCORRECT'
+                && $response->score === 0
+                && data_get($response->evidence, 'diagnostic_skip') === true);
     }
 }
