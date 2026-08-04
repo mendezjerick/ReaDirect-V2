@@ -72,78 +72,72 @@ final class StaffAuthTest extends TestCase
             ->assertJsonValidationErrors('identifier');
     }
 
-    public function test_only_one_system_administrator_session_can_be_active_system_wide(): void
+    public function test_system_administrator_can_keep_multiple_active_sessions(): void
     {
-        $first = $this->staffUser('first-system-admin', 'system_admin');
-        $second = $this->staffUser('second-system-admin', 'system_admin');
+        $admin = $this->staffUser('multi-session-system-admin', 'system_admin');
 
-        $this->login($first)->assertOk();
-        $this->login($second)
-            ->assertConflict()
-            ->assertHeader('Cache-Control', 'no-store, private')
-            ->assertJsonPath('code', 'system_admin_session_active');
+        $firstToken = $this->login($admin)->assertOk()->json('token');
+        $secondToken = $this->login($admin)->assertOk()->json('token');
 
-        $this->assertSame(1, StaffSession::query()
+        $this->assertSame(2, StaffSession::query()
+            ->where('staff_user_id', $admin->id)
             ->whereNull('revoked_at')
             ->where('expires_at', '>', now())
             ->count());
-        $this->assertDatabaseHas('staff_audit_logs', [
-            'staff_user_id' => $second->id,
-            'action_key' => 'staff.login_blocked_exclusive_session',
-        ]);
+        $this->withToken($firstToken)->getJson('/api/staff/session')->assertOk();
+        $this->withToken($secondToken)->getJson('/api/staff/session')->assertOk();
     }
 
-    public function test_expired_and_revoked_sysadmin_sessions_do_not_block_login(): void
+    public function test_expired_and_revoked_system_admin_sessions_are_cleaned_on_login(): void
     {
-        $first = $this->staffUser('former-system-admin', 'system_admin');
-        $second = $this->staffUser('next-system-admin', 'system_admin');
+        $admin = $this->staffUser('former-system-admin', 'system_admin');
         StaffSession::query()->create([
-            'staff_user_id' => $first->id,
+            'staff_user_id' => $admin->id,
             'token_hash' => hash('sha256', 'expired-system-admin-session'),
             'last_used_at' => now()->subHours(2),
             'expires_at' => now()->subHour(),
         ]);
         StaffSession::query()->create([
-            'staff_user_id' => $first->id,
+            'staff_user_id' => $admin->id,
             'token_hash' => hash('sha256', 'revoked-system-admin-session'),
             'last_used_at' => now(),
             'expires_at' => now()->addHour(),
             'revoked_at' => now(),
         ]);
 
-        $this->login($second)->assertOk();
+        $this->login($admin)->assertOk();
 
         $this->assertSame(1, StaffSession::query()->count());
-        $this->assertSame($second->id, StaffSession::query()->value('staff_user_id'));
+        $this->assertSame($admin->id, StaffSession::query()->value('staff_user_id'));
     }
 
-    public function test_stale_non_remembered_sysadmin_session_does_not_block_login(): void
+    public function test_stale_non_remembered_system_admin_session_is_cleaned_on_login(): void
     {
         config()->set('staff.non_remembered_session_lease_seconds', 120);
-        $first = $this->staffUser('closed-browser-system-admin', 'system_admin');
-        $second = $this->staffUser('returning-system-admin', 'system_admin');
+        $admin = $this->staffUser('closed-browser-system-admin', 'system_admin');
         StaffSession::query()->create([
-            'staff_user_id' => $first->id,
+            'staff_user_id' => $admin->id,
             'token_hash' => hash('sha256', 'closed-browser-session'),
             'remembered' => false,
             'last_used_at' => now()->subSeconds(121),
             'expires_at' => now()->addHours(7),
         ]);
 
-        $this->login($second)->assertOk();
+        $this->login($admin)->assertOk();
 
         $this->assertSame(1, StaffSession::query()->count());
-        $this->assertSame($second->id, StaffSession::query()->value('staff_user_id'));
+        $this->assertSame($admin->id, StaffSession::query()->value('staff_user_id'));
     }
 
-    public function test_logout_releases_the_exclusive_sysadmin_slot(): void
+    public function test_system_administrator_logout_revokes_only_its_current_session(): void
     {
-        $first = $this->staffUser('logout-system-admin', 'system_admin');
-        $second = $this->staffUser('replacement-system-admin', 'system_admin');
-        $token = $this->login($first)->assertOk()->json('token');
+        $admin = $this->staffUser('logout-system-admin', 'system_admin');
+        $firstToken = $this->login($admin)->assertOk()->json('token');
+        $secondToken = $this->login($admin)->assertOk()->json('token');
 
-        $this->withToken($token)->postJson('/api/staff/logout')->assertOk();
-        $this->withHeader('Authorization', '')->login($second)->assertOk();
+        $this->withToken($secondToken)->postJson('/api/staff/logout')->assertOk();
+        $this->withToken($firstToken)->getJson('/api/staff/session')->assertOk();
+        $this->withToken($secondToken)->getJson('/api/staff/session')->assertUnauthorized();
     }
 
     public function test_non_sysadmin_staff_keep_multiple_session_support(): void
@@ -159,7 +153,7 @@ final class StaffAuthTest extends TestCase
             ->count());
     }
 
-    public function test_session_guard_reconciles_preexisting_duplicate_sysadmin_sessions(): void
+    public function test_session_guard_accepts_preexisting_duplicate_system_admin_sessions(): void
     {
         $admin = $this->staffUser('duplicate-session-admin', 'system_admin');
         $olderToken = str_repeat('o', 64);
@@ -177,8 +171,8 @@ final class StaffAuthTest extends TestCase
             'expires_at' => now()->addHour(),
         ]);
 
-        $this->withToken($olderToken)->getJson('/api/staff/session')->assertUnauthorized();
-        $this->assertNotNull($older->fresh()->revoked_at);
+        $this->withToken($olderToken)->getJson('/api/staff/session')->assertOk();
+        $this->assertNull($older->fresh()->revoked_at);
         $this->withToken($newerToken)->getJson('/api/staff/session')->assertOk();
         $this->assertNull($newer->fresh()->revoked_at);
     }

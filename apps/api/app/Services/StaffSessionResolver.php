@@ -49,30 +49,6 @@ final class StaffSessionResolver
             }
         }
 
-        if ($session->staffUser->role === 'system_admin') {
-            $canonicalSessionId = StaffSession::query()
-                ->whereHas('staffUser', fn ($query) => $query->where('role', 'system_admin'))
-                ->whereNull('revoked_at')
-                ->where('expires_at', '>', $now)
-                ->where(function ($query) use ($leaseCutoff): void {
-                    $query
-                        ->where('remembered', true)
-                        ->orWhere(function ($query) use ($leaseCutoff): void {
-                            $query
-                                ->where('remembered', false)
-                                ->whereNotNull('last_used_at')
-                                ->where('last_used_at', '>', $leaseCutoff);
-                        });
-                })
-                ->latest('id')
-                ->value('id');
-
-            if ($canonicalSessionId !== $session->id) {
-                $session->forceFill(['revoked_at' => now()])->save();
-                abort(401, 'The staff session has expired or was revoked.');
-            }
-        }
-
         return $session;
     }
 }

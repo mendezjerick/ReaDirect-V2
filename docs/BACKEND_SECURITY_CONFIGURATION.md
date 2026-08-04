@@ -72,21 +72,6 @@ the touch interval, and excess older standard sessions are revoked. Learner
 responses are marked private and non-cacheable. Portal sessions retain their
 shorter portal-controlled absolute expiry but use the same central guard.
 
-## Exclusive system administrator access
-
-Only one active `system_admin` session is permitted across the entire system.
-Login locks the system-administrator account rows in a stable order, removes
-expired or revoked sessions, and checks for an active session before issuing a
-new token. A competing login receives HTTP `409` with
-`system_admin_session_active`; the active session is never displaced. Blocked
-attempts are recorded in the staff audit log. Logging out releases the slot.
-Teacher and school-administrator accounts retain normal multi-session support.
-The additive migration revokes older pre-existing sysadmin sessions, and the
-session guard continuously reconciles any duplicate state created outside the
-normal login path. A non-remembered sysadmin session whose browser lease has
-expired is removed before the exclusive-session check, so a closed or crashed
-browser cannot hold the system-wide slot for the full absolute session lifetime.
-
 ## Remembered staff devices
 
 Staff login may request `remember_me`. Normal sessions remain browser-tab
