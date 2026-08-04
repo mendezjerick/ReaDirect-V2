@@ -46,68 +46,19 @@ final class StaffAuthController extends Controller
         $deviceHash = $remembered
             ? hash_hmac('sha256', $credentials['device_id'], (string) config('app.key'))
             : null;
-        $session = DB::transaction(function () use ($staffUser, $plainToken, $request, $remembered, $deviceHash): ?StaffSession {
+        $session = DB::transaction(function () use ($staffUser, $plainToken, $request, $remembered, $deviceHash): StaffSession {
             $now = now();
             $leaseCutoff = $now->copy()->subSeconds((int) config(
                 'staff.non_remembered_session_lease_seconds',
                 120,
             ));
 
-            if ($staffUser->role === 'system_admin') {
-                $systemAdministrators = StaffUser::query()
-                    ->where('role', 'system_admin')
-                    ->orderBy('id')
-                    ->lockForUpdate()
-                    ->get();
-                $staffUser = $systemAdministrators->firstWhere('id', $staffUser->id);
-                if (! $staffUser instanceof StaffUser || ! $staffUser->is_active) {
-                    return null;
-                }
-
-                $systemAdministratorIds = $systemAdministrators->pluck('id');
-                $this->deleteInactiveSessions(
-                    StaffSession::query()
-                        ->whereIn('staff_user_id', $systemAdministratorIds),
-                    $now,
-                    $leaseCutoff,
-                );
-
-                $activeSession = StaffSession::query()
-                    ->whereIn('staff_user_id', $systemAdministratorIds)
-                    ->whereNull('revoked_at')
-                    ->where('expires_at', '>', $now)
-                    ->where(function ($query) use ($leaseCutoff): void {
-                        $query
-                            ->where('remembered', true)
-                            ->orWhere(function ($query) use ($leaseCutoff): void {
-                                $query
-                                    ->where('remembered', false)
-                                    ->whereNotNull('last_used_at')
-                                    ->where('last_used_at', '>', $leaseCutoff);
-                            });
-                    })
-                    ->first();
-                if ($activeSession !== null) {
-                    StaffAuditLog::query()->create([
-                        'staff_user_id' => $staffUser->id,
-                        'action_key' => 'staff.login_blocked_exclusive_session',
-                        'description' => 'A system administrator login was blocked because another session is active.',
-                        'metadata' => [
-                            'ip_address' => $request->ip(),
-                            'active_session_id' => $activeSession->id,
-                        ],
-                    ]);
-
-                    return null;
-                }
-            } else {
-                $staffUser = StaffUser::query()->lockForUpdate()->findOrFail($staffUser->id);
-                $this->deleteInactiveSessions(
-                    StaffSession::query()->where('staff_user_id', $staffUser->id),
-                    $now,
-                    $leaseCutoff,
-                );
-            }
+            $staffUser = StaffUser::query()->lockForUpdate()->findOrFail($staffUser->id);
+            $this->deleteInactiveSessions(
+                StaffSession::query()->where('staff_user_id', $staffUser->id),
+                $now,
+                $leaseCutoff,
+            );
 
             $session = StaffSession::query()->create([
                 'staff_user_id' => $staffUser->id,
@@ -131,16 +82,6 @@ final class StaffAuthController extends Controller
 
             return $session;
         });
-
-        if ($session === null) {
-            return response()->json([
-                'message' => 'A system administrator session is already active.',
-                'code' => 'system_admin_session_active',
-            ], 409)->withHeaders([
-                'Cache-Control' => 'no-store, private',
-                'Pragma' => 'no-cache',
-            ]);
-        }
 
         $staffUser = $session->staffUser;
 
