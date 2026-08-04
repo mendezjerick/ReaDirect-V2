@@ -15,10 +15,10 @@ const learnerSession = {
   reading_path: freshReadingPath,
   learner: {
     id: 10,
-    learner_code: "KW000",
-    full_name: "Kristen Rhine Wright",
-    first_name: "Kristen",
-    account_purpose: "portal_system",
+    learner_code: "AA001",
+    full_name: "Avery Test Learner",
+    first_name: "Avery",
+    account_purpose: "standard",
     school: null,
     grade_level: null,
     section: null,
@@ -41,7 +41,7 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
     ) {
       readingPath = {
         ...freshReadingPath,
-        diagnostic: { status: "skipped", score: 0 },
+        diagnostic: { status: "completed", score: 0 },
       };
       await route.fulfill({
         status: 200,
@@ -84,8 +84,8 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
     "background-image",
     new RegExp(expectedBackground),
   );
-  await page.getByLabel("Learner Code").fill("kw000");
-  await page.getByLabel("Password").fill("rhine359");
+  await page.getByLabel("Learner Code").fill("aa001");
+  await page.getByLabel("Password").fill("ReadReady2026!");
   await page.getByRole("button", { name: "Let's go!" }).click();
 
   const routeTransition = page.locator('[data-route-transition="link-start"]');
@@ -93,10 +93,10 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
   await expect(page).toHaveURL(/\/learner\/login$/);
 
   await expect(
-    page.getByRole("heading", { name: "Welcome, Kristen!" }),
+    page.getByRole("heading", { name: "Welcome, Avery!" }),
   ).toBeVisible();
   await expect(routeTransition).toBeHidden();
-  await expect(page.getByText("KW000")).toBeVisible();
+  await expect(page.getByText("AA001")).toBeVisible();
   const primaryActionFontSize = await page
     .getByRole("button", { name: "Open Reading Journey" })
     .evaluate((element) => window.getComputedStyle(element).fontSize);
@@ -150,7 +150,7 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
   await skipDialog
     .getByRole("button", { name: "Skip and unlock lessons" })
     .click();
-  await expect(page.getByText("Skipped · Score 0")).toBeVisible();
+  await expect(page.getByText("Completed · Score 0")).toBeVisible();
   for (const order of [1, 2, 3, 4, 5, 6]) {
     await expect(
       page.getByRole("button", {

@@ -305,6 +305,16 @@ export function ReadingJourneyMenuPage() {
             completed={diagnostic.completed}
             onSelect={() => selectActivity(diagnostic.route)}
           />
+          {sessionQuery.data.learner.account_purpose === "standard" &&
+          path.diagnostic.status === "required" ? (
+            <button
+              className="reading-journey-menu__skip"
+              type="button"
+              onClick={() => setConfirmingSkip(true)}
+            >
+              Skip Diagnostic
+            </button>
+          ) : null}
         </section>
 
         <section
@@ -380,16 +390,6 @@ export function ReadingJourneyMenuPage() {
           />
         </section>
 
-        {["required", "in_progress"].includes(path.diagnostic.status) ? (
-          <button
-            className="reading-journey-menu__skip"
-            type="button"
-            onClick={() => setConfirmingSkip(true)}
-          >
-            Skip Diagnostic
-          </button>
-        ) : null}
-
         {sessionQuery.isFetching ? (
           <p className="reading-journey-menu__sync" role="status">
             Updating your journey…
@@ -413,8 +413,9 @@ export function ReadingJourneyMenuPage() {
             </div>
             <h2 id="skip-diagnostic-title">Skip the Diagnostic?</h2>
             <p id="skip-diagnostic-description">
-              This records the Diagnostic Assessment as skipped with a score of
-              0. All six reading lessons will unlock.
+              This records every Diagnostic item as incorrect, gives a score of
+              0, and starts you on the Full Refresher path. All six reading
+              lessons will unlock.
             </p>
             {skipMutation.isError ? (
               <p className="reading-journey-dialog__error" role="alert">
