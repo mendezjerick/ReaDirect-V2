@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 import threading
@@ -63,7 +64,7 @@ class MuTranscriber:
             "available": source is not None,
             "model": "mu",
             "task": "general_english_transcription",
-            "checkpoint": "openai/whisper-large-v3-turbo",
+            "checkpoint": "openai/whisper-base.en",
             "runtime": "faster-whisper",
             "device": self._device(),
             "compute_type": self._compute_type(),
@@ -123,7 +124,7 @@ class MuTranscriber:
         return {
             "ok": True,
             "model": "mu",
-            "checkpoint": "openai/whisper-large-v3-turbo",
+            "checkpoint": "openai/whisper-base.en",
             "runtime": "faster-whisper",
             "raw_transcript": raw_transcript,
             "basic_normalized_transcript": normalized,
@@ -206,7 +207,7 @@ class MuTranscriber:
             "model": "nu",
             "engine": "mu",
             "resolver": "strict_letter_alias_v2",
-            "checkpoint": "openai/whisper-large-v3-turbo",
+            "checkpoint": "openai/whisper-base.en",
             "expected_letter": expected,
             "predicted_class": predicted_class,
             "decision": decision,
@@ -321,7 +322,7 @@ class MuTranscriber:
                 from faster_whisper import WhisperModel
 
                 self._model = WhisperModel(
-                    str(source or "large-v3-turbo"),
+                    str(source or "base.en"),
                     device=self._device(),
                     compute_type=self._compute_type(),
                     download_root=str(self.artifact_path / "cache"),
@@ -336,17 +337,33 @@ class MuTranscriber:
         direct = self.artifact_path / "model"
         if (direct / "config.json").exists() and (direct / "model.bin").exists():
             return direct
-        snapshots = (
-            self.artifact_path
-            / "cache"
-            / "models--mobiuslabsgmbh--faster-whisper-large-v3-turbo"
-            / "snapshots"
-        )
-        if snapshots.exists():
-            for snapshot in snapshots.iterdir():
-                if (snapshot / "config.json").exists() and (snapshot / "model.bin").exists():
-                    return snapshot
+
+        cache = self.artifact_path / "cache"
+        model_names = ["base.en", "tiny.en", self._runtime_model_name(), "large-v3-turbo"]
+        seen_names: set[str] = set()
+
+        for model_name in model_names:
+            if not model_name or model_name in seen_names:
+                continue
+            seen_names.add(model_name)
+            for model_cache in sorted(cache.glob(f"models--*--faster-whisper-{model_name}")):
+                snapshots = model_cache / "snapshots"
+                if not snapshots.exists():
+                    continue
+                for snapshot in sorted(snapshots.iterdir()):
+                    if (snapshot / "config.json").exists() and (snapshot / "model.bin").exists():
+                        return snapshot
+
         return None
+
+    def _runtime_model_name(self) -> str | None:
+        runtime_config = self.artifact_path / "runtime-config.json"
+        try:
+            data = json.loads(runtime_config.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        value = data.get("runtime_model_name")
+        return value.strip() if isinstance(value, str) and value.strip() else None
 
     def _device(self) -> str:
         if self.requested_device != "auto":

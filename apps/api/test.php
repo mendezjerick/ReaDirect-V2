@@ -1,0 +1,1 @@
+<?php require 'vendor/autoload.php'; $app = require_once 'bootstrap/app.php'; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); var_dump(App\Models\TtsSpeechLine::where('speech_key', 'lesson-intro')->first()?->toArray());

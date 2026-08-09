@@ -14,6 +14,6 @@ whisper.load_model(
 )
 
 snapshot_download(
-    repo_id="mobiuslabsgmbh/faster-whisper-large-v3-turbo",
-    local_dir=cache_root / "faster-whisper-large-v3-turbo",
+    repo_id="Systran/faster-whisper-base.en",
+    local_dir=cache_root / "faster-whisper-base.en",
 )
