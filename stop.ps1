@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [ValidateRange(1, 65535)]
-    [int]$WebPort = 5173,
+    [int]$WebPort = 5174,
 
     [ValidateRange(1, 65535)]
     [int]$ApiPort = 8000,

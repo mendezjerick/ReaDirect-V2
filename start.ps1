@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [ValidateRange(1, 65535)]
-    [int]$WebPort = 5173,
+    [int]$WebPort = 5174,
 
     [ValidateRange(1, 65535)]
     [int]$ApiPort = 8000,
@@ -19,7 +19,7 @@ param(
     [string]$BindAddress = '127.0.0.1',
 
     [ValidateRange(30, 600)]
-    [int]$SpeechStartupTimeoutSeconds = 240,
+    [int]$SpeechStartupTimeoutSeconds = 1000,
 
     [switch]$ProductionSpeechServices,
 
@@ -40,6 +40,7 @@ $previousReverbPort = [Environment]::GetEnvironmentVariable('REVERB_PORT', 'Proc
 $previousReverbServerPort = [Environment]::GetEnvironmentVariable('REVERB_SERVER_PORT', 'Process')
 $previousAsrServiceToken = [Environment]::GetEnvironmentVariable('ASR_SERVICE_TOKEN', 'Process')
 $previousTtsServiceToken = [Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process')
+$previousMuDevice = [Environment]::GetEnvironmentVariable('MU_DEVICE', 'Process')
 
 function Write-Section {
     param([Parameter(Mandatory)][string]$Title)
@@ -240,7 +241,7 @@ function Start-ManagedBackgroundProcess {
 function Wait-ForService {
     param(
         [Parameter(Mandatory)][object]$ProcessRecord,
-        [int]$TimeoutSeconds = 30,
+        [int]$TimeoutSeconds = 180,
         [string]$ReadinessPath = ''
     )
 
@@ -343,6 +344,7 @@ try {
     if ([string]::IsNullOrWhiteSpace($previousTtsServiceToken)) {
         [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', (New-SecureServiceToken), 'Process')
     }
+    [Environment]::SetEnvironmentVariable('MU_DEVICE', 'cpu', 'Process')
 
     $corepackPath = Get-RequiredCommandPath `
         -Command 'corepack' `
@@ -379,6 +381,11 @@ try {
             -Url "http://localhost:$ApiPort"
         Wait-ForService -ProcessRecord $apiProcess
         Write-Host "  API       ready on port $ApiPort" -ForegroundColor Green
+
+        & $phpPath $artisanPath migrate --force | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to apply pending API database migrations.'
+        }
 
         $reverbConfigPath = Join-Path $repositoryRoot 'apps\api\config\reverb.php'
         if (Test-Path -LiteralPath $reverbConfigPath) {
@@ -553,4 +560,5 @@ finally {
     [Environment]::SetEnvironmentVariable('REVERB_SERVER_PORT', $previousReverbServerPort, 'Process')
     [Environment]::SetEnvironmentVariable('ASR_SERVICE_TOKEN', $previousAsrServiceToken, 'Process')
     [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', $previousTtsServiceToken, 'Process')
+    [Environment]::SetEnvironmentVariable('MU_DEVICE', $previousMuDevice, 'Process')
 }
