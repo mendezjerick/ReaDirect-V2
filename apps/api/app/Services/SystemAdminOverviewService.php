@@ -10,6 +10,7 @@ use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
 use App\Models\TtsSpeechLine;
 use App\Models\TtsVoiceVersion;
+use App\Support\SpeechLanguage;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +46,7 @@ final class SystemAdminOverviewService
         DB::select('select 1');
 
         $publishedVoice = TtsVoiceVersion::query()
+            ->where('language_code', SpeechLanguage::ENGLISH)
             ->where('status', TtsVoiceVersion::STATUS_PUBLISHED)
             ->latest('published_at')
             ->latest('id')

@@ -1,16 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { clearActivitySpeechPreparation } from "../clara-audio/activitySpeechReadiness";
+import { clearPreparedClaraSpeech } from "../clara-audio/claraSpeech";
 import {
+  getLearnerSpeechLanguage,
   getLearnerSession,
   loadLearnerSession,
   saveLearnerSession,
   skipDiagnostic,
+  updateLearnerSpeechLanguage,
   type LearnerReadingPath,
+  type LearnerSpeechLanguage,
 } from "../learner-auth/learnerApi";
 import { ThemeSelector } from "../theme/ThemeSelector";
 import "./lesson-intro.css";
@@ -23,6 +28,112 @@ interface JourneyActivityProps {
   completed?: boolean;
   locked?: boolean;
   onSelect?: () => void;
+}
+
+interface SpeechLanguageSwitchProps {
+  selectedLanguage: LearnerSpeechLanguage;
+  filipinoAvailable: boolean;
+  checkingAvailability: boolean;
+  saving: boolean;
+  errorMessage: string | null;
+  onToggle: () => void;
+}
+
+function SpeechLanguageSwitch({
+  selectedLanguage,
+  filipinoAvailable,
+  checkingAvailability,
+  saving,
+  errorMessage,
+  onToggle,
+}: SpeechLanguageSwitchProps) {
+  const filipinoSelected = selectedLanguage === "fil-PH";
+  const disabled =
+    checkingAvailability || saving || (!filipinoAvailable && !filipinoSelected);
+  const status = errorMessage
+    ? errorMessage
+    : saving
+      ? "Saving Clara's spoken language..."
+      : checkingAvailability
+        ? "Checking Filipino voice availability..."
+        : !filipinoAvailable
+          ? "Filipino is still being prepared. English stays selected for now."
+          : filipinoSelected
+            ? "Clara's guidance is in Filipino. Reading words stay in English."
+            : "Clara's guidance is in English. Tap the switch for Filipino.";
+
+  return (
+    <Surface className="speech-language-panel" kind="panel" padding="normal">
+      <div className="speech-language-panel__copy">
+        <p className="reading-journey-menu__eyebrow">Clara&apos;s voice</p>
+        <h2 id="speech-language-title">English or Filipino</h2>
+        <p>
+          Choose Clara&apos;s spoken guidance. Reading words and activities stay
+          in English.
+        </p>
+      </div>
+
+      <div className="speech-language-panel__control">
+        <button
+          className="speech-language-switch"
+          type="button"
+          role="switch"
+          aria-checked={filipinoSelected}
+          aria-labelledby="speech-language-title"
+          aria-describedby="speech-language-status"
+          data-language={selectedLanguage}
+          disabled={disabled}
+          onClick={onToggle}
+        >
+          <span
+            className="speech-language-switch__option"
+            data-selected={!filipinoSelected}
+          >
+            <span className="speech-language-switch__code" aria-hidden="true">
+              EN
+            </span>
+            <span>
+              <strong>English</strong>
+              <small>{!filipinoSelected ? "Selected" : "Tap to choose"}</small>
+            </span>
+          </span>
+
+          <span className="speech-language-switch__handle" aria-hidden="true">
+            <svg viewBox="0 0 28 28">
+              <path d="M5 9h15m-4-4 4 4-4 4M23 19H8m4 4-4-4 4-4" />
+            </svg>
+          </span>
+
+          <span
+            className="speech-language-switch__option"
+            data-selected={filipinoSelected}
+          >
+            <span className="speech-language-switch__code" aria-hidden="true">
+              FIL
+            </span>
+            <span>
+              <strong>Filipino</strong>
+              <small>
+                {filipinoSelected
+                  ? "Selected"
+                  : filipinoAvailable
+                    ? "Tap to choose"
+                    : "Coming soon"}
+              </small>
+            </span>
+          </span>
+        </button>
+
+        <p
+          id="speech-language-status"
+          className="speech-language-panel__status"
+          role={errorMessage ? "alert" : "status"}
+        >
+          {status}
+        </p>
+      </div>
+    </Surface>
+  );
 }
 
 function AssessmentIcon({ final = false }: { final?: boolean }) {
@@ -161,7 +272,14 @@ export function ReadingJourneyMenuPage() {
   const activityCommit = useButtonCommit();
   const skipCommit = useButtonCommit();
   const storedSession = loadLearnerSession();
-  const queryKey = ["learner-session", storedSession?.token] as const;
+  const queryKey = useMemo(
+    () => ["learner-session", storedSession?.token] as const,
+    [storedSession?.token],
+  );
+  const languageQueryKey = useMemo(
+    () => ["learner-speech-language", storedSession?.token] as const,
+    [storedSession?.token],
+  );
   const [confirmingSkip, setConfirmingSkip] = useState(false);
   const sessionQuery = useQuery({
     queryKey,
@@ -175,6 +293,21 @@ export function ReadingJourneyMenuPage() {
         }
       : undefined,
     refetchOnMount: "always",
+  });
+  const languageQuery = useQuery({
+    queryKey: languageQueryKey,
+    queryFn: () => getLearnerSpeechLanguage(storedSession?.token ?? ""),
+    enabled: Boolean(storedSession?.token),
+    refetchOnMount: "always",
+  });
+  const languageMutation = useMutation({
+    mutationFn: (language: LearnerSpeechLanguage) =>
+      updateLearnerSpeechLanguage(storedSession?.token ?? "", language),
+    onSuccess: (contract) => {
+      clearActivitySpeechPreparation(storedSession?.token);
+      clearPreparedClaraSpeech();
+      queryClient.setQueryData(languageQueryKey, contract);
+    },
   });
   const skipMutation = useMutation({
     mutationFn: () => skipDiagnostic(storedSession?.token ?? ""),
@@ -204,6 +337,34 @@ export function ReadingJourneyMenuPage() {
       saveLearnerSession({ token: storedSession.token, ...sessionQuery.data });
     }
   }, [sessionQuery.data, storedSession?.token]);
+
+  useEffect(() => {
+    const speechLanguage = languageQuery.data?.speech_language;
+    if (
+      !storedSession?.token ||
+      !sessionQuery.data ||
+      !speechLanguage ||
+      sessionQuery.data.learner.speech_language === speechLanguage
+    ) {
+      return;
+    }
+
+    const updatedSession = {
+      ...sessionQuery.data,
+      learner: {
+        ...sessionQuery.data.learner,
+        speech_language: speechLanguage,
+      },
+    };
+    queryClient.setQueryData(queryKey, updatedSession);
+    saveLearnerSession({ token: storedSession.token, ...updatedSession });
+  }, [
+    languageQuery.data?.speech_language,
+    queryClient,
+    queryKey,
+    sessionQuery.data,
+    storedSession?.token,
+  ]);
 
   if (!storedSession) {
     return null;
@@ -241,6 +402,12 @@ export function ReadingJourneyMenuPage() {
   }
 
   const path = sessionQuery.data.reading_path;
+  const selectedLanguage =
+    languageQuery.data?.speech_language ??
+    sessionQuery.data.learner.speech_language;
+  const filipinoAvailable =
+    languageQuery.data?.languages.find((language) => language.code === "fil-PH")
+      ?.available ?? false;
   const diagnostic = diagnosticCard(path);
   const finalAssessment = finalCard(path);
   const lessonsUnlocked = ["completed", "skipped"].includes(
@@ -292,6 +459,25 @@ export function ReadingJourneyMenuPage() {
             </div>
           </header>
         </Surface>
+
+        <section aria-labelledby="speech-language-title">
+          <SpeechLanguageSwitch
+            selectedLanguage={selectedLanguage}
+            filipinoAvailable={filipinoAvailable}
+            checkingAvailability={languageQuery.isPending}
+            saving={languageMutation.isPending}
+            errorMessage={
+              languageMutation.error?.message ??
+              languageQuery.error?.message ??
+              null
+            }
+            onToggle={() =>
+              languageMutation.mutate(
+                selectedLanguage === "fil-PH" ? "en" : "fil-PH",
+              )
+            }
+          />
+        </section>
 
         <section
           className="reading-journey-menu__assessment"

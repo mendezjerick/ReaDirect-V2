@@ -692,6 +692,24 @@ return [
         'question',
         'result',
     ],
+    'tts_reference_profiles_by_language' => [
+        'en' => [
+            'introduce',
+            'instruction',
+            'question',
+            'result',
+        ],
+        'fil-PH' => [
+            'introduce',
+            'instruction',
+            'question',
+            'result',
+        ],
+    ],
+    'tts_required_runtime_profiles' => [
+        'instruction',
+        'result',
+    ],
     'pending_published_catalog_migrations' => [
         'lightweight-v1' => $lightweightPublishedSpeechMigration,
     ],

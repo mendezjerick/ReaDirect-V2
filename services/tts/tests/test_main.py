@@ -222,6 +222,7 @@ def test_warmup_prepares_only_requested_profiles_and_reuses_the_prompt_cache(
     assert first.status_code == 200
     assert first.json() == {
         "ready": True,
+        "language": "en",
         "device": "cpu",
         "profiles_ready": ["result"],
     }
@@ -305,6 +306,99 @@ def test_synthesis_uses_the_prepared_semantic_profile_and_returns_wav(
     assert reference.name == "introduce.wav"
 
 
+def test_filipino_synthesis_uses_only_the_declared_instruction_candidate(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    model = FakeVoxModel()
+    reference = tmp_path / "general.wav"
+    output = tmp_path / "filipino-speech.wav"
+    reference.write_bytes(b"filipino-reference")
+    monkeypatch.setitem(main.REFERENCE_FILES, "fil-PH:instruction", reference)
+    monkeypatch.setattr(main, "condition_reference", lambda path: path)
+    monkeypatch.setattr(main.runtime, "_load_model", lambda: (model, "cpu"))
+    monkeypatch.setattr(main, "cache_path_for", lambda request, path: output)
+
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
+        response = client.post(
+            "/synthesize",
+            json={
+                "text": "Ang salita ay cat. Makinig: cat. Ngayon, ikaw naman.",
+                "reference": "instruction",
+                "language": "fil-PH",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.headers["x-readirect-tts-language"] == "fil-PH"
+    assert model.tts_model.generated_texts == [
+        main.FILIPINO_PROFILE_PROBE_TEXT,
+        "Ang salita ay cat. Makinig: cat. Ngayon, ikaw naman.",
+    ]
+    assert model.tts_model.build_count == 1
+
+
+def test_configured_filipino_delivery_roles_resolve_to_general_reference() -> None:
+    expected = main.FILIPINO_REFERENCE_ROOT / "general.wav"
+
+    assert {
+        role: main.REFERENCE_FILES[f"fil-PH:{role}"]
+        for role in ["introduce", "instruction", "question", "result"]
+    } == {
+        "introduce": expected,
+        "instruction": expected,
+        "question": expected,
+        "result": expected,
+    }
+
+
+def test_filipino_delivery_roles_share_general_reference_and_are_available(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    model = FakeVoxModel()
+    reference = tmp_path / "general.wav"
+    reference.write_bytes(b"filipino-reference")
+    roles = ["introduce", "instruction", "question", "result"]
+    for role in roles:
+        monkeypatch.setitem(main.REFERENCE_FILES, f"fil-PH:{role}", reference)
+    monkeypatch.setattr(main, "condition_reference", lambda path: path)
+    monkeypatch.setattr(main.runtime, "_load_model", lambda: (model, "cpu"))
+    monkeypatch.setattr(
+        main,
+        "cache_path_for",
+        lambda request, path: tmp_path / f"{request.reference}.wav",
+    )
+
+    with TestClient(main.app, headers=AUTH_HEADERS) as client:
+        warmup = client.post(
+            "/warmup",
+            json={"profiles": roles, "language": "fil-PH"},
+        )
+        synthesis = client.post(
+            "/synthesize",
+            json={
+                "text": "Ang sinabi mo ay cat.",
+                "reference": "result",
+                "language": "fil-PH",
+            },
+        )
+
+    assert warmup.status_code == 200
+    assert warmup.json()["ready"] is True
+    assert warmup.json()["profiles_ready"] == roles
+    assert synthesis.status_code == 200
+    assert synthesis.headers["x-readirect-tts-language"] == "fil-PH"
+    assert model.tts_model.build_count == 4
+    assert model.tts_model.generated_texts == [
+        main.FILIPINO_PROFILE_PROBE_TEXT,
+        main.FILIPINO_PROFILE_PROBE_TEXT,
+        main.FILIPINO_PROFILE_PROBE_TEXT,
+        main.FILIPINO_PROFILE_PROBE_TEXT,
+        "Ang sinabi mo ay cat.",
+    ]
+
+
 def test_failed_profile_preparation_is_reported_without_marking_it_ready(
     monkeypatch,
     tmp_path: Path,
@@ -331,22 +425,31 @@ def test_service_boundary_requires_authentication_and_limits_requests(monkeypatc
 
     assert client.get("/health").status_code == 200
     assert client.get("/openapi.json").status_code == 401
-    assert client.get(
-        "/openapi.json",
-        headers={"Authorization": "Bearer wrong-token"},
-    ).status_code == 401
+    assert (
+        client.get(
+            "/openapi.json",
+            headers={"Authorization": "Bearer wrong-token"},
+        ).status_code
+        == 401
+    )
     assert client.get("/openapi.json", headers=AUTH_HEADERS).status_code == 200
-    assert client.get(
-        "/openapi.json",
-        headers={**AUTH_HEADERS, "Content-Length": str(main.MAX_HTTP_REQUEST_BYTES + 1)},
-    ).status_code == 413
+    assert (
+        client.get(
+            "/openapi.json",
+            headers={**AUTH_HEADERS, "Content-Length": str(main.MAX_HTTP_REQUEST_BYTES + 1)},
+        ).status_code
+        == 413
+    )
 
     monkeypatch.setattr(main, "MAX_HTTP_REQUEST_BYTES", 64)
-    assert client.post(
-        "/openapi.json",
-        content=iter([b"a" * 40, b"b" * 40]),
-        headers=AUTH_HEADERS,
-    ).status_code == 413
+    assert (
+        client.post(
+            "/openapi.json",
+            content=iter([b"a" * 40, b"b" * 40]),
+            headers=AUTH_HEADERS,
+        ).status_code
+        == 413
+    )
 
     monkeypatch.setattr(main, "SERVICE_TOKEN_CONFIGURED", False)
     assert client.get("/openapi.json", headers=AUTH_HEADERS).status_code == 503

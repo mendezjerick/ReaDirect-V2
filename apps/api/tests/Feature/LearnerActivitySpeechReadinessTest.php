@@ -10,6 +10,8 @@ use App\Models\StaffUser;
 use App\Models\TtsSpeechLine;
 use App\Models\TtsVoiceVersion;
 use App\Services\ActivitySpeechManifestService;
+use App\Support\SpeechLanguage;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -75,7 +77,10 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         Http::assertSentCount(1);
         Http::assertSent(fn ($request): bool => $request->url() === 'http://127.0.0.1:8002/warmup'
             && $request->hasHeader('Authorization', 'Bearer '.config('speech.tts_token'))
-            && $request->data() === ['profiles' => ['result']]);
+            && $request->data() === [
+                'profiles' => ['result'],
+                'language' => 'en',
+            ]);
     }
 
     public function test_lesson_two_validates_catalog_then_warms_result_and_instruction_profiles(): void
@@ -105,6 +110,7 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
 
         Http::assertSent(fn ($request): bool => $request->data() === [
             'profiles' => ['result', 'instruction'],
+            'language' => 'en',
         ]);
     }
 
@@ -133,6 +139,7 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
 
         Http::assertSent(fn ($request): bool => $request->data() === [
             'profiles' => ['result'],
+            'language' => 'en',
         ]);
     }
 
@@ -161,6 +168,7 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
 
         Http::assertSent(fn ($request): bool => $request->data() === [
             'profiles' => ['result'],
+            'language' => 'en',
         ]);
     }
 
@@ -231,6 +239,68 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
             ->assertJsonPath('profiles_ready', []);
     }
 
+    public function test_filipino_readiness_never_accepts_an_english_runtime_response(): void
+    {
+        Config::set('speech.tts_reference_profiles_by_language.fil-PH', [
+            'result',
+            'instruction',
+        ]);
+        $this->publishActivity('lesson-2', SpeechLanguage::FILIPINO);
+        [, $token] = $this->learnerSession(
+            'required_lessons',
+            2,
+            'standard',
+            SpeechLanguage::FILIPINO,
+        );
+        Http::fake([
+            '*/warmup' => Http::response([
+                'ready' => true,
+                'device' => 'cuda',
+                'profiles_ready' => ['result', 'instruction'],
+            ]),
+        ]);
+
+        $this->withToken($token)
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'lesson-2',
+            ])
+            ->assertServiceUnavailable()
+            ->assertJsonPath('speech_language', SpeechLanguage::FILIPINO)
+            ->assertJsonPath('published_ready', true)
+            ->assertJsonPath('runtime_ready', false);
+
+        Http::assertSent(fn ($request): bool => $request->data() === [
+            'profiles' => ['result', 'instruction'],
+            'language' => SpeechLanguage::FILIPINO,
+        ]);
+    }
+
+    public function test_filipino_readiness_stops_before_vox_when_a_runtime_role_is_unreviewed(): void
+    {
+        Config::set('speech.tts_reference_profiles_by_language.fil-PH', [
+            'instruction',
+        ]);
+        $this->publishActivity('lesson-2', SpeechLanguage::FILIPINO);
+        [, $token] = $this->learnerSession(
+            'required_lessons',
+            2,
+            'standard',
+            SpeechLanguage::FILIPINO,
+        );
+
+        $this->withToken($token)
+            ->postJson('/api/learners/tts/activity-readiness', [
+                'activity' => 'lesson-2',
+            ])
+            ->assertServiceUnavailable()
+            ->assertJsonPath('speech_language', SpeechLanguage::FILIPINO)
+            ->assertJsonPath('published_ready', true)
+            ->assertJsonPath('runtime_ready', false)
+            ->assertJsonPath('profiles_ready', []);
+
+        Http::assertNothingSent();
+    }
+
     public function test_portal_readiness_uses_the_active_portal_destination(): void
     {
         $this->publishActivity('assessment-part-two');
@@ -264,14 +334,19 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
     }
 
     /** @return array<string, TtsSpeechLine> */
-    private function publishActivity(string $activity): array
-    {
+    private function publishActivity(
+        string $activity,
+        string $language = SpeechLanguage::ENGLISH,
+    ): array {
         $manifest = app(ActivitySpeechManifestService::class)->forActivity($activity);
         $voice = TtsVoiceVersion::query()->create([
-            'stable_key' => 'clara-sh-v1',
+            'stable_key' => $language === SpeechLanguage::FILIPINO
+                ? 'clara-sh-fil-v1'
+                : 'clara-sh-v1',
+            'language_code' => $language,
             'engine' => 'VoxCPM2',
             'model_identifier' => 'openbmb/VoxCPM2',
-            'reference_set' => 'sh',
+            'reference_set' => $language === SpeechLanguage::FILIPINO ? 'sh-fil' : 'sh',
             'conditioning_version' => 'mono-peak-minus-6db-v1',
             'synthesis_config' => ['cfg_value' => 2.0],
             'status' => TtsVoiceVersion::STATUS_PUBLISHED,
@@ -281,7 +356,8 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
 
         foreach ($manifest['published_speech_keys'] as $speechKey) {
             $audio = "RIFF-approved-{$speechKey}";
-            $path = "sh/readiness/{$speechKey}.wav";
+            $path = ($language === SpeechLanguage::FILIPINO ? 'sh-fil' : 'sh')
+                ."/readiness/{$speechKey}.wav";
             Storage::disk('tts_catalog')->put($path, $audio);
             $lines[$speechKey] = TtsSpeechLine::query()->create([
                 'tts_voice_version_id' => $voice->id,
@@ -306,6 +382,7 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         string $stage,
         ?int $lessonOrder = null,
         string $sessionType = 'standard',
+        string $language = SpeechLanguage::ENGLISH,
     ): array {
         $learner = Learner::query()->create([
             'learner_code' => 'SR001',
@@ -313,6 +390,7 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
             'first_name' => 'Lena',
             'middle_name' => '',
             'last_name' => 'Reader',
+            'speech_language' => $language,
             'is_active' => true,
         ]);
         LearnerProgressState::query()->create([

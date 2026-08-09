@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import { learnerReadingPathSchema } from "../learner-auth/learnerApi";
+import {
+  learnerReadingPathSchema,
+  learnerSpeechLanguageSchema,
+} from "../learner-auth/learnerApi";
 
 const staffSchoolSchema = z.object({
   id: z.number().int().positive(),
@@ -675,6 +678,7 @@ const portalSystemLearnerSchema = z.object({
     learner_code: z.literal("KW000"),
     full_name: z.string(),
     account_purpose: z.literal("portal_system"),
+    speech_language: learnerSpeechLanguageSchema.default("en"),
     is_active: z.boolean(),
     analytics_excluded: z.literal(true),
     progress_stage: z.string(),
@@ -706,6 +710,7 @@ const portalLearnerSessionSchema = z.object({
     full_name: z.string(),
     first_name: z.string(),
     account_purpose: z.literal("portal_system"),
+    speech_language: learnerSpeechLanguageSchema.default("en"),
     school: z.string().nullable(),
     grade_level: z.number().int().min(1).max(6).nullable(),
     section: z.string().nullable(),

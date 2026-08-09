@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\LearnerSession;
 use App\Models\TtsSpeechLine;
-use App\Models\TtsVoiceVersion;
+use App\Support\SpeechLanguage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -13,6 +13,7 @@ final class ActivitySpeechPreparationService
 {
     public function __construct(
         private readonly ActivitySpeechManifestService $manifestService,
+        private readonly PublishedTtsVoiceResolver $publishedVoices,
     ) {}
 
     /**
@@ -22,6 +23,7 @@ final class ActivitySpeechPreparationService
      *     published_ready: bool,
      *     published_groups: list<string>,
      *     voice_version: string|null,
+     *     speech_language: string,
      *     unavailable_speech_keys: list<string>,
      *     runtime_required: bool,
      *     runtime_ready: bool,
@@ -39,12 +41,17 @@ final class ActivitySpeechPreparationService
             $session,
             $requestedActivity,
         );
-        $published = $this->validatePublishedSpeech($manifest['published_speech_keys']);
+        $language = SpeechLanguage::normalize($session->learner->speech_language);
+        $published = $this->validatePublishedSpeech(
+            $manifest['published_speech_keys'],
+            $language,
+        );
         $base = [
             'activity' => $manifest['activity'],
             'published_groups' => $manifest['published_groups'],
             'published_ready' => $published['ready'],
             'voice_version' => $published['voice_version'],
+            'speech_language' => $language,
             'unavailable_speech_keys' => $published['unavailable_speech_keys'],
             'runtime_required' => $manifest['requires_runtime'],
             'runtime_profiles' => $manifest['runtime_profiles'],
@@ -71,7 +78,10 @@ final class ActivitySpeechPreparationService
             ];
         }
 
-        $runtime = $this->prepareRuntimeProfiles($manifest['runtime_profiles']);
+        $runtime = $this->prepareRuntimeProfiles(
+            $manifest['runtime_profiles'],
+            $language,
+        );
 
         return [
             ...$base,
@@ -93,13 +103,9 @@ final class ActivitySpeechPreparationService
      *     unavailable_speech_keys: list<string>
      * }
      */
-    private function validatePublishedSpeech(array $speechKeys): array
+    private function validatePublishedSpeech(array $speechKeys, string $language): array
     {
-        $voice = TtsVoiceVersion::query()
-            ->where('status', TtsVoiceVersion::STATUS_PUBLISHED)
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->first();
+        $voice = $this->publishedVoices->forLanguage($language);
 
         if ($voice === null) {
             return [
@@ -159,8 +165,21 @@ final class ActivitySpeechPreparationService
      *     device: string|null
      * }
      */
-    private function prepareRuntimeProfiles(array $profiles): array
+    private function prepareRuntimeProfiles(array $profiles, string $language): array
     {
+        $availableProfiles = config(
+            "speech.tts_reference_profiles_by_language.{$language}",
+            [],
+        );
+        if (! is_array($availableProfiles)
+            || array_diff($profiles, $availableProfiles) !== []) {
+            return [
+                'ready' => false,
+                'profiles_ready' => [],
+                'device' => null,
+            ];
+        }
+
         try {
             $response = Http::acceptJson()
                 ->withToken((string) config('speech.tts_token'))
@@ -168,6 +187,7 @@ final class ActivitySpeechPreparationService
                 ->timeout((int) config('speech.tts_request_timeout_seconds'))
                 ->post(rtrim((string) config('speech.tts_url'), '/').'/warmup', [
                     'profiles' => $profiles,
+                    'language' => $language,
                 ]);
         } catch (Throwable $error) {
             report($error);
@@ -191,6 +211,7 @@ final class ActivitySpeechPreparationService
         $ready = $response->successful()
             && is_array($payload)
             && ($payload['ready'] ?? false) === true
+            && (($payload['language'] ?? SpeechLanguage::ENGLISH) === $language)
             && array_diff($profiles, $profilesReady) === [];
 
         return [

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\TtsSpeechLine;
 use App\Models\TtsVoiceVersion;
+use App\Support\SpeechLanguage;
 use Illuminate\Support\Collection;
 
 final class SystemAdminAgentsAiService
@@ -13,8 +14,7 @@ final class SystemAdminAgentsAiService
     public function settings(
         SpeechProcessingSettings $speechSettings,
         LearnerLightweightModeSettings $lightweightMode,
-    ): array
-    {
+    ): array {
         $voice = $this->publishedVoice();
         $lineCounts = $voice === null
             ? collect()
@@ -116,6 +116,7 @@ final class SystemAdminAgentsAiService
     private function publishedVoice(): ?TtsVoiceVersion
     {
         return TtsVoiceVersion::query()
+            ->where('language_code', SpeechLanguage::ENGLISH)
             ->where('status', TtsVoiceVersion::STATUS_PUBLISHED)
             ->latest('published_at')
             ->latest('id')

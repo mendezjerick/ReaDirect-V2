@@ -159,6 +159,7 @@ final class LearnerAuthController extends Controller
                 ])),
                 'first_name' => $learner->first_name,
                 'account_purpose' => $learner->account_purpose,
+                'speech_language' => $learner->speech_language,
                 'school' => $learner->school?->name,
                 'grade_level' => $learner->grade_level,
                 'section' => $learner->section,

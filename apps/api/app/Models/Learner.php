@@ -16,6 +16,7 @@ final class Learner extends Model
     protected $fillable = [
         'learner_code',
         'account_purpose',
+        'speech_language',
         'password',
         'first_name',
         'middle_name',
