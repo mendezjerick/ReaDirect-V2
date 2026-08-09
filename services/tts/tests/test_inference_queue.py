@@ -13,6 +13,7 @@ AUTH_HEADERS = {
     "Authorization": "Bearer tts-test-token-at-least-thirty-two-characters",
 }
 
+
 async def wait_until(predicate: Callable[[], bool], timeout: float = 1.0) -> None:
     loop = asyncio.get_running_loop()
     deadline = loop.time() + timeout
@@ -46,9 +47,7 @@ def test_queue_runs_fifo_and_rejects_work_beyond_waiting_capacity() -> None:
             return name
 
         await queue.start()
-        first = asyncio.create_task(
-            queue.submit("first", lambda: work("first", block=True))
-        )
+        first = asyncio.create_task(queue.submit("first", lambda: work("first", block=True)))
         await wait_until(first_started.is_set)
         second = asyncio.create_task(queue.submit("second", lambda: work("second")))
         await wait_until(lambda: queue.snapshot()["waiting"] == 1)
@@ -153,10 +152,10 @@ def test_synthesis_and_warmup_share_capacity_while_health_stays_responsive(
         def warmup_model(self) -> None:
             return None
 
-        def prepare_profiles(self, _profiles) -> None:
+        def prepare_profiles(self, _profiles, _language="en") -> None:
             self.warmup_calls += 1
 
-        def synthesize(self, _text, _reference, output_path: Path) -> None:
+        def synthesize(self, _text, _reference, output_path: Path, _language="en") -> None:
             self.synthesis_started.set()
             assert self.release_synthesis.wait(2)
             output_path.write_bytes(b"RIFF-test-audio")
@@ -201,9 +200,7 @@ def test_synthesis_and_warmup_share_capacity_while_health_stays_responsive(
                     )
                 )
                 await wait_until(runtime.synthesis_started.is_set)
-                warmup = asyncio.create_task(
-                    client.post("/warmup", json={"profiles": ["result"]})
-                )
+                warmup = asyncio.create_task(client.post("/warmup", json={"profiles": ["result"]}))
                 await wait_until(lambda: queue.snapshot()["waiting"] == 1)
 
                 health = await asyncio.wait_for(client.get("/internal/status"), timeout=0.2)

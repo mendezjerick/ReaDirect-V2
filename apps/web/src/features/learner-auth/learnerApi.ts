@@ -48,6 +48,9 @@ export const learnerReadingPathSchema = z
 
 export type LearnerReadingPath = z.infer<typeof learnerReadingPathSchema>;
 
+export const learnerSpeechLanguageSchema = z.enum(["en", "fil-PH"]);
+export type LearnerSpeechLanguage = z.infer<typeof learnerSpeechLanguageSchema>;
+
 const legacyReadingPath: LearnerReadingPath = {
   diagnostic: { status: "required", score: null },
   lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
@@ -64,6 +67,7 @@ const learnerAccountSchema = z.object({
   full_name: z.string(),
   first_name: z.string(),
   account_purpose: z.enum(["standard", "portal_system"]),
+  speech_language: learnerSpeechLanguageSchema.default("en"),
   school: z.string().nullable(),
   grade_level: z.number().int().min(1).max(6).nullable(),
   section: z.string().nullable(),
@@ -97,6 +101,22 @@ const learnerExperienceSettingsSchema = z.object({
   display_mode: z.enum(["live2d", "static"]),
   speech_mode: z.enum(["hybrid", "published_only"]),
 });
+
+const learnerSpeechLanguageContractSchema = z.object({
+  speech_language: learnerSpeechLanguageSchema,
+  languages: z.array(
+    z.object({
+      code: learnerSpeechLanguageSchema,
+      label: z.string(),
+      available: z.boolean(),
+      selected: z.boolean(),
+    }),
+  ),
+});
+
+export type LearnerSpeechLanguageContract = z.infer<
+  typeof learnerSpeechLanguageContractSchema
+>;
 
 export type LearnerExperienceSettings = z.infer<
   typeof learnerExperienceSettingsSchema
@@ -240,6 +260,44 @@ export async function getLearnerExperienceSettings(
   }
 
   return learnerExperienceSettingsSchema.parse(await response.json());
+}
+
+export async function getLearnerSpeechLanguage(
+  token: string,
+): Promise<LearnerSpeechLanguageContract> {
+  const response = await fetch("/api/learners/tts/language", {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return learnerSpeechLanguageContractSchema.parse(await response.json());
+}
+
+export async function updateLearnerSpeechLanguage(
+  token: string,
+  speechLanguage: LearnerSpeechLanguage,
+): Promise<LearnerSpeechLanguageContract> {
+  const response = await fetch("/api/learners/tts/language", {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ speech_language: speechLanguage }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return learnerSpeechLanguageContractSchema.parse(await response.json());
 }
 
 export async function getIntroExperienceSettings(): Promise<LearnerExperienceSettings> {

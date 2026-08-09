@@ -73,6 +73,7 @@ final class PortalSystemLearnerTest extends TestCase
         $this->getJson("/api/staff/system-admin/{$systemAdministrator->id}/page-portals")
             ->assertOk()
             ->assertJsonPath('learner.learner_code', 'KW000')
+            ->assertJsonPath('learner.speech_language', 'en')
             ->assertJsonPath('learner.analytics_excluded', true)
             ->assertJsonPath('learner.progress_stage', 'before_diagnostic')
             ->assertJsonPath('learner.reading_path.diagnostic.status', 'required')
@@ -99,6 +100,7 @@ final class PortalSystemLearnerTest extends TestCase
             ->assertJsonPath('launch.target_key', 'learner-dashboard')
             ->assertJsonPath('launch.route', '/learner/dashboard')
             ->assertJsonPath('launch.learner_session.learner.learner_code', 'KW000')
+            ->assertJsonPath('launch.learner_session.learner.speech_language', 'en')
             ->assertJsonPath(
                 'launch.learner_session.reading_path.diagnostic.status',
                 'required',

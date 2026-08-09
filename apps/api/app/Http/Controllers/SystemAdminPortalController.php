@@ -11,6 +11,7 @@ use App\Models\StaffUser;
 use App\Services\LearnerPortalLaunchService;
 use App\Services\LearnerProgressResetService;
 use App\Services\LearnerReadingPathService;
+use App\Support\SpeechLanguage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -114,6 +115,7 @@ final class SystemAdminPortalController extends Controller
                     $learner->last_name,
                 ]),
                 'account_purpose' => $learner->account_purpose,
+                'speech_language' => SpeechLanguage::normalize($learner->speech_language),
                 'is_active' => $learner->is_active,
                 'analytics_excluded' => true,
                 'progress_stage' => $progress->stage,
@@ -160,6 +162,7 @@ final class SystemAdminPortalController extends Controller
                 ])),
                 'first_name' => $learner->first_name,
                 'account_purpose' => $learner->account_purpose,
+                'speech_language' => SpeechLanguage::normalize($learner->speech_language),
                 'school' => $learner->school?->name,
                 'grade_level' => $learner->grade_level,
                 'section' => $learner->section,

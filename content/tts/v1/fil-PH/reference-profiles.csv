@@ -1,0 +1,5 @@
+reference_role,reference_path,review_status,review_notes
+introduce,assets/audio/voice-references/sh-fil/general.wav,approved,"Approved by the product owner on 2026-08-08 for the shared general Filipino delivery."
+instruction,assets/audio/voice-references/sh-fil/general.wav,approved,"Approved by the product owner after listening to the real VoxCPM2 Filipino capability probe on 2026-08-08."
+question,assets/audio/voice-references/sh-fil/general.wav,approved,"Approved by the product owner on 2026-08-08 for the shared general Filipino delivery."
+result,assets/audio/voice-references/sh-fil/general.wav,approved,"Approved by the product owner on 2026-08-08 for the shared general Filipino delivery."

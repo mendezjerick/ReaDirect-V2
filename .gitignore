@@ -55,6 +55,67 @@ services/tts/storage/cache/*
 !services/tts/storage/cache/.gitkeep
 services/tts/storage/reference-cache/*
 
+# Local CUDA/GPU environments and generated artifacts
+# Keep shared GPU-aware source/configuration tracked; ignore only host-specific
+# launch profiles, accelerator caches, compiled kernels, and profiler output.
+.env.cuda
+.env.cuda.*
+.env.gpu
+.env.gpu.*
+.env.nvidia
+.env.nvidia.*
+*.cuda.local.*
+*.gpu.local.*
+*.nvidia.local.*
+*.cuda.ps1
+*.gpu.ps1
+*.nvidia.ps1
+*-cuda.ps1
+*-gpu.ps1
+*-nvidia.ps1
+*.cuda.cmd
+*.gpu.cmd
+*.nvidia.cmd
+*-cuda.cmd
+*-gpu.cmd
+*-nvidia.cmd
+*.cuda.bat
+*.gpu.bat
+*.nvidia.bat
+*-cuda.bat
+*-gpu.bat
+*-nvidia.bat
+*.cuda.sh
+*.gpu.sh
+*.nvidia.sh
+*-cuda.sh
+*-gpu.sh
+*-nvidia.sh
+**/.nv/
+**/.nvidia/
+**/.triton/
+**/torch_extensions/
+**/cuda-cache/
+**/gpu-cache/
+*.cubin
+*.fatbin
+*.ptx
+*.cudafe*
+*.nv_fatbin
+*.engine
+*.trt
+*.nsys-rep
+*.ncu-rep
+*.qdrep
+*.nvvp
+nvidia-smi*.csv
+nvidia-smi*.json
+nvidia-smi*.txt
+cuda-profile*/
+gpu-profile*/
+cuda-reports/
+gpu-reports/
+
 # Licensed or local-only Live2D SDK files
 CubismSdkForWeb-*.zip
 apps/web/vendor/live2d/

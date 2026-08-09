@@ -14,6 +14,7 @@ use App\Http\Controllers\LearnerLessonOneController;
 use App\Http\Controllers\LearnerLessonSixController;
 use App\Http\Controllers\LearnerLessonThreeController;
 use App\Http\Controllers\LearnerLessonTwoController;
+use App\Http\Controllers\LearnerSpeechLanguageController;
 use App\Http\Controllers\LearnerTtsController;
 use App\Http\Controllers\SchoolAdminClassController;
 use App\Http\Controllers\SchoolAdminInstructionalInsightsController;
@@ -156,6 +157,8 @@ Route::prefix('learners')->middleware('learner.auth')->group(function (): void {
     Route::post('/logout', [LearnerAuthController::class, 'destroy']);
     Route::post('/assessments/diagnostic/skip', LearnerDiagnosticSkipController::class);
     Route::get('/experience/settings', [LearnerExperienceController::class, 'show']);
+    Route::get('/tts/language', [LearnerSpeechLanguageController::class, 'show']);
+    Route::put('/tts/language', [LearnerSpeechLanguageController::class, 'update']);
     Route::get('/games/profile', [LearnerGameProfileController::class, 'show']);
     Route::post('/games/profile', [LearnerGameProfileController::class, 'store']);
     Route::get('/games/{gameKey}/save', [LearnerGameSaveController::class, 'show'])

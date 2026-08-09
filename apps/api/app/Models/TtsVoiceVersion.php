@@ -11,6 +11,7 @@ final class TtsVoiceVersion extends Model
 
     protected $fillable = [
         'stable_key',
+        'language_code',
         'engine',
         'model_identifier',
         'reference_set',

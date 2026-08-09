@@ -29,6 +29,7 @@ const learnerSession = {
     full_name: "Avery Test Learner",
     first_name: "Avery",
     account_purpose: "standard",
+    speech_language: "en",
     school: null,
     grade_level: null,
     section: null,
@@ -39,6 +40,19 @@ const learnerSession = {
     achievement_keys: [],
   },
   session: { expires_at: "2026-07-20T12:00:00+00:00" },
+};
+
+const unavailableLanguageContract = {
+  speech_language: "en",
+  languages: [
+    { code: "en", label: "English", available: true, selected: true },
+    {
+      code: "fil-PH",
+      label: "Filipino",
+      available: false,
+      selected: false,
+    },
+  ],
 };
 
 function LocationProbe() {
@@ -52,6 +66,20 @@ function sessionResponse(readingPath: LearnerReadingPath) {
     learner: learnerSession.learner,
     session: learnerSession.session,
   };
+}
+
+function mockSessionAndLanguage(
+  readingPath: LearnerReadingPath,
+  languageContract = unavailableLanguageContract,
+) {
+  return vi.fn((input: RequestInfo | URL) => {
+    const url = String(input);
+    return Promise.resolve(
+      url.endsWith("/tts/language")
+        ? Response.json(languageContract)
+        : Response.json(sessionResponse(readingPath)),
+    );
+  });
 }
 
 function renderReadingJourney(readingPath: LearnerReadingPath = freshPath) {
@@ -79,10 +107,7 @@ function renderReadingJourney(readingPath: LearnerReadingPath = freshPath) {
 
 describe("ReadingJourneyMenuPage", () => {
   beforeEach(() => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(Response.json(sessionResponse(freshPath))),
-    );
+    vi.stubGlobal("fetch", mockSessionAndLanguage(freshPath));
   });
 
   afterEach(() => {
@@ -131,7 +156,91 @@ describe("ReadingJourneyMenuPage", () => {
     expect(container.querySelector(".clara-stage")).toBeNull();
     expect(container.querySelector(".clara-speech-loader")).toBeNull();
 
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+  });
+
+  it("shows the spoken-language switch at a glance and explains availability", async () => {
+    renderReadingJourney();
+
+    const languageSwitch = screen.getByRole("switch", {
+      name: "English or Filipino",
+    });
+    expect(languageSwitch).toBeDisabled();
+    expect(languageSwitch).toHaveAttribute("aria-checked", "false");
+    expect(languageSwitch).toHaveAttribute("data-language", "en");
+    expect(screen.getByText("Clara's voice")).toBeVisible();
+    expect(await screen.findByText("Coming soon")).toBeVisible();
+    expect(
+      await screen.findByText(
+        "Filipino is still being prepared. English stays selected for now.",
+      ),
+    ).toBeVisible();
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+  });
+
+  it("switches to Filipino and persists the updated learner session", async () => {
+    const user = userEvent.setup();
+    const availableContract = {
+      speech_language: "en",
+      languages: [
+        { code: "en", label: "English", available: true, selected: true },
+        {
+          code: "fil-PH",
+          label: "Filipino",
+          available: true,
+          selected: false,
+        },
+      ],
+    };
+    const selectedContract = {
+      speech_language: "fil-PH",
+      languages: availableContract.languages.map((language) => ({
+        ...language,
+        selected: language.code === "fil-PH",
+      })),
+    };
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/tts/language")) {
+        return Promise.resolve(
+          Response.json(
+            init?.method === "PUT" ? selectedContract : availableContract,
+          ),
+        );
+      }
+      return Promise.resolve(Response.json(sessionResponse(freshPath)));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderReadingJourney();
+
+    const languageSwitch = await screen.findByRole("switch", {
+      name: "English or Filipino",
+    });
+    await waitFor(() => expect(languageSwitch).toBeEnabled());
+    await user.click(languageSwitch);
+
+    await waitFor(() =>
+      expect(languageSwitch).toHaveAttribute("aria-checked", "true"),
+    );
+    expect(languageSwitch).toHaveAttribute("data-language", "fil-PH");
+    expect(
+      screen.getByText(
+        "Clara's guidance is in Filipino. Reading words stay in English.",
+      ),
+    ).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/learners/tts/language",
+      expect.objectContaining({
+        method: "PUT",
+        body: JSON.stringify({ speech_language: "fil-PH" }),
+      }),
+    );
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem("readirect.learner-session") ?? "null",
+      ).learner.speech_language,
+    ).toBe("fil-PH");
   });
 
   it("shows independent Start, Resume, and Completed lesson states", async () => {
@@ -149,9 +258,7 @@ describe("ReadingJourneyMenuPage", () => {
       completed_lesson_count: 2,
       final_assessment: { status: "locked" },
     };
-    vi.mocked(fetch).mockResolvedValue(
-      Response.json(sessionResponse(readingPath)),
-    );
+    vi.stubGlobal("fetch", mockSessionAndLanguage(readingPath));
     renderReadingJourney(readingPath);
 
     expect(screen.getByText("Completed · Score 17")).toBeInTheDocument();
@@ -193,9 +300,11 @@ describe("ReadingJourneyMenuPage", () => {
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
       return Promise.resolve(
-        url.endsWith("/assessments/diagnostic/skip")
-          ? Response.json({ reading_path: completedPath })
-          : Response.json(sessionResponse(freshPath)),
+        url.endsWith("/tts/language")
+          ? Response.json(unavailableLanguageContract)
+          : url.endsWith("/assessments/diagnostic/skip")
+            ? Response.json({ reading_path: completedPath })
+            : Response.json(sessionResponse(freshPath)),
       );
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -239,9 +348,7 @@ describe("ReadingJourneyMenuPage", () => {
       completed_lesson_count: 6,
       final_assessment: { status: "available" },
     };
-    vi.mocked(fetch).mockResolvedValue(
-      Response.json(sessionResponse(completePath)),
-    );
+    vi.stubGlobal("fetch", mockSessionAndLanguage(completePath));
     renderReadingJourney(completePath);
 
     const finalButton = screen.getByRole("button", {

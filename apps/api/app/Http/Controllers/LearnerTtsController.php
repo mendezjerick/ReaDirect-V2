@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\LearnerSession;
 use App\Models\LessonResponse;
 use App\Models\TtsSpeechLine;
-use App\Models\TtsVoiceVersion;
 use App\Services\ActivitySpeechManifestService;
 use App\Services\ActivitySpeechPreparationService;
 use App\Services\IsolatedLetterPronunciation;
 use App\Services\LearnerSessionResolver;
 use App\Services\LearnerSpeechPolicy;
+use App\Services\PublishedTtsVoiceResolver;
+use App\Services\RuntimeSpeechTemplateRenderer;
+use App\Support\SpeechLanguage;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,6 +29,8 @@ final class LearnerTtsController extends Controller
         private readonly ActivitySpeechManifestService $activitySpeechManifest,
         private readonly ActivitySpeechPreparationService $activitySpeechPreparation,
         private readonly LearnerSpeechPolicy $speechPolicy,
+        private readonly PublishedTtsVoiceResolver $publishedVoices,
+        private readonly RuntimeSpeechTemplateRenderer $runtimeTemplates,
     ) {}
 
     public function activityManifest(Request $request): JsonResponse
@@ -84,12 +88,16 @@ final class LearnerTtsController extends Controller
         string $source = 'published',
         array $headers = [],
     ): Response|JsonResponse {
+        $language = SpeechLanguage::normalize($session->learner->speech_language);
+        $voice = $this->publishedVoices->forLanguage($language);
+        if ($voice === null) {
+            abort(404, 'That Clara speech language is not available.');
+        }
+
         $speech = TtsSpeechLine::query()
-            ->with('voiceVersion')
+            ->where('tts_voice_version_id', $voice->id)
             ->where('speech_key', $speechKey)
             ->where('status', TtsSpeechLine::STATUS_PUBLISHED)
-            ->whereHas('voiceVersion', fn ($query) => $query
-                ->where('status', TtsVoiceVersion::STATUS_PUBLISHED))
             ->orderByDesc('approved_at')
             ->first();
 
@@ -121,7 +129,8 @@ final class LearnerTtsController extends Controller
             'Cache-Control' => 'no-store',
             'X-ReaDirect-Clara-Speech' => $speechKey,
             'X-ReaDirect-TTS-Source' => $source,
-            'X-ReaDirect-TTS-Voice' => $speech->voiceVersion->stable_key,
+            'X-ReaDirect-TTS-Voice' => $voice->stable_key,
+            'X-ReaDirect-TTS-Language' => $language,
             ...$headers,
         ]);
     }
@@ -147,6 +156,7 @@ final class LearnerTtsController extends Controller
         $isPhraseLesson = $lessonResponse->run->lesson_key === 'required-lesson-3';
         $isSentenceLesson = $lessonResponse->run->lesson_key === 'required-lesson-4';
         $isAlignedTextLesson = $isPhraseLesson || $isSentenceLesson;
+        $language = SpeechLanguage::normalize($session->learner->speech_language);
         $alignmentDiagnosis = (string) data_get(
             $lessonResponse->evidence,
             'transcript_alignment.diagnosis_key',
@@ -164,21 +174,31 @@ final class LearnerTtsController extends Controller
                     [],
                 ),
                 $isSentenceLesson ? 'sentence' : 'phrase',
+                $language,
             );
         } elseif ($isLetterLesson && preg_match('/^[A-Z]$/', $canonicalLetter)) {
             $spoken = $this->letterPronunciation->spokenForm($canonicalLetter);
-            $text = "You said {$spoken}.";
+            $text = $this->runtimeTemplates->render(
+                $language,
+                'feedback.you_said_letter',
+                ['spoken' => $spoken],
+            );
         } elseif (($isWordLesson || $isAlignedTextLesson)
             && $final !== ''
             && strtoupper($final) !== 'UNKNOWN') {
-            $text = "You said {$final}.";
+            $text = $this->runtimeTemplates->render(
+                $language,
+                'feedback.you_said_transcript',
+                ['final' => $final],
+            );
         } else {
-            $text = match (true) {
-                $isLetterLesson => 'I did not hear a clear letter. You can try the next one.',
-                $isPhraseLesson => 'I did not hear a clear phrase. You can try the next one.',
-                $isSentenceLesson => 'I did not hear a clear sentence. You can try the next one.',
-                default => 'I did not hear a clear word. You can try the next one.',
+            $templateKey = match (true) {
+                $isLetterLesson => 'feedback.unclear_letter',
+                $isPhraseLesson => 'feedback.unclear_phrase',
+                $isSentenceLesson => 'feedback.unclear_sentence',
+                default => 'feedback.unclear_word',
             };
+            $text = $this->runtimeTemplates->render($language, $templateKey);
         }
 
         return $this->runtimeSpeech($session, $text, 'result', $fallbackSpeechKey, [
@@ -241,7 +261,11 @@ final class LearnerTtsController extends Controller
 
         return $this->runtimeSpeech(
             $session,
-            "The word is {$word}. Listen: {$word}. Now you try.",
+            $this->runtimeTemplates->render(
+                SpeechLanguage::normalize($session->learner->speech_language),
+                'demonstration.lesson_2_word',
+                ['word' => $word],
+            ),
             'instruction',
             'lesson-2-word-demo-'.str_replace('lesson-v1-word-', '', (string) $item['content_id']),
             ['X-ReaDirect-Word' => $word],
@@ -258,6 +282,8 @@ final class LearnerTtsController extends Controller
         string $fallbackSpeechKey,
         array $headers = [],
     ): Response|JsonResponse {
+        $language = SpeechLanguage::normalize($session->learner->speech_language);
+
         try {
             $speech = Http::accept('audio/wav')
                 ->withToken((string) config('speech.tts_token'))
@@ -266,6 +292,7 @@ final class LearnerTtsController extends Controller
                 ->post(rtrim((string) config('speech.tts_url'), '/').'/synthesize', [
                     'text' => $text,
                     'reference' => $reference,
+                    'language' => $language,
                 ]);
         } catch (Throwable $error) {
             report($error);
@@ -278,7 +305,12 @@ final class LearnerTtsController extends Controller
             );
         }
 
-        if (! $speech->successful()) {
+        $reportedLanguage = $speech->header('X-ReaDirect-TTS-Language');
+        $reportedLanguage = is_string($reportedLanguage) && $reportedLanguage !== ''
+            ? SpeechLanguage::normalize($reportedLanguage)
+            : SpeechLanguage::ENGLISH;
+
+        if (! $speech->successful() || $reportedLanguage !== $language) {
             return $this->publishedSpeech(
                 $session,
                 $fallbackSpeechKey,
@@ -291,6 +323,7 @@ final class LearnerTtsController extends Controller
             'Content-Type' => 'audio/wav',
             'Cache-Control' => 'private, no-store',
             'X-ReaDirect-TTS-Source' => 'runtime-cache',
+            'X-ReaDirect-TTS-Language' => $language,
             ...$headers,
         ]);
     }
@@ -299,6 +332,7 @@ final class LearnerTtsController extends Controller
     private function alignedTextCorrection(
         array $alignment,
         string $unit,
+        string $language,
     ): string {
         $diagnosis = (string) ($alignment['diagnosis_key'] ?? '');
         $operation = (array) ($alignment['primary_operation'] ?? []);
@@ -307,50 +341,110 @@ final class LearnerTtsController extends Controller
 
         return match ($diagnosis) {
             'missing_word' => $expected !== ''
-                ? "You missed the word {$expected}."
-                : "You missed one word. Let us try the {$unit} again.",
+                ? $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.missing_word',
+                    ['expected' => $expected],
+                )
+                : $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.missing_word_fallback',
+                    ['unit' => $unit],
+                ),
             'extra_word' => $actual !== ''
-                ? "I heard an extra word, {$actual}."
-                : "I heard one extra word. Let us try the {$unit} again.",
+                ? $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.extra_word',
+                    ['actual' => $actual],
+                )
+                : $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.extra_word_fallback',
+                    ['unit' => $unit],
+                ),
             'replaced_word' => $expected !== '' && $actual !== ''
-                ? "I heard {$actual} instead of {$expected}."
-                : "One word was different. Let us try the {$unit} again.",
-            'words_out_of_order' => $this->wordOrderCorrection($operation),
+                ? $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.replaced_word',
+                    ['actual' => $actual, 'expected' => $expected],
+                )
+                : $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.replaced_word_fallback',
+                    ['unit' => $unit],
+                ),
+            'words_out_of_order' => $this->wordOrderCorrection($operation, $language),
             'multiple_word_differences' => $this->multipleDifferenceCorrection(
                 $operation,
+                $language,
             ),
-            default => "Some words were different. Let us read the {$unit} one word at a time.",
+            default => $this->runtimeTemplates->render(
+                $language,
+                'alignment.default',
+                ['unit' => $unit],
+            ),
         };
     }
 
     /** @param array<string, mixed> $operation */
-    private function wordOrderCorrection(array $operation): string
+    private function wordOrderCorrection(array $operation, string $language): string
     {
         $first = trim((string) ($operation['expected_first'] ?? ''));
         $second = trim((string) ($operation['expected_second'] ?? ''));
 
         return $first !== '' && $second !== ''
-            ? "The words {$first} and {$second} changed places."
-            : 'Two words changed places. Let us try the phrase again.';
+            ? $this->runtimeTemplates->render(
+                $language,
+                'alignment.words_out_of_order',
+                ['first' => $first, 'second' => $second],
+            )
+            : $this->runtimeTemplates->render(
+                $language,
+                'alignment.words_out_of_order_fallback',
+            );
     }
 
     /** @param array<string, mixed> $operation */
-    private function multipleDifferenceCorrection(array $operation): string
+    private function multipleDifferenceCorrection(array $operation, string $language): string
     {
         $expected = trim((string) ($operation['expected'] ?? ''));
         $actual = trim((string) ($operation['actual'] ?? ''));
 
         return match ($operation['type'] ?? '') {
             'delete' => $expected !== ''
-                ? "Let us fix one part. You missed the word {$expected}."
-                : 'Let us fix one part. One word was missing.',
+                ? $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.multiple_missing_word',
+                    ['expected' => $expected],
+                )
+                : $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.multiple_missing_word_fallback',
+                ),
             'insert' => $actual !== ''
-                ? "Let us fix one part. I heard an extra word, {$actual}."
-                : 'Let us fix one part. I heard an extra word.',
+                ? $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.multiple_extra_word',
+                    ['actual' => $actual],
+                )
+                : $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.multiple_extra_word_fallback',
+                ),
             'substitute' => $expected !== '' && $actual !== ''
-                ? "Let us fix one part. I heard {$actual} instead of {$expected}."
-                : 'Let us fix one part. One word was different.',
-            default => 'Some words were different. Let us read the phrase one word at a time.',
+                ? $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.multiple_replaced_word',
+                    ['actual' => $actual, 'expected' => $expected],
+                )
+                : $this->runtimeTemplates->render(
+                    $language,
+                    'alignment.multiple_replaced_word_fallback',
+                ),
+            default => $this->runtimeTemplates->render(
+                $language,
+                'alignment.multiple_default',
+            ),
         };
     }
 }

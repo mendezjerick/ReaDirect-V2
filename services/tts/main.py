@@ -33,6 +33,7 @@ MODEL_PATH = SERVICE_ROOT / ".cache/models/openbmb--VoxCPM2"
 CACHE_PATH = SERVICE_ROOT / "storage/cache"
 REFERENCE_CACHE_PATH = SERVICE_ROOT / "storage/reference-cache"
 REFERENCE_ROOT = REPOSITORY_ROOT / "assets/audio/voice-references/sh"
+FILIPINO_REFERENCE_ROOT = REPOSITORY_ROOT / "assets/audio/voice-references/sh-fil"
 REFERENCE_TARGET_PEAK_DBFS = -6.0
 REFERENCE_TARGET_PEAK = 10 ** (REFERENCE_TARGET_PEAK_DBFS / 20)
 REFERENCE_CONDITIONING_VERSION = "mono-peak-minus-6db-v1"
@@ -42,6 +43,7 @@ STARTUP_WARMUP_ENABLED = os.getenv("READIRECT_TTS_STARTUP_WARMUP", "1") not in {
     "False",
 }
 PROFILE_PROBE_TEXT = "Ma'am Clara is ready to help."
+FILIPINO_PROFILE_PROBE_TEXT = "Makinig nang mabuti, sundan ang bawat salita, at huwag magmadali."
 MAX_HTTP_REQUEST_BYTES = int(os.getenv("TTS_MAX_HTTP_REQUEST_BYTES", "16384"))
 SERVICE_TOKEN = os.getenv("TTS_SERVICE_TOKEN", "").strip()
 SERVICE_TOKEN_CONFIGURED = len(SERVICE_TOKEN) >= 32
@@ -52,6 +54,10 @@ REFERENCE_FILES = {
     "instruction": REFERENCE_ROOT / "instruction.wav",
     "question": REFERENCE_ROOT / "question.wav",
     "result": REFERENCE_ROOT / "result.wav",
+    "fil-PH:introduce": FILIPINO_REFERENCE_ROOT / "general.wav",
+    "fil-PH:instruction": FILIPINO_REFERENCE_ROOT / "general.wav",
+    "fil-PH:question": FILIPINO_REFERENCE_ROOT / "general.wav",
+    "fil-PH:result": FILIPINO_REFERENCE_ROOT / "general.wav",
 }
 
 logger = logging.getLogger("readirect.tts")
@@ -63,11 +69,13 @@ ReferenceProfile = Literal[
     "question",
     "result",
 ]
+SpeechLanguage = Literal["en", "fil-PH"]
 
 
 class SynthesisRequest(BaseModel):
     text: str = Field(min_length=1, max_length=500)
     reference: ReferenceProfile
+    language: SpeechLanguage = "en"
 
     @field_validator("text")
     @classmethod
@@ -82,6 +90,7 @@ class SynthesisRequest(BaseModel):
 
 class WarmupRequest(BaseModel):
     profiles: list[ReferenceProfile] = Field(default_factory=list, max_length=4)
+    language: SpeechLanguage = "en"
 
     @field_validator("profiles")
     @classmethod
@@ -169,25 +178,37 @@ class VoxRuntime:
 
         self.warmup_model()
 
-    def prepare_profiles(self, profiles: list[ReferenceProfile]) -> None:
+    def prepare_profiles(
+        self,
+        profiles: list[ReferenceProfile],
+        language: SpeechLanguage = "en",
+    ) -> None:
+        profile_keys = [reference_key(language, profile) for profile in profiles]
+        for profile_key in profile_keys:
+            reference_path = REFERENCE_FILES.get(profile_key)
+            if reference_path is None or not reference_path.is_file():
+                raise FileNotFoundError(f"Clara reference profile is unavailable: {profile_key}")
+
         self.warmup_model()
 
-        for profile in profiles:
-            self._prepare_profile(profile)
+        for profile_key in profile_keys:
+            self._prepare_profile(profile_key)
 
     def synthesize(
         self,
         text: str,
         profile: ReferenceProfile,
         output_path: Path,
+        language: SpeechLanguage = "en",
     ) -> None:
-        self.prepare_profiles([profile])
+        profile_key = reference_key(language, profile)
+        self.prepare_profiles([profile], language)
 
         with self._generation_lock:
             if output_path.is_file():
                 return
 
-            prepared = self._prepared_profile(profile)
+            prepared = self._prepared_profile(profile_key)
             waveform = self._generate_with_prompt_cache(
                 text,
                 prepared.prompt_cache,
@@ -253,8 +274,10 @@ class VoxRuntime:
 
         return model, device
 
-    def _prepare_profile(self, profile: ReferenceProfile) -> None:
-        reference_path = REFERENCE_FILES[profile]
+    def _prepare_profile(self, profile: str) -> None:
+        reference_path = REFERENCE_FILES.get(profile)
+        if reference_path is None:
+            raise FileNotFoundError(f"Clara reference profile is unavailable: {profile}")
         fingerprint = reference_fingerprint(reference_path)
         owner = False
 
@@ -292,7 +315,7 @@ class VoxRuntime:
                     reference_wav_path=str(conditioned_reference),
                 )
                 self._generate_with_prompt_cache(
-                    PROFILE_PROBE_TEXT,
+                    profile_probe_text(profile),
                     prompt_cache,
                     retry_badcase=True,
                 )
@@ -314,7 +337,7 @@ class VoxRuntime:
                 completed_event = self._profile_events.pop(profile, event)
                 completed_event.set()
 
-    def _prepared_profile(self, profile: ReferenceProfile) -> PreparedProfile:
+    def _prepared_profile(self, profile: str) -> PreparedProfile:
         with self._state_lock:
             prepared = self._prepared_profiles.get(profile)
 
@@ -481,6 +504,7 @@ def cache_path_for(request: SynthesisRequest, reference_path: Path) -> Path:
     cache_key = "|".join(
         [
             "voxcpm2",
+            request.language,
             request.reference,
             request.text.strip(),
             str(reference_stat.st_size),
@@ -492,6 +516,14 @@ def cache_path_for(request: SynthesisRequest, reference_path: Path) -> Path:
     )
     digest = hashlib.sha256(cache_key.encode("utf-8")).hexdigest()
     return CACHE_PATH / f"{digest}.wav"
+
+
+def reference_key(language: SpeechLanguage, profile: ReferenceProfile) -> str:
+    return profile if language == "en" else f"{language}:{profile}"
+
+
+def profile_probe_text(profile: str) -> str:
+    return FILIPINO_PROFILE_PROBE_TEXT if profile.startswith("fil-PH:") else PROFILE_PROBE_TEXT
 
 
 def conditioned_reference_path(reference_path: Path) -> Path:
@@ -634,18 +666,20 @@ async def internal_status() -> dict[str, Any]:
 @app.post("/warmup")
 async def warmup(request: WarmupRequest | None = None) -> dict[str, Any]:
     requested_profiles = request.profiles if request is not None else []
+    language = request.language if request is not None else "en"
+    requested_profile_keys = [reference_key(language, profile) for profile in requested_profiles]
     state = runtime.state()
     warmup_required = (
         not inference_queue.snapshot()["healthy"]
         or not state["model_ready"]
-        or any(profile not in state["profiles_ready"] for profile in requested_profiles)
+        or any(profile not in state["profiles_ready"] for profile in requested_profile_keys)
     )
 
     if warmup_required:
         try:
             await submit_inference(
                 "profile_warmup",
-                lambda: runtime.prepare_profiles(requested_profiles),
+                lambda: runtime.prepare_profiles(requested_profiles, language),
             )
         except (OSError, RuntimeError, ValueError) as error:
             logger.exception("VoxCPM2 warm-up failed")
@@ -654,17 +688,23 @@ async def warmup(request: WarmupRequest | None = None) -> dict[str, Any]:
     state = runtime.state()
 
     return {
-        "ready": all(profile in state["profiles_ready"] for profile in requested_profiles),
+        "ready": all(profile in state["profiles_ready"] for profile in requested_profile_keys),
+        "language": language,
         "device": state["device"],
-        "profiles_ready": state["profiles_ready"],
+        "profiles_ready": [
+            profile
+            for profile in requested_profiles
+            if reference_key(language, profile) in state["profiles_ready"]
+        ],
     }
 
 
 @app.post("/synthesize")
 async def synthesize(request: SynthesisRequest) -> FileResponse:
-    reference_path = REFERENCE_FILES[request.reference]
+    profile_key = reference_key(request.language, request.reference)
+    reference_path = REFERENCE_FILES.get(profile_key)
 
-    if not reference_path.is_file():
+    if reference_path is None or not reference_path.is_file():
         raise HTTPException(
             status_code=503,
             detail="tts_unavailable",
@@ -674,7 +714,7 @@ async def synthesize(request: SynthesisRequest) -> FileResponse:
     output_path = cache_path_for(normalized_request, reference_path)
     was_cached = output_path.is_file()
     state = runtime.state()
-    profile_ready = request.reference in state["profiles_ready"]
+    profile_ready = profile_key in state["profiles_ready"]
     queue_wait_seconds = 0.0
     gpu_wait_seconds = 0.0
 
@@ -686,7 +726,7 @@ async def synthesize(request: SynthesisRequest) -> FileResponse:
         elif was_cached:
             outcome = await submit_inference(
                 "cached_profile_warmup",
-                lambda: runtime.prepare_profiles([request.reference]),
+                lambda: runtime.prepare_profiles([request.reference], request.language),
             )
             queue_wait_seconds = outcome.queue_wait_seconds
             gpu_wait_seconds = outcome.gpu_wait_seconds
@@ -697,6 +737,7 @@ async def synthesize(request: SynthesisRequest) -> FileResponse:
                     normalized_request.text,
                     normalized_request.reference,
                     output_path,
+                    normalized_request.language,
                 ),
             )
             queue_wait_seconds = outcome.queue_wait_seconds
@@ -714,6 +755,7 @@ async def synthesize(request: SynthesisRequest) -> FileResponse:
             "X-ReaDirect-TTS-Cache": "hit" if was_cached else "miss",
             "X-ReaDirect-TTS-Queue-Wait": f"{queue_wait_seconds:.4f}",
             "X-ReaDirect-TTS-GPU-Wait": f"{gpu_wait_seconds:.4f}",
+            "X-ReaDirect-TTS-Language": request.language,
         },
     )
 

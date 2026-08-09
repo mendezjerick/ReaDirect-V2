@@ -209,6 +209,7 @@ abstract class TestCase extends BaseTestCase
         Schema::create('tts_voice_versions', function (Blueprint $table): void {
             $table->id();
             $table->string('stable_key', 80)->unique();
+            $table->string('language_code', 16)->default('en');
             $table->string('engine', 40);
             $table->string('model_identifier', 160);
             $table->string('reference_set', 80);
@@ -217,6 +218,10 @@ abstract class TestCase extends BaseTestCase
             $table->string('status', 24)->default('draft')->index();
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
+            $table->index(
+                ['language_code', 'status', 'published_at'],
+                'tts_voice_language_publication_index',
+            );
         });
 
         Schema::create('tts_speech_lines', function (Blueprint $table): void {
@@ -251,6 +256,7 @@ abstract class TestCase extends BaseTestCase
             $table->id();
             $table->char('learner_code', 5)->unique();
             $table->string('account_purpose', 32)->default('standard')->index();
+            $table->string('speech_language', 16)->default('en');
             $table->string('password');
             $table->string('first_name', 80);
             $table->string('middle_name', 80);
