@@ -50,6 +50,10 @@ final class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        RateLimiter::for('learner-offline-practice', function (Request $request): Limit {
+            return Limit::perMinute(60)->by('learner-offline-practice:'.($request->ip() ?? 'unknown'));
+        });
+
         RateLimiter::for('staff-security-code-request', function (Request $request): Limit {
             return Limit::perMinutes(
                 10,

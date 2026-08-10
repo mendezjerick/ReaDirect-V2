@@ -17,16 +17,20 @@ import {
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { LearnerLoginPage } from "../src/features/learner-auth/LearnerLoginPage";
 
-function renderLogin() {
+function renderLogin(initialPath = "/learner/login") {
   return render(
     <QueryClientProvider client={createAppQueryClient()}>
-      <MemoryRouter initialEntries={["/learner/login"]}>
+        <MemoryRouter initialEntries={[initialPath]}>
         <RouteTransitionProvider>
           <Routes>
             <Route path="/learner/login" element={<LearnerLoginPage />} />
             <Route
               path="/learner/dashboard"
               element={<div>Learner dashboard route</div>}
+            />
+            <Route
+              path="/learner/offline"
+              element={<div>Offline Practice route</div>}
             />
             <Route path="/home" element={<div>Home route</div>} />
           </Routes>
@@ -125,5 +129,52 @@ describe("LearnerLoginPage", () => {
       await vi.advanceTimersByTimeAsync(LINK_START_ROUTE_SWAP_MS);
     });
     expect(screen.getByText("Learner dashboard route")).toBeVisible();
+  });
+
+  it("returns to Offline Practice when login was opened for a download", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            token: "learner-token",
+            learner: {
+              id: 1,
+              learner_code: "KW000",
+              full_name: "Kristen Rhine Wright",
+              first_name: "Kristen",
+              account_purpose: "portal_system",
+              school: null,
+              grade_level: null,
+              section: null,
+              progress: {
+                stage: "before_diagnostic",
+                current_required_lesson_order: null,
+              },
+            },
+            session: { expires_at: "2026-07-20T12:00:00+00:00" },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+    renderLogin("/learner/login?returnTo=%2Flearner%2Foffline");
+
+    fireEvent.change(screen.getByLabelText("Learner Code"), {
+      target: { value: "kw000" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "rhine359" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Let's go!" }));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BUTTON_PRESS_COMMIT_MS);
+      await vi.advanceTimersByTimeAsync(ROUTE_TRANSITION_PRESS_COMMIT_MS);
+      await vi.advanceTimersByTimeAsync(LINK_START_ROUTE_SWAP_MS);
+    });
+
+    expect(screen.getByText("Offline Practice route")).toBeVisible();
   });
 });

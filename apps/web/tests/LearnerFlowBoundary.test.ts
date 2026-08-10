@@ -26,6 +26,8 @@ const expectedLearnerRoutes = [
   "/learner/lessons/5",
   "/learner/lessons/6",
   "/learner/login",
+  "/learner/offline",
+  "/learner/offline/:packId",
 ].sort();
 
 const learnerFeatureDirectories = [
@@ -37,6 +39,7 @@ const learnerFeatureDirectories = [
   "learner-activity",
   "learner-auth",
   "learner-dashboard",
+  "offline-practice",
   "lesson",
   "lesson-intro",
   "theme",

@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { apiUrl } from "../../lib/apiUrl";
+import { audioFilename } from "../../lib/audioFile";
+
 const progressSchema = z.object({
   current: z.number().int().positive(),
   total: z.number().int().positive(),
@@ -89,7 +92,7 @@ export async function startPartOne(
   assessmentType: AssessmentType = "diagnostic",
 ): Promise<AssessmentState> {
   return parseResponse(
-    await fetch(`${assessmentApiBase(assessmentType)}/part-one/start`, {
+    await fetch(apiUrl(`${assessmentApiBase(assessmentType)}/part-one/start`), {
       method: "POST",
       headers: authHeaders(token),
     }),
@@ -103,10 +106,12 @@ export async function submitOrientation(
   assessmentType: AssessmentType = "diagnostic",
 ): Promise<AssessmentState> {
   const body = new FormData();
-  body.append("audio", audio, "microphone-check.webm");
+  body.append("audio", audio, audioFilename("microphone-check", audio));
   return parseResponse(
     await fetch(
-      `${assessmentApiBase(assessmentType)}/part-one/${runId}/orientation`,
+      apiUrl(
+        `${assessmentApiBase(assessmentType)}/part-one/${runId}/orientation`,
+      ),
       {
         method: "POST",
         headers: authHeaders(token),
@@ -125,10 +130,10 @@ export async function submitSpeech(
 ): Promise<AssessmentState> {
   const body = new FormData();
   body.append("item_key", itemKey);
-  body.append("audio", audio, `${itemKey}.webm`);
+  body.append("audio", audio, audioFilename(itemKey, audio));
   return parseResponse(
     await fetch(
-      `${assessmentApiBase(assessmentType)}/part-one/${runId}/speech`,
+      apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/speech`),
       {
         method: "POST",
         headers: authHeaders(token),
@@ -147,7 +152,7 @@ export async function submitRhyme(
 ): Promise<AssessmentState> {
   return parseResponse(
     await fetch(
-      `${assessmentApiBase(assessmentType)}/part-one/${runId}/rhyme`,
+      apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/rhyme`),
       {
         method: "POST",
         headers: { ...authHeaders(token), "Content-Type": "application/json" },
@@ -164,11 +169,14 @@ export async function skipAssessmentItem(
   assessmentType: AssessmentType = "diagnostic",
 ): Promise<AssessmentState> {
   return parseResponse(
-    await fetch(`${assessmentApiBase(assessmentType)}/part-one/${runId}/skip`, {
-      method: "POST",
-      headers: { ...authHeaders(token), "Content-Type": "application/json" },
-      body: JSON.stringify({ item_key: itemKey }),
-    }),
+    await fetch(
+      apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/skip`),
+      {
+        method: "POST",
+        headers: { ...authHeaders(token), "Content-Type": "application/json" },
+        body: JSON.stringify({ item_key: itemKey }),
+      },
+    ),
   );
 }
 
@@ -179,7 +187,7 @@ export async function advancePartOne(
 ): Promise<AssessmentState> {
   return parseResponse(
     await fetch(
-      `${assessmentApiBase(assessmentType)}/part-one/${runId}/advance`,
+      apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/advance`),
       {
         method: "POST",
         headers: authHeaders(token),
@@ -194,7 +202,7 @@ export async function continuePartOneResult(
   assessmentType: AssessmentType = "diagnostic",
 ): Promise<{ run_id: number; next_route: string }> {
   const response = await fetch(
-    `${assessmentApiBase(assessmentType)}/part-one/${runId}/continue`,
+    apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/continue`),
     { method: "POST", headers: authHeaders(token) },
   );
   if (!response.ok) {

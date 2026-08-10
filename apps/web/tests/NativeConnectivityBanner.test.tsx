@@ -1,0 +1,61 @@
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+const connectivityMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@capacitor/core", () => ({
+  Capacitor: { isNativePlatform: () => true },
+}));
+vi.mock("../src/features/connectivity/connectivityContext", () => ({
+  useConnectivity: connectivityMock,
+}));
+
+import { NativeConnectivityBanner } from "../src/features/connectivity/NativeConnectivityBanner";
+
+afterEach(() => {
+  connectivityMock.mockReset();
+});
+
+describe("NativeConnectivityBanner", () => {
+  it("shows the persistent offline message for a disconnected device", () => {
+    connectivityMock.mockReturnValue({
+      device: "offline",
+      api: "unreachable",
+      learnerSession: "signed_out",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <NativeConnectivityBanner />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "No Internet Connection",
+    );
+  });
+
+  it("distinguishes an unavailable API from missing internet", () => {
+    connectivityMock.mockReturnValue({
+      device: "online",
+      api: "unreachable",
+      learnerSession: "signed_out",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/learner/dashboard"]}>
+        <NativeConnectivityBanner />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Online Learning is unavailable right now.",
+    );
+    expect(screen.queryByText("No Internet Connection")).toBeNull();
+  });
+});

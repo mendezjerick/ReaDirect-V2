@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { apiFetch as fetch } from "../../lib/apiUrl";
+import { audioFilename } from "../../lib/audioFile";
+
 const teachingStateSchema = z.enum([
   "LISTENING",
   "INDEPENDENT_FEEDBACK",
@@ -426,7 +429,7 @@ export async function submitLessonItem(
 ) {
   const body = new FormData();
   body.append("item_key", itemKey);
-  body.append("audio", audio, `${itemKey}.webm`);
+  body.append("audio", audio, audioFilename(itemKey, audio));
   return parse(
     await fetch(`/api/learners/lessons/lesson-1/${runId}/submit`, {
       method: "POST",
@@ -514,7 +517,7 @@ export async function submitLessonTwoItem(
 ) {
   const body = new FormData();
   body.append("item_key", itemKey);
-  body.append("audio", audio, `${itemKey}.webm`);
+  body.append("audio", audio, audioFilename(itemKey, audio));
   return parseLessonTwo(
     await fetch(`/api/learners/lessons/lesson-2/${runId}/submit`, {
       method: "POST",
@@ -601,7 +604,7 @@ export async function submitLessonThreeItem(
 ) {
   const body = new FormData();
   body.append("item_key", itemKey);
-  body.append("audio", audio, `${itemKey}.webm`);
+  body.append("audio", audio, audioFilename(itemKey, audio));
   return parseLessonThree(
     await fetch(`/api/learners/lessons/lesson-3/${runId}/submit`, {
       method: "POST",
@@ -673,7 +676,7 @@ export async function submitLessonFourItem(
 ) {
   const body = new FormData();
   body.append("item_key", itemKey);
-  body.append("audio", audio, `${itemKey}.webm`);
+  body.append("audio", audio, audioFilename(itemKey, audio));
   return parseLessonFour(
     await fetch(`/api/learners/lessons/lesson-4/${runId}/submit`, {
       method: "POST",
@@ -745,7 +748,7 @@ export async function submitLessonFiveItem(
 ) {
   const body = new FormData();
   body.append("item_key", itemKey);
-  body.append("audio", audio, `${itemKey}.webm`);
+  body.append("audio", audio, audioFilename(itemKey, audio));
   return parseLessonFive(
     await fetch(`/api/learners/lessons/lesson-5/${runId}/submit`, {
       method: "POST",

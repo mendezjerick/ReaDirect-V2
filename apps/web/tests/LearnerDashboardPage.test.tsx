@@ -113,6 +113,10 @@ function renderDashboard(stage = "before_diagnostic") {
               path="/learner/lesson-intro"
               element={<div>Lesson intro route</div>}
             />
+            <Route
+              path="/learner/offline"
+              element={<div>Offline practice route</div>}
+            />
           </Routes>
         </RouteTransitionProvider>
       </MemoryRouter>
@@ -174,6 +178,9 @@ describe("LearnerDashboardPage", () => {
       headings.indexOf("Learn with Ma'am Clara"),
     );
     expect(headings.indexOf("Learn with Ma'am Clara")).toBeLessThan(
+      headings.indexOf("Download Offline Mode Files"),
+    );
+    expect(headings.indexOf("Download Offline Mode Files")).toBeLessThan(
       headings.indexOf("Achievements"),
     );
     expect(headings.indexOf("Achievements")).toBeLessThan(
@@ -227,6 +234,16 @@ describe("LearnerDashboardPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /open game lobby/i }));
 
     expect(screen.getByText("Lobby route")).toBeInTheDocument();
+  });
+
+  it("opens Offline Mode without changing the online Reading Journey", () => {
+    renderDashboard();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Offline Downloads" }),
+    );
+
+    expect(screen.getByText("Offline practice route")).toBeInTheDocument();
   });
 
   it("opens the Reading Journey without preparing Clara", () => {

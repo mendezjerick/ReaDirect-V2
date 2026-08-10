@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { apiFetch as fetch } from "../../lib/apiUrl";
+
 import type {
   GameOneHostAdapter,
   GameOneRemoteSave,
@@ -111,9 +113,7 @@ async function ensureGameProfile(
     throw new Error(await responseError(currentResponse));
   }
 
-  const current = gameProfileResponseSchema.parse(
-    await currentResponse.json(),
-  );
+  const current = gameProfileResponseSchema.parse(await currentResponse.json());
   if (current.profile !== null) return;
 
   const createResponse = await fetch("/api/learners/games/profile", {

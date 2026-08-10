@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
+        <!-- Directory.Data/offline-practice contains local practice and profile state. -->
+        <exclude domain="file" path="offline-practice" />
+        <!-- WebView local/session storage can contain learner authentication state. -->
+        <exclude domain="root" path="app_webview" />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="offline-practice" />
+        <exclude domain="root" path="app_webview" />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>

@@ -8,6 +8,7 @@ import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { ReadingJourneyAchievementIcon } from "../achievements/ReadingJourneyAchievementIcon";
 import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
 import { unlockClaraAudio } from "../clara-audio/claraSpeech";
+import { clearActiveOfflinePracticeProfile } from "../offline-practice/offlinePracticeIdentity";
 import {
   clearLearnerSession,
   getLearnerSession,
@@ -33,6 +34,15 @@ function GamesIcon() {
     <svg viewBox="0 0 48 48" aria-hidden="true">
       <path d="M16 17h16c7 0 11 6 10 14l-1 5c-.7 4-5 5-8 2l-5-5h-8l-5 5c-3 3-7.3 2-8-2l-1-5c-1-8 3-14 10-14Z" />
       <path d="M14 25h8M18 21v8M31 24h.1M35 28h.1" />
+    </svg>
+  );
+}
+
+function OfflineModeIcon() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M39 8C22 9 10 15 9 29c0 7 5 11 11 11 14-1 18-14 19-32Z" />
+      <path d="M9 40c6-10 13-16 25-22" />
     </svg>
   );
 }
@@ -64,6 +74,7 @@ export function LearnerDashboardPage() {
   const readingCommit = useButtonCommit();
   const gamesCommit = useButtonCommit();
   const learnWithClaraCommit = useButtonCommit();
+  const offlineCommit = useButtonCommit();
   const logoutCommit = useButtonCommit();
   const storedSession = loadLearnerSession();
   const sessionQuery = useQuery({
@@ -83,8 +94,9 @@ export function LearnerDashboardPage() {
   });
   const logoutMutation = useMutation({
     mutationFn: () => logoutLearner(storedSession?.token ?? ""),
-    onSettled: () => {
+    onSettled: async () => {
       clearLearnerSession();
+      await clearActiveOfflinePracticeProfile().catch(() => undefined);
       navigate("/learner/login");
     },
   });
@@ -137,6 +149,12 @@ export function LearnerDashboardPage() {
     readingCommit.commit(() => navigate("/learner/lesson-intro"));
   };
 
+  const openOfflinePractice = () => {
+    offlineCommit.commit(() =>
+      navigate("/learner/offline?from=dashboard"),
+    );
+  };
+
   if (!storedSession || sessionQuery.isError) {
     return (
       <main
@@ -156,9 +174,21 @@ export function LearnerDashboardPage() {
               ? "Your account may have been reset. Sign in again to continue."
               : "Enter your Learner Code before opening your dashboard."}
           </p>
-          <BigButton size="regular" onClick={() => navigate("/learner/login")}>
-            Go to reader sign in
-          </BigButton>
+          <div className="learner-dashboard__signed-out-actions">
+            <BigButton
+              size="regular"
+              onClick={() => navigate("/learner/login")}
+            >
+              Go to reader sign in
+            </BigButton>
+            <BigButton
+              size="regular"
+              variant="secondary"
+              onClick={() => navigate("/learner/offline?from=dashboard")}
+            >
+              Open Offline Mode
+            </BigButton>
+          </div>
         </Surface>
       </main>
     );
@@ -311,6 +341,38 @@ export function LearnerDashboardPage() {
               onClick={openLearnWithClara}
             >
               Start Class
+            </BigButton>
+          </Surface>
+
+          <Surface
+            className="learner-dashboard__utility-card learner-dashboard__offline-card learner-dashboard__entrance"
+            kind="panel"
+            padding="normal"
+          >
+            <div className="learner-dashboard__utility-heading">
+              <span className="learner-dashboard__utility-icon">
+                <OfflineModeIcon />
+              </span>
+              <div>
+                <p className="learner-dashboard__eyebrow">
+                  Practice without internet
+                </p>
+                <h2>Download Offline Mode Files</h2>
+              </div>
+            </div>
+            <p>
+              Download practice packs here, then use Offline Mode anytime—even
+              without internet.
+            </p>
+            <BigButton
+              className="learner-dashboard__offline-action"
+              aria-label="Open Offline Downloads"
+              variant="secondary"
+              size="regular"
+              committing={offlineCommit.committing}
+              onClick={openOfflinePractice}
+            >
+              Open Offline Downloads
             </BigButton>
           </Surface>
 

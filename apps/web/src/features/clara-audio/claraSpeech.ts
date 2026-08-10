@@ -1,7 +1,10 @@
+import { apiUrl } from "../../lib/apiUrl";
+
 const speechRequests = new Map<string, Promise<Blob>>();
 const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260728-11";
 const LESSON_SIX_SPEECH_DELIVERY_VERSION = "lesson-6-content-alignment-v2";
 let audioContext: AudioContext | null = null;
+const activeSpeechStops = new Set<() => void>();
 
 type AssessmentItemOrdinal = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 type AssessmentItemSpeechKey =
@@ -183,7 +186,7 @@ export function prepareClaraSpeech(
     return existingRequest;
   }
 
-  const request = fetch(`/api/learners/tts/speech/${speechKey}`, {
+  const request = fetch(apiUrl(`/api/learners/tts/speech/${speechKey}`), {
     method: "POST",
     headers: {
       Accept: "audio/wav",
@@ -222,6 +225,7 @@ export async function playClaraSpeech(
   const analyser = context.createAnalyser();
   let animationFrame = 0;
   let stopped = false;
+  let stop: () => void = () => undefined;
   let resolveFinished: (() => void) | undefined;
   const finished = new Promise<void>((resolve) => {
     resolveFinished = resolve;
@@ -254,26 +258,88 @@ export async function playClaraSpeech(
     onLevel(0);
     source.disconnect();
     analyser.disconnect();
+    activeSpeechStops.delete(stop);
     resolveFinished?.();
   };
 
   source.addEventListener("ended", finish, { once: true });
   source.start();
   animationFrame = window.requestAnimationFrame(sampleLevel);
+  stop = () => {
+    if (stopped) {
+      return;
+    }
+
+    stopped = true;
+    source.stop();
+  };
+  activeSpeechStops.add(stop);
 
   return {
     finished,
-    stop: () => {
-      if (stopped) {
-        return;
-      }
-
-      stopped = true;
-      source.stop();
-    },
+    stop,
   };
 }
 
 export function clearPreparedClaraSpeech(): void {
   speechRequests.clear();
+}
+
+export function stopAllClaraSpeech(): void {
+  for (const stop of [...activeSpeechStops]) {
+    stop();
+  }
+}
+
+/**
+ * Plays a validated local Clara asset through the same stop registry used by
+ * online Clara playback. The caller owns the source selection and supplies
+ * only an already-local URI; this helper never fetches or generates speech.
+ */
+export async function playClaraAudioSource(
+  sourceUri: string,
+): Promise<ClaraSpeechPlayback> {
+  const audio = new Audio(sourceUri);
+  let stopped = false;
+  let resolveFinished!: () => void;
+  let rejectFinished!: (error: Error) => void;
+  const finished = new Promise<void>((resolve, reject) => {
+    resolveFinished = resolve;
+    rejectFinished = reject;
+  });
+
+  let onEnded: () => void = () => undefined;
+  const finish = (error?: Error) => {
+    if (stopped) return;
+    stopped = true;
+    audio.removeEventListener("ended", onEnded);
+    activeSpeechStops.delete(stop);
+    if (error) rejectFinished(error);
+    else resolveFinished();
+  };
+  onEnded = () => finish();
+  const stop = () => {
+    if (stopped) return;
+    audio.pause();
+    audio.currentTime = 0;
+    finish();
+  };
+
+  audio.preload = "auto";
+  audio.addEventListener("ended", onEnded, { once: true });
+  audio.addEventListener(
+    "error",
+    () => finish(new Error("The local Clara audio asset could not be read.")),
+    { once: true },
+  );
+  activeSpeechStops.add(stop);
+
+  try {
+    await audio.play();
+  } catch (error) {
+    stop();
+    throw error;
+  }
+
+  return { finished, stop };
 }

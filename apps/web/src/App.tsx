@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 
 import {
   GameLobbyPage,
@@ -12,10 +13,24 @@ import { RequireStaffRole } from "./components/staff/RequireStaffRole";
 import { HomePage } from "./features/home/HomePage";
 import { IntroPage } from "./features/intro/IntroPage";
 import { LearnerExperienceProvider } from "./features/learner-auth/LearnerExperienceProvider";
+import { NativeLearnerEntryPage } from "./features/offline-practice/NativeLearnerEntryPage";
+import { NativeConnectivityBanner } from "./features/connectivity/NativeConnectivityBanner";
 
 const LearnerDashboardPage = lazy(() =>
   import("./features/learner-dashboard/LearnerDashboardPage").then(
     (module) => ({ default: module.LearnerDashboardPage }),
+  ),
+);
+
+const OfflinePracticeHomePage = lazy(() =>
+  import("./features/offline-practice/OfflinePracticeHomePage").then(
+    (module) => ({ default: module.OfflinePracticeHomePage }),
+  ),
+);
+
+const OfflinePracticeModulePage = lazy(() =>
+  import("./features/offline-practice/OfflinePracticeModulePage").then(
+    (module) => ({ default: module.OfflinePracticeModulePage }),
   ),
 );
 
@@ -406,19 +421,44 @@ function RouteLoading() {
   );
 }
 
+function RootPage() {
+  return Capacitor.isNativePlatform() ? (
+    <NativeLearnerEntryPage />
+  ) : (
+    <IntroPage />
+  );
+}
+
 export function App() {
   return (
     <RouteTransitionProvider>
       <GameLobbySkeletonProvider>
         <LearnerExperienceProvider>
+          <NativeConnectivityBanner />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
-              <Route path="/" element={<IntroPage />} />
+              <Route path="/" element={<RootPage />} />
+              <Route
+                path="/learner/modes"
+                element={<NativeLearnerEntryPage initialView="modes" />}
+              />
               <Route path="/home" element={<HomePage />} />
               <Route path="/learner/login" element={<LearnerLoginPage />} />
               <Route
                 path="/learner/dashboard"
                 element={<LearnerDashboardPage />}
+              />
+              <Route
+                path="/learner/offline"
+                element={<OfflinePracticeHomePage />}
+              />
+              <Route
+                path="/learner/offline/category/:categoryKey"
+                element={<OfflinePracticeHomePage />}
+              />
+              <Route
+                path="/learner/offline/:packId"
+                element={<OfflinePracticeModulePage />}
               />
               <Route
                 path="/learner/lesson-intro"

@@ -1,4 +1,5 @@
 import { fireEvent, render, waitFor } from "@testing-library/react";
+import { Capacitor } from "@capacitor/core";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, expect, test, vi } from "vitest";
 
@@ -13,7 +14,77 @@ import { saveLearnerSession } from "../src/features/learner-auth/learnerApi";
 afterEach(() => {
   window.sessionStorage.clear();
   window.localStorage.clear();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
+});
+
+test("uses bundled static Clara immediately on native startup without API settings", () => {
+  vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+  const fetchMock = vi.fn().mockRejectedValue(new Error("API unavailable"));
+  vi.stubGlobal("fetch", fetchMock);
+
+  const { container } = render(
+    <MemoryRouter initialEntries={["/learner/login"]}>
+      <ThemeProvider>
+        <LearnerExperienceProvider>
+          <ClaraStage />
+        </LearnerExperienceProvider>
+      </ThemeProvider>
+    </MemoryRouter>,
+  );
+
+  const stage = container.querySelector(".clara-stage");
+  expect(stage).toHaveAttribute("data-clara-display-mode", "static");
+  expect(stage).not.toHaveAttribute("data-live2d-model");
+  expect(container.querySelector(".clara-stage__static-image")).toBeTruthy();
+  expect(container.querySelector(".clara-stage__canvas")).toBeNull();
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("keeps native startup static when the API is available", () => {
+  vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+  const fetchMock = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        revision: "setting-1-1",
+        display_mode: "live2d",
+        speech_mode: "hybrid",
+      }),
+      { status: 200 },
+    ),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+
+  const { container } = render(
+    <MemoryRouter initialEntries={["/"]}>
+      <ThemeProvider>
+        <LearnerExperienceProvider>
+          <ClaraStage />
+        </LearnerExperienceProvider>
+      </ThemeProvider>
+    </MemoryRouter>,
+  );
+
+  expect(container.querySelector(".clara-stage")).toHaveAttribute(
+    "data-clara-display-mode",
+    "static",
+  );
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("preserves an explicitly saved native full-mode override", () => {
+  vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+  window.localStorage.setItem("readirect.learner.clara-display-mode", "live2d");
+
+  const { findByText } = render(
+    <MemoryRouter initialEntries={["/learner/login"]}>
+      <LearnerExperienceProvider>
+        <DisplayModeProbe />
+      </LearnerExperienceProvider>
+    </MemoryRouter>,
+  );
+
+  return expect(findByText("live2d")).resolves.toBeVisible();
 });
 
 test("uses the theme-specific static Clara portrait without mounting Live2D", async () => {

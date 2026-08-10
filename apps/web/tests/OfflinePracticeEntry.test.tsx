@@ -1,0 +1,180 @@
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const connectivityMock = vi.hoisted(() => vi.fn());
+const loadSessionMock = vi.hoisted(() =>
+  vi.fn<() => { token: string } | null>(() => null),
+);
+
+vi.mock("../src/features/connectivity/connectivityContext", () => ({
+  useConnectivity: connectivityMock,
+}));
+vi.mock("../src/features/learner-auth/learnerApi", () => ({
+  loadLearnerSession: loadSessionMock,
+}));
+vi.mock("../src/features/theme/ThemeSelector", () => ({
+  ThemeSelector: () => null,
+}));
+vi.mock("../src/features/theme/themeContext", () => ({
+  useTheme: () => ({ theme: "t1", setTheme: vi.fn() }),
+}));
+
+import { NativeLearnerEntryPage } from "../src/features/offline-practice/NativeLearnerEntryPage";
+import { LINK_START_DURATION_MS } from "../src/components/transitions/LinkStartTransition";
+
+function renderEntry(advanceStartup = true) {
+  const result = render(
+    <MemoryRouter initialEntries={["/"]}>
+      <Routes>
+        <Route path="/" element={<NativeLearnerEntryPage />} />
+        <Route path="/learner/offline" element={<p>Offline home</p>} />
+        <Route path="/learner/login" element={<p>Online sign in</p>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+
+  if (advanceStartup) {
+    act(() => vi.advanceTimersByTime(5000));
+  }
+
+  return result;
+}
+
+function completeTapToContinue() {
+  fireEvent.click(screen.getByRole("button", { name: "Tap to continue" }));
+  act(() => vi.advanceTimersByTime(LINK_START_DURATION_MS));
+}
+
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  connectivityMock.mockReset();
+  loadSessionMock.mockReset().mockReturnValue(null);
+  vi.runOnlyPendingTimers();
+  vi.useRealTimers();
+});
+
+describe("Native learner entry", () => {
+  it("shows the local ReaDirect icon while startup is loading", () => {
+    renderEntry(false);
+
+    expect(
+      screen.getByRole("status", { name: "Loading ReaDirect" }),
+    ).toBeVisible();
+    expect(screen.getByRole("img", { name: "Ma'am Clara" })).toBeVisible();
+    expect(
+      document.querySelector<HTMLImageElement>(
+        ".native-startup-splash__icon",
+      )?.src,
+    ).toContain("/assets/icons/missclara1.png");
+    expect(
+      document.querySelector<HTMLImageElement>(
+        ".native-startup-splash__background",
+      )?.src,
+    ).toContain("/assets/backgrounds/T1mobile.png");
+    expect(
+      screen.queryByRole("button", { name: "Tap to continue" }),
+    ).toBeNull();
+
+    act(() => vi.advanceTimersByTime(4999));
+    expect(
+      screen.getByRole("status", { name: "Loading ReaDirect" }),
+    ).toBeVisible();
+
+    act(() => vi.advanceTimersByTime(1));
+
+    expect(
+      screen.getByRole("button", { name: "Tap to continue" }),
+    ).toBeVisible();
+  });
+
+  it("keeps Offline Practice available when the API is down", () => {
+    connectivityMock.mockReturnValue({
+      device: "offline",
+      api: "unreachable",
+      learnerSession: "signed_out",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    renderEntry();
+
+    expect(screen.getByRole("heading", { name: "ReaDirect" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Tap to continue" }),
+    ).toBeEnabled();
+    expect(
+      screen.queryByRole("heading", { name: "Practice Offline" }),
+    ).toBeNull();
+    completeTapToContinue();
+    expect(
+      screen.getByRole("heading", { name: "Practice Offline" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        "Online Learning is unavailable without internet. Offline Mode is ready.",
+      ),
+    ).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Offline Mode" }));
+    expect(screen.getByText("Offline home")).toBeVisible();
+  });
+
+  it("does not send a session into online learning when the API is unavailable", () => {
+    loadSessionMock.mockReturnValue({ token: "cached-token" });
+    connectivityMock.mockReturnValue({
+      device: "online",
+      api: "unreachable",
+      learnerSession: "present",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    renderEntry();
+    completeTapToContinue();
+    fireEvent.click(screen.getByRole("button", { name: "Online Learning" }));
+
+    expect(screen.queryByText("Online sign in")).toBeNull();
+    expect(
+      screen.getAllByText(/Online Learning is unavailable right now/),
+    ).toHaveLength(2);
+  });
+
+  it("sends an expired online session to sign-in when the API is reachable", () => {
+    loadSessionMock.mockReturnValue({ token: "expired-token" });
+    connectivityMock.mockReturnValue({
+      device: "online",
+      api: "unauthorized",
+      learnerSession: "expired",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    renderEntry();
+    completeTapToContinue();
+    fireEvent.click(screen.getByRole("button", { name: "Online Learning" }));
+
+    expect(screen.getByText("Online sign in")).toBeVisible();
+  });
+
+  it("does not require connectivity before revealing the mode choices", () => {
+    connectivityMock.mockReturnValue({
+      device: "unknown",
+      api: "checking",
+      learnerSession: "signed_out",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    renderEntry();
+
+    completeTapToContinue();
+
+    expect(
+      screen.getByRole("button", { name: "Online Learning" }),
+    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Offline Mode" })).toBeEnabled();
+  });
+});

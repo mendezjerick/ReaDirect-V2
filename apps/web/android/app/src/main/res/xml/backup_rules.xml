@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Directory.Data/offline-practice contains local practice and profile state. -->
+    <exclude domain="file" path="offline-practice" />
+    <!-- WebView local/session storage can contain learner authentication state. -->
+    <exclude domain="root" path="app_webview" />
+    <exclude domain="database" path="." />
+    <exclude domain="sharedpref" path="." />
+</full-backup-content>
