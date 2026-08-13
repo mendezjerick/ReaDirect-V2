@@ -1,22 +1,27 @@
 # ReaDirect Revamp: Learn with Ma'am Clara Standard
 
-This document is the source of truth for the optional learner-dashboard
-feature named `Learn with Ma'am Clara`.
+This document is the source of truth for the learner-dashboard feature named
+`Learn with Ma'am Clara`. Most classes in this feature are optional listening
+companions. The `Words` menu choice is an explicit, approved entry point to
+the canonical online Words lesson described below.
 
 ## Product Boundary
 
-`Learn with Ma'am Clara` is a set of short listening-and-speaking practice
-classes. It is separate from required lessons, assessments, academic mastery,
-and achievement progression.
+`Learn with Ma'am Clara` is generally a set of short listening-and-speaking
+practice classes. Letters, Phrases, Sentences, and Comprehension remain
+separate from required lessons, assessments, academic mastery, and achievement
+progression.
 
-It is always available to an authenticated learner, including before the
-Diagnostic Assessment. Its checkpoints must never change assessment scores,
-required-lesson progression, mastery evidence, achievements, or teacher
-analytics.
+The menu is always available to an authenticated learner, including before the
+Diagnostic Assessment. Selecting `Words` is the explicit exception: it enters
+the existing canonical online Lesson 2 route and therefore uses the required
+lesson's recorder, ASR, evidence, completion, achievement, and progression
+contracts. It does not create a Clara-class checkpoint.
 
-The experience does not use ASR, a recorder, or response scoring. Clara models
-a target, the learner says it aloud without recording, and the learner chooses
-when to continue.
+The optional classes do not use ASR, a recorder, or response scoring. Clara
+models a target, the learner says it aloud without recording, and the learner
+chooses when to continue. The `Words` choice is governed by the canonical
+Lesson 2 contract instead.
 
 ## Dashboard and Menu
 
@@ -40,14 +45,60 @@ Sentences
 Comprehension
 ```
 
-There is no passage choice. Only `Letters` currently opens a class. The
-remaining choices must not create checkpoints until their complete sessions
-are implemented.
+There is no passage choice. `Letters` opens its separate optional class.
+`Words` opens the canonical Lesson 2 route as the explicit exception described
+in `Explicit Words Canonical Lesson Entry` below. `Phrases`, `Sentences`, and
+`Comprehension` must not create checkpoints until their optional sessions are
+implemented.
 
 The menu is a direct selection surface and must not mount `ClaraStage`, play
 Clara speech, or show a separate Clara welcome panel. Clara loads only after
 the learner enters an implemented class, preventing the Live2D model from
 loading once for selection and immediately again for the lesson.
+
+## Explicit Words Canonical Lesson Entry
+
+The `Words` choice intentionally enters the existing canonical Lesson 2 route:
+
+```text
+/learner/lessons/2
+```
+
+The approved flow is:
+
+```text
+Learn with Ma'am Clara
+        -> Words
+        -> Word Rescue presentation
+        -> canonical Lesson 2 run
+        -> existing speech submission and support
+        -> existing Lesson 2 completion and Word Wizard achievement
+        -> existing learner progression
+```
+
+Word Rescue is the presentation layer of Lesson 2. It must use the one
+server-authoritative `required-lesson-2` run, immutable content snapshot,
+existing item responses, Mu speech evaluation, teaching state, Skip/Next
+rules, completion service, achievement, and progression. It must not create a
+second Words curriculum, a Word Rescue lesson run, a Words row in
+`learner_clara_listening_sessions`, frontend-only academic completion, or a
+separate persistence boundary.
+
+The diagnostic access gate remains authoritative. If the learner has not
+completed or skipped the required Diagnostic Assessment, selecting `Words`
+must not bypass the gate. The canonical Lesson 2 access response may explain
+that the learner must complete the required earlier step and return the learner
+to the appropriate dashboard or diagnostic entry. A browser menu state must
+never weaken `LearnerLessonAccessService` or choose a lesson from stale local
+progress.
+
+The Words-to-Word-Rescue entry is online only. It must not use Offline Practice
+packs, offline manifests, local offline sessions, device filesystem content, or
+offline synchronization. Offline Practice remains a separate architecture.
+
+This exception applies only to the `Words` choice. It does not make the
+`Letters` class canonical, and it does not make future Phrases, Sentences, or
+Comprehension companion classes required lessons.
 
 ## The Little-Letter Parade
 
@@ -267,6 +318,8 @@ Clara must remain warm, playful, and professionally safe. She must not:
 - Create emotional dependency.
 - Pretend to remember unstored events.
 
-Future Words, Phrases, Sentences, and Comprehension classes must follow this
-same optional, published-speech, learner-controlled boundary unless an
-approved source-of-truth slice explicitly changes it.
+The `Letters` class and future Phrases, Sentences, and Comprehension classes
+must follow this optional, published-speech, learner-controlled boundary
+unless an approved source-of-truth slice explicitly changes them. The approved
+Words exception follows the canonical Lesson 2 safety, speech, and progression
+boundaries instead.

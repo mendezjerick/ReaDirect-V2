@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Capacitor } from "@capacitor/core";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -68,6 +69,7 @@ function ClaraStoryIcon() {
 export function LearnerDashboardPage() {
   const navigate = useNavigate();
   const { displayMode, setDisplayModeOverride } = useLearnerExperience();
+  const isNativePlatform = Capacitor.isNativePlatform();
   const [selectedAchievementKey, setSelectedAchievementKey] = useState<
     (typeof readingJourneyAchievements)[number]["key"]
   >("reading.ready_reader");
@@ -150,9 +152,7 @@ export function LearnerDashboardPage() {
   };
 
   const openOfflinePractice = () => {
-    offlineCommit.commit(() =>
-      navigate("/learner/offline?from=dashboard"),
-    );
+    offlineCommit.commit(() => navigate("/learner/offline?from=dashboard"));
   };
 
   if (!storedSession || sessionQuery.isError) {
@@ -344,37 +344,39 @@ export function LearnerDashboardPage() {
             </BigButton>
           </Surface>
 
-          <Surface
-            className="learner-dashboard__utility-card learner-dashboard__offline-card learner-dashboard__entrance"
-            kind="panel"
-            padding="normal"
-          >
-            <div className="learner-dashboard__utility-heading">
-              <span className="learner-dashboard__utility-icon">
-                <OfflineModeIcon />
-              </span>
-              <div>
-                <p className="learner-dashboard__eyebrow">
-                  Practice without internet
-                </p>
-                <h2>Download Offline Mode Files</h2>
-              </div>
-            </div>
-            <p>
-              Download practice packs here, then use Offline Mode anytime—even
-              without internet.
-            </p>
-            <BigButton
-              className="learner-dashboard__offline-action"
-              aria-label="Open Offline Downloads"
-              variant="secondary"
-              size="regular"
-              committing={offlineCommit.committing}
-              onClick={openOfflinePractice}
+          {isNativePlatform ? (
+            <Surface
+              className="learner-dashboard__utility-card learner-dashboard__offline-card learner-dashboard__entrance"
+              kind="panel"
+              padding="normal"
             >
-              Open Offline Downloads
-            </BigButton>
-          </Surface>
+              <div className="learner-dashboard__utility-heading">
+                <span className="learner-dashboard__utility-icon">
+                  <OfflineModeIcon />
+                </span>
+                <div>
+                  <p className="learner-dashboard__eyebrow">
+                    Practice without internet
+                  </p>
+                  <h2>Download Offline Mode Files</h2>
+                </div>
+              </div>
+              <p>
+                Download practice packs here, then use Offline Mode anytime—even
+                without internet.
+              </p>
+              <BigButton
+                className="learner-dashboard__offline-action"
+                aria-label="Open Offline Downloads"
+                variant="secondary"
+                size="regular"
+                committing={offlineCommit.committing}
+                onClick={openOfflinePractice}
+              >
+                Open Offline Downloads
+              </BigButton>
+            </Surface>
+          ) : null}
 
           <Surface
             className="learner-dashboard__utility-card learner-dashboard__achievement-card learner-dashboard__entrance"

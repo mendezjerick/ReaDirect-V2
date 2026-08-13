@@ -34,6 +34,7 @@ $runtimeDirectory = Join-Path $repositoryRoot '.runtime'
 $logDirectory = Join-Path $runtimeDirectory 'logs'
 $serviceManifestPath = Join-Path $runtimeDirectory 'services.json'
 $stopRequestPath = Join-Path $runtimeDirectory 'stop-requested'
+$ttsServiceTokenPath = Join-Path $runtimeDirectory 'tts-service-token'
 $runningProcesses = [System.Collections.Generic.List[object]]::new()
 $serviceResults = [System.Collections.Generic.List[object]]::new()
 $previousReverbPort = [Environment]::GetEnvironmentVariable('REVERB_PORT', 'Process')
@@ -184,6 +185,36 @@ function New-SecureServiceToken {
     }
 
     return [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+}
+
+function Write-PrivateRuntimeToken {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$Token
+    )
+
+    [IO.File]::WriteAllText(
+        $Path,
+        $Token,
+        [Text.UTF8Encoding]::new($false)
+    )
+
+    try {
+        $acl = Get-Acl -LiteralPath $Path
+        $acl.SetAccessRuleProtection($true, $false)
+        $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+        $rule = [Security.AccessControl.FileSystemAccessRule]::new(
+            $identity,
+            [Security.AccessControl.FileSystemRights]::FullControl,
+            [Security.AccessControl.AccessControlType]::Allow
+        )
+        $acl.SetAccessRule($rule)
+        Set-Acl -LiteralPath $Path -AclObject $acl
+    }
+    catch {
+        Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+        throw "Could not protect the local TTS service token file: $($_.Exception.Message)"
+    }
 }
 
 function Start-ManagedBackgroundProcess {
@@ -344,6 +375,9 @@ try {
     if ([string]::IsNullOrWhiteSpace($previousTtsServiceToken)) {
         [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', (New-SecureServiceToken), 'Process')
     }
+    Write-PrivateRuntimeToken `
+        -Path $ttsServiceTokenPath `
+        -Token ([Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process'))
     [Environment]::SetEnvironmentVariable('MU_DEVICE', 'cpu', 'Process')
 
     $corepackPath = Get-RequiredCommandPath `
@@ -556,6 +590,7 @@ finally {
 
     Remove-Item -LiteralPath $serviceManifestPath -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $stopRequestPath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $ttsServiceTokenPath -Force -ErrorAction SilentlyContinue
     [Environment]::SetEnvironmentVariable('REVERB_PORT', $previousReverbPort, 'Process')
     [Environment]::SetEnvironmentVariable('REVERB_SERVER_PORT', $previousReverbServerPort, 'Process')
     [Environment]::SetEnvironmentVariable('ASR_SERVICE_TOKEN', $previousAsrServiceToken, 'Process')

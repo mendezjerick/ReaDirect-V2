@@ -49,6 +49,13 @@ values. The speech services expose only minimal liveness/readiness responses
 without authentication; model status and all inference routes require the
 matching bearer token.
 
+During local development, `start.ps1` writes its generated TTS token to the
+ignored `.runtime/tts-service-token` file with access restricted to the current
+Windows user. The published-speech generation script reads that short-lived
+file only when `TTS_SERVICE_TOKEN` is not present in its process environment.
+The launcher removes the file when it stops. Never copy this file into source
+control or include its contents in a bug report.
+
 ## Learner authentication
 
 Learner login is protected by independent per-IP and per-learner-code limits.

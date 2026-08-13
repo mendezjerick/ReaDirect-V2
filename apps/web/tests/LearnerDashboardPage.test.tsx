@@ -1,4 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
+import { Capacitor } from "@capacitor/core";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -129,6 +130,7 @@ describe("LearnerDashboardPage", () => {
     window.sessionStorage.clear();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("keeps the required learning action visually primary", () => {
@@ -167,7 +169,7 @@ describe("LearnerDashboardPage", () => {
     ).toBeEnabled();
   });
 
-  it("places Learn with Ma'am Clara after Games and before Achievements", () => {
+  it("places Learn with Ma'am Clara after Games and before Achievements on web", () => {
     renderDashboard();
 
     const headings = screen
@@ -178,11 +180,11 @@ describe("LearnerDashboardPage", () => {
       headings.indexOf("Learn with Ma'am Clara"),
     );
     expect(headings.indexOf("Learn with Ma'am Clara")).toBeLessThan(
-      headings.indexOf("Download Offline Mode Files"),
-    );
-    expect(headings.indexOf("Download Offline Mode Files")).toBeLessThan(
       headings.indexOf("Achievements"),
     );
+    expect(
+      screen.queryByRole("heading", { name: "Download Offline Mode Files" }),
+    ).not.toBeInTheDocument();
     expect(headings.indexOf("Achievements")).toBeLessThan(
       headings.indexOf("Clara appearance"),
     );
@@ -236,7 +238,20 @@ describe("LearnerDashboardPage", () => {
     expect(screen.getByText("Lobby route")).toBeInTheDocument();
   });
 
-  it("opens Offline Mode without changing the online Reading Journey", () => {
+  it("does not show Offline Mode downloads on web", () => {
+    renderDashboard();
+
+    expect(
+      screen.queryByRole("button", { name: "Open Offline Downloads" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Practice without internet"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps Offline Mode downloads available in Android", () => {
+    vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+
     renderDashboard();
 
     fireEvent.click(

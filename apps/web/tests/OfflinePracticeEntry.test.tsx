@@ -66,9 +66,8 @@ describe("Native learner entry", () => {
     ).toBeVisible();
     expect(screen.getByRole("img", { name: "Ma'am Clara" })).toBeVisible();
     expect(
-      document.querySelector<HTMLImageElement>(
-        ".native-startup-splash__icon",
-      )?.src,
+      document.querySelector<HTMLImageElement>(".native-startup-splash__icon")
+        ?.src,
     ).toContain("/assets/icons/missclara1.png");
     expect(
       document.querySelector<HTMLImageElement>(
@@ -114,9 +113,7 @@ describe("Native learner entry", () => {
       screen.getByRole("heading", { name: "Practice Offline" }),
     ).toBeVisible();
     expect(
-      screen.getByText(
-        "Online Learning is unavailable without internet. Offline Mode is ready.",
-      ),
+      screen.getByText("Offline Mode is ready on this device."),
     ).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Offline Mode" }));
     expect(screen.getByText("Offline home")).toBeVisible();
@@ -137,9 +134,10 @@ describe("Native learner entry", () => {
     fireEvent.click(screen.getByRole("button", { name: "Online Learning" }));
 
     expect(screen.queryByText("Online sign in")).toBeNull();
+    expect(screen.getByText("No Internet Connection")).toBeVisible();
     expect(
-      screen.getAllByText(/Online Learning is unavailable right now/),
-    ).toHaveLength(2);
+      document.querySelectorAll(".offline-entry__notice--warning"),
+    ).toHaveLength(1);
   });
 
   it("sends an expired online session to sign-in when the API is reachable", () => {

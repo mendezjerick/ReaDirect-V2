@@ -48,6 +48,23 @@ if ($definitions === []) {
 
 $stagingDisk = Storage::disk('tts_catalog_staging');
 $endpoint = rtrim((string) config('speech.tts_url'), '/').'/synthesize';
+$ttsToken = trim((string) config('speech.tts_token'));
+$runtimeTokenPath = dirname(__DIR__, 3).'/.runtime/tts-service-token';
+
+if ($ttsToken === '' && is_file($runtimeTokenPath)) {
+    $runtimeToken = file_get_contents($runtimeTokenPath);
+
+    if (is_string($runtimeToken)) {
+        $ttsToken = trim($runtimeToken);
+    }
+}
+
+if ($ttsToken === '') {
+    throw new RuntimeException(
+        'TTS_SERVICE_TOKEN is not available. Run this command while the local launcher is running.',
+    );
+}
+
 $generated = 0;
 $skipped = 0;
 
@@ -77,7 +94,7 @@ foreach ($definitions as $speechKey => $definition) {
     }
 
     $response = Http::accept('audio/wav')
-        ->withToken((string) config('speech.tts_token'))
+        ->withToken($ttsToken)
         ->connectTimeout((int) config('speech.tts_connect_timeout_seconds'))
         ->timeout((int) config('speech.tts_request_timeout_seconds'))
         ->post($endpoint, [

@@ -51,6 +51,10 @@ function renderMenu(authenticated = true) {
           path="/learner/learn-with-clara/letters"
           element={<div>Letters class route</div>}
         />
+        <Route
+          path="/learner/learn-with-clara/words"
+          element={<div>Words class route</div>}
+        />
         <Route path="/learner/login" element={<div>Learner login route</div>} />
       </Routes>
     </MemoryRouter>,
@@ -93,19 +97,13 @@ describe("LearnWithClaraMenuPage", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("marks a chosen short class without starting a session", () => {
+  it("opens the Words class from the Words choice", () => {
     renderMenu();
 
-    const words = screen.getByRole("button", { name: /^Words/ });
-    fireEvent.click(words);
+    fireEvent.click(screen.getByRole("button", { name: /^Words/ }));
 
-    expect(words).toHaveAttribute("aria-pressed", "true");
-    expect(
-      screen.getByText("Words is ready for your class with Ma'am Clara."),
-    ).toBeVisible();
-    expect(
-      screen.getByRole("heading", { name: "What should we practice?" }),
-    ).toBeVisible();
+    expect(claraAudioMocks.unlock).toHaveBeenCalledOnce();
+    expect(screen.getByText("Words class route")).toBeInTheDocument();
   });
 
   it("opens the complete Letters class from the Letters choice", () => {

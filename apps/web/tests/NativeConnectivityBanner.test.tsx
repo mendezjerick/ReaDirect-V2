@@ -28,7 +28,7 @@ describe("NativeConnectivityBanner", () => {
     });
 
     render(
-      <MemoryRouter initialEntries={["/"]}>
+      <MemoryRouter initialEntries={["/learner/dashboard"]}>
         <NativeConnectivityBanner />
       </MemoryRouter>,
     );
@@ -36,6 +36,45 @@ describe("NativeConnectivityBanner", () => {
     expect(screen.getByRole("status")).toHaveTextContent(
       "No Internet Connection",
     );
+    expect(
+      document.querySelectorAll(".native-connectivity-banner__icon"),
+    ).toHaveLength(2);
+  });
+
+  it("stays hidden while choosing between online and offline modes", () => {
+    connectivityMock.mockReturnValue({
+      device: "offline",
+      api: "unreachable",
+      learnerSession: "signed_out",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/learner/modes"]}>
+        <NativeConnectivityBanner />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("stays hidden inside Offline Practice", () => {
+    connectivityMock.mockReturnValue({
+      device: "offline",
+      api: "unreachable",
+      learnerSession: "signed_out",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/learner/offline"]}>
+        <NativeConnectivityBanner />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("distinguishes an unavailable API from missing internet", () => {

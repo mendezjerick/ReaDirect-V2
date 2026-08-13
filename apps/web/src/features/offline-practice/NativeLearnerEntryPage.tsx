@@ -57,6 +57,24 @@ function OfflineModeArtwork() {
   );
 }
 
+function WifiOffIcon() {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+      <path d="M4 11.5a18 18 0 0 1 24 0M8.5 16a11.5 11.5 0 0 1 15 0M13 20.5a5.5 5.5 0 0 1 6 0M16 25h.01" />
+      <path d="M5 5 27 27" />
+    </svg>
+  );
+}
+
+function WarningIcon() {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+      <path d="m16 4 13 24H3L16 4Z" />
+      <path d="M16 11v8M16 23h.01" />
+    </svg>
+  );
+}
+
 function NativeStaticClara() {
   const { theme } = useTheme();
   const source =
@@ -130,15 +148,31 @@ function connectionMessage(
     return "Your online session ended. Sign in again to continue Online Learning.";
   }
   if (device === "offline") {
-    return "Online Learning is unavailable without internet. Offline Mode is ready.";
+    return "Offline Mode is ready on this device.";
   }
   if (api === "unreachable") {
-    return "Online Learning is unavailable right now. Offline Mode is ready.";
+    return "Offline Mode is available while Online Learning reconnects.";
   }
   if (api === "checking" || api === "unknown") {
     return "You can choose Offline Practice now while we check Online Learning.";
   }
   return "Online Learning is ready when you are.";
+}
+
+function onlineFailureMessage(
+  device: ReturnType<typeof useConnectivity>["device"],
+  api: ReturnType<typeof useConnectivity>["api"],
+  learnerSession: ReturnType<typeof useConnectivity>["learnerSession"],
+): string {
+  if (learnerSession === "expired") {
+    return "Your online session ended. Sign in again to continue Online Learning.";
+  }
+
+  if (device === "offline" || api === "unreachable") {
+    return "No Internet Connection";
+  }
+
+  return "Online Learning is still checking the connection. Try again in a moment.";
 }
 
 export function NativeLearnerEntryPage({
@@ -190,7 +224,7 @@ export function NativeLearnerEntryPage({
   const openOnlineLearning = () => {
     if (connectivity.device !== "online") {
       setOnlineNotice(
-        connectionMessage(
+        onlineFailureMessage(
           connectivity.device,
           connectivity.api,
           connectivity.learnerSession,
@@ -204,7 +238,7 @@ export function NativeLearnerEntryPage({
       connectivity.api !== "unauthorized"
     ) {
       setOnlineNotice(
-        connectionMessage(
+        onlineFailureMessage(
           connectivity.device,
           connectivity.api,
           connectivity.learnerSession,
@@ -357,9 +391,25 @@ export function NativeLearnerEntryPage({
           </Surface>
         </section>
 
-        <p className="offline-entry__notice" role="status" aria-live="polite">
-          {onlineNotice ?? "Practice only — does not change lesson progress."}
-        </p>
+        {onlineNotice ? (
+          <div
+            className="offline-entry__notice offline-entry__notice--warning"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="offline-entry__notice-icon" aria-hidden="true">
+              <WifiOffIcon />
+            </span>
+            <span>{onlineNotice}</span>
+            <span className="offline-entry__notice-icon" aria-hidden="true">
+              <WarningIcon />
+            </span>
+          </div>
+        ) : (
+          <p className="offline-entry__notice" role="status" aria-live="polite">
+            Practice only — does not change lesson progress.
+          </p>
+        )}
       </div>
     </main>
   );

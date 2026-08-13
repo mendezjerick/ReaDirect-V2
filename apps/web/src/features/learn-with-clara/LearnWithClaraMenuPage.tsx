@@ -117,6 +117,12 @@ export function LearnWithClaraMenuPage() {
       return;
     }
 
+    if (topic === "words") {
+      unlockClaraAudio();
+      navigate("/learner/learn-with-clara/words");
+      return;
+    }
+
     setSelectedTopic(topic);
   };
 

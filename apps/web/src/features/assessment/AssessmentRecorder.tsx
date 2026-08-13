@@ -109,7 +109,7 @@ export function AssessmentRecorder({
           <span className="assessment-recorder__capture-note">Ready to submit</span>
         ) : null}
       </div>
-      <p className="assessment-recorder__error" aria-live="polite">
+      <p className="assessment-recorder__error" role="alert" aria-live="polite">
         {recorder.error}
       </p>
     </div>

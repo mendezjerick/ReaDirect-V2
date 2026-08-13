@@ -116,9 +116,7 @@ describe("OfflinePracticeHomePage", () => {
     expect(
       await screen.findByRole("heading", { name: "No packs downloaded yet" }),
     ).toBeVisible();
-    expect(
-      screen.getByText(/sign in and open a category/i),
-    ).toBeVisible();
+    expect(screen.getByText(/sign in and open a category/i)).toBeVisible();
     for (const categoryTitle of [
       "Letters & Sounds",
       "Word Reading",
@@ -131,6 +129,7 @@ describe("OfflinePracticeHomePage", () => {
         screen.getByRole("heading", { name: categoryTitle }),
       ).toBeVisible();
     }
+    expect(screen.queryByText(/^Category [1-6]$/)).not.toBeInTheDocument();
   });
 
   it("returns to the learning mode chooser without replaying startup", async () => {

@@ -356,7 +356,8 @@ export function OfflinePracticeHomePage() {
     }
     const categoryCardsForDownload = packCards.filter(
       (card) =>
-        categoryForPack(card.local ?? card.remote ?? { moduleKey: "" }) === key &&
+        categoryForPack(card.local ?? card.remote ?? { moduleKey: "" }) ===
+          key &&
         card.remote &&
         localStatus(card.local, card.remote) !== "available",
     );
@@ -390,15 +391,16 @@ export function OfflinePracticeHomePage() {
 
   const deleteCategory = async (key: OfflinePracticeCategoryKey) => {
     const category = categoryCards.find((item) => item.key === key);
-    const localPacks = category?.cards.flatMap((card) =>
-      card.local ? [card.local] : [],
-    ) ?? [];
+    const localPacks =
+      category?.cards.flatMap((card) => (card.local ? [card.local] : [])) ?? [];
     if (!localPacks.length) return;
     if (!window.confirm(`Delete all ${categoryTitle(key)} downloads?`)) return;
     for (const pack of localPacks) {
       await repositoryRef.current.deletePack(pack.packId);
     }
-    setMessage(`${categoryTitle(key)} downloads were removed from this device.`);
+    setMessage(
+      `${categoryTitle(key)} downloads were removed from this device.`,
+    );
     await refreshLocal();
   };
 
@@ -454,7 +456,9 @@ export function OfflinePracticeHomePage() {
               <p className="offline-practice__eyebrow">
                 Practice at your own pace
               </p>
-              <h1>{categoryKey ? categoryTitle(categoryKey) : "Practice Offline"}</h1>
+              <h1>
+                {categoryKey ? categoryTitle(categoryKey) : "Practice Offline"}
+              </h1>
               <p>
                 {categoryKey
                   ? categoryDescription(categoryKey)
@@ -550,7 +554,8 @@ export function OfflinePracticeHomePage() {
                 <>
                   <div className="offline-practice__category-toolbar">
                     <p>
-                      {cards.filter((card) => card.local).length} of {cards.length} modules downloaded
+                      {cards.filter((card) => card.local).length} of{" "}
+                      {cards.length} modules downloaded
                     </p>
                     {cards.some((card) => card.local) ? (
                       <BigButton
@@ -666,9 +671,6 @@ export function OfflinePracticeHomePage() {
                     padding="normal"
                   >
                     <div>
-                      <p className="offline-practice__eyebrow">
-                        Category {category.order}
-                      </p>
                       <h3>{category.title}</h3>
                       <p>{category.description}</p>
                     </div>

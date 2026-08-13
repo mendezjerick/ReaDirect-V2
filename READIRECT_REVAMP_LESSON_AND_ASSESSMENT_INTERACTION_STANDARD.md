@@ -142,10 +142,50 @@ PREPARING -> SPEAKING -> READY
   the next route; a browser-stored session may bootstrap the screen but must
   never choose a lesson from stale progression data.
 
-## Mandatory No-Image Rule
+## Narrow Lesson 2 Word Rescue Visual Exception
 
-Required lesson content must not use instructional pictures, picture prompts,
-image choices, raster illustrations, or image-dependent answers.
+The default no-image rule below remains in force for every required lesson and
+for every assessment except the narrowly approved formative presentation layer
+named **Word Rescue** in canonical Lesson 2.
+
+Word Rescue may use a reviewed instructional visual for the current approved
+Lesson 2 `content_id` when the visual is declared in the reviewed Word Rescue
+asset catalog. Each target is classified as `image`, `icon`, or `none`:
+
+- `image` is a clear, unambiguous concrete vocabulary illustration.
+- `icon` is a reviewed scene or symbol used when an isolated object is not
+  sufficient.
+- `none` is the required text-only path when a visual could be ambiguous,
+  inappropriate, or misleading.
+
+The exception is limited to formative visual support. The visual must be
+authored or generated before runtime, human-reviewed, child-safe, mapped to a
+specific approved content ID, provenance/licensed where required, and bundled
+through the approved asset catalog. Remote images, arbitrary server URLs,
+runtime AI image generation, and unreviewed visuals are prohibited.
+
+The picture can help the learner recognize or repair a word, but it can never
+become the canonical academic answer. The learner must still see and read the
+canonical word or highlighted sentence word, record it, review it, explicitly
+Submit it, and receive the existing Laravel/Mu decision. Word Rescue visuals
+must not change scoring, expected answers, teaching state, retry semantics,
+Skip, completion, analytics, or progression. Every item must remain completable
+from text, audio, and direct interaction alone.
+
+The asset itself must not contain the answer as printed text, letter overlays,
+phoneme cues, labels, or unrelated clues that solve another academic task. It
+may support the current formative recognition interaction only.
+
+This exception does not apply to Diagnostic Assessment, Final Assessment, or
+any other required lesson. It does not authorize picture-based assessment
+choices, hidden evidence, answer substitution, or a broad lesson-wide visual
+exemption.
+
+## Default Required Lesson No-Image Rule
+
+Except for the narrow formative Word Rescue exception above, required lesson
+content must not use instructional pictures, picture prompts, image choices,
+raster illustrations, or image-dependent answers.
 
 The learner must be able to complete every lesson from text, audio, and direct
 interaction alone.
@@ -161,17 +201,22 @@ Allowed:
 Allowed icons and shapes must not reveal or carry information required to solve
 an item. They are controls or feedback, not lesson content.
 
-Prohibited:
+That restriction applies to the default no-image rule. Reviewed Word Rescue
+instructional visuals are governed only by the narrow exception above and must
+still have a text-only fallback.
 
-- Image-based vocabulary prompts.
-- Picture matching as a required lesson mechanic.
+Prohibited outside the approved Word Rescue formative catalog:
+
+- Image-based vocabulary prompts in other required lessons.
+- Picture matching as a scored or completion-bearing required lesson mechanic.
 - Decorative raster lesson backgrounds.
 - Photographic, textured, or illustrated answer choices.
 - Replacing written content with an icon that a learner must interpret to
   answer correctly.
 
 The same text-first presentation should be used for assessment activities so
-the learner does not encounter a conflicting interaction language.
+the learner does not encounter a conflicting interaction language. Word Rescue
+does not alter this assessment rule.
 
 ## Visual Priority
 
@@ -742,6 +787,10 @@ cat - _at
 
 - Show one isolated word.
 - Letters may assemble into the word before the reading state begins.
+- Word Rescue may add one short formative repair interaction, including a
+  reviewed visual when the exception above applies. This interaction prepares
+  the learner but is not a separate question, score, attempt, or completion
+  event.
 - The full word remains still during recording.
 
 #### Mission 2 — Highlighted Sentence Word
@@ -755,6 +804,9 @@ The cat is sleeping.
 - One target word is emphasized inside a sentence.
 - The learner reads only the configured highlighted target.
 - The target may briefly lift into focus before returning to the sentence.
+- Word Rescue may add a short formative missing-word or reviewed visual support
+  interaction before recording. It must not become a separate academic item or
+  hide the canonical highlighted target.
 - There is no third required mission in Lesson 2.
 
 ### Lesson 3 — Phrases
@@ -1043,7 +1095,9 @@ Rules:
   original sentence position.
 - The optional lift is visual only and must not pronounce the answer.
 - The sentence stays still during recording.
-- There is no missing-word or third mission in Lesson 2.
+- Word Rescue may use a missing-word repair before recording, but it remains
+  formative only; there is no additional academic question or third mission in
+  Lesson 2.
 
 ### Lesson 3, Mission 1 — Phrase interaction
 
@@ -1172,7 +1226,11 @@ Post-result example:
 The assessment remains neutral and must not inherit these lesson-only feedback
 states. Only the base four-choice component is shared.
 
-## Lesson Motivation Without Images
+## Lesson Motivation And Word Rescue Visuals
+
+Outside the approved Word Rescue exception, motivation remains text, audio,
+Clara, and code-rendered geometry only. Word Rescue may additionally use its
+reviewed, content-ID-bound formative visuals under the rules above.
 
 Permitted engagement patterns include:
 
@@ -1781,7 +1839,12 @@ must not infer submission state from unrelated local flags.
 
 Do not:
 
-- Add instructional images to lessons.
+- Add instructional images to lessons outside the approved Word Rescue
+  formative catalog.
+- Use a Word Rescue visual as the academic answer, a scored choice, or a
+  substitute for speech submission.
+- Apply the Word Rescue visual exception to Diagnostic Assessment, Final
+  Assessment, or another lesson category.
 - Scroll lesson or assessment activity pages.
 - Place Clara at the middle-right on mobile.
 - Move the central recorder between states.
@@ -1816,15 +1879,18 @@ The lesson and assessment interaction system is complete only when:
 6. Lesson and assessment Skip rules are enforced by state, not visual
    convention alone; assessment skips persist as distinct zero-score responses.
 7. Discarded review recordings do not become scored attempts.
-8. Lesson content uses no instructional images.
-9. Typography interaction remains still during active reading and recording.
-10. Assessment presentation preserves every fixed task, item count, branch,
+8. Lesson content uses no instructional images outside the approved Word
+   Rescue formative exception; assessment content remains image-free.
+9. Word Rescue visuals, when present, are reviewed, content-ID-bound,
+   child-safe, bundled, and backed by a complete text-only path.
+10. Typography interaction remains still during active reading and recording.
+11. Assessment presentation preserves every fixed task, item count, branch,
     timer, and scoring rule.
-11. Component tests cover every interaction-state transition.
-12. API tests prove that Retry, Submit, Skip, technical failure, result,
+12. Component tests cover every interaction-state transition.
+13. API tests prove that Retry, Submit, Skip, technical failure, result,
     assessment automatic advance, and lesson Next persist the correct distinct
     states.
-13. Playwright validates mobile-small, mobile-primary, mobile-large, tablet,
+14. Playwright validates mobile-small, mobile-primary, mobile-large, tablet,
     desktop, and desktop-large layouts.
-14. Reduced-motion, keyboard, touch, audio failure, save failure, and refreshed
+15. Reduced-motion, keyboard, touch, audio failure, save failure, and refreshed
     resume behavior are verified.
