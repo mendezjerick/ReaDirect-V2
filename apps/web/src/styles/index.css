@@ -118,6 +118,7 @@ button {
 
 .route-loading {
   display: grid;
+  gap: 1rem;
   min-height: 100vh;
   min-height: 100svh;
   place-items: center;
@@ -126,6 +127,13 @@ button {
   background: var(--color-surface-page);
   font-family: var(--font-reading-family);
   font-weight: 650;
+}
+
+.route-loading__icon {
+  display: block;
+  width: clamp(4.5rem, 18vw, 7rem);
+  height: auto;
+  image-rendering: pixelated;
 }
 
 .big-button {

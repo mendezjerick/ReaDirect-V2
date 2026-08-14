@@ -424,6 +424,12 @@ const TeacherAudioReviewPage = lazy(() =>
 function RouteLoading() {
   return (
     <main className="route-loading" aria-live="polite" aria-busy="true">
+      <img
+        className="route-loading__icon"
+        src="/assets/icons/icon.png"
+        alt=""
+        aria-hidden="true"
+      />
       <span>Opening ReaDirect…</span>
     </main>
   );

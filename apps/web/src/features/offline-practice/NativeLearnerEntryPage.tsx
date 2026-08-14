@@ -109,13 +109,6 @@ function NativeStartupScreen() {
       : theme === "t3"
         ? "/assets/backgrounds/T3mobile.png"
         : "/assets/backgrounds/T1mobile.png";
-  const claraSource =
-    theme === "t2"
-      ? "/assets/icons/missclara2.png"
-      : theme === "t3"
-        ? "/assets/icons/missclara3.png"
-        : "/assets/icons/missclara1.png";
-
   return (
     <main
       className="native-startup-splash"
@@ -129,9 +122,9 @@ function NativeStartupScreen() {
         aria-hidden="true"
       />
       <img
-        className={`native-startup-splash__icon native-startup-splash__icon--${theme}`}
-        src={claraSource}
-        alt="Ma'am Clara"
+        className="native-startup-splash__icon"
+        src="/assets/icons/icon.png"
+        alt="ReaDirect"
       />
       <span className="native-startup-splash__loader" aria-hidden="true" />
       <span className="visually-hidden">Loading ReaDirect</span>

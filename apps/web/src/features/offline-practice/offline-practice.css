@@ -133,17 +133,12 @@
   left: 50%;
   z-index: 1;
   display: block;
-  width: min(clamp(17rem, 88vw, 30rem), calc(100vw - 1rem));
-  max-height: 58svh;
+  width: clamp(4.5rem, 24vw, 9rem);
+  max-height: none;
   height: auto;
   object-fit: contain;
   animation: native-startup-splash-in 360ms ease-out both;
   transform: translate(-50%, -50%) scale(1);
-}
-
-.native-startup-splash__icon--t2,
-.native-startup-splash__icon--t3 {
-  width: min(clamp(19rem, 100vw, 34rem), calc(100vw - 1rem));
 }
 
 .native-startup-splash__loader {
