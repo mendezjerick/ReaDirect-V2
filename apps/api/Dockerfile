@@ -14,6 +14,7 @@ RUN apt-get update \
         mbstring \
         pcntl \
         pdo_pgsql \
+        sockets \
         zip \
     && rm -rf /var/lib/apt/lists/*
 
