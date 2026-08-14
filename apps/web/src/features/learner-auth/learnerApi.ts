@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { apiUrl } from "../../lib/apiUrl";
 import { clearActivitySpeechPreparation } from "../clara-audio/activitySpeechReadiness";
 
 const learnerProgressSchema = z.object({
@@ -191,7 +192,7 @@ export async function loginLearner(credentials: {
   learner_code: string;
   password: string;
 }): Promise<StoredLearnerSession> {
-  const response = await fetch("/api/learners/login", {
+  const response = await fetch(apiUrl("/api/learners/login"), {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -213,7 +214,7 @@ export async function loginLearner(credentials: {
 export async function getLearnerSession(
   token: string,
 ): Promise<LearnerSession> {
-  const response = await fetch("/api/learners/session", {
+  const response = await fetch(apiUrl("/api/learners/session"), {
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${token}`,
@@ -230,13 +231,16 @@ export async function getLearnerSession(
 export async function skipDiagnostic(
   token: string,
 ): Promise<LearnerReadingPath> {
-  const response = await fetch("/api/learners/assessments/diagnostic/skip", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${token}`,
+  const response = await fetch(
+    apiUrl("/api/learners/assessments/diagnostic/skip"),
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     throw new Error(await readApiError(response));
@@ -248,7 +252,7 @@ export async function skipDiagnostic(
 export async function getLearnerExperienceSettings(
   token: string,
 ): Promise<LearnerExperienceSettings> {
-  const response = await fetch("/api/learners/experience/settings", {
+  const response = await fetch(apiUrl("/api/learners/experience/settings"), {
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${token}`,
@@ -265,7 +269,7 @@ export async function getLearnerExperienceSettings(
 export async function getLearnerSpeechLanguage(
   token: string,
 ): Promise<LearnerSpeechLanguageContract> {
-  const response = await fetch("/api/learners/tts/language", {
+  const response = await fetch(apiUrl("/api/learners/tts/language"), {
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${token}`,
@@ -283,7 +287,7 @@ export async function updateLearnerSpeechLanguage(
   token: string,
   speechLanguage: LearnerSpeechLanguage,
 ): Promise<LearnerSpeechLanguageContract> {
-  const response = await fetch("/api/learners/tts/language", {
+  const response = await fetch(apiUrl("/api/learners/tts/language"), {
     method: "PUT",
     headers: {
       Accept: "application/json",
@@ -301,7 +305,7 @@ export async function updateLearnerSpeechLanguage(
 }
 
 export async function getIntroExperienceSettings(): Promise<LearnerExperienceSettings> {
-  const response = await fetch("/api/experience/intro/settings", {
+  const response = await fetch(apiUrl("/api/experience/intro/settings"), {
     headers: {
       Accept: "application/json",
     },
@@ -315,7 +319,7 @@ export async function getIntroExperienceSettings(): Promise<LearnerExperienceSet
 }
 
 export async function logoutLearner(token: string): Promise<void> {
-  const response = await fetch("/api/learners/logout", {
+  const response = await fetch(apiUrl("/api/learners/logout"), {
     method: "POST",
     headers: {
       Accept: "application/json",

@@ -98,6 +98,11 @@
   line-height: 1.5;
 }
 
+.learner-dashboard__signed-out-actions {
+  display: grid;
+  gap: 0.7rem;
+}
+
 .learner-dashboard h1,
 .learner-dashboard h2 {
   margin: 0;
@@ -265,7 +270,8 @@
 }
 
 .learner-dashboard__games-action,
-.learner-dashboard__clara-action {
+.learner-dashboard__clara-action,
+.learner-dashboard__offline-action {
   width: 100%;
 }
 

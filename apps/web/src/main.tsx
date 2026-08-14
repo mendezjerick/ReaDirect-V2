@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import { App } from "./App";
 import { AppProviders } from "./app/AppProviders";
+import { NativeAppLifecycleProvider } from "./app/NativeAppLifecycleProvider";
 import "./styles/index.css";
 
 const rootElement = document.getElementById("root");
@@ -16,7 +17,9 @@ createRoot(rootElement).render(
   <StrictMode>
     <AppProviders>
       <BrowserRouter>
-        <App />
+        <NativeAppLifecycleProvider>
+          <App />
+        </NativeAppLifecycleProvider>
       </BrowserRouter>
     </AppProviders>
   </StrictMode>,

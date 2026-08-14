@@ -8,6 +8,7 @@ import {
   type PropsWithChildren,
 } from "react";
 import { useLocation } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 
 import {
   getIntroExperienceSettings,
@@ -46,6 +47,11 @@ const defaultExperience: LearnerExperienceContextValue = {
   setDisplayModeOverride: () => undefined,
 };
 
+const nativeExperience: ResolvedLearnerExperience = {
+  state: "ready",
+  settings: null,
+};
+
 const LearnerExperienceContext =
   createContext<LearnerExperienceContextValue>(defaultExperience);
 
@@ -58,11 +64,15 @@ function loadClaraDisplayModeOverride(): ClaraDisplayMode | null {
 }
 
 export function LearnerExperienceProvider({ children }: PropsWithChildren) {
+  const isNativePlatform = Capacitor.isNativePlatform();
   const location = useLocation();
   const learnerToken = loadLearnerSession()?.token ?? null;
+  const isOfflinePracticeRoute =
+    location.pathname.startsWith("/learner/offline");
   const appliesToLearnerRoute =
     location.pathname.startsWith("/learner/") &&
-    location.pathname !== "/learner/login";
+    location.pathname !== "/learner/login" &&
+    !isOfflinePracticeRoute;
   const appliesToIntroRoute = location.pathname === "/";
   const requestKey =
     appliesToLearnerRoute && learnerToken !== null
@@ -70,8 +80,9 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
       : appliesToIntroRoute
         ? `intro:${location.key}`
         : null;
-  const [experience, setExperience] =
-    useState<ResolvedLearnerExperience>(defaultExperience);
+  const [experience, setExperience] = useState<ResolvedLearnerExperience>(
+    isNativePlatform ? nativeExperience : defaultExperience,
+  );
   const [displayModeOverride, setDisplayModeOverrideState] =
     useState<ClaraDisplayMode | null>(loadClaraDisplayModeOverride);
 
@@ -87,6 +98,11 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
   );
 
   useEffect(() => {
+    if (isNativePlatform) {
+      setExperience(nativeExperience);
+      return;
+    }
+
     if (requestKey === null) {
       setExperience(defaultExperience);
       return;
@@ -113,11 +129,12 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
     return () => {
       active = false;
     };
-  }, [appliesToLearnerRoute, learnerToken, requestKey]);
+  }, [appliesToLearnerRoute, isNativePlatform, learnerToken, requestKey]);
 
   const value = useMemo<LearnerExperienceContextValue>(() => {
-    const resolvedExperience: ResolvedLearnerExperience =
-      requestKey === null
+    const resolvedExperience: ResolvedLearnerExperience = isNativePlatform
+      ? nativeExperience
+      : requestKey === null
         ? defaultExperience
         : experience.requestKey === requestKey
           ? experience
@@ -129,10 +146,18 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
 
     return {
       ...resolvedExperience,
-      displayMode: displayModeOverride ?? systemDisplayMode,
+      displayMode:
+        displayModeOverride ??
+        (isNativePlatform ? "static" : systemDisplayMode),
       setDisplayModeOverride,
     };
-  }, [displayModeOverride, experience, requestKey, setDisplayModeOverride]);
+  }, [
+    displayModeOverride,
+    experience,
+    isNativePlatform,
+    requestKey,
+    setDisplayModeOverride,
+  ]);
 
   return (
     <LearnerExperienceContext.Provider value={value}>

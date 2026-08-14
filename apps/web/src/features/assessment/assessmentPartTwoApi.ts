@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { apiUrl } from "../../lib/apiUrl";
+import { audioFilename } from "../../lib/audioFile";
 import type { AssessmentType } from "./assessmentApi";
 
 const progressSchema = z.object({
@@ -119,9 +121,12 @@ export async function getPartTwo(
   assessmentType: AssessmentType = "diagnostic",
 ) {
   return parseState(
-    await fetch(`${assessmentApiBase(assessmentType)}/part-two/current`, {
-      headers: authHeaders(token),
-    }),
+    await fetch(
+      apiUrl(`${assessmentApiBase(assessmentType)}/part-two/current`),
+      {
+        headers: authHeaders(token),
+      },
+    ),
   );
 }
 
@@ -133,7 +138,7 @@ export async function selectAssessmentStory(
 ) {
   return parseState(
     await fetch(
-      `${assessmentApiBase(assessmentType)}/part-two/${runId}/story`,
+      apiUrl(`${assessmentApiBase(assessmentType)}/part-two/${runId}/story`),
       {
         method: "POST",
         headers: { ...authHeaders(token), "Content-Type": "application/json" },
@@ -152,10 +157,10 @@ export async function submitAssessmentPassage(
 ) {
   const body = new FormData();
   body.append("item_key", itemKey);
-  body.append("audio", audio, `${itemKey}.webm`);
+  body.append("audio", audio, audioFilename(itemKey, audio));
   return parseState(
     await fetch(
-      `${assessmentApiBase(assessmentType)}/part-two/${runId}/passage`,
+      apiUrl(`${assessmentApiBase(assessmentType)}/part-two/${runId}/passage`),
       {
         method: "POST",
         headers: authHeaders(token),
@@ -174,7 +179,9 @@ export async function submitAssessmentComprehension(
 ) {
   return parseState(
     await fetch(
-      `${assessmentApiBase(assessmentType)}/part-two/${runId}/comprehension`,
+      apiUrl(
+        `${assessmentApiBase(assessmentType)}/part-two/${runId}/comprehension`,
+      ),
       {
         method: "POST",
         headers: { ...authHeaders(token), "Content-Type": "application/json" },
@@ -191,11 +198,14 @@ export async function skipPartTwoItem(
   assessmentType: AssessmentType = "diagnostic",
 ) {
   return parseState(
-    await fetch(`${assessmentApiBase(assessmentType)}/part-two/${runId}/skip`, {
-      method: "POST",
-      headers: { ...authHeaders(token), "Content-Type": "application/json" },
-      body: JSON.stringify({ item_key: itemKey }),
-    }),
+    await fetch(
+      apiUrl(`${assessmentApiBase(assessmentType)}/part-two/${runId}/skip`),
+      {
+        method: "POST",
+        headers: { ...authHeaders(token), "Content-Type": "application/json" },
+        body: JSON.stringify({ item_key: itemKey }),
+      },
+    ),
   );
 }
 
@@ -206,7 +216,7 @@ export async function continuePartTwoResult(
 ) {
   return parseState(
     await fetch(
-      `${assessmentApiBase(assessmentType)}/part-two/${runId}/continue`,
+      apiUrl(`${assessmentApiBase(assessmentType)}/part-two/${runId}/continue`),
       {
         method: "POST",
         headers: authHeaders(token),
@@ -221,7 +231,7 @@ export async function finishAssessment(
   assessmentType: AssessmentType = "diagnostic",
 ) {
   const response = await fetch(
-    `${assessmentApiBase(assessmentType)}/part-two/${runId}/finish`,
+    apiUrl(`${assessmentApiBase(assessmentType)}/part-two/${runId}/finish`),
     { method: "POST", headers: authHeaders(token) },
   );
   if (!response.ok) throw new Error("The assessment could not finish yet.");

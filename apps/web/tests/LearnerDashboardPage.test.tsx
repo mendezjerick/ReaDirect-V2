@@ -1,4 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
+import { Capacitor } from "@capacitor/core";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -113,6 +114,10 @@ function renderDashboard(stage = "before_diagnostic") {
               path="/learner/lesson-intro"
               element={<div>Lesson intro route</div>}
             />
+            <Route
+              path="/learner/offline"
+              element={<div>Offline practice route</div>}
+            />
           </Routes>
         </RouteTransitionProvider>
       </MemoryRouter>
@@ -125,6 +130,7 @@ describe("LearnerDashboardPage", () => {
     window.sessionStorage.clear();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("keeps the required learning action visually primary", () => {
@@ -163,7 +169,7 @@ describe("LearnerDashboardPage", () => {
     ).toBeEnabled();
   });
 
-  it("places Learn with Ma'am Clara after Games and before Achievements", () => {
+  it("places Learn with Ma'am Clara after Games and before Achievements on web", () => {
     renderDashboard();
 
     const headings = screen
@@ -176,6 +182,9 @@ describe("LearnerDashboardPage", () => {
     expect(headings.indexOf("Learn with Ma'am Clara")).toBeLessThan(
       headings.indexOf("Achievements"),
     );
+    expect(
+      screen.queryByRole("heading", { name: "Download Offline Mode Files" }),
+    ).not.toBeInTheDocument();
     expect(headings.indexOf("Achievements")).toBeLessThan(
       headings.indexOf("Clara appearance"),
     );
@@ -227,6 +236,29 @@ describe("LearnerDashboardPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /open game lobby/i }));
 
     expect(screen.getByText("Lobby route")).toBeInTheDocument();
+  });
+
+  it("does not show Offline Mode downloads on web", () => {
+    renderDashboard();
+
+    expect(
+      screen.queryByRole("button", { name: "Open Offline Downloads" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Practice without internet"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps Offline Mode downloads available in Android", () => {
+    vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+
+    renderDashboard();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Offline Downloads" }),
+    );
+
+    expect(screen.getByText("Offline practice route")).toBeInTheDocument();
   });
 
   it("opens the Reading Journey without preparing Clara", () => {

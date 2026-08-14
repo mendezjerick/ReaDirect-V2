@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useRouteTransition } from "../../components/transitions/routeTransitionContext";
 import { BigButton } from "../../components/ui/BigButton";
@@ -28,6 +28,11 @@ function ReaderIcon() {
 
 export function LearnerLoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo =
+    searchParams.get("returnTo") === "/learner/offline"
+      ? "/learner/offline"
+      : "/learner/dashboard";
   const { beginRouteTransition, isTransitioning } = useRouteTransition();
   const [showPassword, setShowPassword] = useState(false);
   const backCommit = useButtonCommit();
@@ -36,7 +41,7 @@ export function LearnerLoginPage() {
     mutationFn: loginLearner,
     onSuccess: (session) => {
       saveLearnerSession(session);
-      beginRouteTransition("/learner/dashboard");
+      beginRouteTransition(returnTo);
     },
   });
   const {

@@ -624,7 +624,8 @@
   }
 
   .lesson-five-page .assessment-recorder__control {
-    width: var(--assessment-responsive-recorder-size);
+    width: 100%;
+    height: 100%;
   }
 }
 
@@ -652,7 +653,8 @@
   }
 
   .lesson-five-page .assessment-recorder__control {
-    width: var(--assessment-responsive-recorder-size);
+    width: 100%;
+    height: 100%;
   }
 
   .lesson-five-page .assessment-action-dock {
@@ -703,7 +705,8 @@
   }
 
   .lesson-five-page .assessment-recorder__control {
-    width: var(--assessment-responsive-recorder-size);
+    width: 100%;
+    height: 100%;
   }
 
   .lesson-five-page .assessment-action-dock {

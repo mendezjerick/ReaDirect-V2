@@ -403,6 +403,45 @@ $learnWithClaraLettersSpeechKeys = [
     ),
 ];
 
+$learnWithClaraWordsLines = [
+    'learn-with-clara-words-rescue-opening' => [
+        'text' => 'Five little words have slipped along Clara\'s rescue trail. Will you help me find each word and bring the story home?',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/words/rescue/opening.wav',
+    ],
+    'learn-with-clara-words-find-bat' => [
+        'text' => 'Something flaps above the trail. Find the little word for a flying bat.',
+        'reference' => 'question',
+        'path' => 'learn-with-clara/words/rescue/find-bat.wav',
+    ],
+    'learn-with-clara-words-find-can' => [
+        'text' => 'A shiny can is rolling beside the path. Find the word that names it.',
+        'reference' => 'question',
+        'path' => 'learn-with-clara/words/rescue/find-can.wav',
+    ],
+    'learn-with-clara-words-find-dot' => [
+        'text' => 'A tiny dot marks the next step. Find the word for this little spot.',
+        'reference' => 'question',
+        'path' => 'learn-with-clara/words/rescue/find-dot.wav',
+    ],
+    'learn-with-clara-words-find-gap' => [
+        'text' => 'The bridge has a gap. Find the word for the space we must cross.',
+        'reference' => 'question',
+        'path' => 'learn-with-clara/words/rescue/find-gap.wav',
+    ],
+    'learn-with-clara-words-find-hot' => [
+        'text' => 'The final clue feels warm. Find the word that tells us it is hot.',
+        'reference' => 'question',
+        'path' => 'learn-with-clara/words/rescue/find-hot.wav',
+    ],
+    'learn-with-clara-words-rescue-finale' => [
+        'text' => 'You rescued every word. Bat, can, dot, gap, and hot are safe along the trail.',
+        'reference' => 'result',
+        'path' => 'learn-with-clara/words/rescue/finale.wav',
+    ],
+];
+$learnWithClaraWordsSpeechKeys = array_keys($learnWithClaraWordsLines);
+
 $lessonOneItemCueLines = [];
 $lessonOneItemOrdinals = [
     2 => 'second',
@@ -712,6 +751,10 @@ return [
     ],
     'pending_published_catalog_migrations' => [
         'lightweight-v1' => $lightweightPublishedSpeechMigration,
+        'learn-with-clara-words-v1' => [
+            'new_lines' => $learnWithClaraWordsLines,
+            'replacement_lines' => [],
+        ],
     ],
     'published_speech_groups' => [
         'assessment-part-one-fixed' => $assessmentPartOneSpeechKeys,
@@ -754,6 +797,7 @@ return [
         ],
         'lesson-6-fixed' => array_keys($lessonSixLines),
         'learn-with-clara-letters-fixed' => $learnWithClaraLettersSpeechKeys,
+        'learn-with-clara-words-fixed' => $learnWithClaraWordsSpeechKeys,
     ],
     'activity_speech_manifests' => [
         'assessment-part-one' => [
@@ -794,6 +838,10 @@ return [
         ],
         'learn-with-clara-letters' => [
             'published_groups' => ['learn-with-clara-letters-fixed'],
+            'runtime_profiles' => [],
+        ],
+        'learn-with-clara-words' => [
+            'published_groups' => ['learn-with-clara-words-fixed'],
             'runtime_profiles' => [],
         ],
     ],
@@ -841,6 +889,7 @@ return [
     'clara_lines' => [
         ...$lessonSixLines,
         ...$learnWithClaraLettersLines,
+        ...$learnWithClaraWordsLines,
         'lesson-intro' => [
             'text' => 'Hi. I am happy you are here. Let us get ready to read together.',
             'reference' => 'introduce',

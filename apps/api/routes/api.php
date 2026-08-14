@@ -14,6 +14,7 @@ use App\Http\Controllers\LearnerLessonOneController;
 use App\Http\Controllers\LearnerLessonSixController;
 use App\Http\Controllers\LearnerLessonThreeController;
 use App\Http\Controllers\LearnerLessonTwoController;
+use App\Http\Controllers\LearnerOfflinePracticeController;
 use App\Http\Controllers\LearnerSpeechLanguageController;
 use App\Http\Controllers\LearnerTtsController;
 use App\Http\Controllers\SchoolAdminClassController;
@@ -172,6 +173,26 @@ Route::prefix('learners')->middleware('learner.auth')->group(function (): void {
     Route::post('/tts/speech/{speechKey}', [LearnerTtsController::class, 'speech']);
     Route::post('/tts/lesson-feedback/{lessonResponse}', [LearnerTtsController::class, 'lessonFeedback']);
     Route::post('/tts/lesson-demonstration/{lessonResponse}', [LearnerTtsController::class, 'lessonDemonstration']);
+    Route::prefix('offline-practice')->middleware('throttle:learner-offline-practice')->group(function (): void {
+        Route::get('/packs', [LearnerOfflinePracticeController::class, 'index'])
+            ->name('learner.offline-practice.packs');
+        Route::get('/packs/{packId}/manifest', [LearnerOfflinePracticeController::class, 'manifest'])
+            ->where('packId', '[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*')
+            ->name('learner.offline-practice.manifest');
+        Route::get('/packs/{packId}/versions/{version}/content', [LearnerOfflinePracticeController::class, 'content'])
+            ->where([
+                'packId' => '[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*',
+                'version' => '[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*',
+            ])
+            ->name('learner.offline-practice.content');
+        Route::get('/packs/{packId}/versions/{version}/assets/{assetId}', [LearnerOfflinePracticeController::class, 'asset'])
+            ->where([
+                'packId' => '[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*',
+                'version' => '[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*',
+                'assetId' => '[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*',
+            ])
+            ->name('learner.offline-practice.asset');
+    });
     Route::post('/learn-with-clara/letters/start', [LearnerClaraListeningController::class, 'start']);
     Route::post('/learn-with-clara/letters/advance', [LearnerClaraListeningController::class, 'advance']);
     Route::post('/learn-with-clara/letters/restart', [LearnerClaraListeningController::class, 'restart']);

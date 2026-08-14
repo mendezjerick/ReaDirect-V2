@@ -939,6 +939,26 @@ results composition. Only its word presentations differ:
 - Mission 2 displays one readable sentence and raises the selected word in a
   primary-color vector highlight.
 
+The approved Word Rescue experience is a presentation layer of this same Lesson
+2 runtime. It may add one short formative repair interaction before the
+canonical recording state, including a reviewed `image` or `icon` tied to the
+current content ID when the narrow visual exception in
+`READIRECT_REVAMP_LESSON_AND_ASSESSMENT_INTERACTION_STANDARD.md` applies. A
+target classified as `none` uses the text-only interaction. The formative
+interaction never creates a response, attempt, score, mastery decision, or
+completion event. Speech recording, review, Submit, Mu evaluation, teaching
+support, Skip, Next, completion, `reading.word_wizard`, and required-lesson
+progression remain exactly the existing Lesson 2 contracts.
+
+Word Rescue does not add a third mission, additional academic questions, a
+local score, lives, coins, frontend mastery, alternate completion, or a second
+lesson run. Lesson 2 remains five unique isolated-word targets followed by five
+different sentence-context word targets, for ten unique approved words total.
+
+Word Rescue is online only. It does not use Offline Practice packs, offline
+manifests, local sessions, device filesystem content, or synchronization.
+Offline Practice remains separate from the canonical Lesson 2 runtime.
+
 The currently deployed server-owned support presentation sequences 19 fixed
 published lines, runtime `You said {final_transcript}.` feedback, and runtime
 target-word demonstration. The approved migration publishes all 49 authored
@@ -1135,23 +1155,29 @@ on the review remains unavailable until its selected Clara line finishes.
 All destinations reset `KW000`, persist the Diagnostic and Lessons 1 through 4
 prerequisites with their achievements, and use the real Lesson 5 run ID.
 
-## Optional Learn with Ma'am Clara Boundary
+## Learn with Ma'am Clara Boundary
 
-`Learn with Ma'am Clara` is an always-available listening companion class, not
-a required lesson or assessment. Any authenticated learner may open it before
-or after the Diagnostic Assessment.
+`Learn with Ma'am Clara` is generally an always-available listening companion
+feature, not a required lesson or assessment. Any authenticated learner may open
+its menu before or after the Diagnostic Assessment.
 
-Its checkpoint, visit count, and completion state are stored separately from
-required lesson runs. They must never change lesson unlocks, assessment
-scores, mastery evidence, achievements, or teacher analytics.
+Its optional class checkpoints, visit counts, and completion states are stored
+separately from required lesson runs. They must never change lesson unlocks,
+assessment scores, mastery evidence, achievements, or teacher analytics.
 
 The menu offers Letters, Words, Phrases, Sentences, and Comprehension, with no
-passage choice. Only Letters currently opens a complete session. That class is
-one authored `Little-Letter Parade` story in which learners find the
-lowercase partner for uppercase A-E, watch each pair join an accumulating
-animated parade, listen to Clara model the shared letter name, and receive an
-explicit learner-controlled echo pause before `Next Stop`. Incorrect visual
-choices receive a gentle retry without scoring. Searches and echo pauses do
-not auto-advance. The class has no recorder, ASR submission, academic attempt,
-or runtime TTS fallback. The complete contract lives in
+passage choice. `Letters` remains one authored optional `Little-Letter Parade`
+story in which learners find the lowercase partner for uppercase A-E, watch
+each pair join an accumulating animated parade, listen to Clara model the
+shared letter name, and receive an explicit learner-controlled echo pause
+before `Next Stop`. Incorrect visual choices receive a gentle retry without
+scoring. Searches and echo pauses do not auto-advance. The class has no
+recorder, ASR submission, academic attempt, or runtime TTS fallback.
+
+The `Words` menu choice is the explicit canonical entry exception. It opens
+`/learner/lessons/2` and uses the one existing `required-lesson-2` run,
+including its diagnostic access gate, immutable snapshot, speech submission,
+teaching state, completion, Word Wizard achievement, and required-lesson
+progression. It does not create a `learner_clara_listening_sessions` row or
+make the other Clara menu choices canonical. The complete boundary lives in
 `READIRECT_REVAMP_LEARN_WITH_CLARA_STANDARD.md`.
