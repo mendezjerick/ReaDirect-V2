@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PILOT_MODE } from "../../deployment/pilot";
 import { AchievementUnlockOverlay } from "../achievements/AchievementUnlockOverlay";
 import { useReadingJourneyAchievementUnlock } from "../achievements/useReadingJourneyAchievementUnlock";
 import {
@@ -441,12 +442,12 @@ export function LessonOnePage() {
   ) : lesson.teaching.can_record ? (
     <BigButton
       variant={
-        canSubmit && !controlsUnavailable
+        canSubmit && !controlsUnavailable && !PILOT_MODE
           ? "primary-vertical"
           : "unavailable-vertical"
       }
       leadingIcon={<DockActionIcon kind="submit" />}
-      disabled={!canSubmit || controlsUnavailable}
+      disabled={!canSubmit || controlsUnavailable || PILOT_MODE}
       busy={busy}
       busyLabel="Checking"
       committing={submitCommit.committing}
@@ -528,7 +529,10 @@ export function LessonOnePage() {
       recorderContent={
         <Recorder
           recorder={recorder}
-          unavailable={controlsUnavailable || !lesson.teaching.can_record}
+          unavailable={
+            controlsUnavailable || !lesson.teaching.can_record || PILOT_MODE
+          }
+          pilotUnavailable={PILOT_MODE && lesson.teaching.can_record}
           committed={!lesson.teaching.can_record}
           onAudioAction={() => playbackRef.current?.stop()}
         />

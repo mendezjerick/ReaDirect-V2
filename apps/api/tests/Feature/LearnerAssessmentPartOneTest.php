@@ -32,6 +32,43 @@ final class LearnerAssessmentPartOneTest extends TestCase
         $this->assertDatabaseCount('assessment_runs', 1);
     }
 
+    public function test_pilot_reader_can_skip_the_unavailable_microphone_check(): void
+    {
+        config()->set('pilot.enabled', true);
+        $token = $this->createLearnerSession();
+        $runId = $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->json('run_id');
+
+        $this->withToken($token)
+            ->postJson("/api/learners/assessments/part-one/{$runId}/skip", [
+                'item_key' => 'orientation',
+            ])
+            ->assertOk()
+            ->assertJsonPath('stage', 'task-1a')
+            ->assertJsonPath('orientation_ready', true)
+            ->assertJsonPath('item.display_text', 'A a');
+
+        $this->assertNotNull(AssessmentRun::query()->findOrFail($runId)->orientation_completed_at);
+        $this->assertDatabaseCount('assessment_responses', 0);
+    }
+
+    public function test_standard_deployment_cannot_skip_the_microphone_check(): void
+    {
+        config()->set('pilot.enabled', false);
+        $token = $this->createLearnerSession();
+        $runId = $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->json('run_id');
+
+        $this->withToken($token)
+            ->postJson("/api/learners/assessments/part-one/{$runId}/skip", [
+                'item_key' => 'orientation',
+            ])
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'This assessment item cannot be skipped.');
+    }
+
     public function test_orientation_and_letter_submission_use_asr_and_advance_without_revealing_correctness(): void
     {
         Http::fake([

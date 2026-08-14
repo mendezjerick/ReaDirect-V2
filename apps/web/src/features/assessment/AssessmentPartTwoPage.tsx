@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PILOT_MODE } from "../../deployment/pilot";
 import { AchievementUnlockOverlay } from "../achievements/AchievementUnlockOverlay";
 import { ReadingJourneyAchievementIcon } from "../achievements/ReadingJourneyAchievementIcon";
 import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
@@ -561,6 +562,7 @@ export function AssessmentPartTwoPage({
     guideState !== "ready" ||
     saveAction !== null;
   const isPassage = state.stage === "task-3a";
+  const asrUnavailable = PILOT_MODE && isPassage;
   const isComprehension = state.stage === "task-3b";
   const isPassageResult = state.stage === "passage-results";
   const isPartTwoResult = state.stage === "part-2-results";
@@ -731,7 +733,8 @@ export function AssessmentPartTwoPage({
             {isPassage ? (
               <AssessmentRecorder
                 recorder={recorder}
-                unavailable={unavailable}
+                unavailable={unavailable || asrUnavailable}
+                pilotUnavailable={asrUnavailable}
                 submitAvailableAfterCapture
                 onAudioAction={() => playbackRef.current?.stop()}
               />
@@ -769,7 +772,7 @@ export function AssessmentPartTwoPage({
             >
               <BigButton
                 variant={
-                  canSubmit && !unavailable
+                  canSubmit && !unavailable && !asrUnavailable
                     ? "primary-vertical"
                     : "unavailable-vertical"
                 }
@@ -778,7 +781,7 @@ export function AssessmentPartTwoPage({
                     kind={isResult || isCompletion ? "next" : "submit"}
                   />
                 }
-                disabled={!canSubmit || unavailable}
+                disabled={!canSubmit || unavailable || asrUnavailable}
                 busy={saveAction !== null && saveAction !== "skip"}
                 busyLabel={isCompletion ? "Finishing" : "Saving"}
                 committing={submitCommit.committing}

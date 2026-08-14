@@ -226,6 +226,17 @@ final class LearnerAssessmentPartOneController extends Controller
 
         DB::transaction(function () use ($run, $validated): void {
             $run->refresh();
+            if ($run->stage === 'orientation' && config('pilot.enabled')) {
+                abort_unless(hash_equals('orientation', $validated['item_key']), 409, 'That item is no longer active.');
+                $run->forceFill([
+                    'orientation_completed_at' => now(),
+                    'stage' => 'task-1a',
+                    'current_item_index' => 0,
+                ])->save();
+
+                return;
+            }
+
             abort_unless(in_array($run->stage, ['task-1a', 'task-2a', 'task-2b'], true), 409, 'This assessment item cannot be skipped.');
             $item = $this->currentItem($run);
             abort_unless($item !== null && hash_equals($item['item_key'], $validated['item_key']), 409, 'That item is no longer active.');

@@ -445,6 +445,18 @@
   font-size: var(--font-support);
 }
 
+.assessment-recorder__pilot-note {
+  display: block;
+  max-width: 22ch;
+  color: var(--color-text-muted);
+  font-family: var(--font-reading-family);
+  font-size: var(--font-support);
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  text-wrap: balance;
+}
+
 .assessment-recorder__error {
   grid-column: 1;
   width: 100%;
@@ -2421,12 +2433,14 @@
   }
 
   .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
-    .assessment-result__segments > div {
+    .assessment-result__segments
+    > div {
     padding-block: 0.25rem;
   }
 
   .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
-    .assessment-result__score strong {
+    .assessment-result__score
+    strong {
     font-size: clamp(3rem, 15svh, 4rem);
   }
 

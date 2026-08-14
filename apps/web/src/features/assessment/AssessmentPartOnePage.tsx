@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PILOT_MODE } from "../../deployment/pilot";
 import {
   playClaraSpeech,
   prepareClaraSpeech,
@@ -524,13 +525,18 @@ export function AssessmentPartOnePage({
   };
 
   const skipCurrentItem = () => {
-    if (!assessment?.item || !storedSession?.token) return;
+    if (!assessment || !storedSession?.token) return;
+    const itemKey =
+      assessment.stage === "orientation"
+        ? "orientation"
+        : assessment.item?.item_key;
+    if (!itemKey) return;
     recorder.retry();
     void save(
       skipAssessmentItem(
         storedSession.token,
         assessment.run_id,
-        assessment.item.item_key,
+        itemKey,
         assessmentType,
       ),
       "skip",
@@ -579,6 +585,7 @@ export function AssessmentPartOnePage({
   const copy = stageCopy[assessment.stage];
   const isResult = assessment.stage === "part-1-results";
   const isRhyme = assessment.stage === "task-2a";
+  const asrUnavailable = PILOT_MODE && !isResult && !isRhyme;
   const committed =
     assessment.stage === "orientation"
       ? assessment.orientation_ready
@@ -589,7 +596,9 @@ export function AssessmentPartOnePage({
     saveState === "processing" ||
     committed;
   const canSubmitAudio = Boolean(recorder.audio && recorder.hasPlayed);
-  const canSkip = !isResult && assessment.stage !== "orientation" && !committed;
+  const canSkip =
+    !isResult &&
+    (!committed || (PILOT_MODE && assessment.stage === "orientation"));
   const skipUnavailable =
     controlsUnavailable ||
     recorder.state === "recording" ||
@@ -632,12 +641,12 @@ export function AssessmentPartOnePage({
   ) : (
     <BigButton
       variant={
-        canSubmitAudio && !controlsUnavailable
+        canSubmitAudio && !controlsUnavailable && !asrUnavailable
           ? "primary-vertical"
           : "unavailable-vertical"
       }
       leadingIcon={<DockActionIcon kind="submit" />}
-      disabled={!canSubmitAudio || controlsUnavailable}
+      disabled={!canSubmitAudio || controlsUnavailable || asrUnavailable}
       busy={saveState === "processing" && saveAction === "submit"}
       busyLabel="Saving"
       committing={submitCommit.committing}
@@ -715,7 +724,8 @@ export function AssessmentPartOnePage({
           ) : (
             <Recorder
               recorder={recorder}
-              unavailable={controlsUnavailable}
+              unavailable={controlsUnavailable || asrUnavailable}
+              pilotUnavailable={asrUnavailable}
               committed={committed}
               onAudioAction={() => playbackRef.current?.stop()}
             />

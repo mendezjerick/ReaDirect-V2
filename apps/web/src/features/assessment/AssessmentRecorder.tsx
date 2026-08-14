@@ -1,4 +1,5 @@
 import { useAudioRecorder } from "./useAudioRecorder";
+import { PILOT_ASR_UNAVAILABLE_MESSAGE } from "../../deployment/pilot";
 
 function MicrophoneIcon() {
   return (
@@ -41,12 +42,14 @@ export function AssessmentDockActionIcon({
 export function AssessmentRecorder({
   recorder,
   unavailable,
+  pilotUnavailable = false,
   committed = false,
   submitAvailableAfterCapture = false,
   onAudioAction,
 }: {
   recorder: ReturnType<typeof useAudioRecorder>;
   unavailable: boolean;
+  pilotUnavailable?: boolean;
   committed?: boolean;
   submitAvailableAfterCapture?: boolean;
   onAudioAction: () => void;
@@ -61,7 +64,7 @@ export function AssessmentRecorder({
           : "Record";
 
   const useRecorder = () => {
-    if (unavailable || committed) return;
+    if (unavailable || pilotUnavailable || committed) return;
     onAudioAction();
     if (recorder.state === "idle") void recorder.record();
     else if (recorder.state === "recording") recorder.stop();
@@ -74,7 +77,12 @@ export function AssessmentRecorder({
         type="button"
         className="assessment-recorder__control"
         data-state={recorder.state}
-        disabled={unavailable || committed || recorder.state === "playing"}
+        disabled={
+          unavailable ||
+          pilotUnavailable ||
+          committed ||
+          recorder.state === "playing"
+        }
         aria-label={label}
         onClick={useRecorder}
       >
@@ -97,7 +105,11 @@ export function AssessmentRecorder({
         </span>
       </button>
       <div className="assessment-recorder__review-slot">
-        {recorder.hasPlayed && !committed ? (
+        {pilotUnavailable ? (
+          <span className="assessment-recorder__pilot-note" role="status">
+            {PILOT_ASR_UNAVAILABLE_MESSAGE} Use Skip to continue.
+          </span>
+        ) : recorder.hasPlayed && !committed ? (
           <button
             type="button"
             className="assessment-recorder__retry"
@@ -105,8 +117,12 @@ export function AssessmentRecorder({
           >
             Retry?
           </button>
-        ) : submitAvailableAfterCapture && recorder.audio && !recorder.hasPlayed ? (
-          <span className="assessment-recorder__capture-note">Ready to submit</span>
+        ) : submitAvailableAfterCapture &&
+          recorder.audio &&
+          !recorder.hasPlayed ? (
+          <span className="assessment-recorder__capture-note">
+            Ready to submit
+          </span>
         ) : null}
       </div>
       <p className="assessment-recorder__error" role="alert" aria-live="polite">

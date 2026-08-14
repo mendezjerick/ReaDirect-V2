@@ -17,6 +17,7 @@ final class PilotDeploymentSeeder extends Seeder
             LetterEquivalenceSeeder::class,
             CvcVowelEquivalenceSeeder::class,
             PortalSystemLearnerSeeder::class,
+            PilotTestAccountsSeeder::class,
             GameCatalogSeeder::class,
         ]);
 

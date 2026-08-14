@@ -494,19 +494,11 @@ export function App() {
               />
               <Route
                 path="/learner/assessment/part-one"
-                element={
-                  <PilotAsrRoute>
-                    <AssessmentPartOnePage />
-                  </PilotAsrRoute>
-                }
+                element={<AssessmentPartOnePage />}
               />
               <Route
                 path="/learner/assessment/part-two"
-                element={
-                  <PilotAsrRoute>
-                    <AssessmentPartTwoPage />
-                  </PilotAsrRoute>
-                }
+                element={<AssessmentPartTwoPage />}
               />
               <Route
                 path="/learner/assessment/complete"
@@ -514,64 +506,21 @@ export function App() {
               />
               <Route
                 path="/learner/final-assessment/part-one"
-                element={
-                  <PilotAsrRoute>
-                    <AssessmentPartOnePage assessmentType="final" />
-                  </PilotAsrRoute>
-                }
+                element={<AssessmentPartOnePage assessmentType="final" />}
               />
               <Route
                 path="/learner/final-assessment/part-two"
-                element={
-                  <PilotAsrRoute>
-                    <AssessmentPartTwoPage assessmentType="final" />
-                  </PilotAsrRoute>
-                }
+                element={<AssessmentPartTwoPage assessmentType="final" />}
               />
               <Route
                 path="/learner/final-assessment/complete"
                 element={<AssessmentPartTwoPage assessmentType="final" />}
               />
-              <Route
-                path="/learner/lessons/1"
-                element={
-                  <PilotAsrRoute>
-                    <LessonOnePage />
-                  </PilotAsrRoute>
-                }
-              />
-              <Route
-                path="/learner/lessons/2"
-                element={
-                  <PilotAsrRoute>
-                    <LessonTwoPage />
-                  </PilotAsrRoute>
-                }
-              />
-              <Route
-                path="/learner/lessons/3"
-                element={
-                  <PilotAsrRoute>
-                    <LessonThreePage />
-                  </PilotAsrRoute>
-                }
-              />
-              <Route
-                path="/learner/lessons/4"
-                element={
-                  <PilotAsrRoute>
-                    <LessonFourPage />
-                  </PilotAsrRoute>
-                }
-              />
-              <Route
-                path="/learner/lessons/5"
-                element={
-                  <PilotAsrRoute>
-                    <LessonFivePage />
-                  </PilotAsrRoute>
-                }
-              />
+              <Route path="/learner/lessons/1" element={<LessonOnePage />} />
+              <Route path="/learner/lessons/2" element={<LessonTwoPage />} />
+              <Route path="/learner/lessons/3" element={<LessonThreePage />} />
+              <Route path="/learner/lessons/4" element={<LessonFourPage />} />
+              <Route path="/learner/lessons/5" element={<LessonFivePage />} />
               <Route path="/learner/lessons/6" element={<LessonSixPage />} />
               <Route path="/learner/games" element={<GameLobbyPage />} />
               <Route
