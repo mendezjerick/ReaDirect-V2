@@ -42,7 +42,7 @@ RUN mkdir -p \
         storage/logs \
     && chmod -R ug+rwX bootstrap/cache storage \
     && composer dump-autoload --no-dev --classmap-authoritative \
-    && php artisan package:discover --ansi
+    && APP_ENV=local php artisan package:discover --ansi
 
 ENV APP_ENV=production \
     APP_DEBUG=false \
