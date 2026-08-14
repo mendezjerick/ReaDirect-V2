@@ -31,6 +31,7 @@ RUN composer install \
     --no-scripts
 
 COPY apps/api ./
+COPY content /var/content
 
 RUN mkdir -p \
         bootstrap/cache \
