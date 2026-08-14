@@ -22,6 +22,7 @@ type ClaraDisplayMode = LearnerExperienceSettings["display_mode"];
 
 const claraDisplayModeOverrideStorageKey =
   "readirect.learner.clara-display-mode";
+const forceStaticClara = import.meta.env.VITE_FORCE_STATIC_CLARA === "true";
 
 interface LearnerExperienceContextValue {
   state: LearnerExperienceState;
@@ -56,6 +57,10 @@ const LearnerExperienceContext =
   createContext<LearnerExperienceContextValue>(defaultExperience);
 
 function loadClaraDisplayModeOverride(): ClaraDisplayMode | null {
+  if (forceStaticClara) {
+    return "static";
+  }
+
   const stored = window.localStorage.getItem(
     claraDisplayModeOverrideStorageKey,
   );
