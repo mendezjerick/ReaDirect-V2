@@ -66,6 +66,10 @@ final class StaffRealtimePublisher
      */
     private function dispatch(array $channels, array $topics): void
     {
+        if (! config('pilot.realtime_available', true)) {
+            return;
+        }
+
         $channelNames = array_values(array_unique($channels));
         $topicNames = array_values(array_unique(array_map(
             static fn (StaffRealtimeTopic $topic): string => $topic->value,

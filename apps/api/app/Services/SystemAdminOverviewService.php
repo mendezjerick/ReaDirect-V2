@@ -283,6 +283,14 @@ final class SystemAdminOverviewService
      */
     private function asrHealth(): array
     {
+        if (! config('pilot.asr_available', true)) {
+            return [
+                'service' => 'ASR',
+                'status' => 'not_configured',
+                'detail' => (string) config('pilot.asr_unavailable_message'),
+            ];
+        }
+
         try {
             $response = $this->healthClient()->get(
                 rtrim((string) config('speech.asr_url'), '/').'/ready',
@@ -322,6 +330,14 @@ final class SystemAdminOverviewService
         $catalogDetail = $publishedVoiceKey === null
             ? 'No published Clara voice catalog is available.'
             : "{$publishedSpeechCount} published lines are available from {$publishedVoiceKey}.";
+
+        if (! config('pilot.runtime_tts_available', true)) {
+            return [
+                'service' => 'TTS',
+                'status' => $publishedVoiceKey === null ? 'offline' : 'online',
+                'detail' => "{$catalogDetail} Pilot mode uses published speech only; runtime Vox generation is disabled.",
+            ];
+        }
 
         try {
             $response = $this->healthClient()->get(

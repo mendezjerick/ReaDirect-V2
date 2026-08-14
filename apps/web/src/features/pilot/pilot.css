@@ -1,0 +1,50 @@
+.pilot-unavailable {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background:
+    radial-gradient(circle at top, rgb(255 244 196 / 80%), transparent 42%),
+    var(--color-page, #f6f2e8);
+}
+
+.pilot-unavailable__card {
+  width: min(100%, 42rem);
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+}
+
+.pilot-unavailable__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: #f4c84a;
+  color: #2f260b;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.pilot-unavailable__eyebrow {
+  margin: 0;
+  color: var(--color-text-muted, #665f50);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pilot-unavailable h1,
+.pilot-unavailable p {
+  margin: 0;
+}
+
+.pilot-unavailable h1 {
+  max-width: 18ch;
+}
+
+.pilot-unavailable p:not(.pilot-unavailable__eyebrow) {
+  max-width: 56ch;
+  line-height: 1.65;
+}

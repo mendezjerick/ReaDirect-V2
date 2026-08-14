@@ -93,8 +93,10 @@ Route::prefix('staff')->group(function (): void {
             Route::post('/{staffUser}/page-portals/launch', [SystemAdminPortalController::class, 'launch']);
             Route::get('/{staffUser}/speech/status', [SystemAdminSpeechSandboxController::class, 'status']);
             Route::get('/{staffUser}/speech/content-catalog', [SystemAdminSpeechSandboxController::class, 'contentCatalog']);
-            Route::post('/{staffUser}/speech/letter/resolve', [SystemAdminSpeechSandboxController::class, 'resolveLetter']);
-            Route::post('/{staffUser}/speech/mu/transcribe', [SystemAdminSpeechSandboxController::class, 'transcribeMu']);
+            Route::post('/{staffUser}/speech/letter/resolve', [SystemAdminSpeechSandboxController::class, 'resolveLetter'])
+                ->middleware('asr.available');
+            Route::post('/{staffUser}/speech/mu/transcribe', [SystemAdminSpeechSandboxController::class, 'transcribeMu'])
+                ->middleware('asr.available');
             Route::post('/{staffUser}/speech/attempts/{speechSandboxAttempt}/review', [SystemAdminSpeechSandboxController::class, 'reviewAttempt']);
             Route::get('/{staffUser}/speech/confusion-matrix/raw', [SystemAdminSpeechAnalyticsController::class, 'rawConfusionMatrix']);
             Route::post('/{staffUser}/equivalence-rules', [SystemAdminSpeechSandboxController::class, 'storeEquivalenceRule']);
@@ -198,31 +200,36 @@ Route::prefix('learners')->middleware('learner.auth')->group(function (): void {
     Route::post('/learn-with-clara/letters/restart', [LearnerClaraListeningController::class, 'restart']);
     Route::post('/lessons/lesson-1/start', [LearnerLessonOneController::class, 'start']);
     Route::get('/lessons/lesson-1/{lessonRun}', [LearnerLessonOneController::class, 'show']);
-    Route::post('/lessons/lesson-1/{lessonRun}/submit', [LearnerLessonOneController::class, 'submit']);
+    Route::post('/lessons/lesson-1/{lessonRun}/submit', [LearnerLessonOneController::class, 'submit'])
+        ->middleware('asr.available');
     Route::post('/lessons/lesson-1/{lessonRun}/continue-support', [LearnerLessonOneController::class, 'continueSupport']);
     Route::post('/lessons/lesson-1/{lessonRun}/skip', [LearnerLessonOneController::class, 'skip']);
     Route::post('/lessons/lesson-1/{lessonRun}/advance', [LearnerLessonOneController::class, 'advance']);
     Route::post('/lessons/lesson-2/start', [LearnerLessonTwoController::class, 'start']);
     Route::get('/lessons/lesson-2/{lessonRun}', [LearnerLessonTwoController::class, 'show']);
-    Route::post('/lessons/lesson-2/{lessonRun}/submit', [LearnerLessonTwoController::class, 'submit']);
+    Route::post('/lessons/lesson-2/{lessonRun}/submit', [LearnerLessonTwoController::class, 'submit'])
+        ->middleware('asr.available');
     Route::post('/lessons/lesson-2/{lessonRun}/continue-support', [LearnerLessonTwoController::class, 'continueSupport']);
     Route::post('/lessons/lesson-2/{lessonRun}/skip', [LearnerLessonTwoController::class, 'skip']);
     Route::post('/lessons/lesson-2/{lessonRun}/advance', [LearnerLessonTwoController::class, 'advance']);
     Route::post('/lessons/lesson-3/start', [LearnerLessonThreeController::class, 'start']);
     Route::get('/lessons/lesson-3/{lessonRun}', [LearnerLessonThreeController::class, 'show']);
-    Route::post('/lessons/lesson-3/{lessonRun}/submit', [LearnerLessonThreeController::class, 'submit']);
+    Route::post('/lessons/lesson-3/{lessonRun}/submit', [LearnerLessonThreeController::class, 'submit'])
+        ->middleware('asr.available');
     Route::post('/lessons/lesson-3/{lessonRun}/continue-support', [LearnerLessonThreeController::class, 'continueSupport']);
     Route::post('/lessons/lesson-3/{lessonRun}/skip', [LearnerLessonThreeController::class, 'skip']);
     Route::post('/lessons/lesson-3/{lessonRun}/advance', [LearnerLessonThreeController::class, 'advance']);
     Route::post('/lessons/lesson-4/start', [LearnerLessonFourController::class, 'start']);
     Route::get('/lessons/lesson-4/{lessonRun}', [LearnerLessonFourController::class, 'show']);
-    Route::post('/lessons/lesson-4/{lessonRun}/submit', [LearnerLessonFourController::class, 'submit']);
+    Route::post('/lessons/lesson-4/{lessonRun}/submit', [LearnerLessonFourController::class, 'submit'])
+        ->middleware('asr.available');
     Route::post('/lessons/lesson-4/{lessonRun}/continue-support', [LearnerLessonFourController::class, 'continueSupport']);
     Route::post('/lessons/lesson-4/{lessonRun}/skip', [LearnerLessonFourController::class, 'skip']);
     Route::post('/lessons/lesson-4/{lessonRun}/advance', [LearnerLessonFourController::class, 'advance']);
     Route::post('/lessons/lesson-5/start', [LearnerLessonFiveController::class, 'start']);
     Route::get('/lessons/lesson-5/{lessonRun}', [LearnerLessonFiveController::class, 'show']);
-    Route::post('/lessons/lesson-5/{lessonRun}/submit', [LearnerLessonFiveController::class, 'submit']);
+    Route::post('/lessons/lesson-5/{lessonRun}/submit', [LearnerLessonFiveController::class, 'submit'])
+        ->middleware('asr.available');
     Route::post('/lessons/lesson-5/{lessonRun}/continue-support', [LearnerLessonFiveController::class, 'continueSupport']);
     Route::post('/lessons/lesson-5/{lessonRun}/skip', [LearnerLessonFiveController::class, 'skip']);
     Route::post('/lessons/lesson-5/{lessonRun}/advance', [LearnerLessonFiveController::class, 'advance']);
@@ -241,8 +248,10 @@ Route::prefix('learners')->middleware('learner.auth')->group(function (): void {
         Route::get("/{$assessmentPrefix}/part-one/{assessmentRun}", [LearnerAssessmentPartOneController::class, 'show'])
             ->defaults('assessmentType', $assessmentType);
         Route::post("/{$assessmentPrefix}/part-one/{assessmentRun}/orientation", [LearnerAssessmentPartOneController::class, 'submitOrientation'])
+            ->middleware('asr.available')
             ->defaults('assessmentType', $assessmentType);
         Route::post("/{$assessmentPrefix}/part-one/{assessmentRun}/speech", [LearnerAssessmentPartOneController::class, 'submitSpeech'])
+            ->middleware('asr.available')
             ->defaults('assessmentType', $assessmentType);
         Route::post("/{$assessmentPrefix}/part-one/{assessmentRun}/rhyme", [LearnerAssessmentPartOneController::class, 'submitRhyme'])
             ->defaults('assessmentType', $assessmentType);
@@ -257,6 +266,7 @@ Route::prefix('learners')->middleware('learner.auth')->group(function (): void {
         Route::post("/{$assessmentPrefix}/part-two/{assessmentRun}/story", [LearnerAssessmentPartTwoController::class, 'selectStory'])
             ->defaults('assessmentType', $assessmentType);
         Route::post("/{$assessmentPrefix}/part-two/{assessmentRun}/passage", [LearnerAssessmentPartTwoController::class, 'submitPassage'])
+            ->middleware('asr.available')
             ->defaults('assessmentType', $assessmentType);
         Route::post("/{$assessmentPrefix}/part-two/{assessmentRun}/comprehension", [LearnerAssessmentPartTwoController::class, 'submitComprehension'])
             ->defaults('assessmentType', $assessmentType);

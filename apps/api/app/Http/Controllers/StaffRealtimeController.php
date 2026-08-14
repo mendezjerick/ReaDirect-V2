@@ -14,7 +14,8 @@ final class StaffRealtimeController extends Controller
         /** @var StaffUser $staffUser */
         $staffUser = $request->attributes->get('staff_user');
         $key = config('broadcasting.connections.reverb.key');
-        $enabled = config('broadcasting.default') === 'reverb'
+        $enabled = config('pilot.realtime_available', true)
+            && config('broadcasting.default') === 'reverb'
             && is_string($key)
             && $key !== '';
         $dataChannels = match ($staffUser->role) {
@@ -37,6 +38,12 @@ final class StaffRealtimeController extends Controller
 
     public function probe(Request $request): JsonResponse
     {
+        abort_unless(
+            config('pilot.realtime_available', true),
+            409,
+            'Realtime updates are unavailable during pilot testing.',
+        );
+
         $validated = $request->validate([
             'nonce' => ['required', 'uuid'],
         ]);

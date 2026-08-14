@@ -15,6 +15,10 @@ import { IntroPage } from "./features/intro/IntroPage";
 import { LearnerExperienceProvider } from "./features/learner-auth/LearnerExperienceProvider";
 import { NativeLearnerEntryPage } from "./features/offline-practice/NativeLearnerEntryPage";
 import { NativeConnectivityBanner } from "./features/connectivity/NativeConnectivityBanner";
+import {
+  PilotAsrRoute,
+  PilotPublishedSpeechRoute,
+} from "./features/pilot/PilotAsrUnavailablePage";
 
 const LearnerDashboardPage = lazy(() =>
   import("./features/learner-dashboard/LearnerDashboardPage").then(
@@ -482,15 +486,27 @@ export function App() {
               />
               <Route
                 path="/learner/learn-with-clara/words"
-                element={<LearnWithClaraWordsPage />}
+                element={
+                  <PilotPublishedSpeechRoute>
+                    <LearnWithClaraWordsPage />
+                  </PilotPublishedSpeechRoute>
+                }
               />
               <Route
                 path="/learner/assessment/part-one"
-                element={<AssessmentPartOnePage />}
+                element={
+                  <PilotAsrRoute>
+                    <AssessmentPartOnePage />
+                  </PilotAsrRoute>
+                }
               />
               <Route
                 path="/learner/assessment/part-two"
-                element={<AssessmentPartTwoPage />}
+                element={
+                  <PilotAsrRoute>
+                    <AssessmentPartTwoPage />
+                  </PilotAsrRoute>
+                }
               />
               <Route
                 path="/learner/assessment/complete"
@@ -498,21 +514,64 @@ export function App() {
               />
               <Route
                 path="/learner/final-assessment/part-one"
-                element={<AssessmentPartOnePage assessmentType="final" />}
+                element={
+                  <PilotAsrRoute>
+                    <AssessmentPartOnePage assessmentType="final" />
+                  </PilotAsrRoute>
+                }
               />
               <Route
                 path="/learner/final-assessment/part-two"
-                element={<AssessmentPartTwoPage assessmentType="final" />}
+                element={
+                  <PilotAsrRoute>
+                    <AssessmentPartTwoPage assessmentType="final" />
+                  </PilotAsrRoute>
+                }
               />
               <Route
                 path="/learner/final-assessment/complete"
                 element={<AssessmentPartTwoPage assessmentType="final" />}
               />
-              <Route path="/learner/lessons/1" element={<LessonOnePage />} />
-              <Route path="/learner/lessons/2" element={<LessonTwoPage />} />
-              <Route path="/learner/lessons/3" element={<LessonThreePage />} />
-              <Route path="/learner/lessons/4" element={<LessonFourPage />} />
-              <Route path="/learner/lessons/5" element={<LessonFivePage />} />
+              <Route
+                path="/learner/lessons/1"
+                element={
+                  <PilotAsrRoute>
+                    <LessonOnePage />
+                  </PilotAsrRoute>
+                }
+              />
+              <Route
+                path="/learner/lessons/2"
+                element={
+                  <PilotAsrRoute>
+                    <LessonTwoPage />
+                  </PilotAsrRoute>
+                }
+              />
+              <Route
+                path="/learner/lessons/3"
+                element={
+                  <PilotAsrRoute>
+                    <LessonThreePage />
+                  </PilotAsrRoute>
+                }
+              />
+              <Route
+                path="/learner/lessons/4"
+                element={
+                  <PilotAsrRoute>
+                    <LessonFourPage />
+                  </PilotAsrRoute>
+                }
+              />
+              <Route
+                path="/learner/lessons/5"
+                element={
+                  <PilotAsrRoute>
+                    <LessonFivePage />
+                  </PilotAsrRoute>
+                }
+              />
               <Route path="/learner/lessons/6" element={<LessonSixPage />} />
               <Route path="/learner/games" element={<GameLobbyPage />} />
               <Route
@@ -634,11 +693,19 @@ export function App() {
                 />
                 <Route
                   path="/staff/system-admin/isoletter-sandbox"
-                  element={<IsoLetterSandboxPage />}
+                  element={
+                    <PilotAsrRoute>
+                      <IsoLetterSandboxPage />
+                    </PilotAsrRoute>
+                  }
                 />
                 <Route
                   path="/staff/system-admin/true-sandbox"
-                  element={<TrueSandboxPage />}
+                  element={
+                    <PilotAsrRoute>
+                      <TrueSandboxPage />
+                    </PilotAsrRoute>
+                  }
                 />
                 <Route
                   path="/staff/system-admin/equivalence-book"
@@ -646,7 +713,11 @@ export function App() {
                 />
                 <Route
                   path="/staff/system-admin/confusion-matrix"
-                  element={<RawConfusionMatrixPage />}
+                  element={
+                    <PilotAsrRoute>
+                      <RawConfusionMatrixPage />
+                    </PilotAsrRoute>
+                  }
                 />
               </Route>
               <Route

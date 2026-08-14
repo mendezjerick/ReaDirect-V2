@@ -4,6 +4,7 @@ use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\AuthenticateLearnerSession;
 use App\Http\Middleware\AuthenticateStaffSession;
 use App\Http\Middleware\EnforceHttps;
+use App\Http\Middleware\EnsureAsrAvailable;
 use App\Http\Middleware\RequireStaffRole;
 use App\Http\Middleware\TrustHosts;
 use App\Http\Middleware\TrustProxies;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'learner.auth' => AuthenticateLearnerSession::class,
             'staff.auth' => AuthenticateStaffSession::class,
             'staff.role' => RequireStaffRole::class,
+            'asr.available' => EnsureAsrAvailable::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

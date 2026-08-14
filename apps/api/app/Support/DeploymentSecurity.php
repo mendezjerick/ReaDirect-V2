@@ -35,15 +35,20 @@ final class DeploymentSecurity
         $asrToken = trim((string) config('speech.asr_token'));
         $ttsToken = trim((string) config('speech.tts_token'));
 
-        if (strlen($asrToken) < 32) {
+        $asrAvailable = (bool) config('pilot.asr_available', true);
+        $runtimeTtsAvailable = (bool) config('pilot.runtime_tts_available', true);
+
+        if ($asrAvailable && strlen($asrToken) < 32) {
             throw new LogicException('ASR_SERVICE_TOKEN must contain at least 32 characters in production.');
         }
 
-        if (strlen($ttsToken) < 32) {
+        if ($runtimeTtsAvailable && strlen($ttsToken) < 32) {
             throw new LogicException('TTS_SERVICE_TOKEN must contain at least 32 characters in production.');
         }
 
-        if (hash_equals($asrToken, $ttsToken)) {
+        if ($asrAvailable
+            && $runtimeTtsAvailable
+            && hash_equals($asrToken, $ttsToken)) {
             throw new LogicException('ASR_SERVICE_TOKEN and TTS_SERVICE_TOKEN must use distinct values in production.');
         }
 

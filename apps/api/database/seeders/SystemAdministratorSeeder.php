@@ -11,11 +11,11 @@ final class SystemAdministratorSeeder extends Seeder
 {
     public function run(): void
     {
-        $username = env('DEV_SYSTEM_ADMIN_USERNAME');
-        $password = env('DEV_SYSTEM_ADMIN_PASSWORD');
+        $username = config('pilot.system_admin_username');
+        $password = config('pilot.system_admin_password');
 
         if (! is_string($username) || $username === '' || ! is_string($password) || $password === '') {
-            throw new RuntimeException('Development System Administrator credentials are not configured.');
+            throw new RuntimeException('System Administrator credentials are not configured.');
         }
 
         $staffUser = StaffUser::query()->updateOrCreate(

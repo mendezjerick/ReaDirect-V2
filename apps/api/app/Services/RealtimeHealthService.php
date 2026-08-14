@@ -16,6 +16,14 @@ final class RealtimeHealthService
      */
     public function reverb(): array
     {
+        if (! config('pilot.realtime_available', true)) {
+            return [
+                'service' => 'Reverb',
+                'status' => 'not_configured',
+                'detail' => 'Realtime updates are disabled for the pilot deployment.',
+            ];
+        }
+
         if (config('broadcasting.default') !== 'reverb') {
             return [
                 'service' => 'Reverb',
@@ -73,6 +81,14 @@ final class RealtimeHealthService
      */
     public function queue(): array
     {
+        if (! config('pilot.realtime_available', true)) {
+            return [
+                'service' => 'Queue',
+                'status' => 'not_configured',
+                'detail' => 'The realtime broadcast queue is not needed in pilot mode.',
+            ];
+        }
+
         if (! is_array(config('queue.connections.database'))) {
             return [
                 'service' => 'Queue',

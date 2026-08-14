@@ -79,6 +79,13 @@ final class LearnerAssessmentAsr
      */
     private function send(UploadedFile $audio, string $endpoint, array $fields): array
     {
+        if (! config('pilot.asr_available', true)) {
+            throw new RuntimeException((string) config(
+                'pilot.asr_unavailable_message',
+                'ASR is unavailable during pilot testing.',
+            ));
+        }
+
         try {
             $response = Http::acceptJson()
                 ->withToken((string) config('speech.asr_token'))

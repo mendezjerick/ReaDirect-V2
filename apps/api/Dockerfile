@@ -7,6 +7,7 @@ RUN apt-get update \
         libonig-dev \
         libpq-dev \
         libzip-dev \
+        postgresql-client \
         unzip \
     && docker-php-ext-install \
         bcmath \
@@ -19,7 +20,7 @@ RUN apt-get update \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www/html
+WORKDIR /opt/readirect/apps/api
 
 COPY apps/api/composer.json apps/api/composer.lock ./
 RUN composer install \
@@ -30,6 +31,7 @@ RUN composer install \
     --no-scripts
 
 COPY apps/api ./
+COPY content /opt/readirect/content
 
 RUN mkdir -p \
         bootstrap/cache \
@@ -39,6 +41,7 @@ RUN mkdir -p \
         storage/framework/views \
         storage/logs \
     && chmod -R ug+rwX bootstrap/cache storage \
+    && chmod +x docker/pilot-entrypoint.sh \
     && composer dump-autoload --no-dev --classmap-authoritative \
     && php artisan package:discover --ansi
 
@@ -48,4 +51,4 @@ ENV APP_ENV=production \
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
+CMD ["./docker/pilot-entrypoint.sh"]

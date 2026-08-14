@@ -45,6 +45,12 @@ final class PublishedTtsCatalogDefinitions
             }
         }
 
+        foreach ((array) config('pilot.published_speech_excluded_keys', []) as $speechKey) {
+            if (is_string($speechKey)) {
+                unset($definitions[$speechKey]);
+            }
+        }
+
         return $definitions;
     }
 }

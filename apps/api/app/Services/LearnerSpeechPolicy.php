@@ -14,7 +14,8 @@ final class LearnerSpeechPolicy
 
     public function isPublishedOnly(): bool
     {
-        return $this->lightweightSettings->learnerContract()['speech_mode']
+        return ! config('pilot.runtime_tts_available', true)
+            || $this->lightweightSettings->learnerContract()['speech_mode']
             === 'published_only';
     }
 

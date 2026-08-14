@@ -10,6 +10,7 @@
     "dev": "vite",
     "prebuild": "corepack pnpm live2d:build-framework",
     "build": "tsc -b && vite build",
+    "build:pilot": "tsc -b && vite build --mode pilot",
     "mobile:sync": "corepack pnpm build && corepack pnpm exec cap sync android",
     "mobile:copy": "corepack pnpm build && corepack pnpm exec cap copy android",
     "mobile:open": "corepack pnpm exec cap open android",
