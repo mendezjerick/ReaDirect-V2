@@ -20,6 +20,7 @@ PGPASSWORD="${DB_PASSWORD:?DB_PASSWORD is required}" psql \
     --command="CREATE SCHEMA IF NOT EXISTS \"$database_schema\""
 
 echo "Preparing ReaDirect pilot database..."
+php artisan package:discover --ansi
 php artisan migrate --force
 php artisan db:seed --class='Database\Seeders\PilotDeploymentSeeder' --force
 php artisan config:cache

@@ -42,8 +42,7 @@ RUN mkdir -p \
         storage/logs \
     && chmod -R ug+rwX bootstrap/cache storage \
     && chmod +x docker/pilot-entrypoint.sh \
-    && composer dump-autoload --no-dev --classmap-authoritative \
-    && php artisan package:discover --ansi
+    && composer dump-autoload --no-dev --classmap-authoritative
 
 ENV APP_ENV=production \
     APP_DEBUG=false \
