@@ -9,6 +9,7 @@ use App\Services\LearnerSpeechPolicy;
 use App\Services\PublishedTtsCatalogDefinitions;
 use App\Support\DeploymentSecurity;
 use Illuminate\Http\Request;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
@@ -76,15 +77,7 @@ final class PilotDeploymentModeTest extends TestCase
 
     public function test_pilot_catalog_uses_the_complete_approved_300_line_contract(): void
     {
-        config()->set('pilot.published_speech_excluded_keys', [
-            'learn-with-clara-words-rescue-opening',
-            'learn-with-clara-words-find-bat',
-            'learn-with-clara-words-find-can',
-            'learn-with-clara-words-find-dot',
-            'learn-with-clara-words-find-gap',
-            'learn-with-clara-words-find-hot',
-            'learn-with-clara-words-rescue-finale',
-        ]);
+        $this->usePilotPublishedSpeechContract();
 
         $english = app(PublishedTtsCatalogDefinitions::class)->english();
         $filipino = app(FilipinoTtsCatalogSource::class)->publicationDefinitions();
@@ -95,5 +88,54 @@ final class PilotDeploymentModeTest extends TestCase
             'learn-with-clara-words-rescue-opening',
             $english,
         );
+    }
+
+    public function test_published_filipino_catalog_can_seed_without_generation_reference_audio(): void
+    {
+        $this->usePilotPublishedSpeechContract();
+
+        $referencePath = tempnam(sys_get_temp_dir(), 'pilot-fil-references-');
+        $this->assertIsString($referencePath);
+        file_put_contents($referencePath, implode("\n", [
+            'reference_role,reference_path,review_status,review_notes',
+            'introduce,assets/audio/missing.wav,approved,Pilot fixture.',
+            'instruction,assets/audio/missing.wav,approved,Pilot fixture.',
+            'question,assets/audio/missing.wav,approved,Pilot fixture.',
+            'result,assets/audio/missing.wav,approved,Pilot fixture.',
+        ]));
+
+        try {
+            $source = new FilipinoTtsCatalogSource(
+                app(PublishedTtsCatalogDefinitions::class),
+                referenceSourceOverride: $referencePath,
+            );
+
+            $this->assertCount(300, $source->publicationDefinitions(false));
+
+            try {
+                $source->publicationDefinitions();
+                $this->fail('Reference audio validation should remain enabled by default.');
+            } catch (RuntimeException $exception) {
+                $this->assertStringContainsString(
+                    'Filipino reference audio is missing',
+                    $exception->getMessage(),
+                );
+            }
+        } finally {
+            @unlink($referencePath);
+        }
+    }
+
+    private function usePilotPublishedSpeechContract(): void
+    {
+        config()->set('pilot.published_speech_excluded_keys', [
+            'learn-with-clara-words-rescue-opening',
+            'learn-with-clara-words-find-bat',
+            'learn-with-clara-words-find-can',
+            'learn-with-clara-words-find-dot',
+            'learn-with-clara-words-find-gap',
+            'learn-with-clara-words-find-hot',
+            'learn-with-clara-words-rescue-finale',
+        ]);
     }
 }

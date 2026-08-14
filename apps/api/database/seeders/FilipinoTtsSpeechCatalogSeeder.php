@@ -22,7 +22,9 @@ final class FilipinoTtsSpeechCatalogSeeder extends Seeder
     public function run(): void
     {
         $definitions = app(FilipinoTtsCatalogSource::class)
-            ->publicationDefinitions();
+            ->publicationDefinitions(
+                verifyReferenceAudio: ! config('pilot.enabled', false),
+            );
         if (count($definitions) !== self::EXPECTED_LINE_COUNT) {
             throw new RuntimeException(sprintf(
                 'Expected %d approved Filipino TTS lines, resolved %d.',

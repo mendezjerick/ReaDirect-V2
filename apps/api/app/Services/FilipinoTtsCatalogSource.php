@@ -130,7 +130,7 @@ final class FilipinoTtsCatalogSource
      *     review_notes: string
      * }>
      */
-    public function referenceProfiles(): array
+    public function referenceProfiles(bool $verifyAudio = true): array
     {
         $rows = $this->readCsv(
             $this->referenceSourcePath(),
@@ -153,7 +153,8 @@ final class FilipinoTtsCatalogSource
             }
             if (in_array($row['review_status'], ['candidate', 'approved'], true)) {
                 if ($row['reference_path'] === ''
-                    || ! $this->repositoryPath($row['reference_path'])->isFile()) {
+                    || ($verifyAudio
+                        && ! $this->repositoryPath($row['reference_path'])->isFile())) {
                     throw new RuntimeException("Filipino reference audio is missing: {$role}");
                 }
             } elseif ($row['reference_path'] !== '') {
@@ -182,10 +183,10 @@ final class FilipinoTtsCatalogSource
      *     blockers: list<string>
      * }
      */
-    public function audit(): array
+    public function audit(bool $verifyReferenceAudio = true): array
     {
         $lines = $this->lines();
-        $profiles = $this->referenceProfiles();
+        $profiles = $this->referenceProfiles($verifyReferenceAudio);
         $lineReviewCounts = array_fill_keys(self::REVIEW_STATUSES, 0);
         foreach ($lines as $line) {
             $lineReviewCounts[$line['review_status']]++;
@@ -234,9 +235,9 @@ final class FilipinoTtsCatalogSource
     }
 
     /** @return array<string, array{text: string, reference: string, path: string}> */
-    public function publicationDefinitions(): array
+    public function publicationDefinitions(bool $verifyReferenceAudio = true): array
     {
-        $audit = $this->audit();
+        $audit = $this->audit($verifyReferenceAudio);
         if (! $audit['publication_ready']) {
             throw new RuntimeException(
                 'Filipino TTS publication is blocked: '.implode(' ', $audit['blockers']),
