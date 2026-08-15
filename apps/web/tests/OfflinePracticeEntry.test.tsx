@@ -28,6 +28,7 @@ function renderEntry(advanceStartup = true) {
     <MemoryRouter initialEntries={["/"]}>
       <Routes>
         <Route path="/" element={<NativeLearnerEntryPage />} />
+        <Route path="/home" element={<p>Online landing</p>} />
         <Route path="/learner/offline" element={<p>Offline home</p>} />
         <Route path="/learner/login" element={<p>Online sign in</p>} />
       </Routes>
@@ -53,6 +54,7 @@ beforeEach(() => {
 afterEach(() => {
   connectivityMock.mockReset();
   loadSessionMock.mockReset().mockReturnValue(null);
+  vi.unstubAllGlobals();
   vi.runOnlyPendingTimers();
   vi.useRealTimers();
 });
@@ -64,11 +66,11 @@ describe("Native learner entry", () => {
     expect(
       screen.getByRole("status", { name: "Loading ReaDirect" }),
     ).toBeVisible();
-    expect(screen.getByRole("img", { name: "Ma'am Clara" })).toBeVisible();
+    expect(screen.getByRole("img", { name: "ReaDirect" })).toBeVisible();
     expect(
       document.querySelector<HTMLImageElement>(".native-startup-splash__icon")
         ?.src,
-    ).toContain("/assets/icons/missclara1.png");
+    ).toContain("/assets/icons/icon.png");
     expect(
       document.querySelector<HTMLImageElement>(
         ".native-startup-splash__background",
@@ -119,7 +121,7 @@ describe("Native learner entry", () => {
     expect(screen.getByText("Offline home")).toBeVisible();
   });
 
-  it("does not send a session into online learning when the API is unavailable", () => {
+  it("does not send a session into online learning when the API is unavailable", async () => {
     loadSessionMock.mockReturnValue({ token: "cached-token" });
     connectivityMock.mockReturnValue({
       device: "online",
@@ -128,10 +130,14 @@ describe("Native learner entry", () => {
       lastCheckedAt: null,
       refresh: vi.fn(),
     });
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
 
     renderEntry();
     completeTapToContinue();
-    fireEvent.click(screen.getByRole("button", { name: "Online Learning" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Online Learning" }));
+      await Promise.resolve();
+    });
 
     expect(screen.queryByText("Online sign in")).toBeNull();
     expect(screen.getByText("No Internet Connection")).toBeVisible();
@@ -140,7 +146,7 @@ describe("Native learner entry", () => {
     ).toHaveLength(1);
   });
 
-  it("sends an expired online session to sign-in when the API is reachable", () => {
+  it("opens the existing online landing page when the API is reachable", () => {
     loadSessionMock.mockReturnValue({ token: "expired-token" });
     connectivityMock.mockReturnValue({
       device: "online",
@@ -154,7 +160,7 @@ describe("Native learner entry", () => {
     completeTapToContinue();
     fireEvent.click(screen.getByRole("button", { name: "Online Learning" }));
 
-    expect(screen.getByText("Online sign in")).toBeVisible();
+    expect(screen.getByText("Online landing")).toBeVisible();
   });
 
   it("does not require connectivity before revealing the mode choices", () => {

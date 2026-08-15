@@ -64,7 +64,7 @@ export function TutorialOverlay({
   const narratorStyle = placeAtSide && placementBoundary && sidePlacement
     ? sideNarratorStyle(placementBoundary, sidePlacement)
     : undefined;
-  const readingStep = ["reading", "readAgain", "choice", "answerLater"].includes(state.step);
+  const readingStep = ["reading", "choice", "answerLater"].includes(state.step);
 
   return (
     <div className="tutorial-layer" aria-label={copy.guidedTutorial}>
@@ -197,7 +197,8 @@ function getSidePlacement(target: DOMRect | null): "left" | "right" | null {
   if (
     !target ||
     window.innerWidth <= window.innerHeight ||
-    window.innerWidth < 760
+    window.innerWidth < 760 ||
+    window.innerHeight < 430
   ) return null;
   const leftSpace = target.left - 12;
   const rightSpace = window.innerWidth - target.right - 12;

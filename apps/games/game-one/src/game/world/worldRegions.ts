@@ -15,7 +15,7 @@ export const WORLD_REGIONS: readonly WorldRegion[] = [
   region("river", "River", "Ilog", 1, 6, 54, 28, true),
   region("forest", "Forest", "Kagubatan", 0, 0, 62, 7, true),
   region("farm", "Farm Woodland", "Gubat sa Bukid", 33, 23, 16, 10, true),
-  region("village", "Village", "Nayon", 0, 12, 62, 28, true),
+  region("village", "Village", "Nayon", 0, 12, 62, 54, true),
   region("jungle", "Jungle", "Gubat", 0, 0, 0, 0, false),
   region("waterfall", "Waterfall Clearing", "Lunan ng Talon", 0, 0, 0, 0, false)
 ];

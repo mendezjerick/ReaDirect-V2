@@ -74,6 +74,13 @@ export function NavigationHud({
   return (
     <>
       <aside className={`navigation-hud ${collapsed ? "is-collapsed" : ""}`} aria-label={missionState.language === "fil" ? "Gabay sa misyon at mapa" : "Mission navigation and map"}>
+        <button type="button" className="minimap-shell" data-tutorial="minimap" onClick={onOpenMap} aria-label={copy.openMap}>
+          <span className="minimap-north" aria-label={missionState.language === "fil" ? "Hilaga" : "North"}>N</span>
+          <MiniMap missionState={missionState} player={player} targetId={target?.id ?? null} showLabels={false} showPath={showPath} discoveredFishingSpotIds={discoveredFishingSpotIds} />
+        </button>
+        <button type="button" className="minimap-location" onClick={onOpenMap}>
+          {getWorldRegionLabel(currentRegionId, missionState.language)}
+        </button>
         <section className="mission-objective navigation-mission-panel" data-tutorial="mission-panel" aria-label={copy.currentObjective}>
           <div className="navigation-mission-copy">
             <p className="navigation-mission-progress">{copy.mission} {missionState.missionIndex + 1} {copy.of} {MISSIONS.length}</p>
@@ -111,26 +118,30 @@ export function NavigationHud({
             </div>
           )}
         </section>
-
-        <button type="button" className="minimap-shell" data-tutorial="minimap" onClick={onOpenMap} aria-label={copy.openMap}>
-          <span className="minimap-title"><strong>{copy.map}<small>{getWorldRegionLabel(currentRegionId, missionState.language)}</small></strong><span aria-label={missionState.language === "fil" ? "Hilaga" : "North"}>N</span></span>
-          <MiniMap missionState={missionState} player={player} targetId={target?.id ?? null} showLabels={false} showPath={showPath} discoveredFishingSpotIds={discoveredFishingSpotIds} />
-          <span className="minimap-open-label">{copy.openMap}</span>
-        </button>
       </aside>
 
       {mapOpen && (
         <div className="map-overlay">
           <section role="dialog" aria-modal="true" aria-labelledby="expanded-map-title" className="expanded-map-panel">
-            <header>
-              <div><p className="story-eyebrow">{missionState.language === "fil" ? "Narito ka" : "You are here"}</p><h2 id="expanded-map-title">{missionState.language === "fil" ? "Mapa ng Nayon" : "Village Map"}</h2></div>
-              <button type="button" onClick={onCloseMap} autoFocus aria-label={copy.closeMap}>X</button>
+            <header className="expanded-map-header">
+              <div className="expanded-map-heading">
+                <span className="expanded-map-heading__compass" aria-hidden="true">N</span>
+                <div><p className="story-eyebrow">{missionState.language === "fil" ? "Narito ka" : "You are here"}</p><h2 id="expanded-map-title">{missionState.language === "fil" ? "Mapa ng Nayon" : "Village Map"}</h2></div>
+              </div>
+              <button type="button" onClick={onCloseMap} autoFocus aria-label={copy.closeMap}><span aria-hidden="true">X</span></button>
             </header>
-            <p className="expanded-map-objective">{objective.label}</p>
-            <WorldMap missionState={missionState} player={player} targetId={target?.id ?? null} showPath={showPath} discoveredFishingSpotIds={discoveredFishingSpotIds} />
+            <div className="expanded-map-objective">
+              <span className="expanded-map-objective__marker" aria-hidden="true">!</span>
+              <div><span>{missionState.language === "fil" ? "Kasalukuyang misyon" : "Current mission"}</span><strong>{objective.label}</strong></div>
+            </div>
+            <div className="expanded-map-orb">
+              <WorldMap missionState={missionState} player={player} targetId={target?.id ?? null} showPath={showPath} discoveredFishingSpotIds={discoveredFishingSpotIds} />
+            </div>
             {target && (
               <button type="button" onClick={() => setTargetSelected(true)} className={`expanded-map-target ${targetSelected ? "is-selected" : ""}`}>
-                <span>{missionState.language === "fil" ? "Kasalukuyang pupuntahan" : "Active destination"}</span><strong>{target.displayName}</strong>
+                <span className="expanded-map-target__pin" aria-hidden="true">!</span>
+                <span><small>{missionState.language === "fil" ? "Kasalukuyang pupuntahan" : "Active destination"}</small><strong>{target.displayName}</strong></span>
+                <span className="expanded-map-target__action">{targetSelected ? (missionState.language === "fil" ? "Napili" : "Selected") : (missionState.language === "fil" ? "Tingnan" : "View")}</span>
               </button>
             )}
             {targetSelected && <p className="expanded-map-target-objective" role="status">{objective.label}</p>}
@@ -192,20 +203,32 @@ function MiniMap({
 
 function WorldMap({ missionState, player, targetId, showPath, discoveredFishingSpotIds }: { missionState: MissionState; player: PlayerNavigationState; targetId: string | null; showPath: boolean; discoveredFishingSpotIds: readonly FishingSpotId[] }) {
   const filipino = missionState.language === "fil";
+  const clipId = useId().replace(/:/g, "");
   const target = targetId ? getNpc(targetId as NpcId) : null;
   const unlocked = uniqueUnlockedNpcs(missionState.missionIndex);
   const routePoints = target ? [player.position, ...getSafeGuidePoints(player.position, target.interactionPosition)] : [];
+  const mapSize = 1000;
+  const mapRadius = 470;
+  const worldScale = Math.min((mapRadius * 2) / WORLD.width, (mapRadius * 2) / WORLD.height);
+  const worldOffsetX = (mapSize - WORLD.width * worldScale) / 2;
+  const worldOffsetY = (mapSize - WORLD.height * worldScale) / 2;
   return (
-    <svg className="expanded-world-map" viewBox={`0 0 ${WORLD.width} ${WORLD.height}`} role="img" aria-label={filipino ? "Malaking mapa ng nayon" : "Expanded village map"}>
-      <rect width={WORLD.width} height={WORLD.height} className="minimap-grass" />
-      {TERRAIN_PATHS.map(({ kind, path }) => <path key={kind} d={path} className={`minimap-${kind}`} />)}
-      <path d={BLOCKED_PATH} className="minimap-blocked" />
-      {showPath && routePoints.length > 1 && <polyline points={routePoints.map((point) => `${point.x},${point.y}`).join(" ")} className="minimap-route" />}
-      {unlocked.map((npc) => <g key={npc.id}><circle cx={npc.position.x} cy={npc.position.y} r="12" className="minimap-location" /><text x={npc.position.x + 20} y={npc.position.y - 12}>{npc.displayName}</text></g>)}
-      {FISHING_SPOTS.filter((spot) => discoveredFishingSpotIds.includes(spot.id)).map((spot) => <g key={spot.id}><rect x={spot.markerPosition.x - 10} y={spot.markerPosition.y - 10} width="20" height="20" className="minimap-fishing-spot" /><text x={spot.markerPosition.x + 18} y={spot.markerPosition.y + 8}>{spot.labels[missionState.language]}</text></g>)}
-      {target && <path d="M 0 -18 L 18 0 L 0 18 L -18 0 Z" transform={`translate(${target.position.x} ${target.position.y})`} className="minimap-target" />}
-      <path d="M 0 -18 L 14 15 L 0 9 L -14 15 Z" transform={`translate(${player.position.x} ${player.position.y}) rotate(${facingAngle(player.facing) + 90})`} className="minimap-player" />
-      <text x={player.position.x + 22} y={player.position.y + 8}>{filipino ? "Narito ka" : "You are here"}</text>
+    <svg className="expanded-world-map" viewBox={`0 0 ${mapSize} ${mapSize}`} role="img" aria-label={filipino ? "Buong mapa ng nayon" : "Full village map"}>
+      <defs><clipPath id={clipId}><circle cx={mapSize / 2} cy={mapSize / 2} r={mapRadius} /></clipPath></defs>
+      <g clipPath={`url(#${clipId})`}>
+        <g transform={`translate(${worldOffsetX} ${worldOffsetY}) scale(${worldScale})`}>
+          <rect width={WORLD.width} height={WORLD.height} className="minimap-grass" />
+          {TERRAIN_PATHS.map(({ kind, path }) => <path key={kind} d={path} className={`minimap-${kind}`} />)}
+          <path d={BLOCKED_PATH} className="minimap-blocked" />
+          {showPath && routePoints.length > 1 && <polyline points={routePoints.map((point) => `${point.x},${point.y}`).join(" ")} className="minimap-route" />}
+          {unlocked.map((npc) => <g key={npc.id}><circle cx={npc.position.x} cy={npc.position.y} r="12" className="minimap-location" /><text x={npc.position.x + 20} y={npc.position.y - 12}>{npc.displayName}</text></g>)}
+          {FISHING_SPOTS.filter((spot) => discoveredFishingSpotIds.includes(spot.id)).map((spot) => <g key={spot.id}><rect x={spot.markerPosition.x - 10} y={spot.markerPosition.y - 10} width="20" height="20" className="minimap-fishing-spot" /><text x={spot.markerPosition.x + 18} y={spot.markerPosition.y + 8}>{spot.labels[missionState.language]}</text></g>)}
+          {target && <path d="M 0 -18 L 18 0 L 0 18 L -18 0 Z" transform={`translate(${target.position.x} ${target.position.y})`} className="minimap-target" />}
+          <path d="M 0 -18 L 14 15 L 0 9 L -14 15 Z" transform={`translate(${player.position.x} ${player.position.y}) rotate(${facingAngle(player.facing) + 90})`} className="minimap-player" />
+          <text x={player.position.x + 22} y={player.position.y + 8}>{filipino ? "Narito ka" : "You are here"}</text>
+        </g>
+      </g>
+      <circle cx={mapSize / 2} cy={mapSize / 2} r={mapRadius} className="expanded-world-map__border" />
     </svg>
   );
 }

@@ -542,6 +542,7 @@ ingress:
     Write-Section -Title 'Starting Cloudflare Tunnel'
     $tunnelArguments = @(
         'tunnel',
+        '--protocol', 'http2',
         '--config', "`"$runtimeCloudflareConfigPath`"",
         'run'
     )

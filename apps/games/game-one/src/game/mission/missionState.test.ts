@@ -37,14 +37,12 @@ describe("connected mission journey state", () => {
 
   it("requires the briefing, reading, and practical decision before questions", () => {
     let state = initialState();
-    expect(missionReducer(state, { type: "BEGIN_MISSION_ACTION" })).toBe(state);
     state = missionReducer(state, { type: "TALK_TO_NPC", npcId: "miss-estelle" });
     state = missionReducer(state, { type: "SKIP_DIALOGUE" });
     expect(state.stage).toBe("readingIntro");
     state = missionReducer(state, { type: "START_READING" });
     state = finishReadingPages(state);
     state = missionReducer(state, { type: "FINISH_STORY" });
-    state = missionReducer(state, { type: "BEGIN_MISSION_ACTION" });
     expect(state.stage).toBe("missionAction");
     expect(missionReducer(state, { type: "CONTINUE_AFTER_ACTION" })).toBe(state);
 
@@ -111,15 +109,13 @@ describe("connected mission journey state", () => {
     expect(state.rejectedActionChoiceIds).toEqual([wrong[0].id, wrong[1].id]);
   });
 
-  it("preserves question order, attempts, and progress when reading again", () => {
+  it("preserves question order, attempts, and progress after an incorrect answer", () => {
     let state = questionState();
     const round = state.round;
     const question = round.questions[0];
     const wrong = question.choices.find(({ id }) => id !== question.correctChoiceId)!;
     state = missionReducer(state, { type: "SELECT_ANSWER", choiceId: wrong.id });
     state = missionReducer(state, { type: "SUBMIT_ANSWER", choiceId: wrong.id });
-    state = missionReducer(state, { type: "OPEN_STORY_REVIEW" });
-    state = missionReducer(state, { type: "CLOSE_STORY_REVIEW" });
     expect(state.stage).toBe("questionFeedback");
     expect(state.round).toBe(round);
     expect(state.rejectedChoiceIds).toEqual([wrong.id]);
@@ -162,15 +158,6 @@ describe("connected mission journey state", () => {
     expect(getReadingHearts(state)).toBe(2);
   });
 
-  it("does not remove a heart when reading again", () => {
-    let state = questionState();
-    const hearts = getReadingHearts(state);
-    state = missionReducer(state, { type: "OPEN_STORY_REVIEW" });
-    state = missionReducer(state, { type: "CLOSE_STORY_REVIEW" });
-    expect(getReadingHearts(state)).toBe(hearts);
-    expect(state.passageRereadCount).toBe(1);
-  });
-
   it("opens supportive recovery at zero hearts and restarts only the current comprehension", () => {
     let state = questionState();
     const question = state.round.questions[0];
@@ -187,9 +174,8 @@ describe("connected mission journey state", () => {
       completedMissionIds: ["plaza-welcome"],
       savedQuestionIds: [state.round.questions[1].id]
     };
-    state = missionReducer(state, { type: "READ_AND_RESTART" });
-    expect(state.stage).toBe("storyReview");
-    expect(state.reviewReturnStage).toBe("questionIntro");
+    state = missionReducer(state, { type: "RESTART_COMPREHENSION" });
+    expect(state.stage).toBe("questionIntro");
     expect(getReadingHearts(state)).toBe(3);
     expect(state.currentQuestionIndex).toBe(0);
     expect(state.comprehensionRestartCount).toBe(1);
@@ -303,8 +289,7 @@ function actionState() {
   state = missionReducer(state, { type: "SKIP_DIALOGUE" });
   state = missionReducer(state, { type: "START_READING" });
   state = finishReadingPages(state);
-  state = missionReducer(state, { type: "FINISH_STORY" });
-  return missionReducer(state, { type: "BEGIN_MISSION_ACTION" });
+  return missionReducer(state, { type: "FINISH_STORY" });
 }
 
 function questionState() {
@@ -323,7 +308,6 @@ function completeCurrentMission(start: MissionState) {
   state = missionReducer(state, { type: "START_READING" });
   state = finishReadingPages(state);
   state = missionReducer(state, { type: "FINISH_STORY" });
-  state = missionReducer(state, { type: "BEGIN_MISSION_ACTION" });
   state = missionReducer(state, {
     type: "SUBMIT_MISSION_ACTION",
     choiceId: getMission(state.missionId).action.correctChoiceId

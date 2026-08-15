@@ -1,10 +1,33 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
-import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { RouteTransitionContext } from "../../components/transitions/routeTransitionContext";
 import { ThemeSelector } from "../theme/ThemeSelector";
 import { AboutReaDirectDialog } from "./AboutReaDirectDialog";
+import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import {
+  learnerSessionChangedEvent,
+  loadLearnerSession,
+} from "../learner-auth/learnerApi";
+import {
+  loadStaffSession,
+  staffSessionChangedEvent,
+  type StaffSession,
+} from "../staff-auth/staffApi";
+import { staffHomeRoute } from "../staff-auth/staffRoutes";
+
+type LandingIdentity =
+  { kind: "learner" } | { kind: "staff"; session: StaffSession } | null;
+
+function readLandingIdentity(): LandingIdentity {
+  const staff = loadStaffSession();
+  if (staff) {
+    return { kind: "staff", session: staff };
+  }
+
+  return loadLearnerSession() ? { kind: "learner" } : null;
+}
 
 function BookIcon() {
   return (
@@ -22,17 +45,63 @@ function BookIcon() {
 
 export function HomePage() {
   const navigate = useNavigate();
+  const routeTransition = useContext(RouteTransitionContext);
   const learnerLoginCommit = useButtonCommit();
   const staffLoginCommit = useButtonCommit();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [identity, setIdentity] =
+    useState<LandingIdentity>(readLandingIdentity);
 
-  const openLearnerLogin = () => {
-    learnerLoginCommit.commit(() => navigate("/learner/login"));
+  useEffect(() => {
+    const synchronizeIdentity = () => setIdentity(readLandingIdentity());
+    window.addEventListener(learnerSessionChangedEvent, synchronizeIdentity);
+    window.addEventListener(staffSessionChangedEvent, synchronizeIdentity);
+    return () => {
+      window.removeEventListener(
+        learnerSessionChangedEvent,
+        synchronizeIdentity,
+      );
+      window.removeEventListener(staffSessionChangedEvent, synchronizeIdentity);
+    };
+  }, []);
+
+  const destination =
+    identity?.kind === "learner"
+      ? "/learner/dashboard"
+      : identity?.kind === "staff"
+        ? staffHomeRoute(identity.session)
+        : "/learner/login";
+  const primaryLabel =
+    identity?.kind === "learner"
+      ? "Let’s Keep Reading!"
+      : identity?.kind === "staff"
+        ? identity.session.staff.role === "system_admin"
+          ? "Admin Dashboard"
+          : "Staff Dashboard"
+        : "Let's Read!";
+  const secondaryLabel = identity ? "Switch account" : "Staff login";
+
+  const openPrimaryAction = () => {
+    if (routeTransition) {
+      routeTransition.beginRouteTransition(destination);
+      return;
+    }
+
+    learnerLoginCommit.commit(() => navigate(destination));
   };
 
   const openStaffLogin = () => {
+    if (routeTransition) {
+      routeTransition.beginRouteTransition("/staff/login");
+      return;
+    }
+
     staffLoginCommit.commit(() => navigate("/staff/login"));
   };
+
+  const isTransitioning =
+    routeTransition?.isTransitioning ??
+    (learnerLoginCommit.committing || staffLoginCommit.committing);
 
   return (
     <main
@@ -48,20 +117,24 @@ export function HomePage() {
         <BigButton
           className="home-page__read-button"
           leadingIcon={<BookIcon />}
-          committing={learnerLoginCommit.committing}
-          onClick={openLearnerLogin}
+          committing={
+            routeTransition ? isTransitioning : learnerLoginCommit.committing
+          }
+          onClick={openPrimaryAction}
         >
-          Let&apos;s Read!
+          {primaryLabel}
         </BigButton>
 
         <BigButton
           className="home-page__staff-button"
           variant="secondary"
           size="regular"
-          committing={staffLoginCommit.committing}
+          committing={
+            routeTransition ? isTransitioning : staffLoginCommit.committing
+          }
           onClick={openStaffLogin}
         >
-          Staff login
+          {secondaryLabel}
         </BigButton>
       </section>
 

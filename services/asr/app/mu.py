@@ -334,6 +334,15 @@ class MuTranscriber:
                 raise
 
     def _local_source(self) -> Path | None:
+        # A local launcher may point directly at a downloaded faster-whisper
+        # directory (for example, the lightweight base.en cache). Supporting
+        # that layout keeps the laptop runtime independent from the heavier
+        # production model artifact directory.
+        if (self.artifact_path / "config.json").exists() and (
+            self.artifact_path / "model.bin"
+        ).exists():
+            return self.artifact_path
+
         direct = self.artifact_path / "model"
         if (direct / "config.json").exists() and (direct / "model.bin").exists():
             return direct

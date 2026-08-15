@@ -116,36 +116,6 @@ export function createInitialShopTaskState(): ShopTaskState {
   };
 }
 
-export function restoreShopTaskState(value: unknown): ShopTaskState {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return createInitialShopTaskState();
-  }
-
-  const stored = value as Partial<ShopTaskState>;
-  const validStages: readonly ShopTaskStage[] = [
-    "not-started",
-    "searching",
-    "paper-found",
-    "completed"
-  ];
-  const validIds = new Set<ShopInteractionId>(
-    SHOP_INTERACTION_TARGETS.map((target) => target.id)
-  );
-  if (!validStages.includes(stored.stage as ShopTaskStage)) {
-    return createInitialShopTaskState();
-  }
-
-  return {
-    stage: stored.stage as ShopTaskStage,
-    hintUsed: stored.hintUsed === true,
-    inspectedIds: Array.isArray(stored.inspectedIds)
-      ? [...new Set(stored.inspectedIds.filter(
-          (id): id is ShopInteractionId => typeof id === "string" && validIds.has(id as ShopInteractionId)
-        ))]
-      : []
-  };
-}
-
 export function getShopTaskObjective(state: ShopTaskState, language: GameLanguage) {
   return {
     label: copy[language].objectiveLabel,

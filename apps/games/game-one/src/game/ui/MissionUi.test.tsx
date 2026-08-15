@@ -18,8 +18,7 @@ import {
   QuestionIntroOverlay,
   ReadingIntroOverlay,
   RemainingQuestionsOverlay,
-  StoryPresentationOverlay,
-  StoryReviewOverlay
+  StoryPresentationOverlay
 } from "./MissionUi";
 
 describe("connected mission React UI", () => {
@@ -32,6 +31,8 @@ describe("connected mission React UI", () => {
     const state = missionReducer(initialState(), { type: "START_ACTIVITY" });
     render(<DialogueOverlay state={state} dispatch={dispatch} />);
     expect(screen.getByRole("dialog", { name: /Miss Estelle dialogue/i })).toBeVisible();
+    expect(screen.getByTestId("dialogue-portrait-miss-estelle")).toBeVisible();
+    expect(screen.getByText("Miss Estelle")).toBeVisible();
     expect(screen.getByText(/village will read together/i)).toBeVisible();
     await user.click(screen.getByRole("button", { name: /Skip dialogue with Miss Estelle/i }));
     expect(dispatch).toHaveBeenCalledWith({ type: "SKIP_DIALOGUE" });
@@ -99,14 +100,14 @@ describe("connected mission React UI", () => {
     expect(screen.getByRole("img", { name: /3 hearts remaining/i })).toBeVisible();
   });
 
-  it("offers the supportive full restart flow at zero hearts", async () => {
+  it("offers a supportive question restart at zero hearts", async () => {
     const user = userEvent.setup();
     const dispatch = vi.fn();
     render(<HeartRecoveryOverlay state={{ ...questionState(), stage: "heartRecovery", readingHeartsRemaining: 0 }} dispatch={dispatch} />);
     expect(screen.getByRole("dialog", { name: /start this challenge again/i })).toBeVisible();
-    expect(screen.getByText(/Read the story, then try once more/i)).toBeVisible();
-    await user.click(screen.getByRole("button", { name: /Read and Restart/i }));
-    expect(dispatch).toHaveBeenCalledWith({ type: "READ_AND_RESTART" });
+    expect(screen.getByText(/hearts are back.*questions again/i)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: /Try Another Clue/i }));
+    expect(dispatch).toHaveBeenCalledWith({ type: "RESTART_COMPREHENSION" });
   });
 
   it("confirms Answer Later before saving the question", async () => {
@@ -136,12 +137,12 @@ describe("connected mission React UI", () => {
     expect(dispatch).toHaveBeenCalledWith({ type: "START_QUESTIONS" });
   });
 
-  it("requires a four-choice mission decision and supports reading again", () => {
+  it("requires a four-choice mission decision without reopening the story", () => {
     const state = actionState();
     render(<MissionActionOverlay state={state} dispatch={vi.fn()} />);
     expect(screen.getByRole("dialog", { name: /Use what you read/i })).toBeVisible();
     expect(screen.getAllByRole("button", { name: /^[A-D]\./i })).toHaveLength(4);
-    expect(screen.getByRole("button", { name: /Read Again/i })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Read Again/i })).not.toBeInTheDocument();
   });
 
   it("shows contextual, progressively stronger incorrect feedback", () => {
@@ -190,15 +191,6 @@ describe("connected mission React UI", () => {
     expect(dispatch).toHaveBeenCalledWith({ type: "CONTINUE_LATER" });
   });
 
-  it("returns from reading review without replacing activity state", async () => {
-    const user = userEvent.setup();
-    const dispatch = vi.fn();
-    const state: MissionState = { ...questionState(), stage: "storyReview", reviewReturnStage: "questionRound" };
-    render(<StoryReviewOverlay state={state} dispatch={dispatch} />);
-    await user.click(screen.getByRole("button", { name: /Back to Activity/i }));
-    expect(dispatch).toHaveBeenCalledWith({ type: "CLOSE_STORY_REVIEW" });
-  });
-
   it("shows a world result and reward before the next mission", () => {
     const state: MissionState = {
       ...questionState(),
@@ -221,7 +213,7 @@ describe("connected mission React UI", () => {
     render(<CompletionOverlay state={state} onReplay={vi.fn()} onDashboard={vi.fn()} />);
     expect(screen.getByRole("dialog", { name: /Reading Journey Is Open/i })).toHaveTextContent(/central plaza.*market.*old bridge.*forest route/i);
     expect(screen.getByRole("button", { name: /Replay Journey/i })).toBeVisible();
-    expect(screen.getByRole("button", { name: /Return to Lobby/i })).toBeVisible();
+    expect(screen.getByRole("button", { name: /Return to Dashboard/i })).toBeVisible();
     expect(screen.queryByText(/score|grade|ranking|diagnostic/i)).not.toBeInTheDocument();
   });
 

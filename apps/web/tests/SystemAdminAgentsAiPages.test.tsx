@@ -47,6 +47,7 @@ const overviewResponse = {
 describe("System Admin Agents and AI workspaces", () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    document.cookie = "readirect_staff_signed_in=; Max-Age=0; Path=/";
     vi.unstubAllGlobals();
   });
 
@@ -61,7 +62,7 @@ describe("System Admin Agents and AI workspaces", () => {
     window.sessionStorage.setItem(
       "readirect.staff-session",
       JSON.stringify({
-        token: "a".repeat(64),
+        token: "cookie-session",
         staff: {
           id: 1,
           username: "system-admin",

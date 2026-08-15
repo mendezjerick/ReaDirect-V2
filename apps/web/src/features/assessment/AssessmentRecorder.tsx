@@ -103,10 +103,14 @@ export function AssessmentRecorder({
             className="assessment-recorder__retry"
             onClick={recorder.retry}
           >
-            Retry?
+            Retry
           </button>
-        ) : submitAvailableAfterCapture && recorder.audio && !recorder.hasPlayed ? (
-          <span className="assessment-recorder__capture-note">Ready to submit</span>
+        ) : submitAvailableAfterCapture &&
+          recorder.audio &&
+          !recorder.hasPlayed ? (
+          <span className="assessment-recorder__capture-note">
+            Ready to submit
+          </span>
         ) : null}
       </div>
       <p className="assessment-recorder__error" role="alert" aria-live="polite">

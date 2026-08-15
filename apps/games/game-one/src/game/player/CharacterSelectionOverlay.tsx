@@ -80,7 +80,7 @@ export function CharacterSelectionOverlay({
                   <span className="character-option__name">{character.name[language]}</span>
                 </span>
                 <span className="character-option__choice" aria-hidden="true">
-                  <span className="character-option__radio">{selected ? "?" : ""}</span>
+                  <span className="character-option__radio">{selected ? "✓" : ""}</span>
                   <span>{selected ? copy.selected : copy.choose}</span>
                 </span>
               </button>

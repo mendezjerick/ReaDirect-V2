@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import { apiFetch as fetch } from "../../lib/apiUrl";
+import {
+  apiFetch as fetch,
+  apiFetchWithTimeout as fetchWithTimeout,
+} from "../../lib/apiUrl";
 import { audioFilename } from "../../lib/audioFile";
 
 const teachingStateSchema = z.enum([
@@ -431,7 +434,7 @@ export async function submitLessonItem(
   body.append("item_key", itemKey);
   body.append("audio", audio, audioFilename(itemKey, audio));
   return parse(
-    await fetch(`/api/learners/lessons/lesson-1/${runId}/submit`, {
+    await fetchWithTimeout(`/api/learners/lessons/lesson-1/${runId}/submit`, {
       method: "POST",
       headers: headers(token),
       body,
@@ -519,7 +522,7 @@ export async function submitLessonTwoItem(
   body.append("item_key", itemKey);
   body.append("audio", audio, audioFilename(itemKey, audio));
   return parseLessonTwo(
-    await fetch(`/api/learners/lessons/lesson-2/${runId}/submit`, {
+    await fetchWithTimeout(`/api/learners/lessons/lesson-2/${runId}/submit`, {
       method: "POST",
       headers: headers(token),
       body,
@@ -606,7 +609,7 @@ export async function submitLessonThreeItem(
   body.append("item_key", itemKey);
   body.append("audio", audio, audioFilename(itemKey, audio));
   return parseLessonThree(
-    await fetch(`/api/learners/lessons/lesson-3/${runId}/submit`, {
+    await fetchWithTimeout(`/api/learners/lessons/lesson-3/${runId}/submit`, {
       method: "POST",
       headers: headers(token),
       body,
@@ -678,7 +681,7 @@ export async function submitLessonFourItem(
   body.append("item_key", itemKey);
   body.append("audio", audio, audioFilename(itemKey, audio));
   return parseLessonFour(
-    await fetch(`/api/learners/lessons/lesson-4/${runId}/submit`, {
+    await fetchWithTimeout(`/api/learners/lessons/lesson-4/${runId}/submit`, {
       method: "POST",
       headers: headers(token),
       body,
@@ -750,7 +753,7 @@ export async function submitLessonFiveItem(
   body.append("item_key", itemKey);
   body.append("audio", audio, audioFilename(itemKey, audio));
   return parseLessonFive(
-    await fetch(`/api/learners/lessons/lesson-5/${runId}/submit`, {
+    await fetchWithTimeout(`/api/learners/lessons/lesson-5/${runId}/submit`, {
       method: "POST",
       headers: headers(token),
       body,

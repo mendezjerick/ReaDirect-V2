@@ -5,11 +5,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { stopAllClaraSpeech } from "../features/clara-audio/claraSpeech";
 import {
+  clearPagePortalOrigin,
+  getPagePortalReturnPath,
+} from "./navigationContext";
+import {
   nativeBackDestination,
   notifyNativeBackButton,
   notifyNativePause,
   notifyNativeResume,
 } from "./nativeLifecycle";
+import { applyNativeOrientation } from "./nativeOrientation";
 
 export function NativeAppLifecycleProvider({ children }: PropsWithChildren) {
   const location = useLocation();
@@ -28,6 +33,10 @@ export function NativeAppLifecycleProvider({ children }: PropsWithChildren) {
   }, [navigate]);
 
   useEffect(() => {
+    void applyNativeOrientation(location.pathname).catch(() => undefined);
+  }, [location.pathname]);
+
+  useEffect(() => {
     if (!Capacitor.isNativePlatform()) {
       return;
     }
@@ -43,6 +52,9 @@ export function NativeAppLifecycleProvider({ children }: PropsWithChildren) {
         }),
         App.addListener("resume", () => {
           void notifyNativeResume();
+          void applyNativeOrientation(pathnameRef.current).catch(
+            () => undefined,
+          );
         }),
         App.addListener("backButton", async (event) => {
           if (await notifyNativeBackButton(event)) {
@@ -52,7 +64,16 @@ export function NativeAppLifecycleProvider({ children }: PropsWithChildren) {
           stopAllClaraSpeech();
 
           const pathname = pathnameRef.current;
-          const destination = nativeBackDestination(pathname, searchRef.current);
+          const pagePortalReturnPath = getPagePortalReturnPath();
+          if (pagePortalReturnPath && pathname.startsWith("/learner/")) {
+            clearPagePortalOrigin();
+            navigateRef.current(pagePortalReturnPath, { replace: true });
+            return;
+          }
+          const destination = nativeBackDestination(
+            pathname,
+            searchRef.current,
+          );
           if (destination) {
             navigateRef.current(destination, { replace: true });
             return;

@@ -141,7 +141,7 @@ const teachAState = paradeState({
 function renderPage() {
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify(learnerSession),
+    JSON.stringify({ ...learnerSession, token: "cookie-session" }),
   );
 
   return render(
@@ -191,7 +191,7 @@ describe("LearnWithClaraLettersPage", () => {
     ).toBeVisible();
     expect(speechMocks.prepare).not.toHaveBeenCalledWith(
       "learn-with-clara-letters-parade-opening",
-      "learner-token",
+      "cookie-session",
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Start Story" }));
@@ -221,7 +221,7 @@ describe("LearnWithClaraLettersPage", () => {
     await waitFor(
       () =>
         expect(apiMocks.advance).toHaveBeenCalledWith(
-          "learner-token",
+          "cookie-session",
           "find-a",
         ),
       { timeout: 1_500 },
@@ -276,7 +276,7 @@ describe("LearnWithClaraLettersPage", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Play Again" }));
 
     await waitFor(() =>
-      expect(apiMocks.restart).toHaveBeenCalledWith("learner-token"),
+      expect(apiMocks.restart).toHaveBeenCalledWith("cookie-session"),
     );
   });
 

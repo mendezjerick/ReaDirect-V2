@@ -46,7 +46,7 @@ export function IntroPage() {
   }, [reduceMotion]);
 
   const continueToHome = () => {
-    beginRouteTransition("/home");
+    beginRouteTransition({ destination: "/home", variant: "clara" });
   };
   const introReady = claraReady;
 

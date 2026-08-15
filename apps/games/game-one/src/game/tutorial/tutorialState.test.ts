@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { createInitialTutorialState, createStoredTutorialProgress, restoreTutorialProgress, tutorialAllowsMissionEvent, tutorialReducer } from "./tutorialState";
+import { createInitialTutorialState, saveTutorialProgress, tutorialAllowsMissionEvent, tutorialReducer } from "./tutorialState";
 
 describe("first-use tutorial state", () => {
   it("appears automatically only before the first completed attempt", () => {
     const first = createInitialTutorialState();
     expect(first.active).toBe(true);
     const finished = { ...first, active: false, finished: true };
-    expect(restoreTutorialProgress(createStoredTutorialProgress(finished)).active).toBe(false);
+    saveTutorialProgress(finished);
+    expect(createInitialTutorialState().active).toBe(false);
   });
 
   it("waits for the required action and remembers completed steps", () => {

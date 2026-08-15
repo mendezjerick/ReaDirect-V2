@@ -78,6 +78,7 @@ describe("StaffLoginPage", () => {
   afterEach(() => {
     window.sessionStorage.clear();
     window.localStorage.clear();
+    document.cookie = "readirect_staff_signed_in=; Max-Age=0; Path=/";
     vi.unstubAllGlobals();
   });
 
@@ -129,7 +130,7 @@ describe("StaffLoginPage", () => {
 
     const [, request] = fetchMock.mock.calls[0] as [string, RequestInit];
     const headers = new Headers(request.headers);
-    expect(headers.get("Authorization")).toBe(`Bearer ${session.token}`);
+    expect(headers.get("Authorization")).toBe("Bearer cookie-session");
     expect(headers.get("X-ReaDirect-Device")).toBe("remembered-browser-device");
   });
 
@@ -191,7 +192,7 @@ describe("StaffLoginPage", () => {
       screen.queryByRole("button", { name: "Sign in" }),
     ).not.toBeInTheDocument();
     expect(
-      window.localStorage.getItem("readirect.staff-session"),
+      window.sessionStorage.getItem("readirect.staff-session"),
     ).not.toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Retry session" }));
@@ -332,15 +333,14 @@ describe("StaffLoginPage", () => {
     const payload = JSON.parse(String(request.body)) as Record<string, unknown>;
     expect(payload.remember_me).toBe(true);
     expect(payload.device_id).toMatch(/^[A-Za-z0-9_-]{1,64}$/);
-    expect(window.localStorage.getItem("readirect.staff-session")).toContain(
+    expect(window.sessionStorage.getItem("readirect.staff-session")).toContain(
       '"remembered":true',
     );
-    expect(window.sessionStorage.getItem("readirect.staff-session")).toBeNull();
 
     const storedSession = loadStaffSession();
     expect(storedSession).not.toBeNull();
     expect(getStaffAuthHeaders(storedSession!)).toEqual({
-      Authorization: `Bearer ${"r".repeat(64)}`,
+      Authorization: "Bearer cookie-session",
       "X-ReaDirect-Device": payload.device_id,
     });
   });

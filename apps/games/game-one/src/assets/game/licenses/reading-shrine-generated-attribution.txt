@@ -1,0 +1,5 @@
+ReaDirect reading shrine asset
+
+Generated on 2026-07-29 with OpenAI image generation from a ReaDirect game
+reference screenshot. The project uses the resulting transparent sprite as an
+in-game east-riverbank decoration.

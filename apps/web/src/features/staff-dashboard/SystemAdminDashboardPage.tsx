@@ -76,6 +76,148 @@ const healthStatusLabels = {
   not_configured: "Not configured",
 } as const;
 
+type Distribution = Array<{ label: string; value: number }>;
+
+const PIE_CENTER = 21;
+const PIE_RADIUS = 15.9155;
+
+function piePoint(angle: number): [number, number] {
+  const radians = (angle * Math.PI) / 180;
+  return [
+    PIE_CENTER + PIE_RADIUS * Math.cos(radians),
+    PIE_CENTER + PIE_RADIUS * Math.sin(radians),
+  ];
+}
+
+function pieSlicePath(startAngle: number, endAngle: number): string {
+  const sweep = endAngle - startAngle;
+  const start = piePoint(startAngle);
+
+  if (sweep >= 359.999) {
+    const midpoint = piePoint(startAngle + 180);
+    return [
+      `M ${PIE_CENTER} ${PIE_CENTER}`,
+      `L ${start[0]} ${start[1]}`,
+      `A ${PIE_RADIUS} ${PIE_RADIUS} 0 1 1 ${midpoint[0]} ${midpoint[1]}`,
+      `A ${PIE_RADIUS} ${PIE_RADIUS} 0 1 1 ${start[0]} ${start[1]}`,
+      "Z",
+    ].join(" ");
+  }
+
+  const end = piePoint(endAngle);
+  const largeArcFlag = sweep > 180 ? 1 : 0;
+
+  return [
+    `M ${PIE_CENTER} ${PIE_CENTER}`,
+    `L ${start[0]} ${start[1]}`,
+    `A ${PIE_RADIUS} ${PIE_RADIUS} 0 ${largeArcFlag} 1 ${end[0]} ${end[1]}`,
+    "Z",
+  ].join(" ");
+}
+
+function CircleKpi({ label, value }: { label: string; value: number | null }) {
+  return (
+    <article
+      className="staff-circle-kpi"
+      aria-label={`${label}: ${value ?? "not available"}`}
+    >
+      <div className="staff-circle-kpi__ring" aria-hidden="true">
+        <span>{value ?? "—"}</span>
+      </div>
+      <strong>{label}</strong>
+      <span className="visually-hidden">{value ?? "Data not available"}</span>
+    </article>
+  );
+}
+
+function CircleDistribution({
+  title,
+  items,
+}: {
+  title: string;
+  items: Distribution;
+}) {
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  const segments = items.reduce<
+    Array<{
+      item: Distribution[number];
+      index: number;
+      share: number;
+      offset: number;
+    }>
+  >((result, item, index) => {
+    const share = total > 0 ? (item.value / total) * 100 : 0;
+    const previous = result.at(-1);
+
+    return [
+      ...result,
+      {
+        item,
+        index,
+        share,
+        offset: (previous?.offset ?? 0) + (previous?.share ?? 0),
+      },
+    ];
+  }, []);
+
+  return (
+    <StaffCard className="staff-circle-chart">
+      <StaffSectionHeader
+        eyebrow="Distribution"
+        title={title}
+        meta={<StaffBadge tone="neutral">{total} total</StaffBadge>}
+      />
+      <div className="staff-circle-chart__body">
+        <div className="staff-circle-chart__visual">
+          <svg
+            viewBox="0 0 42 42"
+            role="img"
+            aria-label={`${title}: ${total} total`}
+            data-chart-type="pie"
+          >
+            <circle
+              className="staff-circle-chart__track"
+              cx="21"
+              cy="21"
+              r="15.9155"
+            />
+            {segments.map(({ item, index, share, offset }) => {
+              if (share <= 0) {
+                return null;
+              }
+
+              return (
+                <path
+                  className={`staff-circle-chart__segment staff-circle-chart__segment--${index % 5}`}
+                  key={item.label}
+                  d={pieSlicePath(
+                    -90 + offset * 3.6,
+                    -90 + (offset + share) * 3.6,
+                  )}
+                />
+              );
+            })}
+          </svg>
+          <strong>{total}</strong>
+          <span>total</span>
+        </div>
+        <ul className="staff-circle-chart__legend">
+          {items.map((item) => (
+            <li key={item.label}>
+              <span aria-hidden="true" />
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="staff-circle-chart__text">
+        The pie chart shows the same counts as the Overview list.
+      </p>
+    </StaffCard>
+  );
+}
+
 export function SystemAdminDashboardPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -85,6 +227,9 @@ export function SystemAdminDashboardPage() {
   const [requestedNoiseReduction, setRequestedNoiseReduction] = useState<
     boolean | null
   >(null);
+  const [overviewMode, setOverviewMode] = useState<"cards" | "circles">(
+    "cards",
+  );
   const overviewQuery = useQuery({
     queryKey: ["system-admin-overview"],
     queryFn: getSystemAdminOverview,
@@ -153,32 +298,79 @@ export function SystemAdminDashboardPage() {
           </StaffNotice>
         ) : null}
 
-        <section
-          className="staff-metric-grid"
-          aria-label="System totals"
-          aria-busy={overviewQuery.isLoading}
+        <div
+          className="staff-overview-view-toggle"
+          role="group"
+          aria-label="Overview visualization"
         >
-          <MetricCard
-            label="Total schools"
-            value={overview?.metrics.total_schools ?? null}
-            icon={<SchoolsIcon />}
-          />
-          <MetricCard
-            label="Total teachers"
-            value={overview?.metrics.total_teachers ?? null}
-            icon={<PeopleIcon />}
-          />
-          <MetricCard
-            label="Total learners"
-            value={overview?.metrics.total_learners ?? null}
-            icon={<LearnerIcon />}
-          />
-          <MetricCard
-            label="Sandbox attempts"
-            value={overview?.metrics.sandbox_attempts ?? null}
-            icon={<SandboxIcon />}
-          />
-        </section>
+          <span>View</span>
+          <button
+            type="button"
+            aria-pressed={overviewMode === "cards"}
+            onClick={() => setOverviewMode("cards")}
+          >
+            Cards
+          </button>
+          <button
+            type="button"
+            aria-pressed={overviewMode === "circles"}
+            onClick={() => setOverviewMode("circles")}
+          >
+            Circle charts
+          </button>
+        </div>
+
+        {overviewMode === "cards" ? (
+          <section
+            className="staff-metric-grid"
+            aria-label="System totals"
+            aria-busy={overviewQuery.isLoading}
+          >
+            <MetricCard
+              label="Total schools"
+              value={overview?.metrics.total_schools ?? null}
+              icon={<SchoolsIcon />}
+            />
+            <MetricCard
+              label="Total teachers"
+              value={overview?.metrics.total_teachers ?? null}
+              icon={<PeopleIcon />}
+            />
+            <MetricCard
+              label="Total learners"
+              value={overview?.metrics.total_learners ?? null}
+              icon={<LearnerIcon />}
+            />
+            <MetricCard
+              label="Sandbox attempts"
+              value={overview?.metrics.sandbox_attempts ?? null}
+              icon={<SandboxIcon />}
+            />
+          </section>
+        ) : (
+          <section
+            className="staff-circle-kpi-grid"
+            aria-label="System totals as circular KPIs"
+            aria-busy={overviewQuery.isLoading}
+          >
+            <CircleKpi
+              label="Schools"
+              value={overview?.metrics.total_schools ?? null}
+            />
+            <CircleKpi
+              label="Teachers"
+              value={overview?.metrics.total_teachers ?? null}
+            />
+            <CircleKpi
+              label="Learners"
+              value={overview?.metrics.total_learners ?? null}
+            />
+            <CircleKpi
+              label="Sandbox attempts"
+              value={overview?.metrics.sandbox_attempts ?? null}
+            />
+          </section>
+        )}
 
         <StaffCard className="staff-data-card staff-speech-setting">
           <div className="staff-speech-setting__copy">
@@ -283,37 +475,58 @@ export function SystemAdminDashboardPage() {
         </StaffCard>
 
         <section className="staff-dashboard-grid staff-dashboard-grid--primary">
-          <StaffCard>
-            <StaffSectionHeader
-              eyebrow="ReaDirect Assessment"
-              title="Part 1 Score levels"
-              meta={<StaffBadge tone="neutral">All learners</StaffBadge>}
-            />
-            {overview ? (
-              <StaffDistributionList items={overview.part_one_distribution} />
-            ) : (
-              <StaffState compact title="Loading levels…" aria-live="polite" />
-            )}
-          </StaffCard>
+          {overviewMode === "circles" ? (
+            <>
+              <CircleDistribution
+                title="Part 1 Score levels"
+                items={overview?.part_one_distribution ?? []}
+              />
+              <CircleDistribution
+                title="Final reading profiles"
+                items={overview?.reading_profile_distribution ?? []}
+              />
+            </>
+          ) : (
+            <>
+              <StaffCard>
+                <StaffSectionHeader
+                  eyebrow="ReaDirect Assessment"
+                  title="Part 1 Score levels"
+                  meta={<StaffBadge tone="neutral">All learners</StaffBadge>}
+                />
+                {overview ? (
+                  <StaffDistributionList
+                    items={overview.part_one_distribution}
+                  />
+                ) : (
+                  <StaffState
+                    compact
+                    title="Loading levels…"
+                    aria-live="polite"
+                  />
+                )}
+              </StaffCard>
 
-          <StaffCard>
-            <StaffSectionHeader
-              eyebrow="ReaDirect Assessment"
-              title="Final reading profiles"
-              meta={<StaffBadge tone="neutral">All learners</StaffBadge>}
-            />
-            {overview ? (
-              <StaffDistributionList
-                items={overview.reading_profile_distribution}
-              />
-            ) : (
-              <StaffState
-                compact
-                title="Loading profiles…"
-                aria-live="polite"
-              />
-            )}
-          </StaffCard>
+              <StaffCard>
+                <StaffSectionHeader
+                  eyebrow="ReaDirect Assessment"
+                  title="Final reading profiles"
+                  meta={<StaffBadge tone="neutral">All learners</StaffBadge>}
+                />
+                {overview ? (
+                  <StaffDistributionList
+                    items={overview.reading_profile_distribution}
+                  />
+                ) : (
+                  <StaffState
+                    compact
+                    title="Loading profiles…"
+                    aria-live="polite"
+                  />
+                )}
+              </StaffCard>
+            </>
+          )}
 
           <StaffCard>
             <StaffSectionHeader eyebrow="Environment" title="System health" />

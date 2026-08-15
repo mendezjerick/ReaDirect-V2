@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 final class LearnerSessionResolver
 {
     public const REQUEST_ATTRIBUTE = 'readirect.learner_session';
+    public const COOKIE_NAME = 'readirect_learner_session';
+    public const MARKER_COOKIE_NAME = 'readirect_learner_signed_in';
+    public const BROWSER_SESSION_SENTINEL = 'cookie-session';
 
     public function resolve(Request $request): LearnerSession
     {
@@ -17,6 +20,12 @@ final class LearnerSessionResolver
         }
 
         $plainToken = $request->bearerToken();
+        if ($plainToken === self::BROWSER_SESSION_SENTINEL) {
+            $plainToken = null;
+        }
+        if (! is_string($plainToken) || ! preg_match('/^[A-Za-z0-9_-]{8,128}$/', $plainToken)) {
+            $plainToken = $request->cookie(self::COOKIE_NAME);
+        }
 
         if (! is_string($plainToken) || ! preg_match('/^[A-Za-z0-9_-]{8,128}$/', $plainToken)) {
             $this->unauthorized();

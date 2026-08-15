@@ -1,5 +1,6 @@
 export const MANG_YATO_ASSET_KEY = "npc-mang-yato";
 export const FARM_FENCE_ASSET_KEY = "farm-fence";
+export const GARDEN_FENCE_ASSET_KEY = "garden-fence";
 export const GENERATED_CHARACTER_FRAMES = 4;
 export const FARM_FENCE_FRAMES = 8;
 export const GENERATED_TILE_SIZE = 16;
@@ -77,6 +78,33 @@ export function createFarmFenceLayer() {
   return canvas;
 }
 
+export function createGardenFenceLayer() {
+  const canvas = document.createElement("canvas");
+  canvas.width = GENERATED_TILE_SIZE * 10;
+  canvas.height = GENERATED_TILE_SIZE * 8;
+  const context = getCanvasContext(canvas);
+  if (!context) return canvas;
+  context.imageSmoothingEnabled = false;
+
+  for (let x = 0; x < 10; x += 1) {
+    if (x !== 0 && x !== 9) {
+      drawGardenRail(context, x * GENERATED_TILE_SIZE, 0, false);
+      if (x < 3 || x > 6) drawGardenRail(context, x * GENERATED_TILE_SIZE, 7 * GENERATED_TILE_SIZE, false);
+    }
+  }
+  for (let y = 1; y < 7; y += 1) {
+    drawGardenRail(context, 0, y * GENERATED_TILE_SIZE, true);
+    drawGardenRail(context, 9 * GENERATED_TILE_SIZE, y * GENERATED_TILE_SIZE, true);
+  }
+
+  drawGardenCorner(context, 0, 0, "top-left");
+  drawGardenCorner(context, 9 * GENERATED_TILE_SIZE, 0, "top-right");
+  drawGardenCorner(context, 0, 7 * GENERATED_TILE_SIZE, "bottom-left");
+  drawGardenCorner(context, 9 * GENERATED_TILE_SIZE, 7 * GENERATED_TILE_SIZE, "bottom-right");
+  drawGardenGate(context, 3 * GENERATED_TILE_SIZE, 7 * GENERATED_TILE_SIZE);
+  return canvas;
+}
+
 function drawMangYato(context: CanvasRenderingContext2D, offsetX: number, frame: number) {
   const bob = frame === 1 || frame === 3 ? -1 : 0;
   const blink = frame === 3;
@@ -149,6 +177,68 @@ function drawVerticalCap(context: CanvasRenderingContext2D, frame: number, cap: 
   context.fillRect(x + 8, cap === "top" ? y + 3 : 0, 3, cap === "top" ? 6 : y + 3);
   context.fillStyle = "#d89a50";
   context.fillRect(x + 8, cap === "top" ? y + 3 : 0, 1, cap === "top" ? 6 : y + 3);
+}
+
+function drawGardenRail(context: CanvasRenderingContext2D, x: number, y: number, vertical: boolean) {
+  context.fillStyle = "#233b2a";
+  if (vertical) {
+    context.fillRect(x + 5, y, 5, 16);
+    context.fillStyle = "#5f8c45";
+    context.fillRect(x + 6, y + 1, 2, 14);
+    context.fillStyle = "#9bc85a";
+    context.fillRect(x + 8, y + 3, 1, 8);
+    return;
+  }
+
+  context.fillRect(x, y + 6, 16, 4);
+  context.fillStyle = "#5f8c45";
+  context.fillRect(x, y + 6, 16, 2);
+  context.fillStyle = "#c7dd79";
+  context.fillRect(x + 2, y + 6, 5, 1);
+  if ((x / GENERATED_TILE_SIZE) % 2 === 0) {
+    context.fillStyle = "#d8a34b";
+    context.fillRect(x + 2, y + 1, 3, 7);
+    context.fillStyle = "#f1ce70";
+    context.fillRect(x + 3, y + 1, 1, 6);
+  }
+}
+
+function drawGardenCorner(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  corner: "top-left" | "top-right" | "bottom-left" | "bottom-right"
+) {
+  const postX = corner.includes("right") ? x + 9 : x + 3;
+  const postY = corner.includes("bottom") ? y + 7 : y + 1;
+  context.fillStyle = "#233b2a";
+  context.fillRect(postX, y, 5, 16);
+  context.fillStyle = "#d8a34b";
+  context.fillRect(postX + 1, y + 1, 3, 14);
+  context.fillStyle = "#f1ce70";
+  context.fillRect(postX + 2, y + 2, 1, 8);
+  context.fillStyle = "#5f8c45";
+  if (corner.includes("top")) context.fillRect(x, postY + 5, 16, 3);
+  if (corner.includes("bottom")) context.fillRect(x, postY + 1, 16, 3);
+  context.fillStyle = "#6fa34d";
+  context.fillRect(x + (corner.includes("right") ? 1 : 11), y + (corner.includes("bottom") ? 2 : 11), 4, 3);
+}
+
+function drawGardenGate(context: CanvasRenderingContext2D, x: number, y: number) {
+  context.clearRect(x, y, GENERATED_TILE_SIZE * 3, GENERATED_TILE_SIZE);
+  context.fillStyle = "#6a3f26";
+  context.fillRect(x + 5, y + 7, 22, 3);
+  context.fillStyle = "#b6753b";
+  context.fillRect(x + 6, y + 7, 20, 1);
+  context.fillStyle = "#d8a34b";
+  context.fillRect(x + 8, y + 1, 3, 8);
+  context.fillRect(x + 20, y + 1, 3, 8);
+  context.fillStyle = "#f1ce70";
+  context.fillRect(x + 9, y + 1, 1, 6);
+  context.fillRect(x + 21, y + 1, 1, 6);
+  context.fillStyle = "#6fa34d";
+  context.fillRect(x + 12, y + 2, 7, 2);
+  context.fillRect(x + 14, y + 1, 3, 2);
 }
 
 function drawPost(context: CanvasRenderingContext2D, x: number, y: number) {

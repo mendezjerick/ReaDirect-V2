@@ -2,6 +2,8 @@ import { GAME_ASSETS } from "../assets/assetRegistry";
 import type { GameLanguage } from "../localization/language";
 import type { Facing, SpriteFacingLayout } from "./playerMovement";
 
+export const PLAYABLE_CHARACTER_PREFERENCE_KEY = "readirect-rpg:playable-character:v1";
+
 export type PlayableCharacterId = "yato" | "blue-hair-explorer" | "iruma" | "luffy" | "frieren";
 export type PlayableCharacterAssetKey = "learnerWalk" | "blueHairExplorer" | "iruma" | "luffy" | "frieren";
 
@@ -93,4 +95,24 @@ export function getPlayableCharacterRenderOffsetY(
 
 export function isPlayableCharacterId(value: unknown): value is PlayableCharacterId {
   return PLAYABLE_CHARACTERS.some((character) => character.id === value);
+}
+
+export function loadPlayableCharacterSelection(storage: Storage = window.localStorage) {
+  try {
+    const value = storage.getItem(PLAYABLE_CHARACTER_PREFERENCE_KEY);
+    return isPlayableCharacterId(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function savePlayableCharacterSelection(
+  id: PlayableCharacterId,
+  storage: Storage = window.localStorage
+) {
+  try {
+    storage.setItem(PLAYABLE_CHARACTER_PREFERENCE_KEY, id);
+  } catch {
+    // The selection remains active until the learner leaves this game session.
+  }
 }

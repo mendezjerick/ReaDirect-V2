@@ -158,7 +158,7 @@ function prepareSession() {
   window.sessionStorage.setItem(
     "readirect.staff-session",
     JSON.stringify({
-      token: "system-admin-token".repeat(4),
+      token: "cookie-session",
       session: { expires_at: "2099-01-01T00:00:00Z" },
       staff: {
         id: 1,
@@ -205,6 +205,7 @@ function renderPage(page: ReactNode, path: string) {
 describe("system-admin speech sandboxes", () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    document.cookie = "readirect_staff_signed_in=; Max-Age=0; Path=/";
     vi.unstubAllGlobals();
   });
 

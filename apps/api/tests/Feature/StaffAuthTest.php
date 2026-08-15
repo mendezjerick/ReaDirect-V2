@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\StaffSession;
 use App\Models\StaffUser;
+use App\Services\StaffSessionResolver;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -52,6 +53,19 @@ final class StaffAuthTest extends TestCase
             ->assertJsonPath('signed_out', true);
 
         $this->getJson('/api/staff/session')->assertUnauthorized();
+    }
+
+    public function test_browser_sentinel_uses_the_httponly_cookie_session(): void
+    {
+        $teacher = $this->staffUser('cookie-session-teacher', 'teacher');
+        $token = $this->login($teacher)->assertOk()->json('token');
+
+        $this->withToken(StaffSessionResolver::BROWSER_SESSION_SENTINEL)
+            ->withUnencryptedCookie(StaffSessionResolver::COOKIE_NAME, $token)
+            ->withCredentials()
+            ->getJson('/api/staff/session')
+            ->assertOk()
+            ->assertJsonPath('staff.id', $teacher->id);
     }
 
     public function test_invalid_staff_credentials_are_rejected(): void

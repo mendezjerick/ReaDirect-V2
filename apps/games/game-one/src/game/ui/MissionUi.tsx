@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMission, getSkillLabels, MISSIONS } from "../content/missions";
 import { getLoreAssignments } from "../content/lore";
-import { getNpc } from "../content/npcs";
+import { getNpc, type NpcId } from "../content/npcs";
+import { GAME_ASSETS } from "../assets/assetRegistry";
 import {
   getCurrentObjective,
   getReadingHearts,
@@ -15,6 +16,23 @@ import { useTypewriterPreference, useTypewriterText } from "../narration/useType
 import { getUiCopy } from "../localization/language";
 
 type MissionDispatch = (event: MissionEvent) => void;
+
+type DialoguePortrait = {
+  path: string;
+  columns: number;
+  rows: number;
+};
+
+const NPC_DIALOGUE_PORTRAITS: Readonly<Record<NpcId, DialoguePortrait>> = {
+  "miss-estelle": { path: GAME_ASSETS.npcMissEstelle.path, columns: 4, rows: 1 },
+  "lolo-ambo": { path: GAME_ASSETS.npcLoloAmbo.path, columns: 4, rows: 1 },
+  "market-vendor": { path: GAME_ASSETS.npcMarketVendor.path, columns: 4, rows: 1 },
+  "bridge-keeper": { path: GAME_ASSETS.npcBridgeKeeper.path, columns: 4, rows: 1 },
+  "mang-yato": { path: GAME_ASSETS.learnerWalk.path, columns: 4, rows: 4 },
+  "miss-yuuri": { path: GAME_ASSETS.ambientMissYuuri.path, columns: 4, rows: 4 },
+  "mang-panda": { path: GAME_ASSETS.ambientMangPanda.path, columns: 4, rows: 4 },
+  "mr-kikushibu": { path: GAME_ASSETS.ambientMrKikushibu.path, columns: 4, rows: 4 }
+};
 
 export function ObjectiveTracker({ state }: { state: MissionState }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -83,16 +101,28 @@ export function DialogueOverlay({ state, dispatch }: { state: MissionState; disp
 
   if (!active) return null;
   const isLastPage = active.pageIndex === active.pages.length - 1;
+  const portrait = active.kind === "landmark" ? null : NPC_DIALOGUE_PORTRAITS[active.speakerId];
 
   return (
     <div className="mission-overlay" role="presentation">
       <section ref={panelRef} role="dialog" aria-modal="true" aria-label={`${active.speakerName} dialogue`} tabIndex={-1} className="dialogue-panel">
-        <div className="dialogue-speaker" aria-hidden="true"><span>{initials(active.speakerName)}</span></div>
+        <div className="dialogue-speaker" aria-hidden="true">
+          {portrait ? (
+            <span
+              data-testid={`dialogue-portrait-${active.speakerId}`}
+              className="dialogue-portrait"
+              style={{
+                backgroundImage: `url(${portrait.path})`,
+                backgroundSize: `${portrait.columns * 100}% ${portrait.rows * 100}%`
+              }}
+            />
+          ) : <span className="dialogue-speaker-initials">{initials(active.speakerName)}</span>}
+        </div>
         <div className="min-w-0 flex-1 overflow-y-auto pr-1">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-black uppercase text-[#176b4d]">{active.speakerName}</p>
-              <p className="mt-1 text-sm font-bold text-[#567064]">{active.speakerRole}</p>
+              <p className="dialogue-name">{active.speakerName}</p>
+              <p className="dialogue-role">{active.speakerRole}</p>
               <p className="text-xs font-bold text-[#6b7f75]">{copy.page} {active.pageIndex + 1} {copy.of} {active.pages.length}</p>
             </div>
             {active.kind !== "mission" && (
@@ -178,26 +208,6 @@ export function ReadingIntroOverlay({ state, dispatch }: { state: MissionState; 
   );
 }
 
-export function StoryReviewOverlay({ state, dispatch }: { state: MissionState; dispatch: MissionDispatch }) {
-  if (state.stage !== "storyReview") return null;
-  const copy = getUiCopy(state.language);
-  const mission = getMission(state.missionId, state.language);
-  const returning = state.reviewReturnStage !== null;
-  return (
-    <div className="mission-overlay">
-      <section role="dialog" aria-modal="true" aria-labelledby="review-title" className="story-panel pixel-reading-panel">
-        <p className="story-eyebrow">{returning ? `${copy.review}: ${mission.reading.format}` : copy.readingComplete}</p>
-        <h2 id="review-title">{returning ? mission.reading.title : copy.useUnderstanding}</h2>
-        {returning && <div className="story-copy">{mission.reading.pages.map((page) => <p key={page}>{page}</p>)}</div>}
-        {!returning && <p className="activity-transition-copy">{copy.transition}</p>}
-        <button type="button" autoFocus onClick={() => dispatch({ type: returning ? "CLOSE_STORY_REVIEW" : "BEGIN_MISSION_ACTION" })} className="story-primary">
-          {returning ? copy.backActivity : copy.continue}
-        </button>
-      </section>
-    </div>
-  );
-}
-
 export function MissionActionOverlay({ state, dispatch }: { state: MissionState; dispatch: MissionDispatch }) {
   const isActive = state.stage === "missionAction" || state.stage === "missionActionFeedback";
   if (!isActive) return null;
@@ -216,7 +226,6 @@ export function MissionActionOverlay({ state, dispatch }: { state: MissionState;
       <section role="dialog" aria-modal="true" aria-labelledby="mission-action-title" className="question-panel pixel-reading-panel">
         <header className="question-header">
           <div><p className="story-eyebrow">{copy.missionDecision}</p><h2 id="mission-action-title">{copy.useWhatRead}</h2></div>
-          <button type="button" data-tutorial="read-again" onClick={() => dispatch({ type: "OPEN_STORY_REVIEW" })} className="question-secondary">{copy.readAgain}</button>
         </header>
         <div className="question-scroll">
           <p className="question-prompt">{mission.action.prompt}</p>
@@ -275,7 +284,6 @@ export function QuestionOverlay({ state, dispatch }: { state: MissionState; disp
             <h2 id="question-title">{copy.question} {state.currentQuestionIndex + 1} {copy.of} {state.round.questions.length}</h2>
             {savedInRound > 0 && <p className="saved-question-count">{state.language === "fil" ? `${savedInRound} ${savedInRound === 1 ? "tanong" : "mga tanong"} ang ${copy.savedLater}` : `${savedInRound} ${savedInRound === 1 ? "question" : "questions"} ${copy.savedLater}`}</p>}
           </div>
-          <button type="button" data-tutorial="read-again" onClick={() => dispatch({ type: "OPEN_STORY_REVIEW" })} className="question-secondary">{copy.readAgain}</button>
         </header>
         <div className="question-status-strip">
           <progress aria-label={`${completedInRound} ${copy.of} ${state.round.questions.length} ${copy.questionsCompleted}`} value={completedInRound} max={state.round.questions.length} />
@@ -294,7 +302,7 @@ export function QuestionOverlay({ state, dispatch }: { state: MissionState; disp
           />
           {(isCorrect || isIncorrect) && (
             <div className={`answer-feedback ${isCorrect ? "is-correct" : "is-hint"}`} role="status" aria-live="polite">
-              <strong>{isCorrect ? copy.correct : copy.passageAgain}</strong><span>{feedback}</span>
+              <strong>{isCorrect ? copy.correct : copy.checkMessage}</strong><span>{feedback}</span>
               {isIncorrect && <span className="heart-feedback">{copy.heartLost} {hearts} {copy.heartsRemaining}.</span>}
             </div>
           )}
@@ -345,7 +353,7 @@ export function HeartRecoveryOverlay({ state, dispatch }: { state: MissionState;
         <h2 id="heart-recovery-title">{copy.recoveryTitle}</h2>
         <p>{copy.recoveryHelp}</p>
         <div className="heart-recovery-actions">
-          <button type="button" autoFocus onClick={() => dispatch({ type: "READ_AND_RESTART" })} className="story-primary">{copy.rereadToRecover}</button>
+          <button type="button" autoFocus onClick={() => dispatch({ type: "RESTART_COMPREHENSION" })} className="story-primary">{copy.tryAgain}</button>
         </div>
       </section>
     </div>
@@ -381,7 +389,6 @@ export function DeferredResumeOverlay({ state, dispatch }: { state: MissionState
         <h2 id="resume-questions-title">{copy.returnTo} {mission.reading.title}</h2>
         <p>{copy.savedQuestionHelp}</p>
         <div className="completion-actions">
-          <button type="button" onClick={() => dispatch({ type: "OPEN_STORY_REVIEW" })} className="question-secondary">{copy.readAgain}</button>
           <button type="button" autoFocus onClick={() => dispatch({ type: "START_SAVED_QUESTIONS" })} className="story-primary">{copy.returnQuestions}</button>
         </div>
       </section>
@@ -455,7 +462,7 @@ export function HelpOverlay({
   const objective = getCurrentObjective(state);
   const help = ["questionRound", "questionFeedback", "heartRecovery"].includes(state.stage) && question
     ? question.hint
-    : ["missionAction", "missionActionFeedback", "storyReview"].includes(state.stage)
+    : ["missionAction", "missionActionFeedback"].includes(state.stage)
       ? mission.action.hint
       : objective.help;
   const steps = getHelpSteps(state.stage, copy);
@@ -535,7 +542,7 @@ function getHelpSteps(stage: MissionStage, copy: ReturnType<typeof getUiCopy>) {
   if (["missionAction", "missionActionFeedback"].includes(stage)) {
     return copy.helpActionSteps;
   }
-  if (["storyIntroduction", "readingIntro", "storyPresentation", "storyReview"].includes(stage)) {
+  if (["storyIntroduction", "readingIntro", "storyPresentation"].includes(stage)) {
     return copy.helpReadSteps;
   }
   return copy.helpExploreSteps;

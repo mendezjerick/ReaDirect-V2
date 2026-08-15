@@ -33,6 +33,8 @@ export type MapAreaKey =
   | "south-riverbend"
   | "south-river-cove"
   | "east-river-channel"
+  | "riverside-hamlet"
+  | "canal-hamlet"
   | "tree-border";
 
 export type MapArea = {
@@ -47,11 +49,42 @@ export type VisualAssetKey =
   | "village-learning-hall"
   | "village-east-house"
   | "village-market-shop"
+  | "supplied-green-manor"
+  | "supplied-straw-cottage"
+  | "supplied-red-barn"
+  | "supplied-purple-shop"
+  | "supplied-tower-house"
+  | "supplied-blue-house"
+  | "supplied-red-house"
   | "tree-round"
   | "tree-wide"
   | "fruit-tree"
   | "farm-fence"
+  | "garden-fence"
   | "village-decor"
+  | "lolo-supply-cart"
+  | "lolo-supply-sacks"
+  | "lolo-direction-sign"
+  | "lolo-east-homes-sign"
+  | "lolo-to-lolo-ambo-sign"
+  | "lolo-deliver-supplies-sign"
+  | "lolo-produce-crate"
+  | "lolo-map-crate"
+  | "lolo-wood-fence"
+  | "lolo-lantern-post"
+  | "lolo-flower-rocks"
+  | "playground-swings"
+  | "playground-slide-tower"
+  | "playground-seesaw"
+  | "playground-climber"
+  | "playground-sand-table"
+  | "playground-bench"
+  | "playground-fence-long"
+  | "playground-fence-short"
+  | "playground-signboard"
+  | "playground-bush"
+  | "playground-flower-bush"
+  | "playground-flower-patch"
   | "reading-shrine";
 
 export type TerrainSprite = {
@@ -112,7 +145,15 @@ const PATH_REGIONS: readonly TileRegion[] = [
   { x: 54, y: 18, width: 6, height: 18 },
   // The extended cove has walkable banks for a deliberate boat landing.
   { x: 43, y: 46, width: 4, height: 5 },
-  { x: 54, y: 46, width: 1, height: 16 }
+  { x: 54, y: 46, width: 1, height: 16 },
+  // The lower village remains one connected place, with two small residential hamlets.
+  { x: 19, y: 34, width: 5, height: 11 },
+  { x: 5, y: 41, width: 18, height: 4 },
+  { x: 10, y: 44, width: 4, height: 15 },
+  { x: 18, y: 44, width: 4, height: 12 },
+  { x: 34, y: 41, width: 12, height: 4 },
+  { x: 36, y: 44, width: 3, height: 12 },
+  { x: 35, y: 55, width: 11, height: 3 }
 ];
 
 const MAIN_RIVER_REGIONS: readonly TileRegion[] = [
@@ -149,7 +190,8 @@ export const MAP_LANDMARKS = {
   spawn: tileCenter(27, 25),
   missEstelle: tileCenter(27, 21),
   marketFront: tileCenter(16, 20),
-  loloCorner: tileCenter(43, 20),
+  // River-side east-homes meeting point, beside Lolo's delivery yard.
+  loloCorner: tileCenter(46, 17),
   bridgeSouth: tileCenter(30, 12),
   bridgeNorth: tileCenter(30, 6),
   forestTrail: tileCenter(29, 14),
@@ -192,7 +234,11 @@ const staticCollision = [
   rectTiles("west-boundary", 0, 0, 1, WORLD_ROWS),
   rectTiles("east-boundary", WORLD_COLUMNS - 1, 0, 1, WORLD_ROWS),
   ...waterCollisionTiles(),
-  ...farmFenceCollision()
+  ...farmFenceCollision(),
+  ...communityGardenFenceCollision(),
+  // Keep the whole fountain basin solid. The player starts immediately south
+  // of this footprint, so the opening position remains usable.
+  rectTiles("central-plaza-fountain-basin", 25.1, 21.55, 4.85, 3.15)
 ] satisfies Rectangle[];
 
 const visualObjects = [
@@ -219,28 +265,139 @@ const visualObjects = [
   // The story plaza is open in the middle and framed by useful street furniture.
   villageDecor("village-guide-sign", 30, 18, VILLAGE_DECOR_FRAME.sign, true),
   villageDecor("plaza-bench-west", 23, 23, VILLAGE_DECOR_FRAME.bench),
-  villageDecor("plaza-bench-east", 32, 23, VILLAGE_DECOR_FRAME.bench),
   villageDecor("plaza-planter-west", 22, 20, VILLAGE_DECOR_FRAME.redPlanter),
-  villageDecor("plaza-planter-east", 33, 20, VILLAGE_DECOR_FRAME.whitePlanter),
   natureDecor("plaza-stone-west", 21, 22, NATURE_FRAME.smallStone),
-  natureDecor("plaza-stone-east", 34, 22, NATURE_FRAME.smallStone),
+  // The east side is reserved for the animated village fountain.
 
-  // Market props are practical: produce, flowers, and a waiting bench.
-  marketShop("market-shop", 14, 17),
+  // The Market Vendor has a clear, supplied storefront rather than a generic home.
+  suppliedHouse("market-shop", "supplied-purple-shop", 14, 16, 5, 3),
+  villageDecor("market-shop-sign", 13, 18, VILLAGE_DECOR_FRAME.sign),
   villageDecor("market-produce-left", 13, 19, VILLAGE_DECOR_FRAME.produceCrate),
   villageDecor("market-produce-right", 18, 19, VILLAGE_DECOR_FRAME.produceCrate),
   villageDecor("market-bench", 18, 21, VILLAGE_DECOR_FRAME.bench),
   natureDecor("market-red-flower", 12, 21, NATURE_FRAME.redFlower),
   natureDecor("market-white-flower", 19, 21, NATURE_FRAME.whiteFlower),
 
-  // Lolo Ambo's corner feels older and calmer with stone markers and lamps.
+  // Lolo's river-side east-homes meeting point has a small supply station.
+  // It sits below the interaction lane so the player can still reach Lolo from the west.
   house("east-house", "village-east-house", 41, 12),
-  wideTree("lolo-shade-tree", 44, 15),
-  villageDecor("lolo-bench", 43, 17, VILLAGE_DECOR_FRAME.bench),
-  villageDecor("lolo-lantern-west", 40, 16, VILLAGE_DECOR_FRAME.lantern),
-  villageDecor("lolo-lantern-east", 47, 16, VILLAGE_DECOR_FRAME.lantern),
-  villageDecor("lolo-stone-marker", 46, 20, VILLAGE_DECOR_FRAME.stoneMarker),
-  natureDecor("lolo-white-flower", 40, 22, NATURE_FRAME.whiteFlower),
+  loloProp("east-homes-sign", "lolo-east-homes-sign", 36.4, 14.3, 3.1, 2.3, {
+    x: 1.35,
+    y: 1.65,
+    width: 0.45,
+    height: 0.55
+  }),
+  loloProp("to-lolo-ambo-sign", "lolo-to-lolo-ambo-sign", 36.4, 17.3, 3.45, 2.35, {
+    x: 1.48,
+    y: 1.65,
+    width: 0.45,
+    height: 0.55
+  }),
+  loloProp("lolo-delivery-cart", "lolo-supply-cart", 39.2, 18.35, 3.05, 2.55, {
+    x: 0.25,
+    y: 1.8,
+    width: 2.55,
+    height: 0.55
+  }),
+  loloProp("lolo-delivery-produce", "lolo-produce-crate", 42.55, 19.35, 2.15, 1.8, {
+    x: 0.2,
+    y: 1.2,
+    width: 1.75,
+    height: 0.45
+  }),
+  loloProp("lolo-delivery-sacks", "lolo-supply-sacks", 39.2, 21.05, 2.45, 1.75, {
+    x: 0.25,
+    y: 1.1,
+    width: 2,
+    height: 0.45
+  }),
+  loloProp("lolo-delivery-map-box", "lolo-map-crate", 42.65, 21.15, 1.8, 1.85, {
+    x: 0.2,
+    y: 1.15,
+    width: 1.4,
+    height: 0.45
+  }),
+  loloProp("deliver-supplies-notice", "lolo-deliver-supplies-sign", 36.5, 21.4, 3.2, 1.7, {
+    x: 0.4,
+    y: 1.05,
+    width: 2.65,
+    height: 0.45
+  }),
+  // The lower-left field is a fenced, child-friendly playground.
+  playgroundProp("playground-top-fence-west", "playground-fence-long", 6.2, 33.1, 3.6, 1.2, {
+    x: 0.1,
+    y: 0.72,
+    width: 3.4,
+    height: 0.45
+  }),
+  playgroundProp("playground-top-fence-east", "playground-fence-long", 10, 33.1, 3.6, 1.2, {
+    x: 0.1,
+    y: 0.72,
+    width: 3.4,
+    height: 0.45
+  }),
+  playgroundProp("playground-swings", "playground-swings", 6.1, 33.8, 3.3, 3, {
+    x: 0.25,
+    y: 2.35,
+    width: 2.8,
+    height: 0.45
+  }),
+  playgroundProp("playground-slide", "playground-slide-tower", 9.5, 33.6, 3.2, 3.35, {
+    x: 1.25,
+    y: 2.6,
+    width: 1.35,
+    height: 0.55
+  }),
+  playgroundProp("playground-sand-table", "playground-sand-table", 5.3, 37.3, 2.25, 1.65, {
+    x: 0.2,
+    y: 1.15,
+    width: 1.8,
+    height: 0.35
+  }),
+  playgroundProp("playground-seesaw", "playground-seesaw", 7.5, 38, 4.1, 1.6, {
+    x: 0.65,
+    y: 1.05,
+    width: 2.75,
+    height: 0.4
+  }),
+  playgroundProp("playground-climber", "playground-climber", 11.4, 38, 2.05, 2.3, {
+    x: 0.1,
+    y: 1.85,
+    width: 1.8,
+    height: 0.35
+  }),
+  playgroundProp("playground-bench", "playground-bench", 9.2, 40.9, 2.45, 1.2, {
+    x: 0.15,
+    y: 0.82,
+    width: 2.1,
+    height: 0.28
+  }),
+  playgroundProp("playground-bottom-fence", "playground-fence-long", 6.5, 42, 3.5, 1.1, {
+    x: 0.1,
+    y: 0.66,
+    width: 3.3,
+    height: 0.36
+  }),
+  playgroundProp("playground-signboard", "playground-signboard", 4.6, 38.8, 1.6, 1.7, {
+    x: 0.22,
+    y: 1.12,
+    width: 1.15,
+    height: 0.35
+  }),
+  playgroundProp("playground-bush-west", "playground-bush", 4.6, 34.6, 1.5, 1.5, {
+    x: 0.18,
+    y: 1.05,
+    width: 1.15,
+    height: 0.35
+  }),
+  playgroundProp("playground-bush-east", "playground-flower-bush", 13.2, 39.8, 1.6, 1.55, {
+    x: 0.18,
+    y: 1.05,
+    width: 1.2,
+    height: 0.35
+  }),
+  playgroundDecoration("playground-flower-bed-north", "playground-flower-patch", 12.9, 34.2, 1.7, 0.9),
+  playgroundDecoration("playground-flower-bed-south", "playground-flower-patch", 6.2, 41.2, 1.7, 0.9),
 
   // The southern lane transitions from village furniture into wilder growth.
   house("southwest-house", "village-learning-hall", 9, 26),
@@ -279,6 +436,54 @@ const visualObjects = [
   villageDecor("east-channel-bench", 54, 54, VILLAGE_DECOR_FRAME.bench),
   natureDecor("east-channel-white-flower", 54, 56, NATURE_FRAME.whiteFlower),
   tree("east-channel-lower-bank-tree", 52, 59),
+
+  // Riverside Hamlet gives the lower-west field a lived-in neighborhood and a clear lane.
+  suppliedHouse("riverside-hamlet-green-manor", "supplied-green-manor", 4, 46, 4, 4),
+  suppliedHouse("riverside-hamlet-purple-shop", "supplied-purple-shop", 14, 46, 5, 3),
+  suppliedHouse("riverside-hamlet-straw-cottage", "supplied-straw-cottage", 4, 54, 3, 4),
+  wideTree("riverside-hamlet-north-canopy", 1, 39),
+  tree("riverside-hamlet-east-tree", 22, 48),
+  tree("riverside-hamlet-south-tree", 22, 55),
+  villageDecor("riverside-hamlet-welcome-sign", 10, 44, VILLAGE_DECOR_FRAME.sign, true),
+  villageDecor("riverside-hamlet-bench", 15, 50, VILLAGE_DECOR_FRAME.bench),
+  villageDecor("riverside-hamlet-lantern", 12, 45, VILLAGE_DECOR_FRAME.lantern),
+  villageDecor("riverside-hamlet-planter", 20, 46, VILLAGE_DECOR_FRAME.redPlanter),
+  villageDecor("riverside-hamlet-crate", 18, 52, VILLAGE_DECOR_FRAME.produceCrate),
+  natureDecor("riverside-hamlet-sunflower", 8, 50, NATURE_FRAME.sunflower),
+  natureDecor("riverside-hamlet-red-flower", 6, 52, NATURE_FRAME.redFlower),
+  natureDecor("riverside-hamlet-white-flower", 21, 51, NATURE_FRAME.whiteFlower),
+
+  // A shared garden gives the new homes a useful, colorful meeting place.
+  suppliedHouse("community-garden-cottage", "supplied-straw-cottage", 20.5, 17, 3, 4),
+  sprite("community-garden-fence", "garden-fence", 23, 43, 10, 8, false),
+  villageDecor("community-garden-sign", 24, 44, VILLAGE_DECOR_FRAME.sign, true),
+  villageDecor("community-garden-bench", 24, 49, VILLAGE_DECOR_FRAME.bench),
+  villageDecor("community-garden-planter-west", 26, 45, VILLAGE_DECOR_FRAME.whitePlanter),
+  villageDecor("community-garden-planter-east", 28, 45, VILLAGE_DECOR_FRAME.redPlanter),
+  villageDecor("community-garden-crate", 29, 48, VILLAGE_DECOR_FRAME.produceCrate),
+  villageDecor("community-garden-lantern", 30, 45, VILLAGE_DECOR_FRAME.lantern),
+  natureDecor("community-garden-herbs-west", 26, 46, NATURE_FRAME.tallLeaves),
+  natureDecor("community-garden-herbs-center", 27, 46, NATURE_FRAME.leafyBush),
+  natureDecor("community-garden-herbs-east", 28, 46, NATURE_FRAME.tallLeaves),
+  natureDecor("community-garden-sunflower", 25, 47, NATURE_FRAME.sunflower),
+  natureDecor("community-garden-red-flower", 27, 48, NATURE_FRAME.redFlower),
+  natureDecor("community-garden-white-flower", 30, 47, NATURE_FRAME.whiteFlower),
+  tree("community-garden-shade-tree", 31, 48),
+
+  // Canal Hamlet turns the empty lower-east grass into a compact river-side neighborhood.
+  suppliedHouse("canal-hamlet-red-barn", "supplied-red-barn", 34, 38, 3, 4),
+  suppliedHouse("canal-hamlet-tower-house", "supplied-tower-house", 41, 38, 3, 4),
+  suppliedHouse("canal-hamlet-blue-house", "supplied-blue-house", 35, 52, 4, 4),
+  tree("canal-hamlet-square-tree", 40, 42),
+  wideTree("canal-hamlet-south-canopy", 42, 58),
+  villageDecor("canal-hamlet-way-sign", 36, 44, VILLAGE_DECOR_FRAME.sign, true),
+  villageDecor("canal-hamlet-bench", 41, 44, VILLAGE_DECOR_FRAME.bench),
+  villageDecor("canal-hamlet-lantern", 39, 45, VILLAGE_DECOR_FRAME.lantern),
+  villageDecor("canal-hamlet-planter", 34, 45, VILLAGE_DECOR_FRAME.whitePlanter),
+  villageDecor("canal-hamlet-crate", 41, 54, VILLAGE_DECOR_FRAME.produceCrate),
+  natureDecor("canal-hamlet-double-sunflower", 34, 50, NATURE_FRAME.doubleSunflower),
+  natureDecor("canal-hamlet-red-flower", 45, 52, NATURE_FRAME.redFlower),
+  natureDecor("canal-hamlet-white-flower", 39, 58, NATURE_FRAME.whiteFlower),
 
   // Forest framing alternates canopy shapes so its silhouette is not tiled.
   wideTree("forest-west-a", 17, 3),
@@ -332,6 +537,8 @@ export const PROTOTYPE_MAP = {
     area("south-riverbend", "South river bend", 29, 33, 29, 6),
     area("east-river-channel", "East river channel", 55, 46, 5, 16),
     area("south-river-cove", "South river cove", 43, 44, 12, 8),
+    area("riverside-hamlet", "Riverside hamlet", 2, 39, 22, 21),
+    area("canal-hamlet", "Canal hamlet", 33, 37, 14, 22),
     area("tree-border", "Village tree border", 0, 0, WORLD_COLUMNS, WORLD_ROWS)
   ],
   collision: [
@@ -521,12 +728,19 @@ function house(id: string, assetKey: Extract<VisualAssetKey, `village-${string}`
   });
 }
 
-function marketShop(id: string, x: number, y: number) {
-  return sprite(id, "village-market-shop", x, y - 1, 4, 3, true, undefined, {
-    x: 0.2,
-    y: 2.2,
-    width: 3.6,
-    height: 0.65
+function suppliedHouse(
+  id: string,
+  assetKey: Extract<VisualAssetKey, `supplied-${string}`>,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) {
+  return sprite(id, assetKey, x, y, width, height, true, undefined, {
+    x: Math.max(0.2, width * 0.15),
+    y: Math.max(0.25, height * 0.3),
+    width: Math.max(0.8, width * 0.7),
+    height: Math.max(0.9, height * 0.65)
   });
 }
 
@@ -608,6 +822,41 @@ function villageDecor(
   });
 }
 
+function loloProp(
+  id: string,
+  assetKey: Extract<VisualAssetKey, `lolo-${string}`>,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  hitbox: TileHitbox
+) {
+  return sprite(id, assetKey, x, y, width, height, true, undefined, hitbox);
+}
+
+function playgroundProp(
+  id: string,
+  assetKey: Extract<VisualAssetKey, `playground-${string}`>,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  hitbox: TileHitbox
+) {
+  return sprite(id, assetKey, x, y, width, height, true, undefined, hitbox);
+}
+
+function playgroundDecoration(
+  id: string,
+  assetKey: Extract<VisualAssetKey, `playground-${string}`>,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) {
+  return sprite(id, assetKey, x, y, width, height, false);
+}
+
 function tileDecoration(id: string, assetKey: VisualAssetKey, x: number, y: number, frame: number) {
   return sprite(id, assetKey, x, y, 1, 1, false, frame);
 }
@@ -659,6 +908,19 @@ function farmFenceCollision() {
   }
   for (const y of [24, 25, 29, 30, 31]) {
     collision.push(rectTiles(`farm-fence-left-${y}-hitbox`, 33.3, y, 0.4, 1));
+  }
+  return collision;
+}
+
+function communityGardenFenceCollision() {
+  const collision: Rectangle[] = [];
+  for (let x = 24; x <= 31; x += 1) {
+    collision.push(rectTiles(`community-garden-fence-top-${x}-hitbox`, x, 43.15, 1, 0.45));
+    if (x < 26 || x > 28) collision.push(rectTiles(`community-garden-fence-bottom-${x}-hitbox`, x, 50.15, 1, 0.45));
+  }
+  for (let y = 44; y <= 49; y += 1) {
+    collision.push(rectTiles(`community-garden-fence-left-${y}-hitbox`, 23.15, y, 0.45, 1));
+    collision.push(rectTiles(`community-garden-fence-right-${y}-hitbox`, 32.15, y, 0.45, 1));
   }
   return collision;
 }

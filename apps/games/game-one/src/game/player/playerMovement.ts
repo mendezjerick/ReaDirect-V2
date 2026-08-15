@@ -43,18 +43,13 @@ export function movePlayer({
 }
 
 export function getFacingFromInput(input: Point, previousFacing: Facing): Facing {
-  if (input.y < 0) {
-    return "up";
-  }
-  if (input.y > 0) {
-    return "down";
-  }
-  if (input.x < 0) {
-    return "left";
-  }
-  if (input.x > 0) {
-    return "right";
-  }
+  const horizontal = Math.abs(input.x);
+  const vertical = Math.abs(input.y);
+
+  // Analog sticks naturally include a small amount of vertical drift. Choose
+  // the dominant axis so a mostly-right or mostly-left gesture keeps its side-facing sprite.
+  if (horizontal > vertical) return input.x < 0 ? "left" : "right";
+  if (vertical > 0) return input.y < 0 ? "up" : "down";
 
   return previousFacing;
 }
@@ -89,7 +84,7 @@ export function getWalkFrameForFacing(
     return getBaseFrameForFacing(facing, layout) + clampedStep;
   }
   if (layout === "yato-mirror-left") {
-    // Skip the idle row (row 0) and ping-pong through walk rows 1?2?3?2.
+    // Skip the idle row (row 0) and ping-pong through walk rows 1→2→3→2.
     // This ensures the walk cycle is symmetric: step1, mid, step3, mid, repeat.
     // Both legs appear to alternate rather than the same leg always leading.
     const rowOffset = [4, 8, 12, 8][clampedStep];
@@ -128,7 +123,7 @@ export function getSwimmingStrokeAngle(
 
 export function getSpriteFlipXForFacing(facing: Facing, layout: SpriteFacingLayout = "standard") {
   // row-walk, row-three-dir, and yato-mirror-left have no dedicated left frames
-  // ? they reuse right-facing frames and mirror horizontally.
+  // — they reuse right-facing frames and mirror horizontally.
   return (layout === "row-walk" || layout === "row-three-dir" || layout === "yato-mirror-left") && facing === "left";
 }
 

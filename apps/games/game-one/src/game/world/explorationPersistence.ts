@@ -31,23 +31,44 @@ export function createInitialExplorationProgress(): ExplorationProgress {
   };
 }
 
-export function restoreExplorationProgress(value: unknown): ExplorationProgress | null {
-  if (!value || typeof value !== "object") return null;
-  const stored = value as Partial<ExplorationProgress>;
-  if (stored.version !== 1 || !isSafeExplorationPosition(stored.safePosition)) return null;
+export function loadExplorationProgress(storage: Storage = window.localStorage): ExplorationProgress {
   const fallback = createInitialExplorationProgress();
-  const knownSpotIds = new Set(FISHING_SPOTS.map(({ id }) => id));
-  return {
-    ...fallback,
-    ...stored,
-    safePosition: { ...stored.safePosition },
-    currentRegionId: getWorldRegionAtPoint(stored.safePosition).id,
-    discoveredFishingSpotIds: (stored.discoveredFishingSpotIds ?? []).filter((id): id is FishingSpotId => knownSpotIds.has(id as FishingSpotId)),
-    completedInteractionIds: uniqueStrings(stored.completedInteractionIds),
-    fishingParticipation: Math.max(0, Math.floor(stored.fishingParticipation ?? 0)),
-    fishingAttempts: Math.max(0, Math.floor(stored.fishingAttempts ?? 0)),
-    caughtResultIds: (stored.caughtResultIds ?? []).filter((id): id is FishingResultId => id === "message-bottle" || id === "silver-fish")
-  };
+  try {
+    const raw = storage.getItem(EXPLORATION_PROGRESS_KEY);
+    if (!raw) return fallback;
+    const stored = JSON.parse(raw) as Partial<ExplorationProgress>;
+    if (stored.version !== 1 || !isSafeExplorationPosition(stored.safePosition)) return fallback;
+    const knownSpotIds = new Set(FISHING_SPOTS.map(({ id }) => id));
+    return {
+      ...fallback,
+      ...stored,
+      safePosition: { ...stored.safePosition },
+      currentRegionId: getWorldRegionAtPoint(stored.safePosition).id,
+      discoveredFishingSpotIds: (stored.discoveredFishingSpotIds ?? []).filter((id): id is FishingSpotId => knownSpotIds.has(id as FishingSpotId)),
+      completedInteractionIds: uniqueStrings(stored.completedInteractionIds),
+      fishingParticipation: Math.max(0, Math.floor(stored.fishingParticipation ?? 0)),
+      fishingAttempts: Math.max(0, Math.floor(stored.fishingAttempts ?? 0)),
+      caughtResultIds: (stored.caughtResultIds ?? []).filter((id): id is FishingResultId => id === "message-bottle" || id === "silver-fish")
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+export function saveExplorationProgress(progress: ExplorationProgress, storage: Storage = window.localStorage) {
+  try {
+    storage.setItem(EXPLORATION_PROGRESS_KEY, JSON.stringify(progress));
+  } catch {
+    // Exploration remains available when storage is blocked.
+  }
+}
+
+export function clearExplorationProgress(storage: Storage = window.localStorage) {
+  try {
+    storage.removeItem(EXPLORATION_PROGRESS_KEY);
+  } catch {
+    // Nothing else is required when storage is unavailable.
+  }
 }
 
 export function isSafeExplorationPosition(position: unknown): position is Point {

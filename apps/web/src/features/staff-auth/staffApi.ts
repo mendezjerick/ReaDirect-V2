@@ -2,6 +2,13 @@ import { z } from "zod";
 
 import { apiFetch as fetch } from "../../lib/apiUrl";
 import {
+  getNativeSessionCache,
+  isNativeSecureSessionAvailable,
+  persistNativeSession,
+  removeNativeSession,
+  setNativeSessionCache,
+} from "../../app/nativeSecureSession";
+import {
   learnerReadingPathSchema,
   learnerSpeechLanguageSchema,
 } from "../learner-auth/learnerApi";
@@ -739,23 +746,87 @@ export type PortalLaunchResponse = z.infer<typeof portalLaunchResponseSchema>;
 
 const staffSessionStorageKey = "readirect.staff-session";
 const staffDeviceStorageKey = "readirect.staff-device";
+const browserSessionToken = "cookie-session";
 export const staffSessionChangedEvent = "readirect:staff-session-changed";
+const browserSessionMarker = "readirect_staff_signed_in";
+
+const storedStaffSessionSchema = staffIdentitySessionSchema.extend({
+  token: z.string().min(1),
+});
+
+function setBrowserSessionMarker(signedIn: boolean): void {
+  if (typeof document === "undefined") return;
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = signedIn
+    ? `${browserSessionMarker}=1; Path=/; SameSite=Lax${secure}`
+    : `${browserSessionMarker}=; Max-Age=0; Path=/; SameSite=Lax${secure}`;
+}
+
+export function hydrateStaffSession(): void {
+  if (!isNativeSecureSessionAvailable()) return;
+  const cached = getNativeSessionCache(staffSessionStorageKey);
+  if (cached === undefined) return;
+  try {
+    if (!staffSessionSchema.safeParse(JSON.parse(cached ?? "null")).success) {
+      setNativeSessionCache(staffSessionStorageKey, null);
+    }
+  } catch {
+    setNativeSessionCache(staffSessionStorageKey, null);
+  }
+}
 
 function announceStaffSessionChange(): void {
   window.dispatchEvent(new Event(staffSessionChangedEvent));
 }
 
-export function saveStaffSession(session: StaffSession): void {
-  const storage = session.session.remembered
-    ? window.localStorage
-    : window.sessionStorage;
+export async function saveStaffSession(session: StaffSession): Promise<void> {
+  if (isNativeSecureSessionAvailable()) {
+    const serialized = JSON.stringify(session);
+    setNativeSessionCache(staffSessionStorageKey, serialized);
+    try {
+      if (session.session.remembered) {
+        await persistNativeSession(staffSessionStorageKey, serialized);
+      }
+    } catch (error) {
+      setNativeSessionCache(staffSessionStorageKey, null);
+      throw error;
+    }
+    announceStaffSessionChange();
+    return;
+  }
+
+  const browserSession = { ...session, token: browserSessionToken };
+
+  const storage = window.sessionStorage;
   window.localStorage.removeItem(staffSessionStorageKey);
   window.sessionStorage.removeItem(staffSessionStorageKey);
-  storage.setItem(staffSessionStorageKey, JSON.stringify(session));
+  storage.setItem(staffSessionStorageKey, JSON.stringify(browserSession));
+  setBrowserSessionMarker(true);
   announceStaffSessionChange();
 }
 
+export async function restoreStaffSession(): Promise<StaffSession | null> {
+  const response = await fetch("/api/staff/session", {
+    headers: {
+      Accept: "application/json",
+      ...(loadStaffSession()?.session.remembered
+        ? { "X-ReaDirect-Device": getStaffDeviceId() }
+        : {}),
+    },
+  });
+  if (!response.ok) return null;
+  const identity = staffIdentitySessionSchema.parse(await response.json());
+  return { ...identity, token: browserSessionToken };
+}
+
 export function loadStaffSession(): StaffSession | null {
+  if (isNativeSecureSessionAvailable()) {
+    const cached = getNativeSessionCache(staffSessionStorageKey);
+    if (!cached) return null;
+    const parsed = staffSessionSchema.safeParse(JSON.parse(cached));
+    return parsed.success ? parsed.data : null;
+  }
+
   const storage = window.sessionStorage.getItem(staffSessionStorageKey)
     ? window.sessionStorage
     : window.localStorage;
@@ -774,20 +845,28 @@ export function loadStaffSession(): StaffSession | null {
     return null;
   }
 
-  const parsed = staffSessionSchema.safeParse(storedValue);
+  const parsed = storedStaffSessionSchema.safeParse(storedValue);
 
   if (!parsed.success) {
     storage.removeItem(staffSessionStorageKey);
     return null;
   }
 
-  return parsed.data;
+  if (parsed.data.token === browserSessionToken) return parsed.data;
+  storage.removeItem(staffSessionStorageKey);
+  return null;
 }
 
 export function clearStaffSession(): void {
   const session = loadStaffSession();
-  window.sessionStorage.removeItem(staffSessionStorageKey);
-  window.localStorage.removeItem(staffSessionStorageKey);
+  if (isNativeSecureSessionAvailable()) {
+    setNativeSessionCache(staffSessionStorageKey, null);
+    void removeNativeSession(staffSessionStorageKey);
+  } else {
+    window.sessionStorage.removeItem(staffSessionStorageKey);
+    window.localStorage.removeItem(staffSessionStorageKey);
+    setBrowserSessionMarker(false);
+  }
   announceStaffSessionChange();
 
   if (session) {
@@ -803,8 +882,14 @@ export function clearStaffSession(): void {
 }
 
 function discardStaffSession(): void {
-  window.sessionStorage.removeItem(staffSessionStorageKey);
-  window.localStorage.removeItem(staffSessionStorageKey);
+  if (isNativeSecureSessionAvailable()) {
+    setNativeSessionCache(staffSessionStorageKey, null);
+    void removeNativeSession(staffSessionStorageKey);
+  } else {
+    window.sessionStorage.removeItem(staffSessionStorageKey);
+    window.localStorage.removeItem(staffSessionStorageKey);
+    setBrowserSessionMarker(false);
+  }
   announceStaffSessionChange();
 }
 
@@ -846,11 +931,11 @@ export async function getCurrentStaffSession(): Promise<StaffSession> {
   }
 
   const identity = staffIdentitySessionSchema.parse(await response.json());
-  const refreshedSession = staffSessionSchema.parse({
+  const refreshedSession = storedStaffSessionSchema.parse({
     ...identity,
     token: currentSession.token,
   });
-  saveStaffSession(refreshedSession);
+  await saveStaffSession(refreshedSession);
 
   return refreshedSession;
 }

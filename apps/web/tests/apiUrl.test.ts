@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { apiFetch, resolveApiUrl } from "../src/lib/apiUrl";
+import {
+  apiFetch,
+  apiFetchWithTimeout,
+  resolveApiUrl,
+} from "../src/lib/apiUrl";
 
 describe("resolveApiUrl", () => {
   it("keeps API paths relative when no origin is configured", () => {
@@ -64,5 +68,32 @@ describe("resolveApiUrl", () => {
       expect.objectContaining({ body, headers, signal: controller.signal }),
     );
     fetchSpy.mockRestore();
+  });
+
+  it("turns a stalled request into a readable timeout error", async () => {
+    vi.useFakeTimers();
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation((_input, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+      );
+
+    const request = apiFetchWithTimeout("/api/learners/lessons/lesson-2/1/submit", {
+      method: "POST",
+    }, 1_000);
+    const failure = expect(request).rejects.toThrow(
+      "The reading checker took too long to respond. Please try again.",
+    );
+    await vi.advanceTimersByTimeAsync(1_000);
+    await failure;
+
+    fetchSpy.mockRestore();
+    vi.useRealTimers();
   });
 });
