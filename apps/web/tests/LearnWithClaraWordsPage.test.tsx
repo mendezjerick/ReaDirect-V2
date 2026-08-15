@@ -1,9 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LearnWithClaraWordsPage } from "../src/features/learn-with-clara/LearnWithClaraWordsPage";
+import { saveLearnerSession } from "../src/features/learner-auth/learnerApi";
 
 vi.mock("../src/features/intro/ClaraStage", () => ({
   ClaraStage: ({
@@ -40,10 +41,12 @@ const learnerSession = {
     learner_code: "KW000",
     full_name: "Kristen Rhine Wright",
     first_name: "Kristen",
-    account_purpose: "portal_system",
+    account_purpose: "portal_system" as const,
+    speech_language: "en" as const,
     school: null,
     grade_level: null,
     section: null,
+    achievement_keys: [],
     progress: {
       stage: "before_diagnostic",
       current_required_lesson_order: null,
@@ -55,13 +58,11 @@ const learnerSession = {
 describe("LearnWithClaraWordsPage", () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    document.cookie = "readirect_learner_signed_in=; Max-Age=0; Path=/";
   });
 
   it("runs the Clara-style Word Story from its dedicated route", async () => {
-    window.sessionStorage.setItem(
-      "readirect.learner-session",
-      JSON.stringify(learnerSession),
-    );
+    saveLearnerSession(learnerSession);
 
     render(
       <MemoryRouter initialEntries={["/learner/learn-with-clara/words"]}>
@@ -85,6 +86,11 @@ describe("LearnWithClaraWordsPage", () => {
     expect(screen.getByLabelText("Ma'am Clara")).toBeVisible();
     expect(
       document.querySelectorAll(".words-class__trail-preview-stop img"),
+    ).toHaveLength(0);
+    expect(
+      document.querySelectorAll(
+        ".words-class__trail-preview-stop .word-rescue-icon",
+      ),
     ).toHaveLength(5);
     expect(screen.getByText("Your word story is ready.")).toBeVisible();
 
@@ -97,11 +103,15 @@ describe("LearnWithClaraWordsPage", () => {
     expect(
       screen.getByRole("heading", { name: "A Friend in the Sky" }),
     ).toBeVisible();
-    expect(screen.getByAltText("A small flying animal bat")).toBeVisible();
+    expect(
+      document.querySelector(".word-rescue-board__clue-art .word-rescue-icon"),
+    ).toBeTruthy();
 
     const batChoice = screen.getByRole("button", { name: "Choose bat" });
+    await waitFor(() => expect(batChoice).toBeDisabled());
+    await waitFor(() => expect(batChoice).toBeEnabled());
     fireEvent.click(batChoice);
-    expect(screen.getByText("You rescued bat.")).toBeVisible();
+    expect(await screen.findByText("You rescued bat.")).toBeVisible();
     expect(
       screen.getByRole("button", { name: "Next Story Moment" }),
     ).toBeVisible();

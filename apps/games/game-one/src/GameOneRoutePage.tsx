@@ -15,12 +15,15 @@ import {
   type MovementControlMode
 } from "./game/input/movementControlPreference";
 import {
+  createInitialMissionState,
   getMissionTargetNpcId,
   isMissionStageBlocking,
   missionReducer,
+  type MissionState,
   type MissionStage
 } from "./game/mission/missionState";
-import { getMissions, MISSIONS } from "./game/content/missions";
+import { clearMissionProgress, loadMissionProgress, saveMissionProgress } from "./game/mission/missionPersistence";
+import { getMission, getMissions, MISSIONS } from "./game/content/missions";
 import { createMissionRounds, createSessionRandom } from "./game/questions/questionRound";
 import {
   CompletionOverlay,
@@ -38,11 +41,10 @@ import {
   QuestionsCompletedOverlay,
   ReadingIntroOverlay,
   RemainingQuestionsOverlay,
-  StoryPresentationOverlay,
-  StoryReviewOverlay
+  StoryPresentationOverlay
 } from "./game/ui/MissionUi";
 import { TutorialOverlay } from "./game/tutorial/TutorialOverlay";
-import { tutorialAllowsMissionEvent, tutorialReducer, type TutorialStep } from "./game/tutorial/tutorialState";
+import { createInitialTutorialState, saveTutorialProgress, tutorialAllowsMissionEvent, tutorialReducer, type TutorialStep } from "./game/tutorial/tutorialState";
 import { consumeProgressResetRequest } from "./game/progress/resetLearnerProgress";
 import { NavigationHud, type PlayerNavigationState } from "./game/navigation/NavigationHud";
 import { isSwimmableRiverPoint, PROTOTYPE_MAP } from "./game/map/prototypeMap";
@@ -56,19 +58,13 @@ import { FishingOverlay } from "./game/fishing/FishingOverlay";
 import { FISHING_SPOTS, getDiscoveredFishingSpotIds, getFishingProximity, type FishingResultId } from "./game/fishing/fishingSystem";
 import { RegionBanner } from "./game/world/RegionBanner";
 import {
+  clearExplorationProgress,
   createInitialExplorationProgress,
-  isSafeExplorationPosition
+  isSafeExplorationPosition,
+  loadExplorationProgress,
+  saveExplorationProgress
 } from "./game/world/explorationPersistence";
 import { getWorldRegionAtPoint, type WorldRegionId } from "./game/world/worldRegions";
-import type { GameOneHostAdapter } from "./host/GameOneHostAdapter";
-import {
-  checkpointKeyForMission,
-  createGameOneSaveState,
-  GAME_ONE_SAVE_SCHEMA_VERSION,
-  hydrateGameOneProgress,
-  type HydratedGameOneProgress
-} from "./game/persistence/gameOneSaveContract";
-import { GameOneSaveCoordinator } from "./game/persistence/GameOneSaveCoordinator";
 import { ShopInteriorOverlay } from "./game/shop/ShopInteriorOverlay";
 import { getShop, type ShopId } from "./game/content/shops";
 import {
@@ -78,128 +74,24 @@ import {
 import { CharacterSelectionOverlay } from "./game/player/CharacterSelectionOverlay";
 import { getSwimEntryPoint } from "./game/world/swimming";
 import {
+  DEFAULT_PLAYABLE_CHARACTER_ID,
   getPlayableCharacter,
+  loadPlayableCharacterSelection,
+  savePlayableCharacterSelection,
   type PlayableCharacterId
 } from "./game/player/playableCharacters";
 import { clampInteractionPromptPosition } from "./game/layout/gameViewport";
 import { useResponsiveInputReset } from "./game/layout/useResponsiveInputReset";
 import { OrientationNotice } from "./game/layout/OrientationNotice";
 import { GameModalFocusManager } from "./game/layout/GameModalFocusManager";
+import { ReadscapeWelcomeOverlay } from "./game/ui/ReadscapeWelcomeOverlay";
 
 type GameStatus = "loading" | "ready" | "error";
 type PauseReason = "manual" | "document-hidden" | "exit-dialog";
+type WelcomePhase = "visible" | "leaving" | "hidden";
 
-const missingHostAdapter: GameOneHostAdapter = {
-  load: () => Promise.reject(new Error("An authenticated Game One host is required.")),
-  save: () => Promise.reject(new Error("An authenticated Game One host is required.")),
-  reset: () => Promise.reject(new Error("An authenticated Game One host is required."))
-};
-
-export function GameRoutePage({
-  host = missingHostAdapter
-}: {
-  host?: GameOneHostAdapter;
-}) {
-  const navigate = useNavigate();
-  const [hydrationAttempt, setHydrationAttempt] = useState(0);
-  const [hydration, setHydration] = useState<
-    | { status: "loading" }
-    | { status: "error"; message: string }
-    | { status: "ready"; progress: HydratedGameOneProgress }
-  >({ status: "loading" });
-  const [storedLanguagePreference] = useState(loadLanguagePreference);
-  const preferredLanguage = storedLanguagePreference ?? "en";
-  const [random] = useState(createSessionRandom);
-  const [initialRounds] = useState(() =>
-    createMissionRounds(getMissions(preferredLanguage), random)
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-    setHydration({ status: "loading" });
-
-    void host.load()
-      .then(async (save) => {
-        if (consumeProgressResetRequest()) {
-          await host.reset(save?.revision ?? 0);
-          save = null;
-        }
-        if (cancelled) return;
-        setHydration({
-          status: "ready",
-          progress: hydrateGameOneProgress(
-            save,
-            initialRounds,
-            preferredLanguage
-          )
-        });
-      })
-      .catch((reason: unknown) => {
-        if (cancelled) return;
-        setHydration({
-          status: "error",
-          message: reason instanceof Error
-            ? reason.message
-            : "Game One progress could not be loaded."
-        });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [host, hydrationAttempt, initialRounds, preferredLanguage]);
-
-  if (hydration.status === "loading") {
-    return (
-      <main className="game-route">
-        <StatusOverlay
-          title="Loading your adventure"
-          text="ReaDirect is safely loading your Game One progress."
-          role="status"
-        />
-      </main>
-    );
-  }
-
-  if (hydration.status === "error") {
-    return (
-      <main className="game-route">
-        <StatusOverlay
-          title="Your adventure could not load"
-          text={hydration.message}
-          role="alert"
-        >
-          <div className="game-route__overlay-actions">
-            <button
-              type="button"
-              className="game-route__overlay-button game-route__overlay-button--primary"
-              onClick={() => setHydrationAttempt((attempt) => attempt + 1)}
-            >
-              Retry
-            </button>
-            <button
-              type="button"
-              className="game-route__overlay-button game-route__overlay-button--secondary"
-              onClick={() => navigate("/learner/games")}
-            >
-              Return to Lobby
-            </button>
-          </div>
-        </StatusOverlay>
-      </main>
-    );
-  }
-
-  return <GameOneSession host={host} initialProgress={hydration.progress} />;
-}
-
-function GameOneSession({
-  host,
-  initialProgress
-}: {
-  host: GameOneHostAdapter;
-  initialProgress: HydratedGameOneProgress;
-}) {
+export function GameRoutePage() {
+  consumeProgressResetRequest();
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const controllerRef = useRef<KaplayGameController | null>(null);
@@ -209,6 +101,7 @@ function GameOneSession({
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const [status, setStatus] = useState<GameStatus>("loading");
+  const [welcomePhase, setWelcomePhase] = useState<WelcomePhase>("visible");
   const [retryKey, setRetryKey] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pauseReasons, setPauseReasons] = useState<PauseReason[]>([]);
@@ -217,23 +110,29 @@ function GameOneSession({
   const [audioManager] = useState(createRpgAudioManager);
   const [audioPreferences, setAudioPreferences] = useState<AudioPreferences>(() => audioManager.getPreferences());
   const [activeShopId, setActiveShopId] = useState<ShopId | null>(null);
-  const [shopTaskState, setShopTaskState] = useState<ShopTaskState>(initialProgress.shopTask);
+  const [shopTaskState, setShopTaskState] = useState<ShopTaskState>(createInitialShopTaskState);
   const [mapOpen, setMapOpen] = useState(false);
+  const [journeyBagOpen, setJourneyBagOpen] = useState(false);
   const [showPath, setShowPath] = useState(true);
+  const [storedCharacterPreference] = useState(loadPlayableCharacterSelection);
   const [selectedCharacterId, setSelectedCharacterId] = useState<PlayableCharacterId>(
-    initialProgress.characterId
+    storedCharacterPreference ?? DEFAULT_PLAYABLE_CHARACTER_ID
   );
   const [draftCharacterId, setDraftCharacterId] = useState<PlayableCharacterId>(
-    initialProgress.characterId
+    storedCharacterPreference ?? DEFAULT_PLAYABLE_CHARACTER_ID
   );
-  const [characterSelectionOpen, setCharacterSelectionOpen] = useState(false);
-  const [characterSelectionRequired, setCharacterSelectionRequired] = useState(false);
+  const [characterSelectionOpen, setCharacterSelectionOpen] = useState(
+    () => storedCharacterPreference === null
+  );
+  const [characterSelectionRequired, setCharacterSelectionRequired] = useState(
+    () => storedCharacterPreference === null
+  );
   const [storedLanguagePreference] = useState(loadLanguagePreference);
   const preferredLanguage = storedLanguagePreference ?? "en";
   const [languageSelectionOpen, setLanguageSelectionOpen] = useState(() => storedLanguagePreference === null);
   const [languageSelectionRequired, setLanguageSelectionRequired] = useState(() => storedLanguagePreference === null);
   const [draftLanguage, setDraftLanguage] = useState<GameLanguage>(preferredLanguage);
-  const [initialExplorationProgress] = useState(initialProgress.exploration);
+  const [initialExplorationProgress] = useState(loadExplorationProgress);
   const [explorationProgress, setExplorationProgress] = useState(initialExplorationProgress);
   const [fishingSpot, setFishingSpot] = useState<(typeof FISHING_SPOTS)[number] | null>(null);
   const [riverBoatUi, setRiverBoatUi] = useState<RiverBoatUiState>({
@@ -254,26 +153,15 @@ function GameOneSession({
   }, []);
   const portrait = useResponsiveInputReset(clearResponsiveInput);
   const [random] = useState(createSessionRandom);
-  const [preparedMissionState] = useState(initialProgress.mission);
+  const [initialRounds] = useState(() => createMissionRounds(getMissions(preferredLanguage), random));
+  const [preparedMissionState] = useState(() => loadMissionProgress(initialRounds) ?? createInitialMissionState(initialRounds, preferredLanguage));
   const [missionState, dispatchMission] = useReducer(missionReducer, preparedMissionState);
   const copy = getUiCopy(missionState.language);
   const missionTargetNpcId = getMissionTargetNpcId(missionState);
   const missionStateRef = useRef(missionState);
   const showPathRef = useRef(showPath);
   const explorationProgressRef = useRef(explorationProgress);
-  const [tutorialState, dispatchTutorial] = useReducer(
-    tutorialReducer,
-    initialProgress.tutorial
-  );
-  const [persistenceError, setPersistenceError] = useState<string | null>(null);
-  const [saveCoordinator] = useState(
-    () => new GameOneSaveCoordinator(
-      host,
-      initialProgress.revision,
-      (error) => setPersistenceError(error.message)
-    )
-  );
-  const saveEffectsReadyRef = useRef(false);
+  const [tutorialState, dispatchTutorial] = useReducer(tutorialReducer, undefined, createInitialTutorialState);
   const guidedDispatchRef = useRef<(event: Parameters<typeof dispatchMission>[0]) => void>(() => undefined);
   const pauseReasonsCountRef = useRef(0);
   const missionOverlayOpenRef = useRef(false);
@@ -282,11 +170,13 @@ function GameOneSession({
   explorationProgressRef.current = explorationProgress;
   const activePauseReason = pauseReasons[0];
   const isPaused = pauseReasons.length > 0;
+  const welcomeOpen = welcomePhase !== "hidden";
   const shopOpen = activeShopId !== null;
   const missionOverlayOpen =
     missionState.activeDialogue !== null ||
     missionState.helpOpen ||
     mapOpen ||
+    journeyBagOpen ||
     audioSettingsOpen ||
     characterSelectionOpen ||
     languageSelectionOpen ||
@@ -296,8 +186,8 @@ function GameOneSession({
   const tutorialAllowsMovement = tutorialState.active &&
     (tutorialState.step === "movement" || tutorialState.step === "interaction") &&
     missionState.stage === "approachStoryCharacter" && !missionState.activeDialogue;
-  const inputEnabled = status === "ready" && persistenceError === null && !isPaused && (!missionOverlayOpen || tutorialAllowsMovement) &&
-    (!tutorialState.active || tutorialAllowsMovement) && !characterSelectionOpen && !languageSelectionOpen && !shopOpen;
+  const inputEnabled = status === "ready" && !isPaused && (!missionOverlayOpen || tutorialAllowsMovement) &&
+    (!tutorialState.active || tutorialAllowsMovement) && !characterSelectionOpen && !languageSelectionOpen && !shopOpen && !welcomeOpen;
   const activeFishingSpot = FISHING_SPOTS[0];
   const isSwimming = isSwimmableRiverPoint(playerNavigation.position);
   const fishingProximity = getFishingProximity(
@@ -359,10 +249,8 @@ function GameOneSession({
     if (tutorialState.active && !tutorialAllowsMissionEvent(tutorialState.step, event.type)) return;
     dispatchMission(event);
     if (!tutorialState.active) return;
-    if (tutorialState.step === "reading" && event.type === "BEGIN_MISSION_ACTION") {
+    if (tutorialState.step === "reading" && event.type === "FINISH_STORY") {
       dispatchTutorial({ type: "COMPLETE_STEP", step: "reading" });
-    } else if (tutorialState.step === "readAgain" && event.type === "CLOSE_STORY_REVIEW") {
-      dispatchTutorial({ type: "COMPLETE_STEP", step: "readAgain" });
     } else if (tutorialState.step === "choice" && event.type === "CONTINUE_AFTER_ACTION") {
       dispatchTutorial({ type: "COMPLETE_STEP", step: "choice" });
       dispatchTutorial({ type: "COMPLETE_STEP", step: "continueQuestions" });
@@ -489,29 +377,12 @@ function GameOneSession({
   }, [inputEnabled]);
 
   useEffect(() => {
-    if (!saveEffectsReadyRef.current) {
-      saveEffectsReadyRef.current = true;
-      return;
-    }
-
-    saveCoordinator.schedule({
-      checkpointKey: checkpointKeyForMission(missionState),
-      saveSchemaVersion: GAME_ONE_SAVE_SCHEMA_VERSION,
-      state: createGameOneSaveState(
-        missionState,
-        explorationProgress,
-        tutorialState,
-        selectedCharacterId,
-        shopTaskState
-      )
-    });
-  }, [explorationProgress, missionState, saveCoordinator, selectedCharacterId, shopTaskState, tutorialState]);
+    saveMissionProgress(missionState);
+  }, [missionState]);
 
   useEffect(() => {
-    return () => {
-      void saveCoordinator.flush().catch(() => undefined);
-    };
-  }, [saveCoordinator]);
+    saveExplorationProgress(explorationProgress);
+  }, [explorationProgress]);
 
   useEffect(() => {
     if (!regionBannerId) return;
@@ -547,6 +418,10 @@ function GameOneSession({
   }, [activeFishingSpot, fishingReady]);
 
   useEffect(() => {
+    saveTutorialProgress(tutorialState);
+  }, [tutorialState]);
+
+  useEffect(() => {
     if (!tutorialState.active || tutorialState.step !== "movement") return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.repeat || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d"].includes(event.key)) return;
@@ -559,6 +434,22 @@ function GameOneSession({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [missionState.missionIndex, playerNavigation.position, tutorialState.active, tutorialState.step]);
+
+  const dismissWelcome = useCallback(() => {
+    setWelcomePhase((phase) => phase === "visible" ? "leaving" : phase);
+  }, []);
+
+  useEffect(() => {
+    if (status !== "ready" || welcomePhase !== "visible") return;
+    const timer = window.setTimeout(dismissWelcome, 2600);
+    return () => window.clearTimeout(timer);
+  }, [dismissWelcome, status, welcomePhase]);
+
+  useEffect(() => {
+    if (welcomePhase !== "leaving") return;
+    const timer = window.setTimeout(() => setWelcomePhase("hidden"), 420);
+    return () => window.clearTimeout(timer);
+  }, [welcomePhase]);
 
   useEffect(() => {
     let cancelled = false;
@@ -647,7 +538,7 @@ function GameOneSession({
       controllerRef.current = null;
       window.speechSynthesis?.cancel();
     };
-  }, [audioManager, placeInteractionPrompt, retryKey, selectedCharacterId]);
+  }, [audioManager, placeInteractionPrompt, retryKey]);
 
   useEffect(() => {
     controllerRef.current?.setMissionState({
@@ -696,25 +587,11 @@ function GameOneSession({
     });
   }, [setPauseReason]);
 
-  const exitToLobby = async () => {
-    try {
-      await saveCoordinator.flush();
-    } catch {
-      return;
-    }
+  const exitToDashboard = () => {
     navigate("/learner/games");
   };
 
-  const exitWithoutSaving = () => {
-    navigate("/learner/games");
-  };
-
-  const replayMission = async () => {
-    try {
-      await saveCoordinator.reset();
-    } catch {
-      return;
-    }
+  const replayMission = () => {
     const nextRounds = createMissionRounds(getMissions(missionState.language), random, missionState.rounds);
     controllerRef.current?.clearInput();
     controllerRef.current?.resetMission();
@@ -722,10 +599,11 @@ function GameOneSession({
     const resetExploration = createInitialExplorationProgress();
     setExplorationProgress(resetExploration);
     explorationProgressRef.current = resetExploration;
+    clearExplorationProgress();
     setFishingSpot(null);
-    setShopTaskState(createInitialShopTaskState());
     setMapOpen(false);
     setShowPath(true);
+    clearMissionProgress();
     dispatchMission({ type: "RESET_ACTIVITY", rounds: nextRounds });
   };
 
@@ -743,13 +621,14 @@ function GameOneSession({
 
   const confirmCharacterSelection = () => {
     const changed = selectedCharacterId !== draftCharacterId;
+    savePlayableCharacterSelection(draftCharacterId);
     setSelectedCharacterId(draftCharacterId);
     setCharacterSelectionRequired(false);
     setCharacterSelectionOpen(false);
     if (changed) {
       controllerRef.current?.clearInput();
       setKeyboardDirections(new Set());
-      setRetryKey((current) => current + 1);
+      controllerRef.current?.setCharacter(draftCharacterId);
     }
   };
 
@@ -808,16 +687,7 @@ function GameOneSession({
         aria-label={`${copy.gameTitle} ${copy.gameHost}`}
         className="game-route__stage"
       >
-        <header className="game-topbar">
-          <div className="game-brand">
-            <p className="game-phase-label">
-              {copy.phaseLabel}
-            </p>
-            <h1 className="game-title">
-              <span className="game-title-short">{copy.shortTitle}</span>
-              <span className="game-title-full">{copy.gameTitle}</span>
-            </h1>
-          </div>
+        <header className="game-topbar game-topbar--controls-only">
           <div className="game-system-controls">
             <button
               type="button"
@@ -826,6 +696,7 @@ function GameOneSession({
               aria-label={`Change character: ${getPlayableCharacter(selectedCharacterId).name[missionState.language]}`}
               className="game-character-button"
             >
+              <span className="game-command-icon game-command-icon--character" aria-hidden="true" />
               <span className="game-character-label-full">Choose Character</span>
               <span className="game-character-label-short" aria-hidden="true">Choose</span>
             </button>
@@ -836,6 +707,7 @@ function GameOneSession({
               aria-label={`${copy.changeLanguage}: ${missionState.language === "en" ? "English" : "Filipino"}`}
               className="game-system-button game-language-button"
             >
+              <span className="game-command-icon game-command-icon--language" aria-hidden="true">A</span>
               <span className="game-language-label-full">{missionState.language === "en" ? "English" : "Filipino"}</span>
               <span className="game-language-label-short" aria-hidden="true">{missionState.language === "en" ? "EN" : "FIL"}</span>
             </button>
@@ -845,7 +717,8 @@ function GameOneSession({
               disabled={tutorialState.active}
               className="game-system-button"
             >
-              {copy.sound}
+              <span className="game-command-icon game-command-icon--sound" aria-hidden="true">SFX</span>
+              <span>{copy.sound}</span>
             </button>
             <button
               type="button"
@@ -853,7 +726,8 @@ function GameOneSession({
               disabled={status !== "ready" || missionState.activityCompleted || tutorialState.active}
               className="game-system-button game-system-button--primary"
             >
-              {copy.pause}
+              <span className="game-command-icon game-command-icon--pause" aria-hidden="true">||</span>
+              <span>{copy.pause}</span>
             </button>
             <button
               type="button"
@@ -861,7 +735,8 @@ function GameOneSession({
               disabled={tutorialState.active}
               className="game-system-button"
             >
-              {copy.exit}
+              <span className="game-command-icon game-command-icon--exit" aria-hidden="true">X</span>
+              <span>{copy.exit}</span>
             </button>
           </div>
         </header>
@@ -887,19 +762,19 @@ function GameOneSession({
               text={copy.startErrorHelp}
               role="alert"
             >
-              <p className="game-route__visually-hidden">Technical reason: {errorMessage}</p>
-              <div className="game-route__overlay-actions">
+              <p className="sr-only">Technical reason: {errorMessage}</p>
+              <div className="mt-5 flex flex-wrap justify-center gap-3">
                 <button
                   type="button"
                   onClick={retry}
-                  className="game-route__overlay-button game-route__overlay-button--primary"
+                  className="min-h-12 rounded-md bg-[#facc15] px-5 font-extrabold text-[#13251d]"
                 >
                   {copy.retry}
                 </button>
                 <button
                   type="button"
-                  onClick={() => void exitToLobby()}
-                  className="game-route__overlay-button game-route__overlay-button--secondary"
+                  onClick={exitToDashboard}
+                  className="min-h-12 rounded-md bg-white px-5 font-extrabold text-[#13251d]"
                 >
                   {copy.exitDashboard}
                 </button>
@@ -907,51 +782,35 @@ function GameOneSession({
             </StatusOverlay>
           )}
 
-          {persistenceError && (
-            <StatusOverlay
-              title="Progress could not be saved"
-              text={persistenceError}
-              role="alert"
-            >
-              <div className="game-route__overlay-actions">
-                <button
-                  type="button"
-                  onClick={() => window.location.reload()}
-                  className="game-route__overlay-button game-route__overlay-button--primary"
-                >
-                  Reload Progress
-                </button>
-                <button
-                  type="button"
-                  onClick={exitWithoutSaving}
-                  className="game-route__overlay-button game-route__overlay-button--secondary"
-                >
-                  Return to Lobby
-                </button>
-              </div>
-            </StatusOverlay>
+          {status === "ready" && (
+            <ReadscapeWelcomeOverlay phase={welcomePhase} onDismiss={dismissWelcome} />
           )}
 
-          {isPaused && status !== "error" && !persistenceError && !exitDialogOpen && (
-            <StatusOverlay title={pauseTitle} text={copy.pauseMessage}>
-              <div className="game-route__overlay-actions">
+          {isPaused && status !== "error" && !exitDialogOpen && (
+            <StatusOverlay
+              title={pauseTitle}
+              text={copy.pauseMessage}
+              variant="pause"
+              eyebrow={missionState.language === "fil" ? "NAKA-PAUSE" : "GAME PAUSED"}
+            >
+              <div className="pause-panel__actions">
                 <button
                   type="button"
                   onClick={() => setPauseReason("manual", false)}
                   disabled={activePauseReason !== "manual"}
-                  className="game-route__overlay-button game-route__overlay-button--primary"
+                  className="pause-panel__resume"
                 >
                   {copy.resume}
                 </button>
                 <button type="button" onClick={() => {
                   setPauseReason("manual", false);
                   dispatchTutorial({ type: "REOPEN", step: tutorialStepForMissionStage(missionState.stage) });
-                }} className="game-route__overlay-button game-route__overlay-button--muted">{copy.showTutorial}</button>
-                <button type="button" onClick={openLanguageSelection} className="game-route__overlay-button game-route__overlay-button--outline">{copy.changeLanguage}</button>
+                }} className="pause-panel__utility">{copy.showTutorial}</button>
+                <button type="button" onClick={openLanguageSelection} className="pause-panel__utility">{copy.changeLanguage}</button>
                 <button
                   type="button"
                   onClick={openExitDialog}
-                  className="game-route__overlay-button game-route__overlay-button--secondary"
+                  className="pause-panel__exit"
                 >
                   {copy.exit}
                 </button>
@@ -1017,6 +876,40 @@ function GameOneSession({
             {copy.help}
           </button>
         </div>}
+        {!shopOpen && status === "ready" && (
+          <nav className="adventure-dock" aria-label={missionState.language === "fil" ? "Mga gamit sa pakikipagsapalaran" : "Adventure tools"}>
+            <button
+              type="button"
+              className="adventure-dock__button adventure-dock__button--quests"
+              onClick={() => dispatchGuided({ type: "REQUEST_HELP" })}
+              disabled={isPaused || missionOverlayOpen || tutorialState.active}
+            >
+              <span className="adventure-dock__icon adventure-dock__icon--book" aria-hidden="true" />
+              <span>{missionState.language === "fil" ? "Gabay" : "Quests"}</span>
+            </button>
+            <button
+              type="button"
+              className="adventure-dock__button adventure-dock__button--bag"
+              onClick={() => setJourneyBagOpen(true)}
+              disabled={isPaused || missionOverlayOpen || tutorialState.active}
+            >
+              <span className="adventure-dock__icon adventure-dock__icon--bag" aria-hidden="true" />
+              <span>{missionState.language === "fil" ? "Bag" : "Inventory"}</span>
+            </button>
+            <button
+              type="button"
+              className="adventure-dock__button adventure-dock__button--explore"
+              onClick={() => {
+                setMapOpen(true);
+                audioManager.mapChanged();
+              }}
+              disabled={isPaused || missionOverlayOpen || tutorialState.active}
+            >
+              <span className="adventure-dock__icon adventure-dock__icon--explore" aria-hidden="true" />
+              <span>{missionState.language === "fil" ? "Galugarin" : "Explore"}</span>
+            </button>
+          </nav>
+        )}
         {(missionState.availableInteraction || fishingReady || riverBoatReady || swimmingReady) && inputEnabled && (
           <button
             ref={interactionPromptRef}
@@ -1077,7 +970,6 @@ function GameOneSession({
             <DialogueOverlay state={missionState} dispatch={dispatchGuided} />
             <ReadingIntroOverlay state={missionState} dispatch={dispatchGuided} />
             <StoryPresentationOverlay state={missionState} dispatch={dispatchGuided} />
-            <StoryReviewOverlay state={missionState} dispatch={dispatchGuided} />
             <MissionActionOverlay state={missionState} dispatch={dispatchGuided} />
             <QuestionIntroOverlay state={missionState} dispatch={dispatchGuided} />
             <QuestionOverlay state={missionState} dispatch={dispatchGuided} />
@@ -1099,12 +991,22 @@ function GameOneSession({
                 });
               }}
             />
-            <RemainingQuestionsOverlay state={missionState} dispatch={dispatchGuided} onDashboard={exitToLobby} />
+            {journeyBagOpen && (
+              <JourneyBagOverlay
+                language={missionState.language}
+                missionId={missionState.missionId}
+                missionIndex={missionState.missionIndex}
+                completedInteractionIds={explorationProgress.completedInteractionIds}
+                caughtResultIds={explorationProgress.caughtResultIds}
+                onClose={() => setJourneyBagOpen(false)}
+              />
+            )}
+            <RemainingQuestionsOverlay state={missionState} dispatch={dispatchGuided} onDashboard={exitToDashboard} />
             <MissionResultOverlay state={missionState} dispatch={dispatchGuided} />
             <CompletionOverlay
               state={missionState}
               onReplay={replayMission}
-              onDashboard={exitToLobby}
+              onDashboard={exitToDashboard}
             />
           </>
         )}
@@ -1226,13 +1128,13 @@ function GameOneSession({
             aria-describedby="exit-description"
             className="game-modal-panel exit-dialog-panel w-full max-w-md rounded-lg bg-white p-6 text-[#13251d] shadow-2xl"
           >
-            <h2 id="exit-title" className="game-route__exit-title">
+            <h2 id="exit-title" className="text-2xl font-black">
               {copy.exitTitle}
             </h2>
-            <p id="exit-description" className="game-route__exit-description">
+            <p id="exit-description" className="mt-3 text-lg leading-7 text-[#315343]">
               {copy.exitDescription}
             </p>
-            <div className="game-route__exit-actions">
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
               <button
                 type="button"
                 onClick={closeExitDialog}
@@ -1242,7 +1144,7 @@ function GameOneSession({
               </button>
               <button
                 type="button"
-                onClick={() => void exitToLobby()}
+                onClick={exitToDashboard}
                 className="game-modal-primary min-h-12 rounded-md bg-[#176b4d] px-5 font-extrabold text-white"
               >
                 {copy.exitDashboard}
@@ -1259,26 +1161,218 @@ function StatusOverlay({
   title,
   text,
   children,
-  role
+  role,
+  variant,
+  eyebrow
 }: {
   title: string;
   text: string;
   children?: React.ReactNode;
   role?: "alert" | "status";
+  variant?: "pause";
+  eyebrow?: string;
 }) {
   return (
     <div
       role={role}
       aria-live={role === "alert" ? "assertive" : "polite"}
-      className="game-status-overlay"
+      className={`game-status-overlay ${variant ? `game-status-overlay--${variant}` : ""}`}
     >
-      <div className="game-status-panel">
+      <div className={`game-status-panel ${variant ? `game-status-panel--${variant}` : ""}`}>
+        {eyebrow && <p className="game-status-panel__eyebrow">{eyebrow}</p>}
         <h2>{title}</h2>
         <p>{text}</p>
         {children}
       </div>
     </div>
   );
+}
+
+function JourneyBagOverlay({
+  language,
+  missionId,
+  missionIndex,
+  completedInteractionIds,
+  caughtResultIds,
+  onClose
+}: {
+  language: GameLanguage;
+  missionId: MissionState["missionId"];
+  missionIndex: number;
+  completedInteractionIds: readonly string[];
+  caughtResultIds: readonly FishingResultId[];
+  onClose: () => void;
+}) {
+  const isFilipino = language === "fil";
+  const items = getJourneyInventory({ language, missionId, missionIndex, completedInteractionIds, caughtResultIds });
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const selectedItem = items.find((item) => item.id === selectedItemId) ?? items[0] ?? null;
+
+  return (
+    <div className="journey-bag-overlay" role="presentation">
+      <section className="journey-bag" role="dialog" aria-modal="true" aria-labelledby="journey-bag-title">
+        <header className="journey-bag__header">
+          <span className="journey-bag__badge" aria-hidden="true">BAG</span>
+          <div>
+            <p>{isFilipino ? "MGA NATIPON" : "JOURNEY BAG"}</p>
+            <h2 id="journey-bag-title">{isFilipino ? "Imbentaryo" : "Inventory"}</h2>
+          </div>
+          <button type="button" className="journey-bag__close" onClick={onClose} aria-label={isFilipino ? "Isara ang bag" : "Close bag"}>X</button>
+        </header>
+        <div className="journey-bag__content">
+          <div className="journey-bag__inventory-heading">
+            <span>{isFilipino ? "MGA GAMIT" : "ITEMS"}</span>
+            <strong>{items.length}/12</strong>
+          </div>
+          <ul className="journey-bag__inventory" aria-label={isFilipino ? "Mga gamit sa imbentaryo" : "Inventory items"}>
+            {Array.from({ length: 12 }, (_, index) => {
+              const item = items[index];
+              return item ? (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    aria-pressed={selectedItem?.id === item.id}
+                    className={`inventory-slot inventory-slot--${item.kind} ${selectedItem?.id === item.id ? "is-selected" : ""}`}
+                    onClick={() => setSelectedItemId(item.id)}
+                  >
+                    <span className="inventory-slot__token" aria-hidden="true">{item.token}</span>
+                    <span className="inventory-slot__count">x{item.quantity}</span>
+                    <span className="sr-only">{item.name}</span>
+                  </button>
+                </li>
+              ) : <li key={`empty-${index}`} className="inventory-slot inventory-slot--empty" aria-hidden="true" />;
+            })}
+          </ul>
+          <section className="journey-bag__item-detail" aria-live="polite">
+            {selectedItem ? (
+              <>
+                <span className={`journey-bag__item-token journey-bag__item-token--${selectedItem.kind}`} aria-hidden="true">{selectedItem.token}</span>
+                <div>
+                  <p>{selectedItem.category}</p>
+                  <h3>{selectedItem.name}</h3>
+                  <span>{selectedItem.description}</span>
+                </div>
+                <strong>x{selectedItem.quantity}</strong>
+              </>
+            ) : (
+              <p className="journey-bag__empty-copy">{isFilipino ? "Wala ka pang gamit. Maglaro para makakuha ng item." : "No items yet. Play to collect an item."}</p>
+            )}
+          </section>
+        </div>
+        <button type="button" className="journey-bag__done" onClick={onClose}>{isFilipino ? "Bumalik" : "Back to game"}</button>
+      </section>
+    </div>
+  );
+}
+
+type JourneyInventoryItem = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  kind: "quest" | "tool" | "catch" | "reward";
+  quantity: number;
+  token: string;
+};
+
+function getJourneyInventory({
+  language,
+  missionId,
+  missionIndex,
+  completedInteractionIds,
+  caughtResultIds
+}: {
+  language: GameLanguage;
+  missionId: MissionState["missionId"];
+  missionIndex: number;
+  completedInteractionIds: readonly string[];
+  caughtResultIds: readonly FishingResultId[];
+}): JourneyInventoryItem[] {
+  const filipino = language === "fil";
+  const items: JourneyInventoryItem[] = [];
+
+  for (let index = 0; index < missionIndex; index += 1) {
+    const mission = getMission(MISSIONS[index].id, language);
+    items.push({
+      id: `reward-${mission.id}`,
+      name: mission.reward,
+      description: filipino ? "Gantimpala ito matapos ang misyon." : "You earned this after finishing a mission.",
+      category: filipino ? "GANTIMPALA" : "MISSION REWARD",
+      kind: "reward",
+      quantity: 1,
+      token: "RWD"
+    });
+  }
+
+  if (missionId === "village-delivery") {
+    items.unshift(
+      {
+        id: "activity-supply-crate",
+        name: filipino ? "Kahon ng gamit" : "Packed supply crate",
+        description: filipino ? "May tela, mangga, at mga pitsel ito." : "It holds the cloth, mangoes, and water pitchers.",
+        category: filipino ? "MISYON" : "QUEST ITEM",
+        kind: "quest",
+        quantity: 1,
+        token: "BOX"
+      },
+      {
+        id: "delivery-table-cloth",
+        name: filipino ? "Tiniklop na telang mesa" : "Folded table cloth",
+        description: filipino ? "Ito ang unang inilagay sa kahon." : "This was packed first in the crate.",
+        category: filipino ? "MISYON" : "QUEST ITEM",
+        kind: "quest",
+        quantity: 1,
+        token: "CLTH"
+      },
+      {
+        id: "delivery-mangoes",
+        name: filipino ? "Mangga" : "Mangoes",
+        description: filipino ? "Tatlong mangga para sa activity." : "Three mangoes for the activity.",
+        category: filipino ? "MISYON" : "QUEST ITEM",
+        kind: "quest",
+        quantity: 3,
+        token: "MNG"
+      },
+      {
+        id: "delivery-water-pitchers",
+        name: filipino ? "Mga pitsel ng tubig" : "Water pitchers",
+        description: filipino ? "Dalawang pitsel ng tubig para sa activity." : "Two water pitchers for the activity.",
+        category: filipino ? "MISYON" : "QUEST ITEM",
+        kind: "quest",
+        quantity: 2,
+        token: "WATR"
+      }
+    );
+  }
+
+  if (completedInteractionIds.includes("shop:waterproof-map-paper")) {
+    items.push({
+      id: "waterproof-map-paper",
+      name: filipino ? "Waterproof na map paper" : "Waterproof map paper",
+      description: filipino ? "Pinoprotektahan nito ang mapa laban sa ulan." : "This keeps a map safe from rain.",
+      category: filipino ? "GAMIT" : "TOOL",
+      kind: "tool",
+      quantity: 1,
+      token: "MAP"
+    });
+  }
+
+  for (const resultId of caughtResultIds) {
+    const isBottle = resultId === "message-bottle";
+    items.push({
+      id: resultId,
+      name: isBottle ? (filipino ? "Bote na may mensahe" : "Message bottle") : (filipino ? "Pilak na isda" : "Silver fish"),
+      description: isBottle
+        ? (filipino ? "May maikling babasahin sa loob." : "There is a short reading clue inside.")
+        : (filipino ? "Nakuha ito sa ilog." : "You caught this in the river."),
+      category: filipino ? "HULI" : "FISHING FIND",
+      kind: "catch",
+      quantity: 1,
+      token: isBottle ? "NOTE" : "FISH"
+    });
+  }
+
+  return items.slice(0, 12);
 }
 
 function getFocusableElements(root: HTMLElement | null) {
@@ -1295,8 +1389,8 @@ function getFocusableElements(root: HTMLElement | null) {
 
 function tutorialStepForMissionStage(stage: MissionStage): TutorialStep {
   if (stage === "approachStoryCharacter" || stage === "storyIntroduction") return "missionPanel";
-  if (stage === "readingIntro" || stage === "storyPresentation" || stage === "storyReview") return "reading";
-  if (stage === "missionAction" || stage === "missionActionFeedback") return "readAgain";
+  if (stage === "readingIntro" || stage === "storyPresentation") return "reading";
+  if (stage === "missionAction" || stage === "missionActionFeedback") return "choice";
   if (["questionIntro", "questionRound", "answerSelected", "questionFeedback", "deferredConfirmation"].includes(stage)) return "answerLater";
   return "ready";
 }

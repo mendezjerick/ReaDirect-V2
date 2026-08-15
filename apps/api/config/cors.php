@@ -46,9 +46,10 @@ return [
         'Content-Type',
         'Origin',
         'X-Requested-With',
+        'X-ReaDirect-Device',
     ],
 
     'exposed_headers' => [],
     'max_age' => 600,
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 ];

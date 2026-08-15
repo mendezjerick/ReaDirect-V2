@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\StaffAuditLog;
 use App\Models\StaffSession;
 use App\Models\StaffUser;
+use App\Services\StaffSessionResolver;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -88,7 +89,8 @@ final class StaffAuthController extends Controller
         return response()->json([
             'token' => $plainToken,
             ...$this->serializeSession($session, $staffUser),
-        ]);
+        ])->withCookie($this->sessionCookie($plainToken, $session->expires_at))
+            ->withCookie($this->markerCookie($session->expires_at));
     }
 
     public function show(Request $request): JsonResponse
@@ -114,7 +116,9 @@ final class StaffAuthController extends Controller
             ],
         ]);
 
-        return response()->json(['signed_out' => true]);
+        return response()->json(['signed_out' => true])
+            ->withoutCookie(StaffSessionResolver::COOKIE_NAME)
+            ->withoutCookie(StaffSessionResolver::MARKER_COOKIE_NAME);
     }
 
     public function heartbeat(Request $request): JsonResponse
@@ -165,6 +169,37 @@ final class StaffAuthController extends Controller
                     : (int) config('staff.session_heartbeat_interval_seconds', 30),
             ],
         ];
+    }
+
+    private function sessionCookie(string $token, CarbonInterface $expiresAt)
+    {
+        $minutes = max(1, now()->diffInMinutes($expiresAt));
+        return cookie(
+            StaffSessionResolver::COOKIE_NAME,
+            $token,
+            $minutes,
+            '/',
+            null,
+            app()->environment('production'),
+            true,
+            false,
+            'lax',
+        );
+    }
+
+    private function markerCookie(CarbonInterface $expiresAt)
+    {
+        return cookie(
+            StaffSessionResolver::MARKER_COOKIE_NAME,
+            '1',
+            max(1, now()->diffInMinutes($expiresAt)),
+            '/',
+            null,
+            app()->environment('production'),
+            false,
+            false,
+            'lax',
+        );
     }
 
     private function deleteInactiveSessions(

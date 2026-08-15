@@ -2233,6 +2233,183 @@ textarea.staff-field__control {
   gap: 0.75rem;
 }
 
+.staff-overview-view-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  margin-top: 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.staff-overview-view-toggle button {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-pill);
+  padding: 0.42rem 0.7rem;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-panel);
+  font: inherit;
+  cursor: pointer;
+}
+
+.staff-overview-view-toggle button[aria-pressed="true"] {
+  border-color: var(--color-action-primary);
+  color: var(--color-text-on-action);
+  background: var(--color-action-primary);
+}
+
+.staff-circle-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.staff-circle-kpi {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  padding: 0.9rem 0.65rem;
+  background: var(--color-surface-panel);
+  box-shadow: 0 3px 0 var(--color-staff-card-depth);
+  text-align: center;
+}
+
+.staff-circle-kpi__ring {
+  display: grid;
+  width: clamp(5.5rem, 15vw, 7.5rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 0.65rem solid var(--color-action-secondary);
+  border-top-color: var(--color-action-primary);
+  border-right-color: var(--color-action-primary);
+  border-radius: 50%;
+  color: var(--color-text-primary);
+  font-family: var(--font-display-family);
+  font-size: clamp(1.25rem, 4vw, 1.8rem);
+}
+
+.staff-circle-kpi strong {
+  color: var(--color-text-primary);
+  font-size: 0.82rem;
+}
+
+.staff-circle-chart {
+  min-width: 0;
+}
+
+.staff-circle-chart__body {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.staff-circle-chart__visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  aspect-ratio: 1;
+}
+
+.staff-circle-chart__visual svg {
+  width: min(100%, 10rem);
+  height: auto;
+}
+
+.staff-circle-chart__visual circle,
+.staff-circle-chart__visual path {
+  stroke: var(--color-surface-panel);
+  stroke-width: 0.25;
+}
+
+.staff-circle-chart__track {
+  fill: var(--color-action-secondary);
+}
+
+.staff-circle-chart__segment {
+  stroke-linejoin: round;
+}
+
+.staff-circle-chart__segment--0 {
+  fill: var(--color-action-primary);
+}
+.staff-circle-chart__segment--1 {
+  fill: var(--color-success);
+}
+.staff-circle-chart__segment--2 {
+  fill: var(--color-warning);
+}
+.staff-circle-chart__segment--3 {
+  fill: var(--color-danger);
+}
+.staff-circle-chart__segment--4 {
+  fill: var(--color-action-primary-depth);
+}
+
+.staff-circle-chart__visual > strong,
+.staff-circle-chart__visual > span {
+  position: absolute;
+}
+
+.staff-circle-chart__visual > strong {
+  color: var(--color-text-primary);
+  font-family: var(--font-display-family);
+  font-size: 1.35rem;
+}
+
+.staff-circle-chart__visual > span {
+  margin-top: 2.15rem;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+}
+
+.staff-circle-chart__legend {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.staff-circle-chart__legend li {
+  display: grid;
+  grid-template-columns: 0.7rem minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+}
+
+.staff-circle-chart__legend li > span:first-child {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--color-action-primary);
+}
+
+.staff-circle-chart__legend li:nth-child(2n) > span:first-child {
+  background: var(--color-success);
+}
+.staff-circle-chart__legend li:nth-child(3n) > span:first-child {
+  background: var(--color-warning);
+}
+.staff-circle-chart__legend strong {
+  color: var(--color-text-primary);
+}
+
+.staff-circle-chart__text {
+  margin: 0.8rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
 .staff-metric-card {
   display: grid;
   min-width: 0;
@@ -5378,5 +5555,16 @@ textarea.staff-field__control {
   .clara-stage__canvas,
   .clara-speech-loader__cube {
     animation: none;
+  }
+
+}
+
+@media (max-width: 42rem) {
+  .staff-circle-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .staff-circle-chart__body {
+    grid-template-columns: minmax(7rem, 0.75fr) minmax(0, 1.25fr);
   }
 }

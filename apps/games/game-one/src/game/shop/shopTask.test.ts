@@ -3,8 +3,7 @@ import {
   createInitialShopTaskState,
   getNearestShopInteractionTarget,
   getShopTaskObjective,
-  interactWithShopTarget,
-  restoreShopTaskState
+  interactWithShopTarget
 } from "./shopTask";
 
 describe("shop reading task", () => {
@@ -44,18 +43,5 @@ describe("shop reading task", () => {
   it("detects only nearby shop interaction targets", () => {
     expect(getNearestShopInteractionTarget({ x: 320, y: 220 })?.id).toBe("market-vendor");
     expect(getNearestShopInteractionTarget({ x: 320, y: 408 })).toBeNull();
-  });
-
-  it("restores only valid learner save data", () => {
-    expect(restoreShopTaskState({
-      stage: "searching",
-      hintUsed: true,
-      inspectedIds: ["map-shelf", "unknown", "map-shelf"]
-    })).toEqual({
-      stage: "searching",
-      hintUsed: true,
-      inspectedIds: ["map-shelf"]
-    });
-    expect(restoreShopTaskState({ stage: "invalid" })).toEqual(createInitialShopTaskState());
   });
 });

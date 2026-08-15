@@ -110,6 +110,7 @@ describe("SystemAdminDashboardPage", () => {
     vi.unstubAllGlobals();
     vi.useRealTimers();
     window.sessionStorage.clear();
+    document.cookie = "readirect_staff_signed_in=; Max-Age=0; Path=/";
   });
 
   it("shows the documented system overview data", async () => {
@@ -200,5 +201,76 @@ describe("SystemAdminDashboardPage", () => {
       method: "PUT",
       body: JSON.stringify({ enabled: true }),
     });
+  });
+
+  it("switches to truthful circle charts without replacing the card view data", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(overviewResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    renderDashboard();
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Circle charts" }),
+    );
+
+    expect(
+      screen.getByRole("region", { name: "System totals as circular KPIs" }),
+    ).toBeVisible();
+    expect(
+      screen.getAllByText(
+        "The pie chart shows the same counts as the Overview list.",
+      ),
+    ).toHaveLength(2);
+    expect(
+      screen.getByRole("img", { name: "Part 1 Score levels: 0 total" }),
+    ).toBeVisible();
+    expect(screen.getAllByRole("img")).toHaveLength(2);
+    expect(
+      screen
+        .getAllByRole("img")
+        .every((chart) => chart.getAttribute("data-chart-type") === "pie"),
+    ).toBe(true);
+    expect(screen.getByText("Cards")).toBeVisible();
+  });
+
+  it("draws a pie slice for each populated distribution level", async () => {
+    const populatedOverview = {
+      ...overviewResponse,
+      part_one_distribution: [
+        { label: "Full Refresher", value: 2 },
+        { label: "Moderate Refresher", value: 3 },
+      ],
+      reading_profile_distribution: [
+        { label: "Reading at Grade Level", value: 4 },
+        { label: "Needs Support", value: 1 },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(populatedOverview), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    renderDashboard();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Circle charts" }),
+    );
+
+    expect(
+      screen
+        .getAllByRole("img")
+        .map((chart) => chart.querySelectorAll("path").length),
+    ).toEqual([2, 2]);
   });
 });

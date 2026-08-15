@@ -7,12 +7,16 @@ import {
   type LinkStartStreak,
 } from "./linkStartMath";
 
+import { ClaraLinkStartTransition } from "./ClaraLinkStartTransition";
+
 export const LINK_START_ROUTE_SWAP_MS = 2600;
 export const LINK_START_DURATION_MS = 3000;
+export const CLARA_LINK_START_ROUTE_SWAP_MS = LINK_START_ROUTE_SWAP_MS;
+export const CLARA_LINK_START_DURATION_MS = LINK_START_DURATION_MS;
 export const WHITE_LINK_START_ROUTE_SWAP_MS = LINK_START_ROUTE_SWAP_MS;
 export const WHITE_LINK_START_DURATION_MS = LINK_START_DURATION_MS;
 
-export type LinkStartVariant = "full" | "white";
+export type LinkStartVariant = "full" | "white" | "clara";
 
 const LINK_START_IGNITION_MS = 640;
 const LINK_START_CORE_FADE_START_MS = 2380;
@@ -194,6 +198,10 @@ interface LinkStartTransitionProps {
 export function LinkStartTransition({
   variant = "full",
 }: LinkStartTransitionProps) {
+  if (variant === "clara") {
+    return <ClaraLinkStartTransition />;
+  }
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -264,3 +272,5 @@ export function LinkStartTransition({
     </div>
   );
 }
+
+export { ClaraLinkStartTransition } from "./ClaraLinkStartTransition";

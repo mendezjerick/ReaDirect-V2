@@ -8,7 +8,9 @@ import {
 import {
   getPlayableCharacter,
   getPlayableCharacterRenderOffsetY,
-  isPlayableCharacterId
+  isPlayableCharacterId,
+  loadPlayableCharacterSelection,
+  savePlayableCharacterSelection
 } from "./playableCharacters";
 
 describe("playable character selection", () => {
@@ -27,9 +29,13 @@ describe("playable character selection", () => {
     });
   });
 
-  it("recognizes only supported learner-bound character identifiers", () => {
+  it("persists only valid character identifiers", () => {
+    const storage = createMemoryStorage();
+    savePlayableCharacterSelection("blue-hair-explorer", storage);
+    expect(loadPlayableCharacterSelection(storage)).toBe("blue-hair-explorer");
+    storage.setItem("readirect-rpg:playable-character:v1", "unknown");
+    expect(loadPlayableCharacterSelection(storage)).toBeNull();
     expect(isPlayableCharacterId("yato")).toBe(true);
-    expect(isPlayableCharacterId("luffy")).toBe(true);
     expect(isPlayableCharacterId("unknown")).toBe(false);
   });
 
@@ -41,3 +47,17 @@ describe("playable character selection", () => {
     expect(getSpriteFlipXForFacing("left", "row-walk-four-way")).toBe(false);
   });
 });
+
+function createMemoryStorage(): Storage {
+  const values = new Map<string, string>();
+  return {
+    get length() {
+      return values.size;
+    },
+    clear: () => values.clear(),
+    getItem: (key) => values.get(key) ?? null,
+    key: (index) => Array.from(values.keys())[index] ?? null,
+    removeItem: (key) => values.delete(key),
+    setItem: (key, value) => values.set(key, value)
+  };
+}

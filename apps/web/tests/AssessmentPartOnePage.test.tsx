@@ -87,7 +87,7 @@ const learnerSession = {
 function renderAssessment(payload: object, followUpPayloads: object[] = []) {
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify(learnerSession),
+    JSON.stringify({ ...learnerSession, token: "cookie-session" }),
   );
   const responses = [payload, ...followUpPayloads];
   let responseIndex = 0;
@@ -177,7 +177,7 @@ describe("AssessmentPartOnePage", () => {
     await waitFor(() =>
       expect(speechMocks.prepare).toHaveBeenCalledWith(
         "assessment-orientation",
-        "learner-token",
+        "cookie-session",
       ),
     );
     await act(async () => undefined);
@@ -320,7 +320,7 @@ describe("AssessmentPartOnePage", () => {
     await waitFor(() =>
       expect(speechMocks.prepare).toHaveBeenCalledWith(
         "assessment-letters-item-2",
-        "learner-token",
+        "cookie-session",
       ),
     );
 
@@ -398,7 +398,7 @@ describe("AssessmentPartOnePage", () => {
     });
     window.sessionStorage.setItem(
       "readirect.learner-session",
-      JSON.stringify(learnerSession),
+      JSON.stringify({ ...learnerSession, token: "cookie-session" }),
     );
     vi.stubGlobal(
       "fetch",

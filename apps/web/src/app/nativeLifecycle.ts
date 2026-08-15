@@ -12,11 +12,15 @@ export function nativeBackDestination(
   pathname: string,
   search = "",
 ): string | null {
+  const from = new URLSearchParams(search).get("from");
+
+  if (pathname === "/home" && from === "native-mode-selection") {
+    return "/learner/modes";
+  }
+
   if (pathname !== "/learner/offline") return null;
 
-  return new URLSearchParams(search).get("from") === "dashboard"
-    ? "/learner/dashboard"
-    : "/learner/modes";
+  return from === "dashboard" ? "/learner/dashboard" : "/learner/modes";
 }
 
 export function registerNativeLifecycleHandler(

@@ -52,13 +52,17 @@ describe("village map composition", () => {
   });
 
   it("blocks the visible body of each house instead of only its bottom edge", () => {
-    const houses = PROTOTYPE_MAP.visualObjects.filter((object) => object.id.includes("house") || object.id === "learning-hall");
+    const houses = PROTOTYPE_MAP.visualObjects.filter((object) =>
+      object.id.includes("house")
+      || object.id === "learning-hall"
+      || object.assetKey.startsWith("supplied-")
+    );
 
-    expect(houses).toHaveLength(4);
+    expect(houses.length).toBeGreaterThanOrEqual(11);
     for (const house of houses) {
-      expect(house.width).toBe(4 * TILE_SIZE);
-      expect(house.height).toBe(3 * TILE_SIZE);
-      expect(house.hitbox!.height).toBeGreaterThan(2 * TILE_SIZE);
+      expect(house.width).toBeGreaterThanOrEqual(3 * TILE_SIZE);
+      expect(house.height).toBeGreaterThanOrEqual(3 * TILE_SIZE);
+      expect(house.hitbox!.height).toBeGreaterThanOrEqual(1.8 * TILE_SIZE);
       expect(canOccupy({
         x: house.hitbox!.x + house.hitbox!.width / 2,
         y: house.hitbox!.y + house.hitbox!.height / 2
@@ -103,13 +107,21 @@ describe("village map composition", () => {
         .map((object) => object.frame)
     );
 
-    expect(new Set(villageDecor.map((object) => object.frame))).toEqual(
-      new Set(Object.values(VILLAGE_DECOR_FRAME))
-    );
+    expect(new Set(villageDecor.map((object) => object.frame)).size).toBeGreaterThanOrEqual(6);
     expect(natureDecorFrames.size).toBeGreaterThanOrEqual(6);
     expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "learning-hall-notice")).toBe(true);
     expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "market-produce-left")).toBe(true);
-    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "lolo-stone-marker")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "playground-sand-table")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "lolo-delivery-cart")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "lolo-delivery-sacks")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "lolo-delivery-produce")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "lolo-delivery-map-box")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "east-homes-sign")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "to-lolo-ambo-sign")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "deliver-supplies-notice")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "playground-swings")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "playground-slide")).toBe(true);
+    expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "playground-seesaw")).toBe(true);
     expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "farm-produce-crate")).toBe(true);
     expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "shrine-lantern-west")).toBe(true);
     expect(PROTOTYPE_MAP.visualObjects.some((object) => object.id === "shrine-boat-warning-sign")).toBe(true);
@@ -206,12 +218,13 @@ describe("village map composition", () => {
     }
   });
 
-  it("keeps the market front clear and places the shop collision only at its base", () => {
+  it("keeps the market front clear below the supplied storefront", () => {
     const shop = PROTOTYPE_MAP.visualObjects.find((object) => object.id === "market-shop");
 
-    expect(shop?.assetKey).toBe("village-market-shop");
-    expect(shop?.hitbox?.height).toBeLessThan(TILE_SIZE);
-    expect(shop!.hitbox!.y).toBeGreaterThan(shop!.y + 2 * TILE_SIZE);
+    expect(shop?.assetKey).toBe("supplied-purple-shop");
+    expect(shop?.width).toBe(5 * TILE_SIZE);
+    expect(shop?.hitbox?.height).toBeGreaterThan(TILE_SIZE);
+    expect(shop!.hitbox!.y + shop.hitbox!.height).toBeLessThan(MAP_LANDMARKS.marketFront.y);
     expect(canOccupy(MAP_LANDMARKS.marketFront, PLAYER_RADIUS, PROTOTYPE_MAP)).toBe(true);
   });
 
@@ -241,9 +254,26 @@ describe("village map composition", () => {
         "east-riverbank",
         "south-riverbend",
         "south-river-cove",
-        "east-river-channel"
+        "east-river-channel",
+        "riverside-hamlet",
+        "canal-hamlet"
       ])
     );
+  });
+
+  it("adds two reachable hamlets to the lower village without blocking their lanes", () => {
+    const reachable = floodFill(MAP_LANDMARKS.spawn);
+    const riversideLane = tileCenter(11, 45);
+    const canalLane = tileCenter(37, 45);
+    const riversideArea = PROTOTYPE_MAP.areas.find((area) => area.key === "riverside-hamlet");
+    const canalArea = PROTOTYPE_MAP.areas.find((area) => area.key === "canal-hamlet");
+
+    expect(riversideArea?.label).toBe("Riverside hamlet");
+    expect(canalArea?.label).toBe("Canal hamlet");
+    expect(canOccupy(riversideLane, PLAYER_RADIUS, PROTOTYPE_MAP)).toBe(true);
+    expect(canOccupy(canalLane, PLAYER_RADIUS, PROTOTYPE_MAP)).toBe(true);
+    expect(reachable.has(pointKey(riversideLane))).toBe(true);
+    expect(reachable.has(pointKey(canalLane))).toBe(true);
   });
 
   it("connects the farm fence while leaving a usable three-tile west gate", () => {

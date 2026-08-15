@@ -5,7 +5,9 @@ import { loadGameAssets } from "../assets/loadGameAssets";
 import { GAME_ASSETS } from "../assets/assetRegistry";
 import {
   createFarmFenceLayer,
+  createGardenFenceLayer,
   createMangYatoSpriteSheet,
+  GARDEN_FENCE_ASSET_KEY,
   FARM_FENCE_ASSET_KEY,
   GENERATED_CHARACTER_FRAMES,
   MANG_YATO_ASSET_KEY
@@ -115,7 +117,24 @@ const IS_DEVELOPMENT =
   (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
 const NAVIGATION_UPDATE_DISTANCE = 32;
 const INTERACTION_PROMPT_UPDATE_INTERVAL = 0.1;
-const RENDER_PIXEL_BUDGET = 960 * 540;
+const PLAYER_WALK_ANIMATION_FPS = 10;
+const FOUNTAIN_FRAME_DURATION_SECONDS = 0.2;
+const FOUNTAIN_RENDER_SCALE = 0.64;
+// Center the fountain at the first playable plaza view. The player starts just
+// south of its rim, rather than inside the collision footprint.
+const FOUNTAIN_POSITION = { x: 25 * TILE_SIZE, y: 19.4 * TILE_SIZE } as const;
+// The compact, two-tier fountain from the supplied sheet.
+const FOUNTAIN_MAIN_REGION = { x: 708, y: 32, width: 252, height: 252 } as const;
+const FOUNTAIN_WATER_FRAME_REGIONS = [
+  { x: 558, y: 418, width: 108, height: 94 },
+  { x: 670, y: 418, width: 108, height: 94 },
+  { x: 782, y: 418, width: 108, height: 94 },
+  { x: 894, y: 418, width: 108, height: 94 }
+] as const;
+const FOUNTAIN_SPRITE_SOURCE = { width: 1536, height: 1024 } as const;
+// Keep full-screen pixel art sharp on standard desktop displays while retaining
+// an upper bound for exceptionally large viewports.
+const RENDER_PIXEL_BUDGET = 1600 * 900;
 
 const MISSION_COLLISION = [
   ...PROTOTYPE_MAP.collision,
@@ -137,7 +156,8 @@ type KaplayCanvasOptions = {
   height: number;
   global: false;
   background: string;
-  letterbox: true;
+  stretch: true;
+  letterbox: false;
   crisp: true;
   pixelDensity: number;
   texFilter: "nearest";
@@ -200,6 +220,7 @@ export type KaplayGameController = {
   isSwimmingActionAvailable: () => boolean;
   swimIntoRiver: () => boolean;
   setFishingInteraction: (spot: FishingSpot | null) => void;
+  setCharacter: (characterId: PlayableCharacterId) => void;
   setMissionState: (state: {
     activityCompleted: boolean;
     targetNpcId?: NpcId | null;
@@ -259,11 +280,12 @@ export function createKaplayGame(
   }
 
   const config = options.config ?? GAME_CONFIG;
+  const logicalViewport = getLogicalCanvasSize(container, config);
   const canvas = document.createElement("canvas");
   canvas.dataset.kaplayFoundation = "true";
   canvas.setAttribute("aria-label", config.canvasLabel);
-  canvas.width = config.logicalWidth;
-  canvas.height = config.logicalHeight;
+  canvas.width = logicalViewport.width;
+  canvas.height = logicalViewport.height;
   canvas.style.display = "block";
   canvas.style.maxWidth = "100%";
   canvas.style.maxHeight = "100%";
@@ -290,11 +312,12 @@ export function createKaplayGame(
     const pixelDensity = getRenderPixelDensity(container);
     runtime = factory({
       canvas,
-      width: config.logicalWidth,
-      height: config.logicalHeight,
+      width: logicalViewport.width,
+      height: logicalViewport.height,
       global: false,
       background: config.backgroundColor,
-      letterbox: true,
+      stretch: true,
+      letterbox: false,
       crisp: true,
       pixelDensity,
       texFilter: "nearest"
@@ -364,6 +387,9 @@ export function createKaplayGame(
     swimIntoRiver: () => sceneController?.swimIntoRiver?.() ?? false,
     setFishingInteraction: (spot) => {
       activeFishingSpot = spot;
+    },
+    setCharacter: (characterId) => {
+      sceneController?.setCharacter(characterId);
     },
     setMissionState: (state) => {
       sceneController?.setMissionState(state);
@@ -483,6 +509,30 @@ function fitCanvasToContainer(
   canvas.style.margin = "0";
 }
 
+export function getLogicalCanvasSize(
+  container: HTMLElement,
+  config: GameConfig = GAME_CONFIG
+) {
+  const bounds = container.getBoundingClientRect();
+  if (bounds.width <= 1 || bounds.height <= 1) {
+    return { width: config.logicalWidth, height: config.logicalHeight };
+  }
+
+  const hostAspect = bounds.width / bounds.height;
+  const baseAspect = config.logicalWidth / config.logicalHeight;
+  if (hostAspect >= baseAspect) {
+    return {
+      width: Math.round(config.logicalHeight * hostAspect),
+      height: config.logicalHeight
+    };
+  }
+
+  return {
+    width: config.logicalWidth,
+    height: Math.round(config.logicalWidth / hostAspect)
+  };
+}
+
 export function getRenderPixelDensity(container: HTMLElement) {
   const bounds = container.getBoundingClientRect();
   const pixelArea = Math.max(bounds.width, 1) * Math.max(bounds.height, 1);
@@ -516,6 +566,10 @@ function renderPrototypeScene(
   runtime.loadSprite?.(
     FARM_FENCE_ASSET_KEY,
     createFarmFenceLayer()
+  );
+  runtime.loadSprite?.(
+    GARDEN_FENCE_ASSET_KEY,
+    createGardenFenceLayer()
   );
   runtime.loadSprite?.(
     MANG_YATO_ASSET_KEY,
@@ -559,12 +613,14 @@ function renderPrototypeScene(
     reducedMotion
   };
   const mapRenderer = renderPrototypeMap(runtime, terrainView);
+  const fountain = renderVillageFountain(runtime, reducedMotion);
   renderFishingLandmark(runtime);
   runtime.setCamScale?.(config.cameraZoom, config.cameraZoom);
 
   if (!runtime.add || !runtime.sprite || !runtime.pos || !runtime.scale || !runtime.anchor || !runtime.z) {
     renderFoundationScene(runtime, config);
     return {
+      setCharacter: () => undefined,
       setMissionState: () => undefined,
       isSwimming: () => false,
       isSwimmingActionAvailable: () => false,
@@ -612,10 +668,13 @@ function renderPrototypeScene(
     runtime.z(position.y + getPlayableCharacterRenderOffsetY(playerCharacter, facing))
   ]) as {
     pos?: { x: number; y: number };
+    scale?: { x: number; y: number };
     frame?: number;
     z?: number;
     flipX?: boolean;
     angle?: number;
+    use?: (component: unknown) => void;
+    unuse?: (componentId: string) => void;
   } | undefined;
   const swimRipple = runtime.add([
     runtime.sprite(BOAT_WAKE_ASSET_KEY, { frame: 0 }),
@@ -676,6 +735,7 @@ function renderPrototypeScene(
     const dt = Math.min(runtime.dt?.() ?? 1 / 60, 0.05);
     worldAnimationClock += dt;
     terrainView.animationClock = worldAnimationClock;
+    fountain.update(worldAnimationClock);
     grassUpdateAccumulator += dt;
     npcAnimationAccumulator += dt;
     const vector = input.getVector();
@@ -719,6 +779,9 @@ function renderPrototypeScene(
     }
     swimming = !riverBoat.isRiding() && isSwimmableRiverPoint(position);
     const actuallyMoving = Math.hypot(position.x - previousPosition.x, position.y - previousPosition.y) > 0.01;
+    // Keep the walk cycle responsive while a direction is held, including when
+    // the player is brushing against a collision edge or moving very slowly.
+    const shouldAnimatePlayer = isMoving || riverBoat.isRiding();
     callbacks.onSwimmingAudioState?.({ swimming, moving: actuallyMoving });
     riverBoat.updateAnimation(worldAnimationClock, actuallyMoving);
     const terrain = getTerrainAtPoint(position);
@@ -756,8 +819,8 @@ function renderPrototypeScene(
         ? getBoatRidingFrame(facing, worldAnimationClock, actuallyMoving, playerCharacter.spriteLayout)
         : swimming
         ? getSwimmingFrameForFacing(facing, worldAnimationClock, playerCharacter.spriteLayout, actuallyMoving)
-        : actuallyMoving
-        ? getWalkFrameForFacing(facing, Math.floor(animationClock * 8), playerCharacter.spriteLayout)
+        : shouldAnimatePlayer
+        ? getWalkFrameForFacing(facing, Math.floor(animationClock * PLAYER_WALK_ANIMATION_FPS), playerCharacter.spriteLayout)
         : getBaseFrameForFacing(facing, playerCharacter.spriteLayout);
       player.flipX = getSpriteFlipXForFacing(facing, playerCharacter.spriteLayout);
       player.angle = swimming
@@ -1003,6 +1066,36 @@ function renderPrototypeScene(
       callbacks.onInteractionPromptPosition?.(null);
       return true;
     },
+    setCharacter: (characterId: PlayableCharacterId) => {
+      const nextCharacter = getPlayableCharacter(characterId);
+      if (nextCharacter.id === playerCharacter.id) return;
+
+      playerCharacter = nextCharacter;
+      if (!player || !runtime.sprite) return;
+
+      const frame = getBaseFrameForFacing(facing, playerCharacter.spriteLayout);
+      if (player.unuse && player.use) {
+        player.unuse("sprite");
+        player.use(runtime.sprite(GAME_ASSETS[playerCharacter.assetKey].key, { frame }));
+      }
+      if (player.scale) {
+        player.scale.x = playerCharacter.spriteScale;
+        player.scale.y = playerCharacter.spriteScale;
+      }
+      player.frame = frame;
+      player.flipX = getSpriteFlipXForFacing(facing, playerCharacter.spriteLayout);
+      const spriteOffsetY = getPlayableCharacterRenderOffsetY(
+        playerCharacter,
+        facing,
+        riverBoat.isRiding()
+      );
+      if (player.pos) {
+        const renderPosition = riverBoat.isRiding() ? riverBoat.getRenderPosition() : position;
+        player.pos.x = renderPosition.x;
+        player.pos.y = renderPosition.y + spriteOffsetY;
+      }
+      player.z = position.y + spriteOffsetY + (riverBoat.isRiding() ? 2 : 0);
+    },
     setMissionState: (state: { activityCompleted: boolean; targetNpcId?: NpcId | null; showPath?: boolean }) => {
       const nextTargetNpcId = state.activityCompleted ? null : state.targetNpcId ?? null;
       if (nextTargetNpcId !== activeTargetNpcId) {
@@ -1221,16 +1314,20 @@ function renderAmbientWalkers(
     runtime.scale!(2),
     runtime.z!(state.position.y)
   ]) as WalkerNode | undefined);
-  const labels = states.map((state) => runtime.add?.([
-    runtime.text!(state.displayName, { size: 8 }),
-    runtime.pos!(state.position.x, state.position.y - 26),
-    runtime.anchor!("center"),
-    runtime.color!(255, 255, 255),
-    runtime.outline?.(1),
-    runtime.z!(1999)
-  ]) as WalkerNode | undefined);
+  const nearbyLabels = states.map(() => false);
+  const labels = states.map((state) => {
+    const label = runtime.add?.([
+      runtime.text!(state.displayName, { size: 8 }),
+      runtime.pos!(state.position.x, state.position.y - 26),
+      runtime.anchor!("center"),
+      runtime.color!(255, 245, 210),
+      runtime.z!(1999)
+    ]) as WalkerNode | undefined;
+    if (label) label.hidden = true;
+    return label;
+  });
 
-  const syncNodes = (animationClock: number) => {
+  const syncNodes = (animationClock: number, playerPosition?: Point) => {
     states.forEach((state, index) => {
       const node = nodes[index];
       const label = labels[index];
@@ -1247,6 +1344,13 @@ function renderAmbientWalkers(
       if (label?.pos) {
         label.pos.x = state.position.x;
         label.pos.y = state.position.y - 26;
+      }
+      if (playerPosition) {
+        nearbyLabels[index] = Math.hypot(
+          state.position.x - playerPosition.x,
+          state.position.y - playerPosition.y
+        ) <= TILE_SIZE * 2;
+        if (label) label.hidden = !nearbyLabels[index];
       }
       const interactionTarget = interactionTargets.find(
         (target) => target.kind === "npc" && target.npcId === state.id
@@ -1270,7 +1374,7 @@ function renderAmbientWalkers(
           playerPosition
         )
       );
-      syncNodes(elapsedSeconds);
+      syncNodes(elapsedSeconds, playerPosition);
     },
     updateVisibility(camera: Point, viewport: { width: number; height: number }) {
       const margin = TILE_SIZE * 2;
@@ -1280,7 +1384,7 @@ function renderAmbientWalkers(
           || state.position.y < camera.y - viewport.height / 2 - margin
           || state.position.y > camera.y + viewport.height / 2 + margin;
         if (nodes[index]) nodes[index]!.hidden = hidden;
-        if (labels[index]) labels[index]!.hidden = hidden;
+        if (labels[index]) labels[index]!.hidden = hidden || !nearbyLabels[index];
       });
     },
     reset() {
@@ -1520,6 +1624,7 @@ function renderPrototypeMap(
     if (runtime.sprite && runtime.scale) {
       const asset = Object.values(GAME_ASSETS).find(({ key }) => key === object.assetKey);
       const region = asset && "region" in asset ? asset.region : undefined;
+      const sourceDimensions = asset && "sourceDimensions" in asset ? asset.sourceDimensions : undefined;
       const spriteOptions: Record<string, unknown> = {};
       if (object.frame !== undefined) spriteOptions.frame = object.frame;
       if (region && runtime.quad) {
@@ -1535,7 +1640,10 @@ function renderPrototypeMap(
       const node = runtime.add([
         runtime.sprite(object.assetKey, Object.keys(spriteOptions).length > 0 ? spriteOptions : undefined),
         runtime.pos(object.x, object.y),
-        runtime.scale(2),
+        runtime.scale(
+          sourceDimensions ? object.width / sourceDimensions.width : 2,
+          sourceDimensions ? object.height / sourceDimensions.height : undefined
+        ),
         runtime.z(object.depthY)
       ]) as { hidden?: boolean } | undefined;
       if (node) renderedObjects.push({ node, bounds: object });
@@ -1551,6 +1659,82 @@ function renderPrototypeMap(
   }
 
   return visibilityController;
+}
+
+function renderVillageFountain(runtime: KaplayRuntime, reducedMotion: boolean) {
+  if (!runtime.add || !runtime.sprite || !runtime.pos || !runtime.scale || !runtime.z || !runtime.quad) {
+    return { update: (_animationClock: number) => undefined };
+  }
+
+  const baseDepth = FOUNTAIN_POSITION.y + FOUNTAIN_MAIN_REGION.height * FOUNTAIN_RENDER_SCALE;
+  runtime.add!([
+    runtime.sprite!(GAME_ASSETS.fountain.key, {
+      quad: runtime.quad!(
+        FOUNTAIN_MAIN_REGION.x / FOUNTAIN_SPRITE_SOURCE.width,
+        FOUNTAIN_MAIN_REGION.y / FOUNTAIN_SPRITE_SOURCE.height,
+        FOUNTAIN_MAIN_REGION.width / FOUNTAIN_SPRITE_SOURCE.width,
+        FOUNTAIN_MAIN_REGION.height / FOUNTAIN_SPRITE_SOURCE.height
+      ),
+      width: FOUNTAIN_MAIN_REGION.width,
+      height: FOUNTAIN_MAIN_REGION.height
+    }),
+    runtime.pos!(FOUNTAIN_POSITION.x, FOUNTAIN_POSITION.y),
+    runtime.scale!(FOUNTAIN_RENDER_SCALE),
+    runtime.z!(baseDepth)
+  ]);
+
+  type FountainWaterNode = { hidden?: boolean };
+  const waterPositions = [
+    { x: 28, y: 116 },
+    { x: 64, y: 128 },
+    { x: 100, y: 116 }
+  ] as const;
+  const addWaterSprite = (
+    region: (typeof FOUNTAIN_WATER_FRAME_REGIONS)[number],
+    position: (typeof waterPositions)[number],
+    depth: number
+  ) =>
+    runtime.add!([
+      runtime.sprite!(GAME_ASSETS.fountain.key, {
+        quad: runtime.quad!(
+          region.x / FOUNTAIN_SPRITE_SOURCE.width,
+          region.y / FOUNTAIN_SPRITE_SOURCE.height,
+          region.width / FOUNTAIN_SPRITE_SOURCE.width,
+          region.height / FOUNTAIN_SPRITE_SOURCE.height
+        ),
+        width: region.width,
+        height: region.height
+      }),
+      runtime.pos!(FOUNTAIN_POSITION.x + position.x, FOUNTAIN_POSITION.y + position.y),
+      runtime.scale!(0.34),
+      runtime.z!(depth)
+    ]) as FountainWaterNode | undefined;
+
+  // This base layer never hides, so the outer pool always looks full of water.
+  waterPositions.forEach((position) => {
+    addWaterSprite(FOUNTAIN_WATER_FRAME_REGIONS[0], position, baseDepth + 1);
+  });
+  const waterNodes = waterPositions.flatMap((position) =>
+    FOUNTAIN_WATER_FRAME_REGIONS.map((region) => {
+      const node = addWaterSprite(region, position, baseDepth + 2);
+      if (node) node.hidden = true;
+      return node;
+    })
+  );
+
+  let activeFrame = -1;
+  return {
+    update(animationClock: number) {
+      const nextFrame = reducedMotion
+        ? 0
+        : Math.floor(animationClock / FOUNTAIN_FRAME_DURATION_SECONDS) % waterNodes.length;
+      if (nextFrame === activeFrame) return;
+      activeFrame = nextFrame;
+      waterNodes.forEach((node, index) => {
+        if (node) node.hidden = index % FOUNTAIN_WATER_FRAME_REGIONS.length !== activeFrame;
+      });
+    }
+  };
 }
 
 export function isWorldBoundsVisible(

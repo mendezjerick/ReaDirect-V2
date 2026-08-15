@@ -17,8 +17,11 @@ import type {
   ClaraEmotion,
   ClaraTeachingBehavior,
 } from "../intro/live2d/ClaraPresentation";
+import {
+  WordRescueIcon,
+  type WordRescueWord,
+} from "./wordRescueIcons";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
-import { getWordRescueAsset } from "../lesson/word-rescue/wordRescueAssets";
 import "./learn-with-clara-letters.css";
 import "./learn-with-clara-words.css";
 
@@ -60,7 +63,7 @@ const storyMoments = [
   },
 ] as const;
 
-type StoryWord = (typeof storyMoments)[number]["word"];
+type StoryWord = WordRescueWord;
 type ViewPhase = "welcome" | "story" | "completion";
 type LineState = "preparing" | "speaking" | "finished" | "error";
 
@@ -146,13 +149,9 @@ function WelcomeVisual() {
 }
 
 function StoryPreviewAsset({ word }: { word: StoryWord }) {
-  const asset = getWordRescueAsset(`word-${word}`);
-
   return (
     <>
-      {asset && asset.reviewStatus === "approved" ? (
-        <img src={asset.src} alt="" />
-      ) : null}
+      <WordRescueIcon word={word} />
       <span>{word}</span>
     </>
   );
@@ -165,15 +164,12 @@ function WordRescueBoard({
   moment: (typeof storyMoments)[number];
   currentIndex: number;
 }) {
-  const asset = getWordRescueAsset(`word-${moment.word}`);
-
   return (
     <div className="word-rescue-board">
       <div className="word-rescue-board__trail">
         <span className="word-rescue-board__route" aria-hidden="true" />
         <ol aria-label="Word rescue trail">
           {storyMoments.map((stop, index) => {
-            const stopAsset = getWordRescueAsset(`word-${stop.word}`);
             const isComplete = index < currentIndex;
             const isCurrent = index === currentIndex;
 
@@ -191,9 +187,7 @@ function WordRescueBoard({
                 }`}
               >
                 <span className="word-rescue-board__marker">{index + 1}</span>
-                {stopAsset && stopAsset.reviewStatus === "approved" ? (
-                  <img src={stopAsset.src} alt="" />
-                ) : null}
+                <WordRescueIcon word={stop.word} />
                 <span>{stop.word}</span>
               </li>
             );
@@ -203,9 +197,7 @@ function WordRescueBoard({
 
       <div className="word-rescue-board__clue">
         <div className="word-rescue-board__clue-art">
-          {asset && asset.reviewStatus === "approved" ? (
-            <img src={asset.src} alt={asset.altText} />
-          ) : null}
+          <WordRescueIcon word={moment.word} />
         </div>
         <div>
           <p>Clara&apos;s rescue clue</p>
@@ -221,12 +213,14 @@ function StoryVisual({
   currentIndex,
   foundWord,
   wrongWord,
+  lineState,
   onChoose,
 }: {
   moment: (typeof storyMoments)[number];
   currentIndex: number;
   foundWord: string;
   wrongWord: string;
+  lineState: LineState;
   onChoose: (word: string) => void;
 }) {
   return (
@@ -254,7 +248,7 @@ function StoryVisual({
             aria-label={`Choose ${choice}`}
             data-found={foundWord === choice ? "" : undefined}
             data-wrong={wrongWord === choice ? "" : undefined}
-            disabled={Boolean(foundWord)}
+            disabled={Boolean(foundWord) || lineState !== "finished"}
             onClick={() => onChoose(choice)}
           >
             {choice}
@@ -656,6 +650,7 @@ export function LearnWithClaraWordsPage() {
                 currentIndex={currentIndex}
                 foundWord={foundWord}
                 wrongWord={wrongWord}
+                lineState={lineState}
                 onChoose={chooseWord}
               />
             ) : null}

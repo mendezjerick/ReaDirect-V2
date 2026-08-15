@@ -57,10 +57,25 @@
   text-transform: lowercase;
 }
 
-.words-class__trail-preview-stop img {
+.word-rescue-icon {
   width: 100%;
   height: clamp(2.1rem, 8vw, 3.4rem);
-  object-fit: contain;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.word-rescue-icon__fallback {
+  display: grid;
+  min-height: clamp(2.1rem, 8vw, 3.4rem);
+  place-items: center;
+  font-family: var(--font-display-family);
+  font-size: clamp(1.1rem, 4vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .words-class__trail-preview-stop > span {
@@ -193,10 +208,9 @@
   color: var(--color-success-strong);
 }
 
-.word-rescue-board__trail li img {
+.word-rescue-board__trail li .word-rescue-icon {
   width: clamp(2.3rem, 8vw, 4.2rem);
   height: clamp(2.3rem, 8vw, 4.2rem);
-  object-fit: contain;
 }
 
 .word-rescue-board__marker {
@@ -249,10 +263,9 @@
   background: var(--color-action-secondary);
 }
 
-.word-rescue-board__clue-art img {
+.word-rescue-board__clue-art .word-rescue-icon {
   width: 86%;
   height: 86%;
-  object-fit: contain;
 }
 
 .word-rescue-board__clue p:first-child {

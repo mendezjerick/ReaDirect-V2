@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { getMission, getMissions, MISSIONS } from "../content/missions";
-import { createStoredMissionProgress, restoreMissionProgress } from "../mission/missionPersistence";
+import { loadMissionProgress, saveMissionProgress } from "../mission/missionPersistence";
 import { createInitialMissionState, missionReducer } from "../mission/missionState";
 import { createMissionRounds, createSeededRandom } from "../questions/questionRound";
 import { loadLanguagePreference, saveLanguagePreference } from "./language";
@@ -85,10 +85,8 @@ describe("bilingual ReaDirect content", () => {
     const englishRounds = createMissionRounds(getMissions("en"), createSeededRandom(4));
     const filipinoRounds = createMissionRounds(getMissions("fil"), createSeededRandom(4));
     const state = createInitialMissionState(filipinoRounds, "fil");
-    const restored = restoreMissionProgress(
-      createStoredMissionProgress(state),
-      englishRounds
-    );
+    saveMissionProgress(state);
+    const restored = loadMissionProgress(englishRounds);
     expect(restored?.language).toBe("fil");
     expect(restored?.round.questions[0].id).toBe(state.round.questions[0].id);
   });

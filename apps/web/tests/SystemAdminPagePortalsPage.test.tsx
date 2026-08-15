@@ -11,6 +11,7 @@ vi.mock("motion/react", async (importOriginal) => {
 import { createAppQueryClient } from "../src/app/queryClient";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { SystemAdminPagePortalsPage } from "../src/features/staff-dashboard/SystemAdminPagePortalsPage";
+import { saveStaffSession } from "../src/features/staff-auth/staffApi";
 
 const readingPath = {
   diagnostic: { status: "required" as const, score: null },
@@ -113,23 +114,24 @@ const response = {
 };
 
 function renderPage() {
-  window.sessionStorage.setItem(
-    "readirect.staff-session",
-    JSON.stringify({
-      token: "system-admin-token".repeat(4),
-      session: { expires_at: "2099-01-01T00:00:00Z" },
-      staff: {
-        id: 1,
-        username: "rd07170",
-        email: null,
-        display_name: "System Administrator",
-        role: "system_admin",
-        school: null,
-        requires_school_setup: false,
-        requires_credential_setup: false,
-      },
-    }),
-  );
+  saveStaffSession({
+    token: "system-admin-token".repeat(4),
+    session: {
+      expires_at: "2099-01-01T00:00:00Z",
+      remembered: false,
+      heartbeat_interval_seconds: null,
+    },
+    staff: {
+      id: 1,
+      username: "rd07170",
+      email: null,
+      display_name: "System Administrator",
+      role: "system_admin",
+      school: null,
+      requires_school_setup: false,
+      requires_credential_setup: false,
+    },
+  });
 
   return render(
     <QueryClientProvider client={createAppQueryClient()}>
@@ -160,6 +162,7 @@ function renderPage() {
 describe("SystemAdminPagePortalsPage", () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    document.cookie = "readirect_staff_signed_in=; Max-Age=0; Path=/";
     vi.unstubAllGlobals();
     vi.useRealTimers();
   });
@@ -310,6 +313,9 @@ describe("SystemAdminPagePortalsPage", () => {
       JSON.parse(
         window.sessionStorage.getItem("readirect.learner-session") ?? "null",
       ),
-    ).toEqual(launchResponse.launch.learner_session);
+    ).toEqual({
+      ...launchResponse.launch.learner_session,
+      token: "cookie-session",
+    });
   });
 });

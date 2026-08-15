@@ -3,6 +3,30 @@ import { GAME_ASSETS } from "./assetRegistry";
 import { loadGameAssets } from "./loadGameAssets";
 
 describe("loadGameAssets", () => {
+  it("keeps playground props inside the actual sprite-sheet bounds", () => {
+    const playgroundAssets = [
+      GAME_ASSETS.playgroundSwings,
+      GAME_ASSETS.playgroundSlideTower,
+      GAME_ASSETS.playgroundSeesaw,
+      GAME_ASSETS.playgroundClimber,
+      GAME_ASSETS.playgroundSandTable,
+      GAME_ASSETS.playgroundBench,
+      GAME_ASSETS.playgroundFenceLong,
+      GAME_ASSETS.playgroundFenceShort,
+      GAME_ASSETS.playgroundSignboard,
+      GAME_ASSETS.playgroundBush,
+      GAME_ASSETS.playgroundFlowerBush,
+      GAME_ASSETS.playgroundFlowerPatch
+    ];
+
+    for (const asset of playgroundAssets) {
+      expect(asset.region.sourceWidth).toBe(1448);
+      expect(asset.region.sourceHeight).toBe(1086);
+      expect(asset.region.x + asset.region.width).toBeLessThanOrEqual(asset.region.sourceWidth);
+      expect(asset.region.y + asset.region.height).toBeLessThanOrEqual(asset.region.sourceHeight);
+    }
+  });
+
   it("registers required sprites with KAPLAY", () => {
     const runtime = {
       loadSprite: vi.fn()
@@ -56,6 +80,18 @@ describe("loadGameAssets", () => {
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "reading-shrine",
       GAME_ASSETS.readingShrine.path
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "lolo-east-homes-sign",
+      GAME_ASSETS.loloEastHomesSign.path
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "lolo-to-lolo-ambo-sign",
+      GAME_ASSETS.loloToLoloAmboSign.path
+    );
+    expect(runtime.loadSprite).toHaveBeenCalledWith(
+      "lolo-deliver-supplies-sign",
+      GAME_ASSETS.loloDeliverSuppliesSign.path
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "map-fragment",

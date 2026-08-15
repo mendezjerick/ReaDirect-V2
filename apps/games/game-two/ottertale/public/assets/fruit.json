@@ -1,0 +1,20 @@
+{"frames": {
+
+"fruit.png":
+{
+	"frame": {"x":1,"y":1,"w":45,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":45,"h":64},
+	"sourceSize": {"w":64,"h":64}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "fruit.png",
+	"format": "RGBA8888",
+	"size": {"w":47,"h":66},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:a12d3e76571f8008bc850224af9b8188:854efb2a03b24dce1b6a488553c74733:a2a2182a87aec7c2742d42359809aa8c$"
+}
+}

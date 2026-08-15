@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Learner;
 use App\Models\LearnerSession;
+use App\Services\LearnerSessionResolver;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -138,6 +139,20 @@ final class LearnerAuthSecurityTest extends TestCase
             ->assertHeader('Cache-Control', 'no-store, private');
 
         $this->assertTrue($session->fresh()->last_seen_at->gt($lastSeen));
+    }
+
+    public function test_browser_sentinel_uses_the_httponly_cookie_session(): void
+    {
+        $learner = $this->learner('LC001', 'correct-password');
+        $token = str_repeat('e', 64);
+        $this->sessionRecord($learner, $token);
+
+        $this->withToken(LearnerSessionResolver::BROWSER_SESSION_SENTINEL)
+            ->withUnencryptedCookie(LearnerSessionResolver::COOKIE_NAME, $token)
+            ->withCredentials()
+            ->getJson('/api/learners/session')
+            ->assertOk()
+            ->assertJsonPath('learner.id', $learner->id);
     }
 
     public function test_malformed_bearer_tokens_are_rejected_consistently(): void

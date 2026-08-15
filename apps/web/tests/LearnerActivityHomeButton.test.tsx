@@ -9,9 +9,14 @@ vi.mock("motion/react", async (importOriginal) => {
 
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { LearnerActivityHomeButton } from "../src/features/learner-activity/LearnerActivityHomeButton";
+import {
+  clearPagePortalOrigin,
+  setPagePortalOrigin,
+} from "../src/app/navigationContext";
 
 describe("LearnerActivityHomeButton", () => {
   afterEach(() => {
+    clearPagePortalOrigin();
     vi.useRealTimers();
   });
 
@@ -41,8 +46,34 @@ describe("LearnerActivityHomeButton", () => {
 
     act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
 
-    expect(
-      screen.getByRole("heading", { name: "Dashboard" }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  });
+
+  it("returns a Page Portal test activity to Page Portals", () => {
+    vi.useFakeTimers();
+    setPagePortalOrigin();
+
+    render(
+      <MemoryRouter initialEntries={["/learner/lessons/1"]}>
+        <Routes>
+          <Route
+            path="/learner/lessons/1"
+            element={<LearnerActivityHomeButton />}
+          />
+          <Route
+            path="/staff/system-admin/page-portals"
+            element={<h1>Page Portals</h1>}
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const homeButton = screen.getByRole("button", {
+      name: "Back to Page Portals",
+    });
+    fireEvent.click(homeButton);
+    act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
+
+    expect(screen.getByRole("heading", { name: "Page Portals" })).toBeVisible();
   });
 });

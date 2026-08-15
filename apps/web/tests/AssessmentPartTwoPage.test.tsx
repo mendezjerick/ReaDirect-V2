@@ -117,7 +117,7 @@ function renderPartTwo(
 ) {
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify(learnerSession),
+    JSON.stringify({ ...learnerSession, token: "cookie-session" }),
   );
   let responseIndex = 0;
   const fetchMock = vi.fn().mockImplementation(() =>

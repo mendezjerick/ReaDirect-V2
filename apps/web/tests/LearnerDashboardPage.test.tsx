@@ -13,9 +13,23 @@ vi.mock("motion/react", async (importOriginal) => {
   };
 });
 
+vi.mock("@capacitor/core", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@capacitor/core")>();
+
+  return {
+    ...original,
+    registerPlugin: () => ({
+      get: vi.fn().mockResolvedValue({ value: null }),
+      set: vi.fn().mockResolvedValue(undefined),
+      remove: vi.fn().mockResolvedValue(undefined),
+    }),
+  };
+});
+
 import { LearnerDashboardPage } from "../src/features/learner-dashboard/LearnerDashboardPage";
 import { RouteTransitionProvider } from "../src/components/transitions/RouteTransitionProvider";
 import { createAppQueryClient } from "../src/app/queryClient";
+import { setNativeSessionCache } from "../src/app/nativeSecureSession";
 
 const claraSpeechMocks = vi.hoisted(() => ({
   unlock: vi.fn(),
@@ -83,7 +97,7 @@ function renderDashboard(stage = "before_diagnostic") {
 
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify(activeSession),
+    JSON.stringify({ ...activeSession, token: "cookie-session" }),
   );
   vi.stubGlobal(
     "fetch",
@@ -251,6 +265,10 @@ describe("LearnerDashboardPage", () => {
 
   it("keeps Offline Mode downloads available in Android", () => {
     vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+    setNativeSessionCache(
+      "readirect.learner-session",
+      JSON.stringify({ ...learnerSession, token: "cookie-session" }),
+    );
 
     renderDashboard();
 

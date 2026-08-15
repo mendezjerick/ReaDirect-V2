@@ -104,7 +104,7 @@ const fetchMock = vi.fn(
 beforeEach(() => {
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify(learnerSession),
+    JSON.stringify({ ...learnerSession, token: "cookie-session" }),
   );
   window.localStorage.setItem(
     "readirect-rpg:language-preference:v1:anonymous",
@@ -214,7 +214,7 @@ describe("authenticated game lobby route flow", () => {
       "/api/learners/games/chronicles-of-the-lost-kingdom/save",
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: "Bearer game-one-route-token",
+            Authorization: "Bearer cookie-session",
         }),
       }),
     );
@@ -288,7 +288,7 @@ describe("authenticated game lobby route flow", () => {
   it("runs portal previews without reading or writing persistent game data", async () => {
     window.sessionStorage.setItem(
       "readirect.learner-session",
-      JSON.stringify(portalLearnerSession),
+      JSON.stringify({ ...portalLearnerSession, token: "cookie-session" }),
     );
     renderGameRoutes("/learner/games/game-one");
 

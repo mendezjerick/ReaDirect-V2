@@ -85,7 +85,11 @@ function mockSessionAndLanguage(
 function renderReadingJourney(readingPath: LearnerReadingPath = freshPath) {
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify({ ...learnerSession, reading_path: readingPath }),
+    JSON.stringify({
+      ...learnerSession,
+      token: "cookie-session",
+      reading_path: readingPath,
+    }),
   );
 
   return render(
