@@ -197,14 +197,24 @@ function CircleDistribution({
                 />
               );
             })}
+            <circle
+              className="staff-circle-chart__center"
+              cx="21"
+              cy="21"
+              r="8.1"
+              aria-hidden="true"
+            />
           </svg>
           <strong>{total}</strong>
           <span>total</span>
         </div>
         <ul className="staff-circle-chart__legend">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <li key={item.label}>
-              <span aria-hidden="true" />
+              <span
+                className={`staff-circle-chart__legend-dot staff-circle-chart__legend-dot--${index % 5}`}
+                aria-hidden="true"
+              />
               <span>{item.label}</span>
               <strong>{item.value}</strong>
             </li>
@@ -474,7 +484,11 @@ export function SystemAdminDashboardPage() {
           ) : null}
         </StaffCard>
 
-        <section className="staff-dashboard-grid staff-dashboard-grid--primary">
+        <section
+          className={`staff-dashboard-grid staff-dashboard-grid--primary${
+            overviewMode === "circles" ? " staff-dashboard-grid--circles" : ""
+          }`}
+        >
           {overviewMode === "circles" ? (
             <>
               <CircleDistribution
@@ -528,7 +542,7 @@ export function SystemAdminDashboardPage() {
             </>
           )}
 
-          <StaffCard>
+          <StaffCard className="staff-system-health-card">
             <StaffSectionHeader eyebrow="Environment" title="System health" />
             <div className="staff-health-list">
               {overview?.system_health.map((item) => (

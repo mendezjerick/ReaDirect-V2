@@ -281,6 +281,7 @@ export function createKaplayGame(
 
   const config = options.config ?? GAME_CONFIG;
   const logicalViewport = getLogicalCanvasSize(container, config);
+  const cameraZoom = getResponsiveCameraZoom(container, config);
   const canvas = document.createElement("canvas");
   canvas.dataset.kaplayFoundation = "true";
   canvas.setAttribute("aria-label", config.canvasLabel);
@@ -340,7 +341,7 @@ export function createKaplayGame(
           }
         : undefined,
       onRiverBoatStateChange: options.onRiverBoatStateChange
-    }, options.initialPosition ?? PROTOTYPE_MAP.startPosition, getPlayableCharacter(options.characterId));
+    }, options.initialPosition ?? PROTOTYPE_MAP.startPosition, getPlayableCharacter(options.characterId), cameraZoom);
     updateController = sceneController.updateController;
 
     resizeObserver = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(resize);
@@ -539,6 +540,30 @@ export function getRenderPixelDensity(container: HTMLElement) {
   return Math.min(1, Math.sqrt(RENDER_PIXEL_BUDGET / pixelArea));
 }
 
+/**
+ * Portrait phones produce a much taller logical canvas than the desktop
+ * aspect ratio. Keep the camera framed tightly enough that the player sprite
+ * remains readable instead of being reduced across that entire tall canvas.
+ * Landscape and desktop views intentionally retain the authored zoom.
+ */
+export function getResponsiveCameraZoom(
+  container: HTMLElement,
+  config: GameConfig = GAME_CONFIG
+) {
+  const bounds = container.getBoundingClientRect();
+  const isPortraitPhone = bounds.height > bounds.width && bounds.width <= 430;
+  if (!isPortraitPhone) return config.cameraZoom;
+
+  // A little more zoom is needed on narrower phones, where the logical
+  // viewport is taller. Clamp the multiplier to keep the map playable and
+  // avoid an abrupt jump across common handset widths.
+  const widthCompensation = Math.min(
+    1.6,
+    Math.max(1.45, 1.45 + (390 - bounds.width) / 600)
+  );
+  return config.cameraZoom * widthCompensation;
+}
+
 function renderPrototypeScene(
   runtime: KaplayRuntime,
   config: GameConfig,
@@ -553,9 +578,10 @@ function renderPrototypeScene(
     onRiverBoatStateChange?: CreateKaplayGameOptions["onRiverBoatStateChange"];
   },
   initialPosition: Point,
-  playerCharacter: PlayableCharacter
+  playerCharacter: PlayableCharacter,
+  cameraZoom: number = config.cameraZoom
 ) {
-  const initialViewport = getRuntimeViewport(runtime, config);
+  const initialViewport = getRuntimeViewport(runtime, config, cameraZoom);
   const reducedMotion = typeof window !== "undefined"
     && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
   runtime.loadSprite?.(
@@ -606,7 +632,7 @@ function renderPrototypeScene(
       viewportWidth: initialViewport.width,
       viewportHeight: initialViewport.height
     }),
-    zoom: config.cameraZoom,
+    zoom: cameraZoom,
     fallbackWidth: config.logicalWidth,
     fallbackHeight: config.logicalHeight,
     animationClock: 0,
@@ -615,7 +641,7 @@ function renderPrototypeScene(
   const mapRenderer = renderPrototypeMap(runtime, terrainView);
   const fountain = renderVillageFountain(runtime, reducedMotion);
   renderFishingLandmark(runtime);
-  runtime.setCamScale?.(config.cameraZoom, config.cameraZoom);
+  runtime.setCamScale?.(cameraZoom, cameraZoom);
 
   if (!runtime.add || !runtime.sprite || !runtime.pos || !runtime.scale || !runtime.anchor || !runtime.z) {
     renderFoundationScene(runtime, config);
@@ -951,7 +977,7 @@ function renderPrototypeScene(
       missionObjects.updateNavigation(position);
     }
 
-    const viewport = getRuntimeViewport(runtime, config);
+    const viewport = getRuntimeViewport(runtime, config, cameraZoom);
     const camera = getCameraCenter({
       target: position,
       viewportWidth: viewport.width,
@@ -1122,7 +1148,7 @@ function renderPrototypeScene(
       lastNavigationFacing = facing;
       lastGuidePosition = { ...position };
       lastCullPosition = { ...position };
-      lastViewport = getRuntimeViewport(runtime, config);
+      lastViewport = getRuntimeViewport(runtime, config, cameraZoom);
       lastCameraPosition = getCameraCenter({
         target: position,
         viewportWidth: lastViewport.width,
@@ -1798,10 +1824,14 @@ function renderTerrainFallback(runtime: KaplayRuntime) {
   }
 }
 
-function getRuntimeViewport(runtime: KaplayRuntime, config: GameConfig) {
+function getRuntimeViewport(
+  runtime: KaplayRuntime,
+  config: GameConfig,
+  cameraZoom: number = config.cameraZoom
+) {
   return {
-    width: (runtime.width?.() ?? config.logicalWidth) / config.cameraZoom,
-    height: (runtime.height?.() ?? config.logicalHeight) / config.cameraZoom
+    width: (runtime.width?.() ?? config.logicalWidth) / cameraZoom,
+    height: (runtime.height?.() ?? config.logicalHeight) / cameraZoom
   };
 }
 

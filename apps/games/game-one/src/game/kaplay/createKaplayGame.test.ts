@@ -6,6 +6,7 @@ import {
   createKaplayGame,
   getLogicalCanvasSize,
   getInteractionPromptPosition,
+  getResponsiveCameraZoom,
   getRenderPixelDensity,
   isWorldBoundsVisible,
   type KaplayFactory
@@ -222,6 +223,22 @@ describe("createKaplayGame", () => {
     const logical = getLogicalCanvasSize(container);
 
     expect(logical.width / logical.height).toBeCloseTo(width / height, 3);
+  });
+
+  it("tightens the camera only for portrait phone viewports", () => {
+    const container = document.createElement("div");
+
+    setContainerSize(container, 390, 844);
+    expect(getResponsiveCameraZoom(container)).toBeCloseTo(2.9, 2);
+
+    setContainerSize(container, 320, 568);
+    expect(getResponsiveCameraZoom(container)).toBeGreaterThan(2.9);
+
+    setContainerSize(container, 844, 390);
+    expect(getResponsiveCameraZoom(container)).toBe(2);
+
+    setContainerSize(container, 1440, 900);
+    expect(getResponsiveCameraZoom(container)).toBe(2);
   });
 
   it("keeps standard desktop rendering sharp while capping very large buffers", () => {
