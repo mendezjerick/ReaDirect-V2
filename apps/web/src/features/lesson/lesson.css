@@ -414,8 +414,13 @@
   height: 100%;
   min-height: 0;
   align-self: stretch;
-  overflow: hidden;
-  padding-right: 0.2rem;
+  /* Keep long passages reachable on short portrait phones. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.45rem;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
   font-size: clamp(1.05rem, 4.25vw, 1.45rem);
   line-height: 1.5;
 }
@@ -624,7 +629,8 @@
   }
 
   .lesson-five-page .assessment-recorder__control {
-    width: var(--assessment-responsive-recorder-size);
+    width: 100%;
+    height: 100%;
   }
 }
 
@@ -652,7 +658,8 @@
   }
 
   .lesson-five-page .assessment-recorder__control {
-    width: var(--assessment-responsive-recorder-size);
+    width: 100%;
+    height: 100%;
   }
 
   .lesson-five-page .assessment-action-dock {
@@ -703,7 +710,8 @@
   }
 
   .lesson-five-page .assessment-recorder__control {
-    width: var(--assessment-responsive-recorder-size);
+    width: 100%;
+    height: 100%;
   }
 
   .lesson-five-page .assessment-action-dock {
