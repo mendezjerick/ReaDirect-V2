@@ -311,4 +311,46 @@ describe("LearnerLoginPage", () => {
       JSON.stringify(storedSession),
     );
   });
+
+  it("restores an existing session without replaying Link Start", async () => {
+    const storedSession = {
+      token: "cookie-session",
+      learner: {
+        id: 1,
+        learner_code: "KW000",
+        full_name: "Kristen Rhine Wright",
+        first_name: "Kristen",
+        account_purpose: "portal_system",
+        school: null,
+        grade_level: null,
+        section: null,
+        progress: {
+          stage: "before_diagnostic",
+          current_required_lesson_order: null,
+        },
+      },
+      session: { expires_at: "2026-07-20T12:00:00+00:00" },
+    };
+    window.sessionStorage.setItem(
+      "readirect.learner-session",
+      JSON.stringify(storedSession),
+    );
+    document.cookie = "readirect_learner_signed_in=1; Path=/";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(storedSession), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    renderLogin();
+
+    expect(await screen.findByText("Learner dashboard route")).toBeVisible();
+    expect(
+      document.querySelector('[data-route-transition="link-start"]'),
+    ).not.toBeInTheDocument();
+  });
 });

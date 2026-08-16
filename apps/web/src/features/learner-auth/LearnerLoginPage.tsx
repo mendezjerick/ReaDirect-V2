@@ -80,7 +80,7 @@ export function LearnerLoginPage() {
 
         if (session) {
           await saveLearnerSession(session);
-          beginRouteTransition(returnTo);
+          navigate(returnTo, { replace: true });
         } else if (!existing) {
           // A stale browser marker without a valid server cookie must not
           // cause an endless restore attempt on every visit to the login page.
@@ -107,7 +107,7 @@ export function LearnerLoginPage() {
     return () => {
       active = false;
     };
-  }, [beginRouteTransition, returnTo]);
+  }, [beginRouteTransition, navigate, returnTo]);
   const {
     register,
     handleSubmit,
