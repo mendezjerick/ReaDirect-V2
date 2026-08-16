@@ -27,6 +27,7 @@ const ClaraLive2DCanvas = lazy(() =>
 );
 
 const CLARA_RUNTIME_MODEL_PATH = "/assets/live2d/clara/CherryGoth.model3.json";
+const CLARA_STAGE_TIMEOUT_MS = 15_000;
 
 interface ClaraStageProps {
   emotion?: ClaraEmotion;
@@ -52,6 +53,7 @@ export function ClaraStage({
   const { theme } = useTheme();
   const learnerExperience = useLearnerExperience();
   const [loadState, setLoadState] = useState<ClaraStageVisualState>("loading");
+  const [staticFallback, setStaticFallback] = useState(false);
   const onLoadStateChangeRef = useRef(onLoadStateChange);
   const stageRef = useRef<HTMLElement>(null);
   const revealCoverRef = useRef<HTMLSpanElement>(null);
@@ -65,6 +67,7 @@ export function ClaraStage({
     speechLevel,
   };
   const displayMode = learnerExperience.displayMode;
+  const effectiveDisplayMode = staticFallback ? "static" : displayMode;
   const awaitingLearnerExperience =
     learnerExperience.state === "resolving" && displayMode === null;
   const staticSource =
@@ -77,11 +80,30 @@ export function ClaraStage({
   // static portrait depends on this source, so do not treat a Live2D theme
   // change as a new render that needs the stage loader.
   const renderedContent =
-    displayMode === "static"
+    effectiveDisplayMode === "static"
       ? `static:${staticSource}`
-      : (displayMode ?? "resolving");
+      : (effectiveDisplayMode ?? "resolving");
 
   onLoadStateChangeRef.current = onLoadStateChange;
+
+  useEffect(() => {
+    if (displayMode !== "live2d" && staticFallback) {
+      setStaticFallback(false);
+    }
+  }, [displayMode, staticFallback]);
+
+  useEffect(() => {
+    if (displayMode !== "live2d" || staticFallback || loadState === "ready") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setStaticFallback(true);
+      setLoadState("loading");
+    }, CLARA_STAGE_TIMEOUT_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [displayMode, loadState, staticFallback]);
 
   useEffect(() => {
     if (renderedContentRef.current === null) {
@@ -138,10 +160,16 @@ export function ClaraStage({
         return;
       }
 
+      if (state === "error" && displayMode === "live2d" && !staticFallback) {
+        setStaticFallback(true);
+        setLoadState("loading");
+        return;
+      }
+
       setLoadState(state);
       onLoadStateChangeRef.current?.(state);
     },
-    [reduceMotion],
+    [displayMode, reduceMotion, staticFallback],
   );
 
   useEffect(() => {
@@ -184,17 +212,19 @@ export function ClaraStage({
         }}
         aria-label="Ma'am Clara"
         data-live2d-model={
-          displayMode === "live2d" ? CLARA_RUNTIME_MODEL_PATH : undefined
+          effectiveDisplayMode === "live2d"
+            ? CLARA_RUNTIME_MODEL_PATH
+            : undefined
         }
         data-live2d-state={loadState}
-        data-clara-display-mode={displayMode ?? "resolving"}
+        data-clara-display-mode={effectiveDisplayMode ?? "resolving"}
         data-clara-emotion={emotion}
         data-clara-behavior={behavior}
         data-clara-cue={cue}
         data-clara-speaking={speaking}
       >
         <div className="clara-stage__viewport">
-          {displayMode === "static" ? (
+          {effectiveDisplayMode === "static" ? (
             <img
               className="clara-stage__static-image"
               src={staticSource}
@@ -203,7 +233,7 @@ export function ClaraStage({
               onLoad={() => handleLoadStateChange("ready")}
               onError={() => handleLoadStateChange("error")}
             />
-          ) : displayMode === "live2d" ? (
+          ) : effectiveDisplayMode === "live2d" ? (
             <Suspense fallback={null}>
               <ClaraLive2DCanvas
                 reduceMotion={Boolean(reduceMotion)}
@@ -214,13 +244,15 @@ export function ClaraStage({
           ) : null}
         </div>
         <span className="visually-hidden" role="status">
-          {loadState === "ready"
-            ? "Ma'am Clara is ready"
-            : loadState === "error"
-              ? "Ma'am Clara could not load"
-              : awaitingLearnerExperience
-                ? "Preparing Ma'am Clara"
-                : "Loading Ma'am Clara"}
+          {learnerExperience.state === "error" && loadState === "ready"
+            ? "Ma'am Clara is using a simple view"
+            : loadState === "ready"
+              ? "Ma'am Clara is ready"
+              : loadState === "error"
+                ? "Ma'am Clara could not load"
+                : awaitingLearnerExperience
+                  ? "Preparing Ma'am Clara"
+                  : "Loading Ma'am Clara"}
         </span>
       </motion.figure>
       {loadState !== "ready"

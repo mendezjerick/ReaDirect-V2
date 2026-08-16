@@ -15,7 +15,9 @@ import {
   RouteTransitionProvider,
 } from "../src/components/transitions/RouteTransitionProvider";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
+import { NORMAL_API_TIMEOUT_MS } from "../src/lib/apiUrl";
 import { LearnerLoginPage } from "../src/features/learner-auth/LearnerLoginPage";
+import { saveLearnerSession } from "../src/features/learner-auth/learnerApi";
 
 function renderLogin(initialPath = "/learner/login") {
   return render(
@@ -43,6 +45,7 @@ function renderLogin(initialPath = "/learner/login") {
 describe("LearnerLoginPage", () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    window.localStorage.clear();
     document.cookie = "readirect_learner_signed_in=; Max-Age=0; Path=/";
     vi.unstubAllGlobals();
     vi.useRealTimers();
@@ -60,6 +63,9 @@ describe("LearnerLoginPage", () => {
       "5",
     );
     expect(screen.getByRole("button", { name: "Let's go!" })).toBeEnabled();
+    expect(
+      screen.getByRole("checkbox", { name: /remember me on this device/i }),
+    ).not.toBeChecked();
   });
 
   it("normalizes the learner code and waits for the button press before login", async () => {
@@ -112,6 +118,7 @@ describe("LearnerLoginPage", () => {
     expect(
       window.sessionStorage.getItem("readirect.learner-session"),
     ).toContain("KW000");
+    expect(window.localStorage.getItem("readirect.learner-session")).toBeNull();
     expect(
       screen.queryByText("Learner dashboard route"),
     ).not.toBeInTheDocument();
@@ -130,6 +137,39 @@ describe("LearnerLoginPage", () => {
       await vi.advanceTimersByTimeAsync(LINK_START_ROUTE_SWAP_MS);
     });
     expect(screen.getByText("Learner dashboard route")).toBeVisible();
+  });
+
+  it("stores a remembered learner session outside tab-only storage", async () => {
+    await saveLearnerSession(
+      {
+        token: "learner-token",
+        learner: {
+          id: 1,
+          learner_code: "KW000",
+          full_name: "Kristen Rhine Wright",
+          first_name: "Kristen",
+          account_purpose: "portal_system",
+          speech_language: "en",
+          school: null,
+          grade_level: null,
+          section: null,
+          progress: {
+            stage: "before_diagnostic",
+            current_required_lesson_order: null,
+          },
+          achievement_keys: [],
+        },
+        session: { expires_at: "2026-07-20T12:00:00+00:00" },
+      },
+      { remember: true },
+    );
+
+    expect(window.localStorage.getItem("readirect.learner-session")).toContain(
+      "KW000",
+    );
+    expect(
+      window.sessionStorage.getItem("readirect.learner-session"),
+    ).toBeNull();
   });
 
   it("returns to Offline Practice when login was opened for a download", async () => {
@@ -177,5 +217,98 @@ describe("LearnerLoginPage", () => {
     });
 
     expect(screen.getByText("Offline Practice route")).toBeVisible();
+  });
+
+  it("recovers a stalled login request so the form can be retried", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn().mockImplementation(
+      (_input, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderLogin();
+
+    fireEvent.change(screen.getByLabelText("Learner Code"), {
+      target: { value: "kw000" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "rhine359" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Let's go!" }));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BUTTON_PRESS_COMMIT_MS);
+    });
+    expect(fetchMock).toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(NORMAL_API_TIMEOUT_MS + 1);
+      await Promise.resolve();
+    });
+
+    expect(
+      screen.getByText("We couldn't sign you in right now. Please try again."),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Let's go!" })).toBeEnabled();
+    expect(screen.getByLabelText("Learner Code")).toHaveValue("kw000");
+  });
+
+  it("keeps a saved session when restore is temporarily unavailable", async () => {
+    vi.useFakeTimers();
+    const storedSession = {
+      token: "cookie-session",
+      learner: {
+        id: 1,
+        learner_code: "KW000",
+        full_name: "Kristen Rhine Wright",
+        first_name: "Kristen",
+        account_purpose: "portal_system",
+        school: null,
+        grade_level: null,
+        section: null,
+        progress: {
+          stage: "before_diagnostic",
+          current_required_lesson_order: null,
+        },
+      },
+      session: { expires_at: "2026-07-20T12:00:00+00:00" },
+    };
+    window.sessionStorage.setItem(
+      "readirect.learner-session",
+      JSON.stringify(storedSession),
+    );
+    document.cookie = "readirect_learner_signed_in=1; Path=/";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(
+        (_input, init) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener(
+              "abort",
+              () => reject(new DOMException("Aborted", "AbortError")),
+              { once: true },
+            );
+          }),
+      ),
+    );
+    renderLogin();
+
+    expect(screen.getByText("Restoring your reading session...")).toBeVisible();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(NORMAL_API_TIMEOUT_MS);
+    });
+
+    expect(
+      screen.getByText("We couldn't verify your saved reading session."),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeEnabled();
+    expect(window.sessionStorage.getItem("readirect.learner-session")).toBe(
+      JSON.stringify(storedSession),
+    );
   });
 });

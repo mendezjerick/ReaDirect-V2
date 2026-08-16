@@ -194,7 +194,12 @@ function CircleDistribution({
                     -90 + offset * 3.6,
                     -90 + (offset + share) * 3.6,
                   )}
-                />
+                >
+                  <title>
+                    {item.label}: {item.value}{" "}
+                    {item.value === 1 ? "learner" : "learners"}
+                  </title>
+                </path>
               );
             })}
             <circle

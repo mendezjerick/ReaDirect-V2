@@ -192,7 +192,7 @@ describe("StaffLoginPage", () => {
       screen.queryByRole("button", { name: "Sign in" }),
     ).not.toBeInTheDocument();
     expect(
-      window.sessionStorage.getItem("readirect.staff-session"),
+      window.localStorage.getItem("readirect.staff-session"),
     ).not.toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Retry session" }));
@@ -333,9 +333,10 @@ describe("StaffLoginPage", () => {
     const payload = JSON.parse(String(request.body)) as Record<string, unknown>;
     expect(payload.remember_me).toBe(true);
     expect(payload.device_id).toMatch(/^[A-Za-z0-9_-]{1,64}$/);
-    expect(window.sessionStorage.getItem("readirect.staff-session")).toContain(
+    expect(window.localStorage.getItem("readirect.staff-session")).toContain(
       '"remembered":true',
     );
+    expect(window.sessionStorage.getItem("readirect.staff-session")).toBeNull();
 
     const storedSession = loadStaffSession();
     expect(storedSession).not.toBeNull();

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { apiFetch as fetch } from "../../lib/apiUrl";
+import { apiFetchWithNormalTimeout as fetch } from "../../lib/apiUrl";
 import {
   getNativeSessionCache,
   isNativeSecureSessionAvailable,
@@ -797,9 +797,13 @@ export async function saveStaffSession(session: StaffSession): Promise<void> {
 
   const browserSession = { ...session, token: browserSessionToken };
 
-  const storage = window.sessionStorage;
-  window.localStorage.removeItem(staffSessionStorageKey);
-  window.sessionStorage.removeItem(staffSessionStorageKey);
+  const storage = session.session.remembered
+    ? window.localStorage
+    : window.sessionStorage;
+  const otherStorage = session.session.remembered
+    ? window.sessionStorage
+    : window.localStorage;
+  otherStorage.removeItem(staffSessionStorageKey);
   storage.setItem(staffSessionStorageKey, JSON.stringify(browserSession));
   setBrowserSessionMarker(true);
   announceStaffSessionChange();

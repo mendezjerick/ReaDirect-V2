@@ -43,6 +43,10 @@ $previousAsrServiceToken = [Environment]::GetEnvironmentVariable('ASR_SERVICE_TO
 $previousTtsServiceToken = [Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process')
 $previousMuDevice = [Environment]::GetEnvironmentVariable('MU_DEVICE', 'Process')
 $previousMuModelPath = [Environment]::GetEnvironmentVariable('MU_MODEL_PATH', 'Process')
+$previousMuComputeType = [Environment]::GetEnvironmentVariable('MU_COMPUTE_TYPE', 'Process')
+$previousTtsDevice = [Environment]::GetEnvironmentVariable('READIRECT_TTS_DEVICE', 'Process')
+$previousCudaVisibleDevices = [Environment]::GetEnvironmentVariable('CUDA_VISIBLE_DEVICES', 'Process')
+$previousGpuCoordination = [Environment]::GetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', 'Process')
 
 function Write-Section {
     param([Parameter(Mandatory)][string]$Title)
@@ -380,6 +384,10 @@ try {
         -Path $ttsServiceTokenPath `
         -Token ([Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process'))
     [Environment]::SetEnvironmentVariable('MU_DEVICE', 'cpu', 'Process')
+    [Environment]::SetEnvironmentVariable('MU_COMPUTE_TYPE', 'int8', 'Process')
+    [Environment]::SetEnvironmentVariable('READIRECT_TTS_DEVICE', 'cpu', 'Process')
+    [Environment]::SetEnvironmentVariable('CUDA_VISIBLE_DEVICES', '', 'Process')
+    [Environment]::SetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', 'false', 'Process')
     $lightweightMuModelPath = Join-Path $repositoryRoot 'services\asr\.cache\faster-whisper-base.en'
     if ((Test-Path -LiteralPath (Join-Path $lightweightMuModelPath 'config.json')) -and
         (Test-Path -LiteralPath (Join-Path $lightweightMuModelPath 'model.bin'))) {
@@ -604,4 +612,8 @@ finally {
     [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', $previousTtsServiceToken, 'Process')
     [Environment]::SetEnvironmentVariable('MU_DEVICE', $previousMuDevice, 'Process')
     [Environment]::SetEnvironmentVariable('MU_MODEL_PATH', $previousMuModelPath, 'Process')
+    [Environment]::SetEnvironmentVariable('MU_COMPUTE_TYPE', $previousMuComputeType, 'Process')
+    [Environment]::SetEnvironmentVariable('READIRECT_TTS_DEVICE', $previousTtsDevice, 'Process')
+    [Environment]::SetEnvironmentVariable('CUDA_VISIBLE_DEVICES', $previousCudaVisibleDevices, 'Process')
+    [Environment]::SetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', $previousGpuCoordination, 'Process')
 }

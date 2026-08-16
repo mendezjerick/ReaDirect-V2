@@ -4,4 +4,4 @@ export {
   RequireSkeletonGameProfile,
   useGameLobbySkeleton,
 } from "./GameLobbySkeletonContext";
-export { GameLobbyPage } from "./GameLobbyPage";
+export { GameLobbyPage, type GameLobbyPageProps } from "./GameLobbyPage";

@@ -5,6 +5,8 @@ import {
   type GameAlphaRuntime,
 } from "../game/pixi/createGameAlphaRuntime";
 
+const GAME_STARTUP_TIMEOUT_MS = 12_000;
+
 interface GameAlphaCanvasProps {
   soundEnabled: boolean;
   onSoundEnabledChange(enabled: boolean): void;
@@ -28,7 +30,14 @@ export function GameAlphaCanvas({
     if (!host) return;
     const abortController = new AbortController();
     let active = true;
+    let startupTimedOut = false;
     let runtime: GameAlphaRuntime | null = null;
+    const startupTimeout = window.setTimeout(() => {
+      startupTimedOut = true;
+      abortController.abort();
+      if (active)
+        setError("The game is taking too long to start. Please try again.");
+    }, GAME_STARTUP_TIMEOUT_MS);
 
     void createGameAlphaRuntime({
       host,
@@ -39,21 +48,24 @@ export function GameAlphaCanvas({
       },
     })
       .then(async (createdRuntime) => {
-        if (!active) {
+        if (!active || startupTimedOut) {
           await createdRuntime.destroy();
           return;
         }
+        window.clearTimeout(startupTimeout);
         runtime = createdRuntime;
         runtimeRef.current = createdRuntime;
         setReady(true);
       })
       .catch(() => {
-        if (active)
+        window.clearTimeout(startupTimeout);
+        if (active && !startupTimedOut)
           setError("The game renderer could not start on this device.");
       });
 
     return () => {
       active = false;
+      window.clearTimeout(startupTimeout);
       abortController.abort();
       runtimeRef.current = null;
       if (runtime) void runtime.destroy();

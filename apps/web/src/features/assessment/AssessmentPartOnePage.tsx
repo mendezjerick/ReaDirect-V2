@@ -18,6 +18,7 @@ import { LearnerActivityShell } from "../learner-activity/LearnerActivityShell";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 
 import {
+  AssessmentAuthenticationError,
   continuePartOneResult,
   skipAssessmentItem,
   startPartOne,
@@ -276,6 +277,7 @@ export function AssessmentPartOnePage({
   );
   const [assessment, setAssessment] = useState<AssessmentState | null>(null);
   const [loadingError, setLoadingError] = useState("");
+  const [startAttempt, setStartAttempt] = useState(0);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveAction, setSaveAction] = useState<SaveAction>(null);
   const [choice, setChoice] = useState<"yes" | "no" | null>(null);
@@ -303,16 +305,32 @@ export function AssessmentPartOnePage({
       navigate("/learner/login", { replace: true });
       return;
     }
+    let active = true;
+    setLoadingError("");
     void startPartOne(storedSession.token, assessmentType)
-      .then(setAssessment)
-      .catch((error: unknown) =>
+      .then((nextAssessment) => {
+        if (active) setAssessment(nextAssessment);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        if (error instanceof AssessmentAuthenticationError) {
+          navigate("/learner/login", {
+            replace: true,
+            state: { from: window.location.pathname },
+          });
+          return;
+        }
         setLoadingError(
           error instanceof Error
             ? error.message
             : "The assessment could not open.",
-        ),
-      );
-  }, [assessmentType, navigate, storedSession?.token]);
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [assessmentType, navigate, startAttempt, storedSession?.token]);
 
   const speechKey = assessment
     ? getAssessmentSpeechKey(assessment.stage, assessment.progress?.current)
@@ -567,16 +585,28 @@ export function AssessmentPartOnePage({
           {loadingError || preparationError || "Opening Part 1..."}
         </p>
         {loadingError || preparationError ? (
-          <BigButton
-            size="regular"
-            onClick={
-              preparationError
-                ? activityPreparation.retry
-                : () => navigate("/learner/dashboard")
-            }
-          >
-            {preparationError ? "Try again" : "Back to dashboard"}
-          </BigButton>
+          <div className="assessment-page__loading-actions">
+            <BigButton
+              size="regular"
+              onClick={
+                preparationError
+                  ? activityPreparation.retry
+                  : () => {
+                      setAssessment(null);
+                      setStartAttempt((current) => current + 1);
+                    }
+              }
+            >
+              Try again
+            </BigButton>
+            <BigButton
+              variant="secondary"
+              size="regular"
+              onClick={() => navigate("/learner/dashboard")}
+            >
+              Back to dashboard
+            </BigButton>
+          </div>
         ) : null}
       </main>
     );

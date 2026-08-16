@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { Capacitor } from "@capacitor/core";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, expect, test, vi } from "vitest";
@@ -16,6 +16,7 @@ afterEach(() => {
   window.localStorage.clear();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 test("uses bundled static Clara immediately on native startup without API settings", () => {
@@ -239,13 +240,49 @@ test("uses the public intro contract before mounting Clara on the landing page",
     );
   });
 
-  expect(fetchMock).toHaveBeenCalledWith("/api/experience/intro/settings", {
-    headers: { Accept: "application/json" },
-  });
+  expect(fetchMock).toHaveBeenCalledWith(
+    "/api/experience/intro/settings",
+    expect.objectContaining({ headers: { Accept: "application/json" } }),
+  );
   expect(container.querySelector(".clara-stage__canvas")).toBeNull();
   expect(container.querySelector(".clara-stage")).not.toHaveAttribute(
     "data-live2d-model",
   );
+});
+
+test("falls back to the bundled static Clara view when intro settings stall", async () => {
+  vi.useFakeTimers();
+  const fetchMock = vi.fn().mockImplementation(
+    (_input, init) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener(
+          "abort",
+          () => reject(new DOMException("Aborted", "AbortError")),
+          { once: true },
+        );
+      }),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  const { container } = render(
+    <MemoryRouter initialEntries={["/"]}>
+      <ThemeProvider>
+        <LearnerExperienceProvider>
+          <ClaraStage />
+        </LearnerExperienceProvider>
+      </ThemeProvider>
+    </MemoryRouter>,
+  );
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(12_000);
+  });
+
+  expect(container.querySelector(".clara-stage")).toHaveAttribute(
+    "data-clara-display-mode",
+    "static",
+  );
+  expect(container.querySelector(".clara-stage__canvas")).toBeNull();
+  expect(fetchMock).toHaveBeenCalledOnce();
 });
 
 function DisplayModeProbe() {

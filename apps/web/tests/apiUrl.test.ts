@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   apiFetch,
+  apiFetchWithNormalTimeout,
   apiFetchWithTimeout,
+  ApiRequestTimeoutError,
+  NORMAL_API_TIMEOUT_MS,
   resolveApiUrl,
 } from "../src/lib/apiUrl";
 
@@ -72,9 +75,8 @@ describe("resolveApiUrl", () => {
 
   it("turns a stalled request into a readable timeout error", async () => {
     vi.useFakeTimers();
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockImplementation((_input, init) =>
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(
+      (_input, init) =>
         new Promise((_resolve, reject) => {
           init?.signal?.addEventListener(
             "abort",
@@ -82,16 +84,75 @@ describe("resolveApiUrl", () => {
             { once: true },
           );
         }),
-      );
+    );
 
-    const request = apiFetchWithTimeout("/api/learners/lessons/lesson-2/1/submit", {
-      method: "POST",
-    }, 1_000);
+    const request = apiFetchWithTimeout(
+      "/api/learners/lessons/lesson-2/1/submit",
+      {
+        method: "POST",
+      },
+      1_000,
+    );
     const failure = expect(request).rejects.toThrow(
-      "The reading checker took too long to respond. Please try again.",
+      "We couldn't connect right now. Please try again.",
     );
     await vi.advanceTimersByTimeAsync(1_000);
     await failure;
+
+    fetchSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it("bounds normal requests at the shared recovery ceiling", async () => {
+    vi.useFakeTimers();
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(
+      (_input, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+
+    const request = apiFetchWithNormalTimeout("/api/learners/session");
+    const failure = expect(request).rejects.toBeInstanceOf(
+      ApiRequestTimeoutError,
+    );
+    await vi.advanceTimersByTimeAsync(NORMAL_API_TIMEOUT_MS);
+    await failure;
+
+    fetchSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it("preserves caller cancellation instead of reporting a timeout", async () => {
+    vi.useFakeTimers();
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(
+      (_input, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+    const caller = new AbortController();
+    const request = apiFetchWithNormalTimeout("/api/learners/session", {
+      signal: caller.signal,
+    });
+    const failure = expect(request).rejects.toMatchObject({
+      name: "AbortError",
+    });
+
+    caller.abort();
+    await failure;
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/learners/session",
+      expect.objectContaining({ credentials: "include" }),
+    );
 
     fetchSpy.mockRestore();
     vi.useRealTimers();

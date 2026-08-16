@@ -6,6 +6,7 @@ import { BigButton } from "../../components/ui/BigButton";
 import { preloadCssImageToken } from "../../utils/preloadCssImageToken";
 import { ThemeSelector } from "../theme/ThemeSelector";
 import { useTheme } from "../theme/themeContext";
+import { useLearnerExperience } from "../learner-auth/LearnerExperienceProvider";
 import { ClaraIntroStage } from "./ClaraIntroStage";
 import { INTRO_EXPRESSION_SEQUENCE } from "./introConfig";
 
@@ -16,8 +17,12 @@ export function IntroPage() {
   const reduceMotion = useReducedMotion();
   const { theme } = useTheme();
   const { beginRouteTransition, isTransitioning } = useRouteTransition();
+  const { state: experienceState, retry: retryExperience } =
+    useLearnerExperience();
   const [expressionIndex, setExpressionIndex] = useState(0);
-  const [claraReady, setClaraReady] = useState(false);
+  const [claraLoadState, setClaraLoadState] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
   const homeBackgroundPreloadRef = useRef<HTMLImageElement | null>(null);
   const expression = INTRO_EXPRESSION_SEQUENCE[expressionIndex];
 
@@ -48,16 +53,19 @@ export function IntroPage() {
   const continueToHome = () => {
     beginRouteTransition({ destination: "/home", variant: "clara" });
   };
-  const introReady = claraReady;
+  const introReady = claraLoadState === "ready";
+  const staticFallbackReady = introReady && experienceState === "error";
+  const retryClara = () => {
+    setClaraLoadState("loading");
+    retryExperience();
+  };
 
   return (
     <ClaraIntroStage
       ariaLabelledBy="intro-title"
       emotion={expression}
       overlay={<ThemeSelector />}
-      onClaraLoadStateChange={(loadState) =>
-        setClaraReady(loadState === "ready")
-      }
+      onClaraLoadStateChange={setClaraLoadState}
     >
       <motion.h1
         id="intro-title"
@@ -87,6 +95,11 @@ export function IntroPage() {
           ease: "easeOut",
         }}
       >
+        {staticFallbackReady ? (
+          <p className="intro-page__clara-notice" role="status">
+            Clara&apos;s animation is unavailable, so a simple view is ready.
+          </p>
+        ) : null}
         <BigButton
           className="intro-page__continue"
           variant={introReady ? "primary" : "unavailable"}
@@ -96,6 +109,16 @@ export function IntroPage() {
         >
           {introReady ? "Tap to continue" : "Loading..."}
         </BigButton>
+        {claraLoadState === "error" ? (
+          <BigButton
+            className="intro-page__clara-retry"
+            variant="secondary"
+            size="regular"
+            onClick={retryClara}
+          >
+            Try again
+          </BigButton>
+        ) : null}
       </motion.div>
     </ClaraIntroStage>
   );

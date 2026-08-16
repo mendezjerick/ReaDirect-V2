@@ -73,6 +73,7 @@ vi.mock("motion/react", async (importOriginal) => {
 });
 
 import { AssessmentPartTwoPage } from "../src/features/assessment/AssessmentPartTwoPage";
+import { NORMAL_API_TIMEOUT_MS } from "../src/lib/apiUrl";
 
 const learnerSession = {
   token: "learner-token",
@@ -166,6 +167,51 @@ describe("AssessmentPartTwoPage", () => {
     live2dMocks.setState = undefined;
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+    vi.useRealTimers();
+  });
+
+  it("shows a retryable state when Part Two startup stalls", async () => {
+    vi.useFakeTimers();
+    window.sessionStorage.setItem(
+      "readirect.learner-session",
+      JSON.stringify({ ...learnerSession, token: "cookie-session" }),
+    );
+    const fetchMock = vi.fn().mockImplementation(
+      (_input, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <MemoryRouter initialEntries={["/learner/assessment/part-two"]}>
+        <ThemeProvider>
+          <Routes>
+            <Route
+              path="/learner/assessment/part-two"
+              element={<AssessmentPartTwoPage />}
+            />
+            <Route path="/learner/dashboard" element={<div>Dashboard</div>} />
+          </Routes>
+        </ThemeProvider>
+      </MemoryRouter>,
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(NORMAL_API_TIMEOUT_MS);
+    });
+
+    expect(
+      screen.getByText("We couldn't connect right now. Please try again."),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("persists one story choice before opening passage reading", async () => {

@@ -13,6 +13,7 @@ import { RequireStaffRole } from "./components/staff/RequireStaffRole";
 import { HomePage } from "./features/home/HomePage";
 import { IntroPage } from "./features/intro/IntroPage";
 import { LearnerExperienceProvider } from "./features/learner-auth/LearnerExperienceProvider";
+import { loadLearnerSession } from "./features/learner-auth/learnerApi";
 import { NativeLearnerEntryPage } from "./features/offline-practice/NativeLearnerEntryPage";
 import { NativeConnectivityBanner } from "./features/connectivity/NativeConnectivityBanner";
 import {
@@ -447,6 +448,10 @@ function RootPage() {
   );
 }
 
+function LearnerGamesRoute() {
+  return <GameLobbyPage guestUnavailable={!loadLearnerSession()} />;
+}
+
 export function App() {
   return (
     <RouteTransitionProvider>
@@ -528,7 +533,7 @@ export function App() {
               <Route path="/learner/lessons/4" element={<LessonFourPage />} />
               <Route path="/learner/lessons/5" element={<LessonFivePage />} />
               <Route path="/learner/lessons/6" element={<LessonSixPage />} />
-              <Route path="/learner/games" element={<GameLobbyPage />} />
+              <Route path="/learner/games" element={<LearnerGamesRoute />} />
               <Route
                 path="/learner/games/game-alpha"
                 element={

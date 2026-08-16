@@ -2308,6 +2308,7 @@ textarea.staff-field__control {
   grid-template-columns: minmax(9rem, 0.85fr) minmax(12rem, 1.15fr);
   gap: 1.25rem;
   align-items: center;
+  min-width: 0;
 }
 
 .staff-circle-chart__visual {
@@ -2379,6 +2380,7 @@ textarea.staff-field__control {
 .staff-circle-chart__legend {
   display: grid;
   gap: 0.5rem;
+  min-width: 0;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -2389,9 +2391,15 @@ textarea.staff-field__control {
   grid-template-columns: 0.7rem minmax(0, 1fr) auto;
   gap: 0.6rem;
   align-items: center;
+  min-width: 0;
   color: var(--color-text-secondary);
   font-size: 0.84rem;
   line-height: 1.25;
+}
+
+.staff-circle-chart__legend li > span:not(.staff-circle-chart__legend-dot) {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .staff-circle-chart__legend-dot {
@@ -4676,6 +4684,20 @@ textarea.staff-field__control {
   cursor: none;
 }
 
+.intro-page__clara-notice {
+  max-width: 18rem;
+  margin: 0 auto 0.65rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.intro-page__clara-retry {
+  width: 100%;
+  margin-top: 0.65rem;
+}
+
 .clara-stage {
   position: relative;
   align-self: end;
@@ -5579,7 +5601,6 @@ textarea.staff-field__control {
   .clara-speech-loader__cube {
     animation: none;
   }
-
 }
 
 @media (max-width: 42rem) {
@@ -5598,5 +5619,11 @@ textarea.staff-field__control {
 
   .staff-circle-chart__legend li {
     font-size: 0.8rem;
+  }
+}
+
+@media (min-width: 43rem) and (max-width: 79.99rem) {
+  .staff-dashboard-grid--circles {
+    grid-template-columns: 1fr;
   }
 }

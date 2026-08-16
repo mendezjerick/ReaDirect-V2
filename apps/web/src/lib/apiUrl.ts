@@ -1,5 +1,18 @@
 const API_PATH_PREFIX = "/api";
 
+/** Ordinary JSON requests should never leave a page in a permanent loading state. */
+export const NORMAL_API_TIMEOUT_MS = 12_000;
+
+/** Speech uploads and generated audio retain a longer, explicit budget. */
+export const SPEECH_API_TIMEOUT_MS = 90_000;
+
+export class ApiRequestTimeoutError extends Error {
+  constructor() {
+    super("We couldn't connect right now. Please try again.");
+    this.name = "ApiRequestTimeoutError";
+  }
+}
+
 function normalizeOrigin(origin: string): string {
   return origin.trim().replace(/\/+$/, "");
 }
@@ -48,19 +61,45 @@ export function apiFetch(
   });
 }
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException
+    ? error.name === "AbortError"
+    : error instanceof Error && error.name === "AbortError";
+}
+
 /**
- * Fetch an API request with a bounded wait. Speech scoring can take longer
- * than ordinary API calls on a laptop, but the UI must not remain in a
- * permanent loading state when the local ASR service is unavailable.
+ * Fetch a normal JSON request with a bounded wait while preserving a caller's
+ * cancellation signal and the shared API transport behavior.
  */
+export async function apiFetchWithNormalTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> {
+  return apiFetchWithTimeout(input, init, NORMAL_API_TIMEOUT_MS);
+}
+
+/** Fetch an API request with an explicit bounded wait. */
 export async function apiFetchWithTimeout(
   input: RequestInfo | URL,
-  init: RequestInit | undefined,
-  timeoutMs = 90_000,
+  init: RequestInit = {},
+  timeoutMs = SPEECH_API_TIMEOUT_MS,
 ): Promise<Response> {
   const controller = new AbortController();
-  const timeout = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+  let timedOut = false;
+  const timeout = globalThis.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
   const resolvedInput = typeof input === "string" ? apiUrl(input) : input;
+
+  const callerSignal = init.signal;
+  const abortFromCaller = () => controller.abort(callerSignal?.reason);
+
+  if (callerSignal?.aborted) {
+    abortFromCaller();
+  } else {
+    callerSignal?.addEventListener("abort", abortFromCaller, { once: true });
+  }
 
   try {
     return await globalThis.fetch(resolvedInput, {
@@ -69,13 +108,18 @@ export async function apiFetchWithTimeout(
       signal: controller.signal,
     });
   } catch (error) {
-    if (controller.signal.aborted) {
-      throw new Error(
-        "The reading checker took too long to respond. Please try again.",
-      );
+    if (timedOut) {
+      throw new ApiRequestTimeoutError();
+    }
+    if (callerSignal?.aborted && isAbortError(error)) {
+      throw error;
+    }
+    if (error instanceof TypeError) {
+      throw new Error("We couldn't connect right now. Please try again.");
     }
     throw error;
   } finally {
     globalThis.clearTimeout(timeout);
+    callerSignal?.removeEventListener("abort", abortFromCaller);
   }
 }

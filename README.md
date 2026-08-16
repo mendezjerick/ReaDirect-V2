@@ -82,6 +82,10 @@ API remains behind Vite's `/api` proxy, while ASR, TTS, Reverb, PostgreSQL,
 recordings, models, and tunnel credentials remain private to the host. The full
 rules are defined by
 `READIRECT_REVAMP_DEVELOPMENT_AND_STAGING_LAUNCHER_STANDARD.md`.
+The PowerShell launcher pins speech services to CPU for this workstation:
+ASR uses the cached `faster-whisper-base.en` model with `int8` compute, and
+TTS uses the CPU VoxCPM2 path. CUDA can be enabled only by changing the
+launcher environment deliberately.
 Realtime limits, monitoring, and recovery are documented in
 `docs/REALTIME_OPERATIONS.md`.
 

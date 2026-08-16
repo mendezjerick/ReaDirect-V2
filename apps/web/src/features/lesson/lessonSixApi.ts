@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { apiFetch as fetch } from "../../lib/apiUrl";
+import { apiFetchWithNormalTimeout as fetch } from "../../lib/apiUrl";
 
 const choiceKeySchema = z.enum(["a", "b", "c", "d"]);
 const assistanceSchema = z.enum([
