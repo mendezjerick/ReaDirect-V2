@@ -4,13 +4,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useGameLobbySkeleton } from "./GameLobbySkeletonContext";
 import readscapeThumbnail from "./assets/thumbnails/readscape.jpg";
 import spaceLetterThumbnail from "./assets/thumbnails/space-letter.png";
+import ottertaleThumbnail from "./assets/thumbnails/ottertale.png";
 import "./styles/lobby.css";
 
 interface LobbyLocationState {
   requestedGame?: string;
 }
 
-type GameKey = "game-alpha" | "game-one" | "game-zero" | "game-two";
+type GameKey = "game-alpha" | "game-one" | "game-two";
 
 interface GameSlot {
   key: GameKey;
@@ -46,20 +47,13 @@ const gameSlots: readonly GameSlot[] = [
     thumbnail: readscapeThumbnail,
   },
   {
-    key: "game-zero",
-    title: "Game Zero",
-    description: "Step into a new reading adventure.",
-    label: "New",
-    route: "/learner/games/game-zero",
-    accessibleName: "Open Game Zero",
-  },
-  {
     key: "game-two",
-    title: "Word Trail",
-    description: "Follow the trail and practice simple words.",
+    title: "Ottertale",
+    description: "Follow the river and practice simple words.",
     label: "Words",
     route: "/learner/games/game-two",
-    accessibleName: "Open Game Two",
+    accessibleName: "Open Ottertale",
+    thumbnail: ottertaleThumbnail,
   },
 ] as const;
 
@@ -68,11 +62,6 @@ function GameSymbol({ gameKey }: { gameKey: GameKey }) {
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <path d="M20 17h24v6h6v18h-6v6H20v-6h-6V23h6v-6Z" />
       <path d="M24 27h6v6h-6zM34 27h6v6h-6zM26 39h12M29 11h6v6" />
-    </svg>
-  ) : gameKey === "game-zero" ? (
-    <svg viewBox="0 0 64 64" aria-hidden="true">
-      <path d="M32 9 38 23 53 25 42 36 45 51 32 44 19 51 22 36 11 25 26 23 32 9Z" />
-      <path d="M25 31h14M32 24v14" />
     </svg>
   ) : gameKey === "game-one" ? (
     <svg viewBox="0 0 64 64" aria-hidden="true">

@@ -179,12 +179,7 @@ describe("authenticated game lobby route flow", () => {
     });
     expect(
       gameButtons.map((button) => button.getAttribute("aria-label")),
-    ).toEqual([
-      "Open Space Letter",
-      "Open Readscape",
-      "Open Game Zero",
-      "Open Game Two",
-    ]);
+    ).toEqual(["Open Space Letter", "Open Readscape", "Open Ottertale"]);
 
     fireEvent.click(gameButtons[0]);
     expect(
@@ -214,7 +209,7 @@ describe("authenticated game lobby route flow", () => {
       "/api/learners/games/chronicles-of-the-lost-kingdom/save",
       expect.objectContaining({
         headers: expect.objectContaining({
-            Authorization: "Bearer cookie-session",
+          Authorization: "Bearer cookie-session",
         }),
       }),
     );
@@ -235,13 +230,10 @@ describe("authenticated game lobby route flow", () => {
       screen.getByRole("button", { name: "Open Space Letter" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Open Game Zero" }),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole("button", { name: "Open Readscape" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Open Game Two" }),
+      screen.getByRole("button", { name: "Open Ottertale" }),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Open Readscape" }));

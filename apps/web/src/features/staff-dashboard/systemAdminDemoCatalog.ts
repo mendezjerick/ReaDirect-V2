@@ -87,7 +87,7 @@ export const systemAdminDemos: SystemAdminDemo[] = [
       "Choose a short game username for the play session.",
       "Enter the Game Lobby and review the three available games.",
       "See how Letter Quest practices letter spotting.",
-      "See how Word Trail practices simple words.",
+      "See how Ottertale practices simple words.",
       "Note that scores and Top Readers are still coming soon.",
     ],
   },
