@@ -802,7 +802,8 @@
    * stage rule sizes by width first, which can leave the Live2D canvas below
    * the dock when the action row is compressed for a passage. */
   .assessment-page.learner-flow-page.lesson-five-page .assessment-clara {
-    height: 100%;
+    height: calc(clamp(8rem, 17svh, 9.5rem) - 0.84rem - 2px);
+    min-height: 0;
     align-self: stretch;
   }
 
