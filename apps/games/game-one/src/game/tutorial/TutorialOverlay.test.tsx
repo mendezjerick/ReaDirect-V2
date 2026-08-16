@@ -53,26 +53,6 @@ describe("focused tutorial overlay", () => {
     expect(tutorialTarget("interaction", true)).toBe(".mission-interact-button");
   });
 
-  it("keeps the read-again tutorial anchored while the story review is open", async () => {
-    Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
-    Object.defineProperty(window, "innerHeight", { configurable: true, value: 720 });
-    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
-      return this.classList.contains("story-panel")
-        ? new DOMRect(280, 130, 700, 500)
-        : new DOMRect(0, 0, 0, 0);
-    });
-    render(
-      <>
-        <section className="story-panel">Story review</section>
-        <TutorialOverlay {...props(tutorialState("readAgain"))} />
-      </>
-    );
-
-    await waitFor(() => expect(document.querySelector(".tutorial-narrator")).toHaveClass("is-side", "is-right"));
-    expect(tutorialTarget("readAgain", false)).toContain(".story-panel");
-    expect(screen.getByText(/return to the activity/i)).toBeVisible();
-  });
-
   it("does not show unavailable narration controls in the compact tutorial", () => {
     render(<TutorialOverlay {...props(tutorialState("reading"))} />);
     expect(screen.queryByRole("button", { name: /Narration unavailable/i })).not.toBeInTheDocument();

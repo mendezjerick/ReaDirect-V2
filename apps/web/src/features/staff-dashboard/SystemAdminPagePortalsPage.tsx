@@ -3,6 +3,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import {
+  pagePortalNavigationState,
+  setPagePortalOrigin,
+} from "../../app/navigationContext";
 import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns";
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
@@ -70,7 +74,8 @@ export function SystemAdminPagePortalsPage() {
         data,
       );
       saveLearnerSession(data.launch.learner_session);
-      navigate(data.launch.route);
+      setPagePortalOrigin();
+      navigate(data.launch.route, { state: pagePortalNavigationState() });
     },
   });
   const learner = portalQuery.data?.learner;

@@ -3,8 +3,8 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  LINK_START_DURATION_MS,
-  LINK_START_ROUTE_SWAP_MS,
+  CLARA_LINK_START_DURATION_MS,
+  CLARA_LINK_START_ROUTE_SWAP_MS,
 } from "../src/components/transitions/LinkStartTransition";
 import { RouteTransitionProvider } from "../src/components/transitions/RouteTransitionProvider";
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
@@ -254,7 +254,7 @@ describe("IntroPage", () => {
       ).toBeInTheDocument();
       expect(screen.queryByText("Home route")).not.toBeInTheDocument();
 
-      act(() => vi.advanceTimersByTime(LINK_START_ROUTE_SWAP_MS - 1));
+      act(() => vi.advanceTimersByTime(CLARA_LINK_START_ROUTE_SWAP_MS - 1));
       expect(screen.queryByText("Home route")).not.toBeInTheDocument();
 
       act(() => vi.advanceTimersByTime(1));
@@ -265,7 +265,7 @@ describe("IntroPage", () => {
 
       act(() =>
         vi.advanceTimersByTime(
-          LINK_START_DURATION_MS - LINK_START_ROUTE_SWAP_MS,
+          CLARA_LINK_START_DURATION_MS - CLARA_LINK_START_ROUTE_SWAP_MS,
         ),
       );
       expect(

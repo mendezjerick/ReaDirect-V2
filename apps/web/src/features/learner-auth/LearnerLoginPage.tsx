@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -8,7 +8,15 @@ import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
-import { loginLearner, saveLearnerSession } from "./learnerApi";
+import {
+  getLearnerSession,
+  clearLearnerSession,
+  LearnerSessionInvalidError,
+  loadLearnerSession,
+  loginLearner,
+  restoreLearnerSession,
+  saveLearnerSession,
+} from "./learnerApi";
 import "./learner-login.css";
 
 interface LearnerLoginForm {
@@ -35,15 +43,70 @@ export function LearnerLoginPage() {
       : "/learner/dashboard";
   const { beginRouteTransition, isTransitioning } = useRouteTransition();
   const [showPassword, setShowPassword] = useState(false);
+  const [restoring, setRestoring] = useState(() =>
+    Boolean(
+      loadLearnerSession() ||
+      document.cookie.includes("readirect_learner_signed_in=1"),
+    ),
+  );
+  const [restoreError, setRestoreError] = useState(false);
   const backCommit = useButtonCommit();
   const loginCommit = useButtonCommit();
   const loginMutation = useMutation({
     mutationFn: loginLearner,
-    onSuccess: (session) => {
-      saveLearnerSession(session);
+    onSuccess: async (session) => {
+      await saveLearnerSession(session);
       beginRouteTransition(returnTo);
     },
   });
+
+  useEffect(() => {
+    let active = true;
+    const existing = loadLearnerSession();
+    setRestoreError(false);
+    const restore = existing
+      ? getLearnerSession(existing.token).then((session) => ({
+          ...session,
+          token: existing.token,
+        }))
+      : document.cookie.includes("readirect_learner_signed_in=1")
+        ? restoreLearnerSession()
+        : Promise.resolve(null);
+
+    void restore
+      .then(async (session) => {
+        if (!active) return;
+
+        if (session) {
+          await saveLearnerSession(session);
+          beginRouteTransition(returnTo);
+        } else if (!existing) {
+          // A stale browser marker without a valid server cookie must not
+          // cause an endless restore attempt on every visit to the login page.
+          clearLearnerSession();
+        }
+      })
+    .catch((error) => {
+      if (!active) return;
+
+      if (error instanceof LearnerSessionInvalidError) {
+        clearLearnerSession();
+        return;
+      }
+
+      // Keep the encrypted session intact when the API is temporarily
+      // unreachable. Showing the login form here would imply that the
+      // account was logged out and invite duplicate credentials.
+      if (existing) setRestoreError(true);
+    })
+      .finally(() => {
+        if (active) setRestoring(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [beginRouteTransition, returnTo]);
   const {
     register,
     handleSubmit,
@@ -51,6 +114,38 @@ export function LearnerLoginPage() {
   } = useForm<LearnerLoginForm>({
     defaultValues: { learner_code: "", password: "" },
   });
+
+  if (restoring) {
+    return (
+      <main
+        className="learner-session-required-page"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <p>Restoring your reading session...</p>
+      </main>
+    );
+  }
+
+  if (restoreError && loadLearnerSession()) {
+    return (
+      <main
+        className="learner-session-required-page"
+        aria-live="polite"
+        data-route-focus
+        tabIndex={-1}
+      >
+        <p>We couldn&apos;t verify your saved reading session.</p>
+        <p>Check your connection and try again.</p>
+        <BigButton
+          size="regular"
+          onClick={() => window.location.reload()}
+        >
+          Try again
+        </BigButton>
+      </main>
+    );
+  }
 
   return (
     <main

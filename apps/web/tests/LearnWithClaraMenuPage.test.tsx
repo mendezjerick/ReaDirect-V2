@@ -35,7 +35,7 @@ function renderMenu(authenticated = true) {
   if (authenticated) {
     window.sessionStorage.setItem(
       "readirect.learner-session",
-      JSON.stringify(learnerSession),
+      JSON.stringify({ ...learnerSession, token: "cookie-session" }),
     );
   }
 

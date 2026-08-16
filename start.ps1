@@ -42,6 +42,7 @@ $previousReverbServerPort = [Environment]::GetEnvironmentVariable('REVERB_SERVER
 $previousAsrServiceToken = [Environment]::GetEnvironmentVariable('ASR_SERVICE_TOKEN', 'Process')
 $previousTtsServiceToken = [Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process')
 $previousMuDevice = [Environment]::GetEnvironmentVariable('MU_DEVICE', 'Process')
+$previousMuModelPath = [Environment]::GetEnvironmentVariable('MU_MODEL_PATH', 'Process')
 
 function Write-Section {
     param([Parameter(Mandatory)][string]$Title)
@@ -379,6 +380,12 @@ try {
         -Path $ttsServiceTokenPath `
         -Token ([Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process'))
     [Environment]::SetEnvironmentVariable('MU_DEVICE', 'cpu', 'Process')
+    $lightweightMuModelPath = Join-Path $repositoryRoot 'services\asr\.cache\faster-whisper-base.en'
+    if ((Test-Path -LiteralPath (Join-Path $lightweightMuModelPath 'config.json')) -and
+        (Test-Path -LiteralPath (Join-Path $lightweightMuModelPath 'model.bin'))) {
+        [Environment]::SetEnvironmentVariable('MU_MODEL_PATH', $lightweightMuModelPath, 'Process')
+        Write-Host '  ASR       using local faster-whisper base.en cache' -ForegroundColor Green
+    }
 
     $corepackPath = Get-RequiredCommandPath `
         -Command 'corepack' `
@@ -596,4 +603,5 @@ finally {
     [Environment]::SetEnvironmentVariable('ASR_SERVICE_TOKEN', $previousAsrServiceToken, 'Process')
     [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', $previousTtsServiceToken, 'Process')
     [Environment]::SetEnvironmentVariable('MU_DEVICE', $previousMuDevice, 'Process')
+    [Environment]::SetEnvironmentVariable('MU_MODEL_PATH', $previousMuModelPath, 'Process')
 }

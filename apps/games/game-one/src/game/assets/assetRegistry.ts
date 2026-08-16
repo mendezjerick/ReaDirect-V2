@@ -1,28 +1,41 @@
-import tilesetFloorUrl from "../../assets/runtime/tiles/tileset-floor.png";
-import tilesetNatureUrl from "../../assets/runtime/tiles/tileset-nature.png";
-import tilesetWaterUrl from "../../assets/runtime/tiles/tileset-water.png";
-import tilesetHouseUrl from "../../assets/runtime/tiles/tileset-house.png";
-import learnerIdleUrl from "../../assets/runtime/characters/learner/yato-walk.png";
-import learnerWalkUrl from "../../assets/runtime/characters/learner/yato-walk.png";
-import blueHairExplorerUrl from "../../assets/runtime/characters/learner/blue-hair-explorer-v2.png";
-import irumaUrl from "../../assets/runtime/characters/learner/iruma-walk.png";
-import luffyUrl from "../../assets/runtime/characters/learner/luffy-walk.png";
-import frierenUrl from "../../assets/runtime/characters/learner/frieren-walk.png";
-import ambientMissYuuriUrl from "../../assets/runtime/characters/ambient/miss-yuuri-walk.png";
-import ambientMangPandaUrl from "../../assets/runtime/characters/ambient/mang-panda-walk.png";
-import ambientMrKikushibuUrl from "../../assets/runtime/characters/ambient/mr-kikushibu-walk.png";
-import npcMissEstelleUrl from "../../assets/runtime/characters/npcs/miss-estelle-idle.png";
-import npcLoloAmboUrl from "../../assets/runtime/characters/npcs/lolo-ambo-idle.png";
-import npcMarketVendorUrl from "../../assets/runtime/characters/npcs/market-vendor-idle.png";
-import npcBridgeKeeperUrl from "../../assets/runtime/characters/npcs/bridge-keeper-idle.png";
-import mapFragmentUrl from "../../assets/runtime/items/map-fragment.png";
-import treeRoundUrl from "../../assets/runtime/props/tree-round.png";
-import treeWideUrl from "../../assets/runtime/props/tree-wide.png";
-import stumpOrangeUrl from "../../assets/runtime/props/stump-orange.png";
-import rockSmallUrl from "../../assets/runtime/props/rock-small.png";
-import readingShrineUrl from "../../assets/runtime/props/reading-shrine.png";
-import riverBoatUrl from "../../assets/runtime/vehicles/river-boat.png";
-import ninjaAdventureLicenseUrl from "../../assets/runtime/licenses/ninja-adventure-cc0-license.txt?url";
+import tilesetFloorUrl from "../../assets/game/tiles/tileset-floor.png";
+import tilesetNatureUrl from "../../assets/game/tiles/tileset-nature.png";
+import tilesetWaterUrl from "../../assets/game/tiles/tileset-water.png";
+import tilesetHouseUrl from "../../assets/game/tiles/tileset-house.png";
+import learnerIdleUrl from "../../assets/game/characters/learner/yato-walk.png";
+import learnerWalkUrl from "../../assets/game/characters/learner/yato-walk.png";
+import blueHairExplorerUrl from "../../assets/game/characters/learner/blue-hair-explorer-v2.png";
+import irumaUrl from "../../assets/game/characters/learner/iruma-walk.png";
+import luffyUrl from "../../assets/game/characters/learner/luffy-walk.png";
+import frierenUrl from "../../assets/game/characters/learner/frieren-walk.png";
+import ambientMissYuuriUrl from "../../assets/game/characters/ambient/miss-yuuri-walk.png";
+import ambientMangPandaUrl from "../../assets/game/characters/ambient/mang-panda-walk.png";
+import ambientMrKikushibuUrl from "../../assets/game/characters/ambient/mr-kikushibu-walk.png";
+import npcMissEstelleUrl from "../../assets/game/characters/npcs/miss-estelle-idle.png";
+import npcLoloAmboUrl from "../../assets/game/characters/npcs/lolo-ambo-idle.png";
+import npcMarketVendorUrl from "../../assets/game/characters/npcs/market-vendor-idle.png";
+import npcBridgeKeeperUrl from "../../assets/game/characters/npcs/bridge-keeper-idle.png";
+import mapFragmentUrl from "../../assets/game/items/map-fragment.png";
+import treeRoundUrl from "../../assets/game/props/tree-round.png";
+import treeWideUrl from "../../assets/game/props/tree-wide.png";
+import stumpOrangeUrl from "../../assets/game/props/stump-orange.png";
+import rockSmallUrl from "../../assets/game/props/rock-small.png";
+import readingShrineUrl from "../../assets/game/props/reading-shrine.png";
+import fountainUrl from "../../assets/game/props/fountain.png";
+import loloSupplyPropsUrl from "../../assets/game/props/lolo-supply-props.png";
+import loloEastHomesSignUrl from "../../assets/game/props/lolo-east-homes-sign.png";
+import loloToLoloAmboSignUrl from "../../assets/game/props/lolo-to-lolo-ambo-sign.png";
+import loloDeliverSuppliesSignUrl from "../../assets/game/props/lolo-deliver-supplies-sign.png";
+import playgroundPropsUrl from "../../assets/game/props/playground-props.png";
+import riverBoatUrl from "../../assets/game/vehicles/river-boat.png";
+import suppliedGreenManorUrl from "../../assets/game/props/supplied-green-manor.png";
+import suppliedStrawCottageUrl from "../../assets/game/props/supplied-straw-cottage.png";
+import suppliedRedBarnUrl from "../../assets/game/props/supplied-red-barn.png";
+import suppliedPurpleShopUrl from "../../assets/game/props/supplied-purple-shop.png";
+import suppliedTowerHouseUrl from "../../assets/game/props/supplied-tower-house.png";
+import suppliedBlueHouseUrl from "../../assets/game/props/supplied-blue-house.png";
+import suppliedRedHouseUrl from "../../assets/game/props/supplied-red-house.png";
+import ninjaAdventureLicenseUrl from "../../assets/game/licenses/ninja-adventure-cc0-license.txt?url";
 
 export type SpriteSheetMetadata = {
   width: number;
@@ -49,7 +62,27 @@ export type GameAsset = {
   kind: "tileset" | "character" | "prop" | "item" | "license";
   metadata?: SpriteSheetMetadata;
   region?: SpriteRegionMetadata;
+  sourceDimensions?: { width: number; height: number };
 };
+
+const PLAYGROUND_PROP_REGIONS: Record<string, SpriteRegionMetadata> = {
+  "playground-swings": playgroundRegion(55, 139, 347, 241),
+  "playground-slide-tower": playgroundRegion(475, 112, 273, 288),
+  "playground-seesaw": playgroundRegion(793, 211, 266, 168),
+  "playground-climber": playgroundRegion(1128, 169, 268, 224),
+  "playground-sand-table": playgroundRegion(66, 478, 288, 205),
+  "playground-bench": playgroundRegion(436, 518, 229, 155),
+  "playground-fence-long": playgroundRegion(739, 535, 319, 111),
+  "playground-fence-short": playgroundRegion(1145, 536, 226, 110),
+  "playground-signboard": playgroundRegion(88, 767, 246, 188),
+  "playground-bush": playgroundRegion(476, 769, 196, 184),
+  "playground-flower-bush": playgroundRegion(797, 772, 180, 181),
+  "playground-flower-patch": playgroundRegion(1121, 812, 232, 142)
+};
+
+function playgroundRegion(x: number, y: number, width: number, height: number): SpriteRegionMetadata {
+  return { x, y, width, height, sourceWidth: 1448, sourceHeight: 1086 };
+}
 
 export const GAME_ASSETS = {
   tilesetFloor: {
@@ -100,7 +133,7 @@ export const GAME_ASSETS = {
   learnerIdle: {
     key: "learner-idle",
     path: learnerIdleUrl,
-    sourcePath: "AI-generated Game One character asset supplied and approved by the project owner",
+    sourcePath: "User-supplied d4c6a1ba-d0ca-4d2a-a1ac-a817cb123472.png",
     kind: "character",
     metadata: {
       width: 1024,
@@ -114,7 +147,7 @@ export const GAME_ASSETS = {
   learnerWalk: {
     key: "learner-walk",
     path: learnerWalkUrl,
-    sourcePath: "AI-generated Game One character asset supplied and approved by the project owner",
+    sourcePath: "User-supplied d4c6a1ba-d0ca-4d2a-a1ac-a817cb123472.png",
     kind: "character",
     metadata: {
       width: 1024,
@@ -128,7 +161,7 @@ export const GAME_ASSETS = {
   blueHairExplorer: {
     key: "blue-hair-explorer",
     path: blueHairExplorerUrl,
-    sourcePath: "AI-generated Game One character asset, rebuilt as a chroma-keyed 4x4 exploration sheet",
+      sourcePath: "User-supplied 87ca4464-12c5-42d6-8d94-f4838e388112.png, rebuilt and baseline-normalized as a chroma-keyed 4x4 exploration sheet",
     kind: "character",
     metadata: {
       width: 1248,
@@ -142,7 +175,7 @@ export const GAME_ASSETS = {
   iruma: {
     key: "iruma",
     path: irumaUrl,
-    sourcePath: "AI-generated Game One character walk sheet supplied and approved by the project owner",
+    sourcePath: "User-supplied iruma-walk.png — Iruma Suzuki (Mairimashita! Iruma-kun) pixel chibi walk sheet, transparent background, 4 columns × 4 rows",
     kind: "character",
     metadata: {
       width: 600,
@@ -156,7 +189,7 @@ export const GAME_ASSETS = {
   luffy: {
     key: "luffy",
     path: luffyUrl,
-    sourcePath: "AI-generated Game One character walk sheet supplied and approved by the project owner",
+    sourcePath: "User-supplied luffy-walk.png",
     kind: "character",
     metadata: {
       width: 1024,
@@ -170,7 +203,7 @@ export const GAME_ASSETS = {
   frieren: {
     key: "frieren",
     path: frierenUrl,
-    sourcePath: "AI-generated Game One character walk sheet supplied and approved by the project owner",
+    sourcePath: "User-supplied frieren-walk.png — Frieren (Sōsou no Frieren) pixel chibi walk sheet, transparent background, 4 columns × 3-4 rows (down, up, right)",
     kind: "character",
     metadata: {
       width: 600,
@@ -282,6 +315,55 @@ export const GAME_ASSETS = {
     kind: "prop",
     region: houseRegion(64, 0)
   },
+  suppliedGreenManor: {
+    key: "supplied-green-manor",
+    path: suppliedGreenManorUrl,
+    sourcePath: "User-supplied house.png crop: green manor",
+    kind: "prop",
+    sourceDimensions: { width: 325, height: 310 }
+  },
+  suppliedStrawCottage: {
+    key: "supplied-straw-cottage",
+    path: suppliedStrawCottageUrl,
+    sourcePath: "User-supplied house.png crop: straw cottage",
+    kind: "prop",
+    sourceDimensions: { width: 240, height: 325 }
+  },
+  suppliedRedBarn: {
+    key: "supplied-red-barn",
+    path: suppliedRedBarnUrl,
+    sourcePath: "User-supplied house.png crop: red barn",
+    kind: "prop",
+    sourceDimensions: { width: 250, height: 365 }
+  },
+  suppliedPurpleShop: {
+    key: "supplied-purple-shop",
+    path: suppliedPurpleShopUrl,
+    sourcePath: "User-supplied house.png crop: purple shop",
+    kind: "prop",
+    sourceDimensions: { width: 430, height: 280 }
+  },
+  suppliedTowerHouse: {
+    key: "supplied-tower-house",
+    path: suppliedTowerHouseUrl,
+    sourcePath: "User-supplied house.png crop: tower house",
+    kind: "prop",
+    sourceDimensions: { width: 285, height: 385 }
+  },
+  suppliedBlueHouse: {
+    key: "supplied-blue-house",
+    path: suppliedBlueHouseUrl,
+    sourcePath: "User-supplied house.png crop: blue house",
+    kind: "prop",
+    sourceDimensions: { width: 300, height: 305 }
+  },
+  suppliedRedHouse: {
+    key: "supplied-red-house",
+    path: suppliedRedHouseUrl,
+    sourcePath: "User-supplied house.png crop: red house",
+    kind: "prop",
+    sourceDimensions: { width: 295, height: 235 }
+  },
   treeRound: {
     key: "tree-round",
     path: treeRoundUrl,
@@ -310,10 +392,57 @@ export const GAME_ASSETS = {
       "Ninja Adventure - Asset Pack/Ninja Adventure - Asset Pack/Backgrounds/Tilesets/TilesetNature.png crop 160,192 32x16",
     kind: "prop"
   },
+  loloSupplyCart: loloProp("lolo-supply-cart", 0, 0),
+  loloSupplySacks: loloProp("lolo-supply-sacks", 1, 0),
+  loloDirectionSign: loloProp("lolo-direction-sign", 2, 0),
+  loloProduceCrate: loloProp("lolo-produce-crate", 3, 0),
+  loloMapCrate: loloProp("lolo-map-crate", 0, 1),
+  loloWoodFence: loloProp("lolo-wood-fence", 1, 1),
+  loloLanternPost: loloProp("lolo-lantern-post", 2, 1),
+  loloFlowerRocks: loloProp("lolo-flower-rocks", 3, 1),
+  loloEastHomesSign: {
+    key: "lolo-east-homes-sign",
+    path: loloEastHomesSignUrl,
+    sourcePath: "User-supplied lolo.png East Homes sign, rebuilt with transparent background",
+    kind: "prop",
+    sourceDimensions: { width: 445, height: 365 }
+  },
+  loloToLoloAmboSign: {
+    key: "lolo-to-lolo-ambo-sign",
+    path: loloToLoloAmboSignUrl,
+    sourcePath: "User-supplied lolo.png To Lolo Ambo sign, rebuilt with transparent background",
+    kind: "prop",
+    sourceDimensions: { width: 526, height: 363 }
+  },
+  loloDeliverSuppliesSign: {
+    key: "lolo-deliver-supplies-sign",
+    path: loloDeliverSuppliesSignUrl,
+    sourcePath: "User-supplied lolo.png Deliver Supplies to Lolo Ambo notice, rebuilt with transparent background",
+    kind: "prop",
+    sourceDimensions: { width: 728, height: 355 }
+  },
+  playgroundSwings: playgroundProp("playground-swings"),
+  playgroundSlideTower: playgroundProp("playground-slide-tower"),
+  playgroundSeesaw: playgroundProp("playground-seesaw"),
+  playgroundClimber: playgroundProp("playground-climber"),
+  playgroundSandTable: playgroundProp("playground-sand-table"),
+  playgroundBench: playgroundProp("playground-bench"),
+  playgroundFenceLong: playgroundProp("playground-fence-long"),
+  playgroundFenceShort: playgroundProp("playground-fence-short"),
+  playgroundSignboard: playgroundProp("playground-signboard"),
+  playgroundBush: playgroundProp("playground-bush"),
+  playgroundFlowerBush: playgroundProp("playground-flower-bush"),
+  playgroundFlowerPatch: playgroundProp("playground-flower-patch"),
   readingShrine: {
     key: "reading-shrine",
     path: readingShrineUrl,
-    sourcePath: "AI-generated ReaDirect reading shrine asset from the east-riverbank game reference",
+    sourcePath: "Generated ReaDirect reading shrine asset from the east-riverbank game reference",
+    kind: "prop"
+  },
+  fountain: {
+    key: "village-fountain",
+    path: fountainUrl,
+    sourcePath: "Ninja Adventure - Asset Pack/Ninja Adventure - Asset Pack/fountain.png, complete fountain animation states",
     kind: "prop"
   },
   ninjaAdventureLicense: {
@@ -349,11 +478,42 @@ export const REQUIRED_ASSET_KEYS = [
   "villageLearningHall",
   "villageEastHouse",
   "villageMarketShop",
+  "suppliedGreenManor",
+  "suppliedStrawCottage",
+  "suppliedRedBarn",
+  "suppliedPurpleShop",
+  "suppliedTowerHouse",
+  "suppliedBlueHouse",
+  "suppliedRedHouse",
   "treeRound",
   "treeWide",
   "stumpOrange",
   "rockSmall",
+  "loloSupplyCart",
+  "loloSupplySacks",
+  "loloDirectionSign",
+  "loloEastHomesSign",
+  "loloToLoloAmboSign",
+  "loloDeliverSuppliesSign",
+  "loloProduceCrate",
+  "loloMapCrate",
+  "loloWoodFence",
+  "loloLanternPost",
+  "loloFlowerRocks",
+  "playgroundSwings",
+  "playgroundSlideTower",
+  "playgroundSeesaw",
+  "playgroundClimber",
+  "playgroundSandTable",
+  "playgroundBench",
+  "playgroundFenceLong",
+  "playgroundFenceShort",
+  "playgroundSignboard",
+  "playgroundBush",
+  "playgroundFlowerBush",
+  "playgroundFlowerPatch",
   "readingShrine",
+  "fountain",
   "ninjaAdventureLicense"
 ] as const satisfies readonly GameAssetKey[];
 
@@ -398,4 +558,54 @@ function walkSheetMetadata(): SpriteSheetMetadata {
 
 function houseRegion(x: number, y: number): SpriteRegionMetadata {
   return { x, y, width: 64, height: 48, sourceWidth: 528, sourceHeight: 368 };
+}
+
+function loloProp(
+  key: string,
+  column: number,
+  row: number
+): Omit<GameAsset, "metadata"> & {
+  region: SpriteRegionMetadata;
+  sourceDimensions: { width: number; height: number };
+} {
+  const regions: readonly SpriteRegionMetadata[] = [
+    { x: 36, y: 273, width: 278, height: 242, sourceWidth: 1254, sourceHeight: 1254 },
+    { x: 314, y: 284, width: 313, height: 209, sourceWidth: 1254, sourceHeight: 1254 },
+    { x: 627, y: 277, width: 286, height: 229, sourceWidth: 1254, sourceHeight: 1254 },
+    { x: 974, y: 299, width: 236, height: 193, sourceWidth: 1254, sourceHeight: 1254 },
+    { x: 54, y: 705, width: 241, height: 247, sourceWidth: 1254, sourceHeight: 1254 },
+    { x: 344, y: 758, width: 283, height: 172, sourceWidth: 1254, sourceHeight: 1254 },
+    { x: 627, y: 627, width: 314, height: 321, sourceWidth: 1254, sourceHeight: 1254 },
+    { x: 941, y: 757, width: 263, height: 191, sourceWidth: 1254, sourceHeight: 1254 }
+  ];
+  const region = regions[row * 4 + column];
+  if (!region) throw new Error(`Unknown Lolo prop region: ${column},${row}`);
+
+  return {
+    key,
+    path: loloSupplyPropsUrl,
+    sourcePath: "User-supplied lolo.png, rebuilt as a transparent 4x2 pixel-art prop sheet",
+    kind: "prop",
+    region,
+    sourceDimensions: { width: region.width, height: region.height }
+  };
+}
+
+function playgroundProp(
+  key: string
+): Omit<GameAsset, "metadata"> & { region: SpriteRegionMetadata; sourceDimensions: { width: number; height: number } } {
+  const region = PLAYGROUND_PROP_REGIONS[key];
+
+  if (!region) {
+    throw new Error(`Unknown playground prop region: ${key}`);
+  }
+
+  return {
+    key,
+    path: playgroundPropsUrl,
+    sourcePath: "User-supplied playground.png, rebuilt as transparent pixel-art prop regions",
+    kind: "prop",
+    region,
+    sourceDimensions: { width: region.width, height: region.height }
+  };
 }

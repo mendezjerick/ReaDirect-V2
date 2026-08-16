@@ -7,11 +7,22 @@ use Illuminate\Http\Request;
 
 final class StaffSessionResolver
 {
+    public const COOKIE_NAME = 'readirect_staff_session';
+    public const MARKER_COOKIE_NAME = 'readirect_staff_signed_in';
+    public const BROWSER_SESSION_SENTINEL = 'cookie-session';
+
     public function resolve(Request $request): StaffSession
     {
         $plainToken = $request->bearerToken();
+        if ($plainToken === self::BROWSER_SESSION_SENTINEL) {
+            $plainToken = null;
+        }
 
-        if (! $plainToken) {
+        if (! is_string($plainToken) || ! preg_match('/^[A-Za-z0-9_-]{8,128}$/', $plainToken)) {
+            $plainToken = $request->cookie(self::COOKIE_NAME);
+        }
+
+        if (! is_string($plainToken) || ! preg_match('/^[A-Za-z0-9_-]{8,128}$/', $plainToken)) {
             abort(401, 'Staff session is required.');
         }
 

@@ -92,7 +92,7 @@ describe("RequireStaffRole", () => {
 
     const [, request] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(new Headers(request.headers).get("Authorization")).toBe(
-      `Bearer ${session.token}`,
+      "Bearer cookie-session",
     );
   });
 
@@ -128,7 +128,7 @@ describe("RequireStaffRole", () => {
 
     for (const [, request] of fetchMock.mock.calls as [string, RequestInit][]) {
       const headers = new Headers(request.headers);
-      expect(headers.get("Authorization")).toBe(`Bearer ${session.token}`);
+      expect(headers.get("Authorization")).toBe("Bearer cookie-session");
       expect(headers.get("X-ReaDirect-Device")).toBe(
         "remembered-browser-device",
       );

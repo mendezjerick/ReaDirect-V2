@@ -13,7 +13,6 @@ export function tutorialInstruction(step: TutorialState["step"], interactionAvai
         ? "Malapit ka na. Pindutin ang Kausapin."
         : "Lumapit kay Miss Estelle. Lalabas ang Kausapin kapag malapit ka.";
       case "reading": return "Basahin ang maikling kuwento. Tandaan ang mga detalye.";
-      case "readAgain": return "Gamitin ang Basahin Muli para balikan ang kuwento. Pagkatapos, bumalik sa gawain.";
       case "choice": return "Pindutin ang sagot na sa tingin mo ay tama.";
       case "continueQuestions": return "Tama! Pindutin ang Magpatuloy sa mga Tanong.";
       case "answerLater": return "Hindi pa handa? Pindutin ang Sagutin Mamaya. Balikan ito mamaya.";
@@ -30,7 +29,6 @@ export function tutorialInstruction(step: TutorialState["step"], interactionAvai
       ? "You are close enough. Tap Interact."
       : "Move close to Miss Estelle. Interact will appear nearby.";
     case "reading": return "Read the short story. Remember the details.";
-    case "readAgain": return "Use Read Again to review the story. Then return to the activity.";
     case "choice": return "Tap the answer you think is correct.";
     case "continueQuestions": return "Correct! Tap Continue to Questions.";
     case "answerLater": return "Not ready? Tap Answer Later. Return when you are ready.";
@@ -47,7 +45,6 @@ export function tutorialTarget(step: TutorialState["step"], interactionAvailable
     case "movement": return ".movement-controls";
     case "interaction": return interactionAvailable ? ".mission-interact-button" : ".movement-controls";
     case "reading": return ".story-panel";
-    case "readAgain": return '[data-tutorial="read-again"], .story-panel';
     case "choice": return ".answer-choice";
     case "continueQuestions": return '[data-tutorial="continue-questions"]';
     case "answerLater": return '[data-tutorial="save-for-later"], [data-tutorial="answer-later"], .activity-intro-panel';

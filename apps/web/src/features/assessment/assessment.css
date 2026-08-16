@@ -432,11 +432,23 @@
 .assessment-recorder__retry {
   border: 0;
   padding: 0.15rem 0.4rem;
-  color: var(--color-action-primary-depth);
+  color: var(--color-action-primary);
   background: var(--color-transparent);
   font-weight: 700;
   text-decoration: underline;
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.15em;
   cursor: pointer;
+}
+
+.assessment-recorder__retry:hover,
+.assessment-recorder__retry:focus-visible {
+  color: var(--color-action-primary-hover);
+}
+
+.assessment-recorder__retry:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .assessment-recorder__capture-note {

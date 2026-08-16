@@ -120,7 +120,8 @@ final class LearnerAuthController extends Controller
         return $this->json([
             'token' => $plainToken,
             ...$this->serializeSession($session, $learner),
-        ]);
+        ])->withCookie($this->sessionCookie($plainToken, $session->expires_at))
+            ->withCookie($this->markerCookie($session->expires_at));
     }
 
     public function show(Request $request): JsonResponse
@@ -135,7 +136,9 @@ final class LearnerAuthController extends Controller
         $session = $this->sessionResolver->resolve($request);
         $session->forceFill(['revoked_at' => now()])->save();
 
-        return $this->json(['signed_out' => true]);
+        return $this->json(['signed_out' => true])
+            ->withoutCookie(LearnerSessionResolver::COOKIE_NAME)
+            ->withoutCookie(LearnerSessionResolver::MARKER_COOKIE_NAME);
     }
 
     private function serializeSession(LearnerSession $session, Learner $learner): array
@@ -186,5 +189,36 @@ final class LearnerAuthController extends Controller
             'Cache-Control' => 'private, no-store',
             'Pragma' => 'no-cache',
         ]);
+    }
+
+    private function sessionCookie(string $token, \Carbon\CarbonInterface $expiresAt)
+    {
+        $minutes = max(1, now()->diffInMinutes($expiresAt));
+        return cookie(
+            LearnerSessionResolver::COOKIE_NAME,
+            $token,
+            $minutes,
+            '/',
+            null,
+            app()->environment('production'),
+            true,
+            false,
+            'lax',
+        );
+    }
+
+    private function markerCookie(\Carbon\CarbonInterface $expiresAt)
+    {
+        return cookie(
+            LearnerSessionResolver::MARKER_COOKIE_NAME,
+            '1',
+            max(1, now()->diffInMinutes($expiresAt)),
+            '/',
+            null,
+            app()->environment('production'),
+            false,
+            false,
+            'lax',
+        );
     }
 }

@@ -720,7 +720,7 @@ return [
     'asr_url' => env('ASR_SERVICE_URL', 'http://127.0.0.1:8001'),
     'asr_token' => env('ASR_SERVICE_TOKEN', ''),
     'connect_timeout_seconds' => (int) env('ASR_CONNECT_TIMEOUT_SECONDS', 3),
-    'request_timeout_seconds' => (int) env('ASR_REQUEST_TIMEOUT_SECONDS', 180),
+    'request_timeout_seconds' => (int) env('ASR_REQUEST_TIMEOUT_SECONDS', 90),
     'tts_url' => env('TTS_SERVICE_URL', 'http://127.0.0.1:8002'),
     'tts_token' => env('TTS_SERVICE_TOKEN', ''),
     'tts_connect_timeout_seconds' => (int) env('TTS_CONNECT_TIMEOUT_SECONDS', 3),

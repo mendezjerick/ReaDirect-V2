@@ -47,6 +47,7 @@ RUN mkdir -p \
 
 ENV APP_ENV=production \
     APP_DEBUG=false \
+    APP_FORCE_HTTPS=true \
     LOG_CHANNEL=stderr
 
 EXPOSE 10000

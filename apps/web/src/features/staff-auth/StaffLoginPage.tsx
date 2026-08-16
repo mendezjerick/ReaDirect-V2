@@ -12,6 +12,7 @@ import {
   getCurrentStaffSession,
   loadStaffSession,
   loginStaff,
+  restoreStaffSession,
   saveStaffSession,
 } from "./staffApi";
 import { staffHomeRoute } from "./staffRoutes";
@@ -49,13 +50,18 @@ export function StaffLoginPage() {
   const [restoreAttempt, setRestoreAttempt] = useState(0);
   const [restoreState, setRestoreState] = useState<
     "checking" | "ready" | "error"
-  >(() => (loadStaffSession() ? "checking" : "ready"));
+  >(() =>
+    loadStaffSession() ||
+    document.cookie.includes("readirect_staff_signed_in=1")
+      ? "checking"
+      : "ready",
+  );
   const navigationCommit = useButtonCommit();
   const signInCommit = useButtonCommit();
   const loginMutation = useMutation({
     mutationFn: loginStaff,
-    onSuccess: (session) => {
-      saveStaffSession(session);
+    onSuccess: async (session) => {
+      await saveStaffSession(session);
       navigate(staffHomeRoute(session), { replace: true });
     },
   });
@@ -69,30 +75,50 @@ export function StaffLoginPage() {
 
   useEffect(() => {
     const storedSession = loadStaffSession();
-
-    if (!storedSession) {
-      setRestoreState("ready");
-      return;
-    }
-
-    if (new Date(storedSession.session.expires_at).getTime() <= Date.now()) {
-      clearStaffSession();
-      setRestoreState("ready");
-      return;
-    }
+    const hasRestoreMarker = document.cookie.includes(
+      "readirect_staff_signed_in=1",
+    );
 
     let active = true;
+    if (!storedSession && !hasRestoreMarker) {
+      setRestoreState("ready");
+      return () => {
+        active = false;
+      };
+    }
+
     setRestoreState("checking");
 
-    void getCurrentStaffSession()
-      .then((session) => {
-        if (active) {
+    const restore = storedSession
+      ? new Date(storedSession.session.expires_at).getTime() <= Date.now()
+        ? Promise.reject(new Error("expired"))
+        : getCurrentStaffSession()
+      : hasRestoreMarker
+        ? restoreStaffSession()
+        : Promise.resolve(null);
+
+    void restore
+      .then(async (session) => {
+        if (!active) return;
+
+        if (session) {
+          await saveStaffSession(session);
           navigate(staffHomeRoute(session), { replace: true });
+        } else {
+          // A marker can outlive its server cookie. Treat that as signed out
+          // so the login page does not remain stuck in the restore state.
+          clearStaffSession();
+          setRestoreState("ready");
         }
       })
       .catch(() => {
         if (active) {
-          setRestoreState(loadStaffSession() ? "error" : "ready");
+          if (storedSession && loadStaffSession()) {
+            setRestoreState("error");
+          } else {
+            clearStaffSession();
+            setRestoreState("ready");
+          }
         }
       });
 

@@ -12,6 +12,8 @@ import { useNavigate } from "react-router-dom";
 import {
   LINK_START_DURATION_MS,
   LINK_START_ROUTE_SWAP_MS,
+  CLARA_LINK_START_DURATION_MS,
+  CLARA_LINK_START_ROUTE_SWAP_MS,
   WHITE_LINK_START_DURATION_MS,
   WHITE_LINK_START_ROUTE_SWAP_MS,
   LinkStartTransition,
@@ -82,11 +84,15 @@ export function RouteTransitionProvider({
       const variant =
         typeof request === "string" ? "full" : (request.variant ?? "full");
       const routeSwapMs =
-        variant === "white"
+        variant === "clara"
+          ? CLARA_LINK_START_ROUTE_SWAP_MS
+          : variant === "white"
           ? WHITE_LINK_START_ROUTE_SWAP_MS
           : LINK_START_ROUTE_SWAP_MS;
       const durationMs =
-        variant === "white"
+        variant === "clara"
+          ? CLARA_LINK_START_DURATION_MS
+          : variant === "white"
           ? WHITE_LINK_START_DURATION_MS
           : LINK_START_DURATION_MS;
 

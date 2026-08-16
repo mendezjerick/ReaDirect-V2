@@ -10,7 +10,6 @@ export type MissionStage =
   | "storyIntroduction"
   | "readingIntro"
   | "storyPresentation"
-  | "storyReview"
   | "missionAction"
   | "missionActionFeedback"
   | "questionIntro"
@@ -43,7 +42,6 @@ export type ActiveDialogue =
       speakerId: LandmarkId;
     };
 
-type ReviewReturnStage = "missionAction" | "missionActionFeedback" | "questionIntro" | "questionRound" | "answerSelected" | "questionFeedback" | "heartRecovery" | "deferredResume" | null;
 type AnswerStatus = "idle" | "incorrect" | "correct";
 
 export type MissionState = {
@@ -69,12 +67,10 @@ export type MissionState = {
   incorrectSubmissionsByQuestion: Readonly<Record<string, number>>;
   readingHeartsRemaining: number;
   recoveredQuestionIds: readonly string[];
-  passageRereadCount: number;
   comprehensionRestartCount: number;
   savedQuestionIds: readonly string[];
   savedNotice: string;
   completedMissionIds: readonly MissionId[];
-  reviewReturnStage: ReviewReturnStage;
   activeDialogue: ActiveDialogue | null;
   availableInteraction: InteractionTarget | null;
   helpOpen: boolean;
@@ -95,16 +91,13 @@ export type MissionEvent =
   | { type: "PREVIOUS_READING_PAGE" }
   | { type: "NEXT_READING_PAGE" }
   | { type: "FINISH_STORY" }
-  | { type: "BEGIN_MISSION_ACTION" }
   | { type: "SUBMIT_MISSION_ACTION"; choiceId: string }
   | { type: "CONTINUE_AFTER_ACTION" }
   | { type: "START_QUESTIONS" }
-  | { type: "OPEN_STORY_REVIEW" }
-  | { type: "CLOSE_STORY_REVIEW" }
   | { type: "SELECT_ANSWER"; choiceId: string }
   | { type: "SUBMIT_ANSWER"; choiceId: string }
   | { type: "TRY_QUESTION_AGAIN" }
-  | { type: "READ_AND_RESTART" }
+  | { type: "RESTART_COMPREHENSION" }
   | { type: "ANSWER_LATER" }
   | { type: "CONFIRM_ANSWER_LATER" }
   | { type: "CANCEL_ANSWER_LATER" }
@@ -148,12 +141,10 @@ export function createInitialMissionState(rounds: readonly QuestionRound[], lang
     incorrectSubmissionsByQuestion: {},
     readingHeartsRemaining: READING_HEARTS_TOTAL,
     recoveredQuestionIds: [],
-    passageRereadCount: 0,
     comprehensionRestartCount: 0,
     savedQuestionIds: [],
     savedNotice: "",
     completedMissionIds: [],
-    reviewReturnStage: null,
     activeDialogue: null,
     availableInteraction: null,
     helpOpen: false,
@@ -213,14 +204,10 @@ export function missionReducer(state: MissionState, event: MissionEvent): Missio
       if (state.stage !== "storyPresentation") return state;
       return {
         ...state,
-        stage: "storyReview",
+        stage: "missionAction",
         readingPresented: true,
-        reviewReturnStage: null,
         announcement: stateText(state.language).readingComplete
       };
-    case "BEGIN_MISSION_ACTION":
-      if (state.stage !== "storyReview" || !state.readingPresented || state.reviewReturnStage) return state;
-      return { ...state, stage: "missionAction", announcement: stateText(state.language).useReading };
     case "SUBMIT_MISSION_ACTION":
       return submitMissionAction(state, event.choiceId);
     case "CONTINUE_AFTER_ACTION":
@@ -236,18 +223,6 @@ export function missionReducer(state: MissionState, event: MissionEvent): Missio
     case "START_QUESTIONS":
       if (state.stage !== "questionIntro") return state;
       return { ...state, stage: "questionRound", announcement: stateText(state.language).questionProgress(1, state.round.questions.length) };
-    case "OPEN_STORY_REVIEW":
-      if (!["missionAction", "missionActionFeedback", "questionIntro", "questionRound", "answerSelected", "questionFeedback", "deferredResume"].includes(state.stage)) return state;
-      return {
-        ...state,
-        reviewReturnStage: state.stage as Exclude<ReviewReturnStage, null>,
-        stage: "storyReview",
-        helpOpen: false,
-        passageRereadCount: isQuestionStage(state.stage) ? state.passageRereadCount + 1 : state.passageRereadCount
-      };
-    case "CLOSE_STORY_REVIEW":
-      if (state.stage !== "storyReview" || !state.reviewReturnStage) return state;
-      return { ...state, stage: state.reviewReturnStage, reviewReturnStage: null };
     case "SELECT_ANSWER":
       return selectAnswer(state, event.choiceId);
     case "SUBMIT_ANSWER":
@@ -256,7 +231,7 @@ export function missionReducer(state: MissionState, event: MissionEvent): Missio
       if (state.stage !== "questionFeedback" || state.answerStatus !== "incorrect") return state;
       if (getReadingHearts(state) <= 0) return { ...state, stage: "heartRecovery" };
       return { ...state, stage: "questionRound", answerStatus: "idle", selectedChoiceId: null, announcement: stateText(state.language).tryQuestionAgain };
-    case "READ_AND_RESTART":
+    case "RESTART_COMPREHENSION":
       return restartComprehension(state);
     case "ANSWER_LATER":
       if (!["questionRound", "answerSelected", "questionFeedback"].includes(state.stage) || state.answerStatus === "correct") return state;
@@ -304,7 +279,7 @@ export function getCurrentObjective(state: MissionState) {
   const mission = getMission(state.missionId, state.language);
   const copy = stateText(state.language);
   if (state.stage === "approachStoryCharacter") return { label: mission.objective, help: mission.objectiveHelp };
-  if (["storyIntroduction", "readingIntro", "storyPresentation", "storyReview", "missionAction", "missionActionFeedback"].includes(state.stage)) {
+  if (["storyIntroduction", "readingIntro", "storyPresentation", "missionAction", "missionActionFeedback"].includes(state.stage)) {
     return { label: copy.useReadingTitle(mission.reading.title), help: copy.useReadingHelp(mission.reading.format.toLowerCase()) };
   }
   if (state.stage === "missionInProgress") {
@@ -473,8 +448,7 @@ function restartComprehension(state: MissionState): MissionState {
   const firstQuestion = state.round.questions[0];
   return {
     ...state,
-    stage: "storyReview",
-    reviewReturnStage: "questionIntro",
+    stage: "questionIntro",
     currentQuestionIndex: 0,
     answerStatus: "idle",
     selectedChoiceId: null,
@@ -491,10 +465,6 @@ function restartComprehension(state: MissionState): MissionState {
     savedNotice: "",
     announcement: stateText(state.language).challengeRestarted
   };
-}
-
-function isQuestionStage(stage: MissionStage) {
-  return ["questionIntro", "questionRound", "answerSelected", "questionFeedback", "heartRecovery", "deferredResume"].includes(stage);
 }
 
 function continueAfterCorrect(state: MissionState): MissionState {
@@ -564,7 +534,6 @@ function continueToNextMission(state: MissionState): MissionState {
     rejectedChoiceIds: [],
     readingHeartsRemaining: READING_HEARTS_TOTAL,
     savedNotice: "",
-    reviewReturnStage: null,
     activeDialogue: null,
     availableInteraction: null,
     helpOpen: false,
@@ -709,7 +678,7 @@ function stateText(language: GameLanguage) {
   if (language === "fil") {
     return {
       readCarefully: "Basahing mabuti ang teksto.",
-      readingComplete: "Tapos na ang pagbasa. Balikan ang mga detalye bago magpasya sa misyon.",
+      readingComplete: "Tapos na ang pagbasa. Gamitin ang iyong natandaan sa misyon.",
       useReading: "Gamitin ang binasa upang magpasya sa misyon.",
       questionsReady: "Handa na ang mga tanong.",
       questionProgress: (current: number, total: number) => `Tanong ${current} sa ${total}.`,
@@ -720,7 +689,7 @@ function stateText(language: GameLanguage) {
       useReadingTitle: (title: string) => `Basahin: ${title}`,
       useReadingHelp: (format: string) => `Basahin ang ${format}. Hanapin ang mahahalagang detalye.`,
       completeQuestions: (format: string) => `Sagutin ang mga tanong sa ${format}.`,
-      questionHelp: "Pumili ng isang sagot. Basahin muli kung kailangan.",
+      questionHelp: "Pumili ng isang sagot gamit ang iyong natandaan.",
       continueMission: (number: number) => `Magpatuloy sa misyon ${number}`,
       openCommunity: "Buksan ang gawaing pagbasa ng komunidad",
       journeyComplete: "Tapos na ang paglalakbay sa pagbasa ng komunidad",
@@ -735,13 +704,13 @@ function stateText(language: GameLanguage) {
       questionSaved: "Naitala ang tanong! Maaari mo itong balikan mamaya.",
       returnToQuestions: (name: string) => `Bumalik kay ${name}. Ituloy ang tanong.`,
       returnToQuestionsHelp: "Maglibot kung gusto mo. Kausapin siya kapag handa ka na.",
-      rechargeHeart: "Simulan nating muli ang hamon. Basahin ang kuwento, saka subukan muli!",
-      challengeRestarted: "Naibalik ang tatlong puso. Basahin muli ang kuwento bago magsimula."
+      rechargeHeart: "Simulan nating muli ang hamon. Subukan muli ang mga tanong.",
+      challengeRestarted: "Naibalik ang tatlong puso. Subukan muli ang mga tanong."
     };
   }
   return {
     readCarefully: "Read the passage carefully.",
-    readingComplete: "Reading complete. Review the details before making the mission decision.",
+    readingComplete: "Reading complete. Use what you remember for the mission.",
     useReading: "Use the reading to make the mission decision.",
     questionsReady: "The questions are ready.",
     questionProgress: (current: number, total: number) => `Question ${current} of ${total}.`,
@@ -752,7 +721,7 @@ function stateText(language: GameLanguage) {
     useReadingTitle: (title: string) => `Read: ${title}`,
     useReadingHelp: (format: string) => `Read the ${format}. Find the key details.`,
     completeQuestions: (format: string) => `Answer the ${format} questions.`,
-    questionHelp: "Pick one answer. Read again if you need help.",
+    questionHelp: "Pick one answer using what you remember.",
     continueMission: (number: number) => `Continue to mission ${number}`,
     openCommunity: "Open the community reading activity",
     journeyComplete: "Community reading journey complete",
@@ -767,7 +736,7 @@ function stateText(language: GameLanguage) {
     questionSaved: "Question saved! You can return to it later.",
     returnToQuestions: (name: string) => `Go back to ${name}. Continue your question.`,
     returnToQuestionsHelp: "Explore if you want. Talk when you are ready.",
-    rechargeHeart: "Let's start this challenge again. Read the story, then try once more!",
-    challengeRestarted: "Three hearts restored. Read the story again before you begin."
+    rechargeHeart: "Let's start this challenge again. Try the questions again.",
+    challengeRestarted: "Three hearts restored. Try the questions again."
   };
 }

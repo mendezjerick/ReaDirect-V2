@@ -86,7 +86,7 @@ describe("learner reading-path contract", () => {
     ).toBe(false);
   });
 
-  it("upgrades a previously stored session with a locked default snapshot", () => {
+  it("rejects a legacy plaintext browser session", () => {
     window.sessionStorage.setItem(
       "readirect.learner-session",
       JSON.stringify({
@@ -96,11 +96,10 @@ describe("learner reading-path contract", () => {
       }),
     );
 
-    expect(loadLearnerSession()?.reading_path).toMatchObject({
-      diagnostic: { status: "required", score: null },
-      completed_lesson_count: 0,
-      final_assessment: { status: "locked" },
-    });
+    expect(loadLearnerSession()).toBeNull();
+    expect(
+      window.sessionStorage.getItem("readirect.learner-session"),
+    ).toBeNull();
   });
 
   it("submits the whole-diagnostic skip and returns its fresh snapshot", async () => {

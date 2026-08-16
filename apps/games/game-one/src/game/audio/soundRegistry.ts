@@ -57,5 +57,7 @@ export const LOCATION_AMBIENCE: Record<MapAreaKey, RpgSoundId> = {
   "south-riverbend": "ambience-forest",
   "south-river-cove": "ambience-water",
   "east-river-channel": "ambience-water",
+  "riverside-hamlet": "ambience-village",
+  "canal-hamlet": "ambience-village",
   "tree-border": "ambience-forest"
 };

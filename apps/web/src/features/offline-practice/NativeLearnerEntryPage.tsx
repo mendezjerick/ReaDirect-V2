@@ -9,7 +9,7 @@ import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { useConnectivity } from "../connectivity/connectivityContext";
-import { loadLearnerSession } from "../learner-auth/learnerApi";
+import { probeApiReachability } from "../connectivity/connectivityProbe";
 import { ThemeSelector } from "../theme/ThemeSelector";
 import { useTheme } from "../theme/themeContext";
 import "./offline-practice.css";
@@ -109,13 +109,6 @@ function NativeStartupScreen() {
       : theme === "t3"
         ? "/assets/backgrounds/T3mobile.png"
         : "/assets/backgrounds/T1mobile.png";
-  const claraSource =
-    theme === "t2"
-      ? "/assets/icons/missclara2.png"
-      : theme === "t3"
-        ? "/assets/icons/missclara3.png"
-        : "/assets/icons/missclara1.png";
-
   return (
     <main
       className="native-startup-splash"
@@ -129,9 +122,9 @@ function NativeStartupScreen() {
         aria-hidden="true"
       />
       <img
-        className={`native-startup-splash__icon native-startup-splash__icon--${theme}`}
-        src={claraSource}
-        alt="Ma'am Clara"
+        className="native-startup-splash__icon"
+        src="/assets/icons/icon.png"
+        alt="ReaDirect"
       />
       <span className="native-startup-splash__loader" aria-hidden="true" />
       <span className="visually-hidden">Loading ReaDirect</span>
@@ -187,6 +180,7 @@ export function NativeLearnerEntryPage({
   const [startupReady, setStartupReady] = useState(initialView === "modes");
   const [hasContinued, setHasContinued] = useState(initialView === "modes");
   const [isContinuing, setIsContinuing] = useState(false);
+  const [isCheckingOnline, setIsCheckingOnline] = useState(false);
   const [onlineNotice, setOnlineNotice] = useState<string | null>(null);
   const continueTimer = useRef<number | null>(null);
 
@@ -221,8 +215,12 @@ export function NativeLearnerEntryPage({
     }, LINK_START_DURATION_MS);
   };
 
-  const openOnlineLearning = () => {
-    if (connectivity.device !== "online") {
+  const openOnlineLearning = async () => {
+    if (isCheckingOnline) {
+      return;
+    }
+
+    if (connectivity.device === "offline") {
       setOnlineNotice(
         onlineFailureMessage(
           connectivity.device,
@@ -233,31 +231,34 @@ export function NativeLearnerEntryPage({
       return;
     }
 
-    if (
-      connectivity.api !== "reachable" &&
-      connectivity.api !== "unauthorized"
-    ) {
+    let apiStatus = connectivity.api;
+    if (apiStatus !== "reachable" && apiStatus !== "unauthorized") {
+      setIsCheckingOnline(true);
+      try {
+        apiStatus = (await probeApiReachability({ timeoutMs: 5_000 })).status;
+      } finally {
+        setIsCheckingOnline(false);
+      }
+    }
+
+    if (apiStatus !== "reachable" && apiStatus !== "unauthorized") {
       setOnlineNotice(
         onlineFailureMessage(
           connectivity.device,
-          connectivity.api,
+          apiStatus,
           connectivity.learnerSession,
         ),
       );
       return;
     }
 
-    const session = loadLearnerSession();
-    if (!session || connectivity.api === "unauthorized") {
-      onlineCommit.commit(() => navigate("/learner/login"));
-      return;
-    }
-
-    onlineCommit.commit(() => navigate("/learner/dashboard"));
+    onlineCommit.commit(() => navigate("/home?from=native-mode-selection"));
   };
 
   const openOfflinePractice = () => {
-    offlineCommit.commit(() => navigate("/learner/offline"));
+    offlineCommit.commit(() =>
+      navigate("/learner/offline?from=native-mode-selection"),
+    );
   };
 
   if (!startupReady) {
@@ -347,7 +348,7 @@ export function NativeLearnerEntryPage({
             </div>
             <BigButton
               className="offline-entry__action"
-              committing={onlineCommit.committing}
+              committing={onlineCommit.committing || isCheckingOnline}
               onClick={openOnlineLearning}
             >
               Online Learning

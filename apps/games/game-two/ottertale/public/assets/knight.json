@@ -1,0 +1,20 @@
+{"frames": {
+
+"knight.png":
+{
+	"frame": {"x":1,"y":1,"w":241,"h":245},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":6,"y":8,"w":241,"h":245},
+	"sourceSize": {"w":256,"h":256}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "knight.png",
+	"format": "RGBA8888",
+	"size": {"w":243,"h":247},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:e4e9c766b916b61941fbb75d1f5f01a0:abe85fa2b9eae4bcdf9c3a79ff76a62f:775abec68cea152a8c833d779d2191cb$"
+}
+}

@@ -414,8 +414,17 @@
   height: 100%;
   min-height: 0;
   align-self: stretch;
-  overflow: hidden;
-  padding-right: 0.2rem;
+  /*
+   * Short portrait phones cannot show a 50-word passage and the recorder
+   * controls at once. Keep the fitted text readable, then let the learner
+   * reach the remaining lines instead of silently clipping the story.
+   */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.45rem;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
   font-size: clamp(1.05rem, 4.25vw, 1.45rem);
   line-height: 1.5;
 }

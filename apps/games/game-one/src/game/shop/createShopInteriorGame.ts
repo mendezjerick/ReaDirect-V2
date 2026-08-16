@@ -313,7 +313,7 @@ function renderWallDetails(runtime: ShopRuntime) {
   addBlock(runtime, 448, 41, 88, 4, "#69b8c7", 8);
   addLabel(runtime, "RIVER MARKET", 320, 48, 15, 9);
   addBlock(runtime, 286, 75, 68, 28, "#efe2b9", 8);
-  addLabel(runtime, "READ ? FIND ? RETURN", 320, 88, 6, 9, "#6f3328");
+  addLabel(runtime, "READ • FIND • RETURN", 320, 88, 6, 9, "#6f3328");
 }
 
 function renderVendor(runtime: ShopRuntime) {

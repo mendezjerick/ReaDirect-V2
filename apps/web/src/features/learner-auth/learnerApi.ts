@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-import { apiUrl } from "../../lib/apiUrl";
+import { apiFetch as fetch, apiUrl } from "../../lib/apiUrl";
+import {
+  getNativeSessionCache,
+  isNativeSecureSessionAvailable,
+  persistNativeSession,
+  removeNativeSession,
+  setNativeSessionCache,
+} from "../../app/nativeSecureSession";
 import { clearActivitySpeechPreparation } from "../clara-audio/activitySpeechReadiness";
 
 const learnerProgressSchema = z.object({
@@ -97,6 +104,14 @@ const learnerApiErrorSchema = z.object({
 
 export type LearnerSession = z.infer<typeof learnerSessionSchema>;
 
+/** A response from Laravel proves that this persisted session is no longer valid. */
+export class LearnerSessionInvalidError extends Error {
+  constructor() {
+    super("The learner session is no longer valid.");
+    this.name = "LearnerSessionInvalidError";
+  }
+}
+
 const learnerExperienceSettingsSchema = z.object({
   revision: z.string(),
   display_mode: z.enum(["live2d", "static"]),
@@ -124,6 +139,23 @@ export type LearnerExperienceSettings = z.infer<
 >;
 
 const learnerSessionStorageKey = "readirect.learner-session";
+const browserSessionToken = "cookie-session";
+const browserSessionMarker = "readirect_learner_signed_in";
+export const learnerSessionChangedEvent = "readirect:learner-session-changed";
+
+function announceLearnerSessionChange(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(learnerSessionChangedEvent));
+  }
+}
+
+function setBrowserSessionMarker(signedIn: boolean): void {
+  if (typeof document === "undefined") return;
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = signedIn
+    ? `${browserSessionMarker}=1; Path=/; SameSite=Lax${secure}`
+    : `${browserSessionMarker}=; Max-Age=0; Path=/; SameSite=Lax${secure}`;
+}
 
 interface StoredLearnerSession extends LearnerSession {
   token: string;
@@ -132,6 +164,20 @@ interface StoredLearnerSession extends LearnerSession {
 type StoredLearnerSessionInput = Omit<StoredLearnerSession, "reading_path"> & {
   reading_path?: LearnerReadingPath;
 };
+
+export function hydrateLearnerSession(): void {
+  if (!isNativeSecureSessionAvailable()) return;
+  const cached = getNativeSessionCache(learnerSessionStorageKey);
+  if (cached === undefined) return;
+  try {
+    const parsed = learnerLoginResponseSchema.safeParse(
+      JSON.parse(cached ?? "null"),
+    );
+    if (!parsed.success) setNativeSessionCache(learnerSessionStorageKey, null);
+  } catch {
+    setNativeSessionCache(learnerSessionStorageKey, null);
+  }
+}
 
 async function readApiError(response: Response): Promise<string> {
   const body: unknown = await response.json().catch(() => null);
@@ -148,16 +194,51 @@ async function readApiError(response: Response): Promise<string> {
   );
 }
 
-export function saveLearnerSession(session: StoredLearnerSessionInput): void {
+export async function saveLearnerSession(
+  session: StoredLearnerSessionInput,
+): Promise<void> {
   const normalizedSession = learnerLoginResponseSchema.parse(session);
+
+  if (isNativeSecureSessionAvailable()) {
+    const serialized = JSON.stringify(normalizedSession);
+    setNativeSessionCache(learnerSessionStorageKey, serialized);
+    try {
+      await persistNativeSession(learnerSessionStorageKey, serialized);
+    } catch (error) {
+      setNativeSessionCache(learnerSessionStorageKey, null);
+      throw error;
+    }
+    announceLearnerSessionChange();
+    return;
+  }
+
+  const browserSession = { ...normalizedSession, token: browserSessionToken };
 
   window.sessionStorage.setItem(
     learnerSessionStorageKey,
-    JSON.stringify(normalizedSession),
+    JSON.stringify(browserSession),
   );
+  setBrowserSessionMarker(true);
+  announceLearnerSessionChange();
+}
+
+export async function restoreLearnerSession(): Promise<StoredLearnerSession | null> {
+  const response = await fetch(apiUrl("/api/learners/session"), {
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) return null;
+  const session = learnerSessionSchema.parse(await response.json());
+  return { ...session, token: browserSessionToken };
 }
 
 export function loadLearnerSession(): StoredLearnerSession | null {
+  if (isNativeSecureSessionAvailable()) {
+    const cached = getNativeSessionCache(learnerSessionStorageKey);
+    if (!cached) return null;
+    const parsed = learnerLoginResponseSchema.safeParse(JSON.parse(cached));
+    return parsed.success ? parsed.data : null;
+  }
+
   const stored = window.sessionStorage.getItem(learnerSessionStorageKey);
 
   if (!stored) {
@@ -168,7 +249,9 @@ export function loadLearnerSession(): StoredLearnerSession | null {
     const parsed = learnerLoginResponseSchema.safeParse(JSON.parse(stored));
 
     if (parsed.success) {
-      return parsed.data;
+      if (parsed.data.token === browserSessionToken) return parsed.data;
+      window.sessionStorage.removeItem(learnerSessionStorageKey);
+      return null;
     }
   } catch {
     // Invalid local sessions are discarded below.
@@ -185,7 +268,14 @@ export function clearLearnerSession(): void {
     clearActivitySpeechPreparation(session.token);
   }
 
-  window.sessionStorage.removeItem(learnerSessionStorageKey);
+  if (isNativeSecureSessionAvailable()) {
+    setNativeSessionCache(learnerSessionStorageKey, null);
+    void removeNativeSession(learnerSessionStorageKey);
+  } else {
+    window.sessionStorage.removeItem(learnerSessionStorageKey);
+    setBrowserSessionMarker(false);
+  }
+  announceLearnerSessionChange();
 }
 
 export async function loginLearner(credentials: {
@@ -222,6 +312,9 @@ export async function getLearnerSession(
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new LearnerSessionInvalidError();
+    }
     throw new Error(await readApiError(response));
   }
 

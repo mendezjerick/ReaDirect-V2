@@ -20,7 +20,7 @@ import { LearnerLoginPage } from "../src/features/learner-auth/LearnerLoginPage"
 function renderLogin(initialPath = "/learner/login") {
   return render(
     <QueryClientProvider client={createAppQueryClient()}>
-        <MemoryRouter initialEntries={[initialPath]}>
+      <MemoryRouter initialEntries={[initialPath]}>
         <RouteTransitionProvider>
           <Routes>
             <Route path="/learner/login" element={<LearnerLoginPage />} />
@@ -43,6 +43,7 @@ function renderLogin(initialPath = "/learner/login") {
 describe("LearnerLoginPage", () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    document.cookie = "readirect_learner_signed_in=; Max-Age=0; Path=/";
     vi.unstubAllGlobals();
     vi.useRealTimers();
   });

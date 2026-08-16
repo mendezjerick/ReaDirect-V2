@@ -4,7 +4,9 @@ import { NPCS } from "../content/npcs";
 import { MAP_LANDMARKS } from "../map/prototypeMap";
 import {
   createKaplayGame,
+  getLogicalCanvasSize,
   getInteractionPromptPosition,
+  getResponsiveCameraZoom,
   getRenderPixelDensity,
   isWorldBoundsVisible,
   type KaplayFactory
@@ -76,7 +78,8 @@ describe("createKaplayGame", () => {
         width: 1280,
         height: 720,
         global: false,
-        letterbox: true,
+        stretch: true,
+        letterbox: false,
         crisp: true,
         pixelDensity: 1,
         texFilter: "nearest"
@@ -144,7 +147,7 @@ describe("createKaplayGame", () => {
     expect(runtime.sprite.mock.calls.filter(([name]) => name === "ambient-mang-panda")).toHaveLength(1);
     expect(runtime.sprite.mock.calls.filter(([name]) => name === "ambient-mr-kikushibu")).toHaveLength(1);
     expect(runtime.sprite.mock.calls.filter(([name]) => name === "river-boat")).toHaveLength(1);
-    expect(runtime.sprite.mock.calls.filter(([name]) => name === "boat-wake")).toHaveLength(2);
+    expect(runtime.sprite.mock.calls.filter(([name]) => name === "boat-wake")).toHaveLength(1);
     expect(runtime.sprite.mock.calls.filter(([name]) => name === "boat-oar")).toHaveLength(2);
     expect(runtime.sprite).toHaveBeenCalledWith("connected-tall-grass", { frame: 12 });
     expect(runtime.sprite.mock.calls.filter(([name]) => name === "connected-tall-grass")).toHaveLength(5);
@@ -161,7 +164,7 @@ describe("createKaplayGame", () => {
       expect.objectContaining({ sprite: "connected-tall-grass", frame: expect.any(Number) })
     );
     expect(runtime.drawSprite.mock.calls.length).toBeLessThan(500);
-    expect(runtime.add.mock.calls.length).toBeLessThan(175);
+    expect(runtime.add.mock.calls.length).toBeLessThan(110);
     expect(runtime.sprite).toHaveBeenCalledWith(
       "village-learning-hall",
       expect.objectContaining({
@@ -209,10 +212,39 @@ describe("createKaplayGame", () => {
     }
   );
 
-  it("caps the desktop render buffer while keeping mobile at native density", () => {
+  it.each([
+    { width: 1920, height: 800 },
+    { width: 844, height: 390 },
+    { width: 1024, height: 768 }
+  ])("matches the logical canvas to a $width x $height host without letterbox bars", ({ width, height }) => {
+    const container = document.createElement("div");
+    setContainerSize(container, width, height);
+
+    const logical = getLogicalCanvasSize(container);
+
+    expect(logical.width / logical.height).toBeCloseTo(width / height, 3);
+  });
+
+  it("tightens the camera only for portrait phone viewports", () => {
+    const container = document.createElement("div");
+
+    setContainerSize(container, 390, 844);
+    expect(getResponsiveCameraZoom(container)).toBeCloseTo(2.9, 2);
+
+    setContainerSize(container, 320, 568);
+    expect(getResponsiveCameraZoom(container)).toBeGreaterThan(2.9);
+
+    setContainerSize(container, 844, 390);
+    expect(getResponsiveCameraZoom(container)).toBe(2);
+
+    setContainerSize(container, 1440, 900);
+    expect(getResponsiveCameraZoom(container)).toBe(2);
+  });
+
+  it("keeps standard desktop rendering sharp while capping very large buffers", () => {
     const container = document.createElement("div");
     setContainerSize(container, 1920, 1080);
-    expect(getRenderPixelDensity(container)).toBeCloseTo(0.5, 2);
+    expect(getRenderPixelDensity(container)).toBeCloseTo(0.83, 2);
 
     setContainerSize(container, 844, 390);
     expect(getRenderPixelDensity(container)).toBe(1);
@@ -293,9 +325,7 @@ describe("createKaplayGame", () => {
     onInteractionTargetChange.mockClear();
     runUpdate();
 
-    expect(onInteractionTargetChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ kind: "shop", shopId: "market-shop" })
-    );
+    expect(onInteractionTargetChange).toHaveBeenLastCalledWith(null);
     expect(onInteractionTargetChange.mock.calls.some(([target]) => target?.npcId === "market-vendor")).toBe(false);
 
     game.setMissionState({ activityCompleted: false, targetNpcId: "market-vendor" });

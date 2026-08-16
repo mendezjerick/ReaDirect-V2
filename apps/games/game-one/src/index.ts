@@ -1,9 +1,9 @@
-export { GameRoutePage as GameOneRoutePage } from "./GameOneRoutePage";
+﻿export { GameRoutePage as GameOneRoutePage } from "./GameOneRoutePage";
 
 export type {
   GameOneHostAdapter,
   GameOneRemoteSave,
-  GameOneSaveRequest
+  GameOneSaveRequest,
 } from "./host/GameOneHostAdapter";
 
 export const GAME_SLOT = "game-one" as const;

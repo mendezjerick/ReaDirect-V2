@@ -42,5 +42,40 @@ export function apiFetch(
 ): Promise<Response> {
   const resolvedInput = typeof input === "string" ? apiUrl(input) : input;
 
-  return globalThis.fetch(resolvedInput, init);
+  return globalThis.fetch(resolvedInput, {
+    ...init,
+    credentials: init?.credentials ?? "include",
+  });
+}
+
+/**
+ * Fetch an API request with a bounded wait. Speech scoring can take longer
+ * than ordinary API calls on a laptop, but the UI must not remain in a
+ * permanent loading state when the local ASR service is unavailable.
+ */
+export async function apiFetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit | undefined,
+  timeoutMs = 90_000,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+  const resolvedInput = typeof input === "string" ? apiUrl(input) : input;
+
+  try {
+    return await globalThis.fetch(resolvedInput, {
+      ...init,
+      credentials: init?.credentials ?? "include",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error(
+        "The reading checker took too long to respond. Please try again.",
+      );
+    }
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
 }

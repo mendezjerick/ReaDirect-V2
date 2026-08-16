@@ -3,6 +3,7 @@ import { isSwimmableRiverPosition, isSwimmableRiverPoint, MAP_LANDMARKS, PROTOTY
 import {
   getBaseFrameForFacing,
   getBoatRidingFrame,
+  getFacingFromInput,
   getSwimmingBobOffset,
   getSwimmingFrameForFacing,
   getSwimmingStrokeAngle,
@@ -215,6 +216,13 @@ describe("player movement", () => {
     expect([0, 1, 2, 3].map((step) => getWalkFrameForFacing("right", step))).toEqual([
       3, 7, 11, 15
     ]);
+  });
+
+  it("faces the joystick's dominant axis instead of a small diagonal drift", () => {
+    expect(getFacingFromInput({ x: 0.9, y: 0.1 }, "down")).toBe("right");
+    expect(getFacingFromInput({ x: -0.9, y: 0.1 }, "down")).toBe("left");
+    expect(getFacingFromInput({ x: 0.1, y: -0.9 }, "down")).toBe("up");
+    expect(getFacingFromInput({ x: 0.1, y: 0.9 }, "up")).toBe("down");
   });
 
   it("uses the Yato sheet's reversed side-facing columns for the playable learner", () => {

@@ -4,6 +4,7 @@
   min-height: 100vh;
   min-height: 100svh;
   overflow-y: auto;
+  color: var(--color-text-primary);
   padding: max(0.85rem, env(safe-area-inset-top))
     max(0.85rem, env(safe-area-inset-right))
     max(1.75rem, env(safe-area-inset-bottom))

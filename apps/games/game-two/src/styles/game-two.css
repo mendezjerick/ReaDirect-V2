@@ -1,4 +1,5 @@
 .game-two {
+  background: var(--color-surface-page);
   min-height: 100vh;
   min-height: 100svh;
   display: grid;
@@ -7,6 +8,31 @@
     max(0.75rem, env(safe-area-inset-right))
     max(0.75rem, env(safe-area-inset-bottom))
     max(0.75rem, env(safe-area-inset-left));
+}
+
+.game-two:has(.game-two-ottertale) {
+  display: block;
+  min-height: 100svh;
+  padding: 0;
+  overflow: hidden;
+}
+
+.game-two-ottertale {
+  min-height: 100svh;
+  width: 100%;
+}
+
+.game-two__lobby-link {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top));
+  left: max(0.75rem, env(safe-area-inset-left));
+  z-index: 300;
+  padding: 0.55rem 0.8rem;
+  border: 2px solid #fff;
+  background: rgba(17, 17, 17, 0.85);
+  color: #fff;
+  font: 700 0.7rem/1.2 Lexend, sans-serif;
+  cursor: pointer;
 }
 
 .game-two__stage {

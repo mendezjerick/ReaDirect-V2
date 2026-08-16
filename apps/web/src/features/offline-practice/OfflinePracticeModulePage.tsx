@@ -219,9 +219,19 @@ function OfflineRecorder({
   return (
     <Surface className="offline-module__recorder" kind="panel" padding="normal">
       <p className="offline-practice__eyebrow">Your turn</p>
-      <h2>Record yourself</h2>
+      <h2>
+        {recorder.state === "recording"
+          ? "I'm Listening..."
+          : recorder.state === "recorded" || recorder.state === "playing"
+            ? "Listen to Your Reading"
+            : "Practice Reading"}
+      </h2>
       <p>
-        Say the words, then listen to your recording if you want to try again.
+        {recorder.state === "recording"
+          ? "Say the word clearly."
+          : recorder.state === "recorded" || recorder.state === "playing"
+            ? "Tap Listen Again to hear your reading."
+            : "Say the word aloud, then listen to your reading."}
       </p>
       <div className="offline-module__recorder-actions">
         <BigButton
@@ -230,32 +240,40 @@ function OfflineRecorder({
           disabled={recorder.state === "playing"}
           aria-label={
             recorder.state === "recording"
-              ? "Stop recording"
-              : recorder.state === "recorded"
-                ? "Listen to your recording"
-                : "Record yourself"
+              ? "Stop listening"
+              : recorder.state === "playing"
+                ? "Listening to your reading"
+                : recorder.state === "recorded"
+                  ? "Listen Again"
+                  : "Start Reading"
           }
         >
           {recorder.state === "recording"
-            ? "Stop recording"
-            : recorder.state === "recorded"
-              ? "Listen to your recording"
-              : "Record yourself"}
+            ? "I'm Listening..."
+            : recorder.state === "playing"
+              ? "Listening..."
+              : recorder.state === "recorded"
+                ? "Listen Again"
+                : "Start Reading"}
         </BigButton>
         {recorder.state === "recorded" ? (
           <BigButton size="regular" variant="quiet" onClick={recorder.retry}>
-            Try again
+            Try Again
           </BigButton>
         ) : null}
       </div>
       <p className="offline-module__recording-state" aria-live="polite">
         {recorder.state === "recording"
-          ? `Recording ${Math.ceil(recorder.recordingElapsedMs / 1000)} seconds`
+          ? "I'm Listening..."
           : recorder.state === "playing"
-            ? "Playing your recording."
+            ? "Listening to your reading."
             : recorder.state === "recorded"
-              ? "Your recording is ready on this screen only."
-              : "No recording is saved."}
+              ? "Your reading is ready to hear again."
+              : null}
+      </p>
+      <p className="offline-module__recording-state">
+        For practice only. Your recording is removed when you leave this
+        activity.
       </p>
       {recorder.error ? (
         <p className="offline-module__inline-error" role="alert">

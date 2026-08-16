@@ -52,7 +52,7 @@ export function OrientationNotice({
           className="orientation-notice__secondary"
           onClick={onExit}
         >
-          {filipino ? "Umalis sa Laro" : "Leave Game"}
+          {filipino ? "Lumabas" : "Exit"}
         </button>
         <button
           type="button"
