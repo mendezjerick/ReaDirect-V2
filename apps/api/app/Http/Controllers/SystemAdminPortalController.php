@@ -11,6 +11,7 @@ use App\Models\StaffUser;
 use App\Services\LearnerPortalLaunchService;
 use App\Services\LearnerProgressResetService;
 use App\Services\LearnerReadingPathService;
+use App\Services\LearnerSessionResolver;
 use App\Support\SpeechLanguage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,7 +63,7 @@ final class SystemAdminPortalController extends Controller
         );
         $learner = $launch['learner'];
 
-        return response()->json([
+        $response = response()->json([
             'message' => "Kristen is ready at {$validated['target_key']}.",
             ...$this->serialize($learner),
             'launch' => [
@@ -74,6 +75,34 @@ final class SystemAdminPortalController extends Controller
                 ],
             ],
         ]);
+
+        // Browser Page Portals deliberately store only the cookie-session
+        // sentinel in web storage. Set the temporary portal token in the
+        // server-managed HttpOnly cookie before the frontend navigates to the
+        // learner route.
+        return $response
+            ->withCookie(cookie(
+                LearnerSessionResolver::COOKIE_NAME,
+                $launch['token'],
+                0,
+                '/',
+                null,
+                app()->environment('production'),
+                true,
+                false,
+                'lax',
+            ))
+            ->withCookie(cookie(
+                LearnerSessionResolver::MARKER_COOKIE_NAME,
+                '1',
+                0,
+                '/',
+                null,
+                app()->environment('production'),
+                false,
+                false,
+                'lax',
+            ));
     }
 
     private function assertSystemAdministrator(StaffUser $staffUser): void

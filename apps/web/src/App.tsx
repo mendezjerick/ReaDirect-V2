@@ -63,6 +63,12 @@ const LearnWithClaraWordsPage = lazy(() =>
   ),
 );
 
+const LearnWithClaraPracticePage = lazy(() =>
+  import("./features/learn-with-clara/LearnWithClaraPracticePage").then(
+    (module) => ({ default: module.LearnWithClaraPracticePage }),
+  ),
+);
+
 const LearnWithClaraMenuPage = lazy(() =>
   import("./features/learn-with-clara/LearnWithClaraMenuPage").then(
     (module) => ({
@@ -494,6 +500,10 @@ export function App() {
               <Route
                 path="/learner/learn-with-clara/words"
                 element={<LearnWithClaraWordsPage />}
+              />
+              <Route
+                path="/learner/learn-with-clara/practice/:practiceKey"
+                element={<LearnWithClaraPracticePage />}
               />
               <Route
                 path="/learner/assessment/part-one"

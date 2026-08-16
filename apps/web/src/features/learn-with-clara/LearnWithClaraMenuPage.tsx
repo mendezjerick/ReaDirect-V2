@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Surface } from "../../components/ui/Surface";
@@ -93,12 +93,6 @@ function TopicIcon({ topic }: { topic: ClaraTopicKey }) {
 export function LearnWithClaraMenuPage() {
   const navigate = useNavigate();
   const session = loadLearnerSession();
-  const [selectedTopic, setSelectedTopic] = useState<ClaraTopicKey | null>(
-    null,
-  );
-  const selectedTopicLabel = claraTopics.find(
-    (topic) => topic.key === selectedTopic,
-  )?.label;
 
   useEffect(() => {
     if (!session?.token) {
@@ -123,7 +117,8 @@ export function LearnWithClaraMenuPage() {
       return;
     }
 
-    setSelectedTopic(topic);
+    unlockClaraAudio();
+    navigate(`/learner/learn-with-clara/practice/${topic}`);
   };
 
   return (
@@ -171,8 +166,7 @@ export function LearnWithClaraMenuPage() {
                 key={topic.key}
                 className="clara-menu__topic"
                 type="button"
-                aria-pressed={selectedTopic === topic.key}
-                data-selected={selectedTopic === topic.key ? "" : undefined}
+                aria-pressed={false}
                 onClick={() => chooseTopic(topic.key)}
               >
                 <span className="clara-menu__topic-icon">
@@ -190,9 +184,7 @@ export function LearnWithClaraMenuPage() {
           </div>
 
           <p className="clara-menu__status" aria-live="polite">
-            {selectedTopicLabel
-              ? `${selectedTopicLabel} is ready for your class with Ma'am Clara.`
-              : "Choose a lesson for your short class with Ma'am Clara."}
+            Choose a lesson for your short class with Ma&apos;am Clara.
           </p>
         </Surface>
       </div>
