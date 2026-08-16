@@ -134,6 +134,30 @@
   animation-delay: 80ms;
 }
 
+.game-lobby__unavailable-card {
+  align-content: center;
+}
+
+.game-lobby__unavailable-card h2 {
+  font-size: var(--font-panel-title);
+}
+
+.game-lobby__unavailable-card > div > p:last-child {
+  max-width: 32rem;
+  margin-top: 0.45rem;
+  line-height: 1.45;
+}
+
+.game-lobby__unavailable-actions {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.game-lobby__unavailable-actions .game-lobby__primary-button,
+.game-lobby__unavailable-actions .game-lobby__back-button {
+  width: 100%;
+}
+
 .game-lobby__username-card h2 {
   font-size: var(--font-panel-title);
 }

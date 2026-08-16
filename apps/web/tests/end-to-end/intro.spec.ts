@@ -13,7 +13,9 @@ test("intro fits the viewport and continues to home", async ({ page }) => {
   await expect(meadowTheme).toBeVisible();
   await expect(winterTheme).toBeVisible();
   await expect(page.locator(".clara-stage")).toBeVisible();
-  await expect(page.locator(".clara-stage__canvas")).toHaveCount(1);
+  await expect(
+    page.locator(".clara-stage__canvas, .clara-stage__static-image"),
+  ).toHaveCount(1);
   await expect(page.getByAltText("Ma'am Clara")).toHaveCount(0);
   await expect(page.locator("main.intro-page")).toHaveCSS(
     "font-family",
@@ -46,7 +48,9 @@ test("intro fits the viewport and continues to home", async ({ page }) => {
   await winterTheme.click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "t2");
   await expect(winterTheme).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(".clara-stage__canvas")).toHaveCount(1);
+  await expect(
+    page.locator(".clara-stage__canvas, .clara-stage__static-image"),
+  ).toHaveCount(1);
   const winterPrimaryColor = await page.evaluate(() =>
     getComputedStyle(document.documentElement)
       .getPropertyValue("--color-action-primary")

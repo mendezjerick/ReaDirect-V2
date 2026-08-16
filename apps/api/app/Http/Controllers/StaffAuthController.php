@@ -89,8 +89,12 @@ final class StaffAuthController extends Controller
         return response()->json([
             'token' => $plainToken,
             ...$this->serializeSession($session, $staffUser),
-        ])->withCookie($this->sessionCookie($plainToken, $session->expires_at))
-            ->withCookie($this->markerCookie($session->expires_at));
+        ])->withCookie($this->sessionCookie(
+            $plainToken,
+            $session->expires_at,
+            $remembered,
+        ))
+            ->withCookie($this->markerCookie($session->expires_at, $remembered));
     }
 
     public function show(Request $request): JsonResponse
@@ -171,9 +175,9 @@ final class StaffAuthController extends Controller
         ];
     }
 
-    private function sessionCookie(string $token, CarbonInterface $expiresAt)
+    private function sessionCookie(string $token, CarbonInterface $expiresAt, bool $persistent)
     {
-        $minutes = max(1, now()->diffInMinutes($expiresAt));
+        $minutes = $persistent ? max(1, now()->diffInMinutes($expiresAt)) : 0;
         return cookie(
             StaffSessionResolver::COOKIE_NAME,
             $token,
@@ -187,12 +191,12 @@ final class StaffAuthController extends Controller
         );
     }
 
-    private function markerCookie(CarbonInterface $expiresAt)
+    private function markerCookie(CarbonInterface $expiresAt, bool $persistent)
     {
         return cookie(
             StaffSessionResolver::MARKER_COOKIE_NAME,
             '1',
-            max(1, now()->diffInMinutes($expiresAt)),
+            $persistent ? max(1, now()->diffInMinutes($expiresAt)) : 0,
             '/',
             null,
             app()->environment('production'),

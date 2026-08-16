@@ -79,6 +79,13 @@ the touch interval, and excess older standard sessions are revoked. Learner
 responses are marked private and non-cacheable. Portal sessions retain their
 shorter portal-controlled absolute expiry but use the same central guard.
 
+Learner login accepts the optional `remember_me` flag. Without it, the
+browser-authentication and signed-in marker cookies are session cookies and
+the frontend keeps only a tab-scoped session record. When it is enabled, the
+cookies and frontend record may survive a browser restart, but the existing
+learner absolute lifetime and inactivity timeout still apply; this option does
+not extend server-side authorization.
+
 ## Remembered staff devices
 
 Staff login may request `remember_me`. Normal sessions remain browser-tab
@@ -162,5 +169,10 @@ default and exposes only the web port through its generated Cloudflare tunnel.
 When credentials are not already supplied, `start.ps1` creates separate random
 ASR and TTS credentials for the lifetime of the process and passes them to
 Laravel and the matching speech service without printing them.
+The launcher also forces CPU speech execution for the local/staging workstation:
+Mu uses the cached `faster-whisper-base.en` checkpoint with `int8` compute, and
+VoxCPM2 honors `READIRECT_TTS_DEVICE=cpu`. GPU coordination is disabled for
+that launcher session so a CUDA-capable Python installation cannot silently
+switch the services back to GPU execution.
 Do not add API, Reverb, ASR, TTS, database, recording, model, or credential
 ports to the tunnel configuration.

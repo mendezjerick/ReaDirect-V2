@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import {
-  apiFetch as fetch,
+  apiFetchWithNormalTimeout as fetch,
   apiFetchWithTimeout as fetchWithTimeout,
 } from "../../lib/apiUrl";
 import { audioFilename } from "../../lib/audioFile";
@@ -483,7 +483,7 @@ export async function prepareLessonFeedback(
   token: string,
   responseId: number,
 ): Promise<Blob> {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `/api/learners/tts/lesson-feedback/${responseId}`,
     {
       method: "POST",
@@ -571,7 +571,7 @@ export async function prepareLessonDemonstration(
   token: string,
   responseId: number,
 ): Promise<Blob> {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `/api/learners/tts/lesson-demonstration/${responseId}`,
     {
       method: "POST",

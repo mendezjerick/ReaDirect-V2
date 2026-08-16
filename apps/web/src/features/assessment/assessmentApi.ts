@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import { apiUrl } from "../../lib/apiUrl";
+import {
+  apiFetchWithNormalTimeout as apiFetch,
+  apiFetchWithTimeout,
+} from "../../lib/apiUrl";
 import { audioFilename } from "../../lib/audioFile";
 
 const progressSchema = z.object({
@@ -61,6 +64,13 @@ export type AssessmentState = z.infer<typeof assessmentStateSchema>;
 export type AssessmentItem = NonNullable<AssessmentState["item"]>;
 export type AssessmentType = AssessmentState["assessment_type"];
 
+export class AssessmentAuthenticationError extends Error {
+  constructor() {
+    super("Your learner session has expired. Please sign in again.");
+    this.name = "AssessmentAuthenticationError";
+  }
+}
+
 function assessmentApiBase(assessmentType: AssessmentType): string {
   return assessmentType === "final"
     ? "/api/learners/assessments/final"
@@ -69,6 +79,9 @@ function assessmentApiBase(assessmentType: AssessmentType): string {
 
 async function parseResponse(response: Response): Promise<AssessmentState> {
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new AssessmentAuthenticationError();
+    }
     const payload: unknown = await response.json().catch(() => null);
     const message =
       typeof payload === "object" &&
@@ -92,7 +105,7 @@ export async function startPartOne(
   assessmentType: AssessmentType = "diagnostic",
 ): Promise<AssessmentState> {
   return parseResponse(
-    await fetch(apiUrl(`${assessmentApiBase(assessmentType)}/part-one/start`), {
+    await apiFetch(`${assessmentApiBase(assessmentType)}/part-one/start`, {
       method: "POST",
       headers: authHeaders(token),
     }),
@@ -108,10 +121,8 @@ export async function submitOrientation(
   const body = new FormData();
   body.append("audio", audio, audioFilename("microphone-check", audio));
   return parseResponse(
-    await fetch(
-      apiUrl(
-        `${assessmentApiBase(assessmentType)}/part-one/${runId}/orientation`,
-      ),
+    await apiFetchWithTimeout(
+      `${assessmentApiBase(assessmentType)}/part-one/${runId}/orientation`,
       {
         method: "POST",
         headers: authHeaders(token),
@@ -132,8 +143,8 @@ export async function submitSpeech(
   body.append("item_key", itemKey);
   body.append("audio", audio, audioFilename(itemKey, audio));
   return parseResponse(
-    await fetch(
-      apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/speech`),
+    await apiFetchWithTimeout(
+      `${assessmentApiBase(assessmentType)}/part-one/${runId}/speech`,
       {
         method: "POST",
         headers: authHeaders(token),
@@ -151,8 +162,8 @@ export async function submitRhyme(
   assessmentType: AssessmentType = "diagnostic",
 ): Promise<AssessmentState> {
   return parseResponse(
-    await fetch(
-      apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/rhyme`),
+    await apiFetch(
+      `${assessmentApiBase(assessmentType)}/part-one/${runId}/rhyme`,
       {
         method: "POST",
         headers: { ...authHeaders(token), "Content-Type": "application/json" },
@@ -169,8 +180,8 @@ export async function skipAssessmentItem(
   assessmentType: AssessmentType = "diagnostic",
 ): Promise<AssessmentState> {
   return parseResponse(
-    await fetch(
-      apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/skip`),
+    await apiFetch(
+      `${assessmentApiBase(assessmentType)}/part-one/${runId}/skip`,
       {
         method: "POST",
         headers: { ...authHeaders(token), "Content-Type": "application/json" },
@@ -186,8 +197,8 @@ export async function advancePartOne(
   assessmentType: AssessmentType = "diagnostic",
 ): Promise<AssessmentState> {
   return parseResponse(
-    await fetch(
-      apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/advance`),
+    await apiFetch(
+      `${assessmentApiBase(assessmentType)}/part-one/${runId}/advance`,
       {
         method: "POST",
         headers: authHeaders(token),
@@ -201,8 +212,8 @@ export async function continuePartOneResult(
   runId: number,
   assessmentType: AssessmentType = "diagnostic",
 ): Promise<{ run_id: number; next_route: string }> {
-  const response = await fetch(
-    apiUrl(`${assessmentApiBase(assessmentType)}/part-one/${runId}/continue`),
+  const response = await apiFetch(
+    `${assessmentApiBase(assessmentType)}/part-one/${runId}/continue`,
     { method: "POST", headers: authHeaders(token) },
   );
   if (!response.ok) {

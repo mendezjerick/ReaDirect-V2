@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { apiFetch as fetch, apiUrl } from "../../lib/apiUrl";
+import { apiFetchWithNormalTimeout as fetch, apiUrl } from "../../lib/apiUrl";
 import {
   getNativeSessionCache,
   isNativeSecureSessionAvailable,
@@ -161,6 +161,11 @@ interface StoredLearnerSession extends LearnerSession {
   token: string;
 }
 
+export interface SaveLearnerSessionOptions {
+  /** Keep the browser session across closing the tab when explicitly enabled. */
+  remember?: boolean;
+}
+
 type StoredLearnerSessionInput = Omit<StoredLearnerSession, "reading_path"> & {
   reading_path?: LearnerReadingPath;
 };
@@ -196,6 +201,7 @@ async function readApiError(response: Response): Promise<string> {
 
 export async function saveLearnerSession(
   session: StoredLearnerSessionInput,
+  options: SaveLearnerSessionOptions = {},
 ): Promise<void> {
   const normalizedSession = learnerLoginResponseSchema.parse(session);
 
@@ -213,11 +219,16 @@ export async function saveLearnerSession(
   }
 
   const browserSession = { ...normalizedSession, token: browserSessionToken };
+  const shouldRemember =
+    options.remember ??
+    window.localStorage.getItem(learnerSessionStorageKey) !== null;
+  const storage = shouldRemember ? window.localStorage : window.sessionStorage;
+  const otherStorage = shouldRemember
+    ? window.sessionStorage
+    : window.localStorage;
 
-  window.sessionStorage.setItem(
-    learnerSessionStorageKey,
-    JSON.stringify(browserSession),
-  );
+  otherStorage.removeItem(learnerSessionStorageKey);
+  storage.setItem(learnerSessionStorageKey, JSON.stringify(browserSession));
   setBrowserSessionMarker(true);
   announceLearnerSessionChange();
 }
@@ -239,25 +250,22 @@ export function loadLearnerSession(): StoredLearnerSession | null {
     return parsed.success ? parsed.data : null;
   }
 
-  const stored = window.sessionStorage.getItem(learnerSessionStorageKey);
+  for (const storage of [window.sessionStorage, window.localStorage]) {
+    const stored = storage.getItem(learnerSessionStorageKey);
+    if (!stored) continue;
 
-  if (!stored) {
-    return null;
-  }
-
-  try {
-    const parsed = learnerLoginResponseSchema.safeParse(JSON.parse(stored));
-
-    if (parsed.success) {
-      if (parsed.data.token === browserSessionToken) return parsed.data;
-      window.sessionStorage.removeItem(learnerSessionStorageKey);
-      return null;
+    try {
+      const parsed = learnerLoginResponseSchema.safeParse(JSON.parse(stored));
+      if (parsed.success && parsed.data.token === browserSessionToken) {
+        return parsed.data;
+      }
+    } catch {
+      // Invalid browser sessions are discarded below.
     }
-  } catch {
-    // Invalid local sessions are discarded below.
+
+    storage.removeItem(learnerSessionStorageKey);
   }
 
-  window.sessionStorage.removeItem(learnerSessionStorageKey);
   return null;
 }
 
@@ -273,6 +281,7 @@ export function clearLearnerSession(): void {
     void removeNativeSession(learnerSessionStorageKey);
   } else {
     window.sessionStorage.removeItem(learnerSessionStorageKey);
+    window.localStorage.removeItem(learnerSessionStorageKey);
     setBrowserSessionMarker(false);
   }
   announceLearnerSessionChange();
@@ -281,20 +290,33 @@ export function clearLearnerSession(): void {
 export async function loginLearner(credentials: {
   learner_code: string;
   password: string;
+  remember_me?: boolean;
 }): Promise<StoredLearnerSession> {
-  const response = await fetch(apiUrl("/api/learners/login"), {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      learner_code: credentials.learner_code.trim().toUpperCase(),
-      password: credentials.password,
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(apiUrl("/api/learners/login"), {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        learner_code: credentials.learner_code.trim().toUpperCase(),
+        password: credentials.password,
+        ...(credentials.remember_me ? { remember_me: true } : {}),
+      }),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw error;
+    }
+    throw new Error("We couldn't sign you in right now. Please try again.");
+  }
 
   if (!response.ok) {
+    if (response.status >= 500) {
+      throw new Error("We couldn't sign you in right now. Please try again.");
+    }
     throw new Error(await readApiError(response));
   }
 
