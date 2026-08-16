@@ -1,4 +1,4 @@
-import { apiUrl } from "../../lib/apiUrl";
+import { apiFetch, apiUrl } from "../../lib/apiUrl";
 
 export type ApiReachability =
   "unknown" | "checking" | "reachable" | "unreachable" | "unauthorized";
@@ -25,7 +25,7 @@ export async function probeApiReachability({
   token = null,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   signal,
-  fetchImpl = globalThis.fetch,
+  fetchImpl = apiFetch,
 }: ApiProbeOptions = {}): Promise<ApiProbeResult> {
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(

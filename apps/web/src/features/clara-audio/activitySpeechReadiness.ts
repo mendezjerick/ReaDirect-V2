@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { apiUrl } from "../../lib/apiUrl";
+import { apiFetchWithNormalTimeout as apiFetch } from "../../lib/apiUrl";
 
 const activitySpeechManifestSchema = z.object({
   activity: z.string().min(1),
@@ -89,10 +89,8 @@ export function getActivitySpeechManifest(
   const key = cacheKey(token, activity);
 
   return cachedRequest(manifestRequests, key, async () => {
-    const response = await fetch(
-      apiUrl(
-        `/api/learners/tts/activity-manifest?activity=${encodeURIComponent(activity)}`,
-      ),
+    const response = await apiFetch(
+      `/api/learners/tts/activity-manifest?activity=${encodeURIComponent(activity)}`,
       {
         headers: {
           Accept: "application/json",
@@ -124,18 +122,15 @@ export function prepareActivitySpeech(
 
   return cachedRequest(readinessRequests, key, async () => {
     await getActivitySpeechManifest(token, activity);
-    const response = await fetch(
-      apiUrl("/api/learners/tts/activity-readiness"),
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ activity }),
+    const response = await apiFetch("/api/learners/tts/activity-readiness", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ activity }),
+    });
     const body: unknown = await response.json().catch(() => null);
     const parsed = activitySpeechReadinessSchema.safeParse(body);
 

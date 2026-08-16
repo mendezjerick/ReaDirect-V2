@@ -22,6 +22,7 @@ import "./learner-login.css";
 interface LearnerLoginForm {
   learner_code: string;
   password: string;
+  remember_me: boolean;
 }
 
 function ReaderIcon() {
@@ -54,8 +55,8 @@ export function LearnerLoginPage() {
   const loginCommit = useButtonCommit();
   const loginMutation = useMutation({
     mutationFn: loginLearner,
-    onSuccess: async (session) => {
-      await saveLearnerSession(session);
+    onSuccess: async (session, credentials) => {
+      await saveLearnerSession(session, { remember: credentials.remember_me });
       beginRouteTransition(returnTo);
     },
   });
@@ -86,19 +87,19 @@ export function LearnerLoginPage() {
           clearLearnerSession();
         }
       })
-    .catch((error) => {
-      if (!active) return;
+      .catch((error) => {
+        if (!active) return;
 
-      if (error instanceof LearnerSessionInvalidError) {
-        clearLearnerSession();
-        return;
-      }
+        if (error instanceof LearnerSessionInvalidError) {
+          clearLearnerSession();
+          return;
+        }
 
-      // Keep the encrypted session intact when the API is temporarily
-      // unreachable. Showing the login form here would imply that the
-      // account was logged out and invite duplicate credentials.
-      if (existing) setRestoreError(true);
-    })
+        // Keep the encrypted session intact when the API is temporarily
+        // unreachable. Showing the login form here would imply that the
+        // account was logged out and invite duplicate credentials.
+        if (existing) setRestoreError(true);
+      })
       .finally(() => {
         if (active) setRestoring(false);
       });
@@ -112,7 +113,7 @@ export function LearnerLoginPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<LearnerLoginForm>({
-    defaultValues: { learner_code: "", password: "" },
+    defaultValues: { learner_code: "", password: "", remember_me: false },
   });
 
   if (restoring) {
@@ -137,10 +138,7 @@ export function LearnerLoginPage() {
       >
         <p>We couldn&apos;t verify your saved reading session.</p>
         <p>Check your connection and try again.</p>
-        <BigButton
-          size="regular"
-          onClick={() => window.location.reload()}
-        >
+        <BigButton size="regular" onClick={() => window.location.reload()}>
           Try again
         </BigButton>
       </main>
@@ -212,6 +210,14 @@ export function LearnerLoginPage() {
                   required: "Enter your password.",
                 })}
               />
+
+              <label className="learner-login-form__remember">
+                <input type="checkbox" {...register("remember_me")} />
+                <span>
+                  Remember me on this device
+                  <small>Keep me signed in on this browser.</small>
+                </span>
+              </label>
 
               {loginMutation.isError ? (
                 <Surface

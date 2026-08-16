@@ -1,8 +1,29 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { probeApiReachability } from "../src/features/connectivity/connectivityProbe";
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
+});
+
 describe("API connectivity probe", () => {
+  it("uses credentialed transport for browser learner-session probes", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response("{}", { status: 401 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      probeApiReachability({ token: "cookie-session" }),
+    ).resolves.toMatchObject({ status: "unauthorized", httpStatus: 401 });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/learners/session",
+      expect.objectContaining({ credentials: "include" }),
+    );
+  });
+
   it("uses the public lightweight endpoint without a learner token", async () => {
     const fetchMock = vi
       .fn()

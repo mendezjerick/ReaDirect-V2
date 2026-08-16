@@ -29,6 +29,7 @@ final class LearnerAuthController extends Controller
         $credentials = $request->validate([
             'learner_code' => ['required', 'string', 'size:5', 'regex:/^[A-Za-z]{2}[0-9]{3}$/'],
             'password' => ['required', 'string', 'max:255'],
+            'remember_me' => ['sometimes', 'boolean'],
         ]);
 
         $normalizedCode = mb_strtoupper(trim($credentials['learner_code']));
@@ -120,8 +121,15 @@ final class LearnerAuthController extends Controller
         return $this->json([
             'token' => $plainToken,
             ...$this->serializeSession($session, $learner),
-        ])->withCookie($this->sessionCookie($plainToken, $session->expires_at))
-            ->withCookie($this->markerCookie($session->expires_at));
+        ])->withCookie($this->sessionCookie(
+            $plainToken,
+            $session->expires_at,
+            ($credentials['remember_me'] ?? false) === true,
+        ))
+            ->withCookie($this->markerCookie(
+                $session->expires_at,
+                ($credentials['remember_me'] ?? false) === true,
+            ));
     }
 
     public function show(Request $request): JsonResponse
@@ -191,9 +199,9 @@ final class LearnerAuthController extends Controller
         ]);
     }
 
-    private function sessionCookie(string $token, \Carbon\CarbonInterface $expiresAt)
+    private function sessionCookie(string $token, \Carbon\CarbonInterface $expiresAt, bool $persistent)
     {
-        $minutes = max(1, now()->diffInMinutes($expiresAt));
+        $minutes = $persistent ? max(1, now()->diffInMinutes($expiresAt)) : 0;
         return cookie(
             LearnerSessionResolver::COOKIE_NAME,
             $token,
@@ -207,12 +215,12 @@ final class LearnerAuthController extends Controller
         );
     }
 
-    private function markerCookie(\Carbon\CarbonInterface $expiresAt)
+    private function markerCookie(\Carbon\CarbonInterface $expiresAt, bool $persistent)
     {
         return cookie(
             LearnerSessionResolver::MARKER_COOKIE_NAME,
             '1',
-            max(1, now()->diffInMinutes($expiresAt)),
+            $persistent ? max(1, now()->diffInMinutes($expiresAt)) : 0,
             '/',
             null,
             app()->environment('production'),

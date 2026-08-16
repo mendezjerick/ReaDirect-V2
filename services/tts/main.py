@@ -42,6 +42,9 @@ STARTUP_WARMUP_ENABLED = os.getenv("READIRECT_TTS_STARTUP_WARMUP", "1") not in {
     "false",
     "False",
 }
+TTS_DEVICE = os.getenv("READIRECT_TTS_DEVICE", "auto").strip().lower()
+if TTS_DEVICE not in {"auto", "cpu", "cuda"}:
+    raise RuntimeError("READIRECT_TTS_DEVICE must be one of: auto, cpu, cuda")
 PROFILE_PROBE_TEXT = "Ma'am Clara is ready to help."
 FILIPINO_PROFILE_PROBE_TEXT = "Makinig nang mabuti, sundan ang bawat salita, at huwag magmadali."
 MAX_HTTP_REQUEST_BYTES = int(os.getenv("TTS_MAX_HTTP_REQUEST_BYTES", "16384"))
@@ -262,7 +265,14 @@ class VoxRuntime:
 
         from voxcpm import VoxCPM
 
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        if TTS_DEVICE == "cpu":
+            device = "cpu"
+        elif TTS_DEVICE == "cuda":
+            if not torch.cuda.is_available():
+                raise RuntimeError("READIRECT_TTS_DEVICE=cuda but CUDA is unavailable")
+            device = "cuda"
+        else:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info("Loading VoxCPM2 on %s", device)
         model = VoxCPM.from_pretrained(
             str(MODEL_PATH),
@@ -405,6 +415,7 @@ gpu_lock_directory = Path(
 gpu_coordination_enabled = (
     os.getenv("READIRECT_GPU_COORDINATION_ENABLED", "true").strip().lower()
     not in {"0", "false", "no", "off"}
+    and TTS_DEVICE != "cpu"
     and torch.cuda.is_available()
 )
 gpu_coordinator = GpuCoordinator(

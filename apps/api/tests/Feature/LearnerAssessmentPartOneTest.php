@@ -6,12 +6,94 @@ use App\Models\AssessmentResponse;
 use App\Models\AssessmentRun;
 use App\Models\Learner;
 use App\Models\LearnerSession;
+use App\Services\LearnerSessionResolver;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 final class LearnerAssessmentPartOneTest extends TestCase
 {
+    public function test_browser_sentinel_with_cookie_can_start_part_one(): void
+    {
+        $token = $this->createLearnerSession();
+
+        $this->withToken(LearnerSessionResolver::BROWSER_SESSION_SENTINEL)
+            ->withUnencryptedCookie(LearnerSessionResolver::COOKIE_NAME, $token)
+            ->withCredentials()
+            ->post('/api/learners/assessments/part-one/start')
+            ->assertOk()
+            ->assertJsonPath('stage', 'orientation');
+    }
+
+    public function test_browser_sentinel_without_cookie_cannot_start_part_one(): void
+    {
+        $this->withToken(LearnerSessionResolver::BROWSER_SESSION_SENTINEL)
+            ->post('/api/learners/assessments/part-one/start')
+            ->assertUnauthorized();
+    }
+
+    public function test_expired_session_cannot_start_part_one(): void
+    {
+        $token = $this->createLearnerSession();
+        LearnerSession::query()->latest('id')->firstOrFail()->update([
+            'expires_at' => now()->subMinute(),
+        ]);
+
+        $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->assertUnauthorized();
+    }
+
+    public function test_revoked_session_cannot_start_part_one(): void
+    {
+        $token = $this->createLearnerSession();
+        LearnerSession::query()->latest('id')->firstOrFail()->update([
+            'revoked_at' => now(),
+        ]);
+
+        $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->assertUnauthorized();
+    }
+
+    public function test_logged_out_session_cannot_start_part_one(): void
+    {
+        $token = $this->createLearnerSession();
+
+        $this->withToken($token)
+            ->post('/api/learners/logout')
+            ->assertOk()
+            ->assertJsonPath('signed_out', true);
+
+        $this->withToken($token)
+            ->post('/api/learners/assessments/part-one/start')
+            ->assertUnauthorized();
+    }
+
+    public function test_malformed_bearer_cannot_start_part_one(): void
+    {
+        $this->withToken(str_repeat('x', 129))
+            ->post('/api/learners/assessments/part-one/start')
+            ->assertUnauthorized();
+    }
+
+    public function test_foreign_learner_cannot_mutate_another_learners_run(): void
+    {
+        [$ownerToken, $run] = $this->createRunAtTask('task-1a');
+        $foreignToken = $this->createLearnerSession(
+            'CD456',
+            'foreign-learner-token',
+        );
+        $item = $run->content_snapshot['task-1a'][0];
+
+        $this->assertNotSame($ownerToken, $foreignToken);
+        $this->withToken($foreignToken)
+            ->postJson("/api/learners/assessments/part-one/{$run->id}/skip", [
+                'item_key' => $item['item_key'],
+            ])
+            ->assertNotFound();
+    }
+
     public function test_part_one_starts_with_a_private_fixed_orientation_state(): void
     {
         $token = $this->createLearnerSession();
@@ -289,17 +371,19 @@ final class LearnerAssessmentPartOneTest extends TestCase
         }
     }
 
-    private function createLearnerSession(): string
+    private function createLearnerSession(
+        string $learnerCode = 'AB123',
+        string $token = 'part-one-learner-token',
+    ): string
     {
         $learner = Learner::query()->create([
-            'learner_code' => 'AB123',
+            'learner_code' => $learnerCode,
             'password' => 'local-password',
             'first_name' => 'Lena',
             'middle_name' => '',
             'last_name' => 'Reader',
             'is_active' => true,
         ]);
-        $token = 'part-one-learner-token';
         LearnerSession::query()->create([
             'learner_id' => $learner->id,
             'token_hash' => hash('sha256', $token),

@@ -4684,6 +4684,20 @@ textarea.staff-field__control {
   cursor: none;
 }
 
+.intro-page__clara-notice {
+  max-width: 18rem;
+  margin: 0 auto 0.65rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.intro-page__clara-retry {
+  width: 100%;
+  margin-top: 0.65rem;
+}
+
 .clara-stage {
   position: relative;
   align-self: end;
@@ -5587,7 +5601,6 @@ textarea.staff-field__control {
   .clara-speech-loader__cube {
     animation: none;
   }
-
 }
 
 @media (max-width: 42rem) {

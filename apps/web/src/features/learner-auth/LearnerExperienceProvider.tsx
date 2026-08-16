@@ -28,6 +28,7 @@ interface LearnerExperienceContextValue {
   state: LearnerExperienceState;
   settings: LearnerExperienceSettings | null;
   displayMode: ClaraDisplayMode | null;
+  retry: () => void;
   setDisplayModeOverride: (displayMode: ClaraDisplayMode) => void;
 }
 
@@ -45,6 +46,7 @@ const defaultExperience: LearnerExperienceContextValue = {
     speech_mode: "hybrid",
   },
   displayMode: "live2d",
+  retry: () => undefined,
   setDisplayModeOverride: () => undefined,
 };
 
@@ -88,6 +90,7 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
   const [experience, setExperience] = useState<ResolvedLearnerExperience>(
     isNativePlatform ? nativeExperience : defaultExperience,
   );
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [displayModeOverride, setDisplayModeOverrideState] =
     useState<ClaraDisplayMode | null>(loadClaraDisplayModeOverride);
 
@@ -101,6 +104,9 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
     },
     [],
   );
+  const retry = useCallback(() => {
+    setRetryAttempt((current) => current + 1);
+  }, []);
 
   useEffect(() => {
     if (isNativePlatform) {
@@ -134,7 +140,13 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
     return () => {
       active = false;
     };
-  }, [appliesToLearnerRoute, isNativePlatform, learnerToken, requestKey]);
+  }, [
+    appliesToLearnerRoute,
+    isNativePlatform,
+    learnerToken,
+    requestKey,
+    retryAttempt,
+  ]);
 
   const value = useMemo<LearnerExperienceContextValue>(() => {
     const resolvedExperience: ResolvedLearnerExperience = isNativePlatform
@@ -147,13 +159,16 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
     const systemDisplayMode =
       resolvedExperience.state === "ready"
         ? (resolvedExperience.settings?.display_mode ?? null)
-        : null;
+        : resolvedExperience.state === "error"
+          ? "static"
+          : null;
 
     return {
       ...resolvedExperience,
       displayMode:
         displayModeOverride ??
         (isNativePlatform ? "static" : systemDisplayMode),
+      retry,
       setDisplayModeOverride,
     };
   }, [
@@ -161,6 +176,7 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
     experience,
     isNativePlatform,
     requestKey,
+    retry,
     setDisplayModeOverride,
   ]);
 

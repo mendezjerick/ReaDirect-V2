@@ -22,6 +22,10 @@ interface GameSlot {
   thumbnail?: string;
 }
 
+export interface GameLobbyPageProps {
+  guestUnavailable?: boolean;
+}
+
 const gameSlots: readonly GameSlot[] = [
   {
     key: "game-alpha",
@@ -84,7 +88,9 @@ function GameSymbol({ gameKey }: { gameKey: GameKey }) {
   );
 }
 
-export function GameLobbyPage() {
+export function GameLobbyPage({
+  guestUnavailable = false,
+}: GameLobbyPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, createProfile } = useGameLobbySkeleton();
@@ -98,6 +104,10 @@ export function GameLobbyPage() {
   const requestedGame = (location.state as LobbyLocationState | null)
     ?.requestedGame;
   const launchingGame = gameSlots.find((game) => game.key === launchingGameKey);
+
+  if (guestUnavailable) {
+    return <GuestUnavailableState />;
+  }
 
   const launchGame = (game: GameSlot) => {
     if (launchingGameKey) return;
@@ -285,6 +295,72 @@ export function GameLobbyPage() {
           </div>
         </div>
       ) : null}
+    </main>
+  );
+}
+
+function GuestUnavailableState() {
+  const navigate = useNavigate();
+
+  const goBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/home");
+  };
+
+  return (
+    <main
+      className="game-lobby learner-flow-page"
+      aria-labelledby="guest-mode-title"
+      data-route-focus
+      tabIndex={-1}
+    >
+      <div className="game-lobby__shell">
+        <header className="game-lobby__header">
+          <div>
+            <p className="game-lobby__eyebrow">ReaDirect Games</p>
+            <h1>Guest Mode</h1>
+            <p>Play supported reading games with a learner account.</p>
+          </div>
+        </header>
+
+        <section
+          className="game-lobby__username-card game-lobby__unavailable-card"
+          aria-labelledby="guest-mode-title"
+        >
+          <span className="game-lobby__profile-mark" aria-hidden="true">
+            !
+          </span>
+          <div>
+            <p className="game-lobby__eyebrow">Guest Mode</p>
+            <h2 id="guest-mode-title">Currently unavailable</h2>
+            <p>
+              Guest Mode is not available right now. Please sign in as a learner
+              to continue.
+            </p>
+          </div>
+
+          <div className="game-lobby__unavailable-actions">
+            <button
+              className="game-lobby__primary-button"
+              type="button"
+              onClick={() => navigate("/learner/login")}
+            >
+              Go to Learner Login
+            </button>
+            <button
+              className="game-lobby__back-button"
+              type="button"
+              onClick={goBack}
+            >
+              Back
+            </button>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

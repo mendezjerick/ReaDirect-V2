@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { apiUrl } from "../../lib/apiUrl";
+import { apiFetchWithNormalTimeout as apiFetch } from "../../lib/apiUrl";
 
 const lettersSpeechKeySchema = z.enum([
   "learn-with-clara-letters-parade-opening",
@@ -68,7 +68,7 @@ async function parse(response: Response): Promise<LearnWithClaraLettersState> {
 
 export async function startLearnWithClaraLetters(token: string) {
   return parse(
-    await fetch(apiUrl("/api/learners/learn-with-clara/letters/start"), {
+    await apiFetch("/api/learners/learn-with-clara/letters/start", {
       method: "POST",
       headers: headers(token),
     }),
@@ -80,7 +80,7 @@ export async function advanceLearnWithClaraLetters(
   sceneKey: string,
 ) {
   return parse(
-    await fetch(apiUrl("/api/learners/learn-with-clara/letters/advance"), {
+    await apiFetch("/api/learners/learn-with-clara/letters/advance", {
       method: "POST",
       headers: headers(token),
       body: JSON.stringify({
@@ -93,7 +93,7 @@ export async function advanceLearnWithClaraLetters(
 
 export async function restartLearnWithClaraLetters(token: string) {
   return parse(
-    await fetch(apiUrl("/api/learners/learn-with-clara/letters/restart"), {
+    await apiFetch("/api/learners/learn-with-clara/letters/restart", {
       method: "POST",
       headers: headers(token),
     }),

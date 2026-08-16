@@ -1,4 +1,4 @@
-import { apiUrl } from "../../lib/apiUrl";
+import { apiFetchWithTimeout, SPEECH_API_TIMEOUT_MS } from "../../lib/apiUrl";
 
 const speechRequests = new Map<string, Promise<Blob>>();
 const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260728-11";
@@ -193,13 +193,17 @@ export function prepareClaraSpeech(
     return existingRequest;
   }
 
-  const request = fetch(apiUrl(`/api/learners/tts/speech/${speechKey}`), {
-    method: "POST",
-    headers: {
-      Accept: "audio/wav",
-      Authorization: `Bearer ${token}`,
+  const request = apiFetchWithTimeout(
+    `/api/learners/tts/speech/${speechKey}`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "audio/wav",
+        Authorization: `Bearer ${token}`,
+      },
     },
-  }).then(async (response) => {
+    SPEECH_API_TIMEOUT_MS,
+  ).then(async (response) => {
     if (!response.ok) {
       throw new Error(await readSpeechError(response));
     }

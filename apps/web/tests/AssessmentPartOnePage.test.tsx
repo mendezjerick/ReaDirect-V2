@@ -64,6 +64,7 @@ vi.mock("motion/react", async (importOriginal) => {
 });
 
 import { AssessmentPartOnePage } from "../src/features/assessment/AssessmentPartOnePage";
+import { NORMAL_API_TIMEOUT_MS } from "../src/lib/apiUrl";
 
 const learnerSession = {
   token: "learner-token",
@@ -129,6 +130,7 @@ describe("AssessmentPartOnePage", () => {
     live2dMocks.setState = undefined;
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("opens with the real microphone orientation and waits for Clara", async () => {
@@ -194,6 +196,50 @@ describe("AssessmentPartOnePage", () => {
       "data-clara-emotion",
       "default",
     );
+  });
+
+  it("shows a retryable state when Part One startup stalls", async () => {
+    vi.useFakeTimers();
+    window.sessionStorage.setItem(
+      "readirect.learner-session",
+      JSON.stringify({ ...learnerSession, token: "cookie-session" }),
+    );
+    const fetchMock = vi.fn().mockImplementation(
+      (_input, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <MemoryRouter initialEntries={["/learner/assessment/part-one"]}>
+        <ThemeProvider>
+          <Routes>
+            <Route
+              path="/learner/assessment/part-one"
+              element={<AssessmentPartOnePage />}
+            />
+            <Route path="/learner/dashboard" element={<div>Dashboard</div>} />
+          </Routes>
+        </ThemeProvider>
+      </MemoryRouter>,
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(NORMAL_API_TIMEOUT_MS);
+    });
+
+    expect(
+      screen.getByText("We couldn't connect right now. Please try again."),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("presents the committed Part 1 result without hiding task statuses", async () => {
