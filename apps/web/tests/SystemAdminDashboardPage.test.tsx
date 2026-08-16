@@ -272,5 +272,15 @@ describe("SystemAdminDashboardPage", () => {
         .getAllByRole("img")
         .map((chart) => chart.querySelectorAll("path").length),
     ).toEqual([2, 2]);
+    expect(
+      Array.from(
+        document.querySelectorAll(".staff-circle-chart__segment title"),
+      ).map((title) => title.textContent),
+    ).toEqual([
+      "Full Refresher: 2 learners",
+      "Moderate Refresher: 3 learners",
+      "Reading at Grade Level: 4 learners",
+      "Needs Support: 1 learner",
+    ]);
   });
 });
