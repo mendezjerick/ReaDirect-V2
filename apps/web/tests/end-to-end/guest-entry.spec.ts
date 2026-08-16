@@ -114,7 +114,7 @@ test.describe("unsupported Guest game entry", () => {
       page.getByRole("button", { name: "Open Readscape" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Open Game Two" }),
+      page.getByRole("button", { name: "Open Ottertale" }),
     ).toBeVisible();
   });
 });

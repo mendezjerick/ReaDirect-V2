@@ -146,7 +146,7 @@ test("System Admin demos are protected, playable, and viewport-safe", async ({
   const fifthDemo = page.locator("[aria-labelledby='explore-games-title']");
   await fifthDemo.getByText("Read the walkthrough").click();
   await expect(
-    fifthDemo.getByText("See how Word Trail practices simple words."),
+    fifthDemo.getByText("See how Ottertale practices simple words."),
   ).toBeVisible();
 
   const sixthDemo = page.locator("[aria-labelledby='learn-with-clara-title']");

@@ -76,6 +76,9 @@ type SpokenTextLessonPageProps = {
 };
 
 const LESSON_FIVE_PASSAGE_MAX_FONT_PX = 23;
+// Keep a readable fallback for the shortest phone viewports after the layout
+// has given the passage as much space as possible.
+const LESSON_FIVE_PASSAGE_MIN_FONT_PX = 12.5;
 
 function LessonFivePassage({
   title,
@@ -89,6 +92,7 @@ function LessonFivePassage({
   const { passageRef, textRef, fontSize } = useFittedPassageText(
     passage,
     LESSON_FIVE_PASSAGE_MAX_FONT_PX,
+    LESSON_FIVE_PASSAGE_MIN_FONT_PX,
   );
 
   return (
