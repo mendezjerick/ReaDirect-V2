@@ -172,6 +172,49 @@ describe("LearnerLoginPage", () => {
     ).toBeNull();
   });
 
+  it("restores an existing session without replaying Link Start", async () => {
+    const storedSession = {
+      token: "learner-token",
+      learner: {
+        id: 1,
+        learner_code: "KW000",
+        full_name: "Kristen Rhine Wright",
+        first_name: "Kristen",
+        account_purpose: "portal_system" as const,
+        speech_language: "en" as const,
+        school: null,
+        grade_level: null,
+        section: null,
+        progress: {
+          stage: "before_diagnostic" as const,
+          current_required_lesson_order: null,
+        },
+        achievement_keys: [],
+      },
+      session: { expires_at: "2026-07-20T12:00:00+00:00" },
+    };
+    await saveLearnerSession(storedSession);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            learner: storedSession.learner,
+            session: storedSession.session,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+
+    renderLogin();
+
+    expect(await screen.findByText("Learner dashboard route")).toBeVisible();
+    expect(
+      document.querySelector('[data-route-transition="link-start"]'),
+    ).not.toBeInTheDocument();
+  });
+
   it("returns to Offline Practice when login was opened for a download", async () => {
     vi.useFakeTimers();
     vi.stubGlobal(
