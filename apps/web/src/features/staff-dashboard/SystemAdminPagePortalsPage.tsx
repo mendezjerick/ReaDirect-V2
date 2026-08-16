@@ -68,12 +68,12 @@ export function SystemAdminPagePortalsPage() {
   const launchMutation = useMutation({
     mutationFn: (targetKey: PortalTargetKey) =>
       launchPortalSystemLearner(staffUserId as number, targetKey),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(
         ["system-admin-page-portals", staffUserId],
         data,
       );
-      saveLearnerSession(data.launch.learner_session);
+      await saveLearnerSession(data.launch.learner_session);
       setPagePortalOrigin();
       navigate(data.launch.route, { state: pagePortalNavigationState() });
     },

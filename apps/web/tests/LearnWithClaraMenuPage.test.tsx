@@ -55,6 +55,10 @@ function renderMenu(authenticated = true) {
           path="/learner/learn-with-clara/words"
           element={<div>Words class route</div>}
         />
+        <Route
+          path="/learner/learn-with-clara/practice/:practiceKey"
+          element={<div>Practice class route</div>}
+        />
         <Route path="/learner/login" element={<div>Learner login route</div>} />
       </Routes>
     </MemoryRouter>,
@@ -114,6 +118,19 @@ describe("LearnWithClaraMenuPage", () => {
     expect(claraAudioMocks.unlock).toHaveBeenCalledOnce();
     expect(screen.getByText("Letters class route")).toBeInTheDocument();
   });
+
+  it.each(["Phrases", "Sentences", "Comprehension"])(
+    "opens the %s practice class",
+    (topic) => {
+      renderMenu();
+
+      fireEvent.click(
+        screen.getByRole("button", { name: new RegExp(`^${topic}`) }),
+      );
+
+      expect(screen.getByText("Practice class route")).toBeInTheDocument();
+    },
+  );
 
   it("returns to the learner dashboard", () => {
     renderMenu();
