@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "bundleId": "clara-offline-visuals-v1",
+  "staticPortrait": "assets/live2d/clara/stills/clara-default.png",
+  "dynamicCore": "assets/live2d/core/live2dcubismcore.min.js",
+  "dynamicManifest": "assets/live2d/clara/CherryGoth.model3.json",
+  "assetCount": 19,
+  "totalBytes": 15117518,
+  "assets": [
+    {
+      "source": "assets/live2d/clara/CherryGoth.8192/texture_00.png",
+      "output": "assets/live2d/clara/CherryGoth.8192/texture_00.png",
+      "bytes": 13258373,
+      "sha256": "c3c03b287a9df2871f24e2da73138d63f21479e89ac98785b4fa9c4fce156676"
+    },
+    {
+      "source": "assets/live2d/clara/CherryGoth.moc3",
+      "output": "assets/live2d/clara/CherryGoth.moc3",
+      "bytes": 1353472,
+      "sha256": "b71c46fa32258ad82367109e77e1f213168f6f513173d7e7758c70b84465e9be"
+    },
+    {
+      "source": "assets/live2d/clara/CherryGoth.model3.json",
+      "output": "assets/live2d/clara/CherryGoth.model3.json",
+      "bytes": 387,
+      "sha256": "d699348910ae0983080dda3e5eeb203d8f789ed5ff761a3b678a11d0beff2b24"
+    },
+    {
+      "source": "assets/live2d/clara/CherryGoth.physics3.json",
+      "output": "assets/live2d/clara/CherryGoth.physics3.json",
+      "bytes": 12858,
+      "sha256": "2aa88ea57d0e1a28da6d7ad785c46166d54a1529ba28e791f723b85f40c8e097"
+    },
+    {
+      "source": "assets/live2d/clara/stills/clara-default.png",
+      "output": "assets/live2d/clara/stills/clara-default.png",
+      "bytes": 245285,
+      "sha256": "3ab25cf312119c6fa8b69913afcc3c8c32015626d89556d235e87f727def0d1d"
+    },
+    {
+      "source": "assets/live2d/core/live2dcubismcore.min.js",
+      "output": "assets/live2d/core/live2dcubismcore.min.js",
+      "bytes": 228042,
+      "sha256": "8741f739779b5d5210872bd3d7d99f0f1e56e6c87409e7d26d6bb4b80aa1ef47"
+    },
+    {
+      "source": "assets/live2d/shaders/fragshadersrcalphablend.frag",
+      "output": "assets/live2d/shaders/fragshadersrcalphablend.frag",
+      "bytes": 2243,
+      "sha256": "c81aa7dc788d175c631572d0632823e7de3fdd533d43034071b651f40505c5ae"
+    },
+    {
+      "source": "assets/live2d/shaders/fragshadersrccolorblend.frag",
+      "output": "assets/live2d/shaders/fragshadersrccolorblend.frag",
+      "bytes": 7823,
+      "sha256": "a734e7e8c7736c6634ca606a4586156df2ba871b58a4327ca1cb658989392f75"
+    },
+    {
+      "source": "assets/live2d/shaders/fragshadersrccopy.frag",
+      "output": "assets/live2d/shaders/fragshadersrccopy.frag",
+      "bytes": 447,
+      "sha256": "058af0d18908030341ffe85b6de1911e58bb9bc409a5b71866d107e7558081c8"
+    },
+    {
+      "source": "assets/live2d/shaders/fragshadersrcmaskinvertedpremultipliedalpha.frag",
+      "output": "assets/live2d/shaders/fragshadersrcmaskinvertedpremultipliedalpha.frag",
+      "bytes": 1080,
+      "sha256": "b09973621d1ee7ca3a89b240c7b96c95f0b2a4dc2926808ffda006d8deebd4db"
+    },
+    {
+      "source": "assets/live2d/shaders/fragshadersrcmaskpremultipliedalpha.frag",
+      "output": "assets/live2d/shaders/fragshadersrcmaskpremultipliedalpha.frag",
+      "bytes": 1072,
+      "sha256": "df3a9eacf18a82f0ef3563bc951465e9782e5a4922d7473b6f86fc30e02f789f"
+    },
+    {
+      "source": "assets/live2d/shaders/fragshadersrcpremultipliedalpha.frag",
+      "output": "assets/live2d/shaders/fragshadersrcpremultipliedalpha.frag",
+      "bytes": 770,
+      "sha256": "134b78614afe21d93fa8a44e67ae3ca7c04d6616d30306bb259874a4e270ec6c"
+    },
+    {
+      "source": "assets/live2d/shaders/fragshadersrcpremultipliedalphablend.frag",
+      "output": "assets/live2d/shaders/fragshadersrcpremultipliedalphablend.frag",
+      "bytes": 2105,
+      "sha256": "b5380ecc842cc0213f226681b971b0ccfdcd62d520356b2f13aa1495158849aa"
+    },
+    {
+      "source": "assets/live2d/shaders/fragshadersrcsetupmask.frag",
+      "output": "assets/live2d/shaders/fragshadersrcsetupmask.frag",
+      "bytes": 761,
+      "sha256": "e30b2a5a37b8b48f01e60bc8e6f5a624da5007c5c57480cf5691209324a0b184"
+    },
+    {
+      "source": "assets/live2d/shaders/vertshadersrc.vert",
+      "output": "assets/live2d/shaders/vertshadersrc.vert",
+      "bytes": 484,
+      "sha256": "e89f8fe1b4d229ba9c726bf0d01fe770d03e08695fc0aef91dacc18f537b57d2"
+    },
+    {
+      "source": "assets/live2d/shaders/vertshadersrcblend.vert",
+      "output": "assets/live2d/shaders/vertshadersrcblend.vert",
+      "bytes": 769,
+      "sha256": "52bb57dfe63afa71cf1ca4ea311024ee97378c51faa03a23a53f6adbe0f4392d"
+    },
+    {
+      "source": "assets/live2d/shaders/vertshadersrccopy.vert",
+      "output": "assets/live2d/shaders/vertshadersrccopy.vert",
+      "bytes": 409,
+      "sha256": "bdddbd2a41e0d6bc9347fb17f92457717cd56afc3418b629b8ff249c396a3e27"
+    },
+    {
+      "source": "assets/live2d/shaders/vertshadersrcmasked.vert",
+      "output": "assets/live2d/shaders/vertshadersrcmasked.vert",
+      "bytes": 581,
+      "sha256": "ef76d01c908fd8289fc82232024b21419dbc60ac1022873d49a007dc88e2282f"
+    },
+    {
+      "source": "assets/live2d/shaders/vertshadersrcsetupmask.vert",
+      "output": "assets/live2d/shaders/vertshadersrcsetupmask.vert",
+      "bytes": 557,
+      "sha256": "2bfd2145c149155413cba6f7dfc891e89773a1b8e9942c191ee3bd629f42772f"
+    }
+  ]
+}

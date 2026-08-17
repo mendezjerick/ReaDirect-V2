@@ -7,10 +7,13 @@ export default tseslint.config(
   {
     ignores: [
       "dist",
+      "dist-apk",
       "coverage",
       "playwright-report",
       "test-results",
       "vendor",
+      "android",
+      "android-apk",
       "public/assets/live2d",
       "scripts",
     ],

@@ -1,0 +1,2942 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "clara-sh-offline-apk-v1",
+  "language": "en-PH",
+  "voice": "Ma'am Clara (SH)",
+  "excludedFeatures": ["learn-with-clara"],
+  "assetCount": 293,
+  "totalBytes": 110881372,
+  "totalDurationMs": 1154880,
+  "assets": [
+    {
+      "key": "assessment-complete",
+      "path": "completion/assessment-complete.wav",
+      "bytes": 307244,
+      "sha256": "60fbd7a051795a2926a34fcbd24cccacf417ceb2ff4f735137f8cdeca62f5179",
+      "durationMs": 3200,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-lena-item-1",
+      "path": "part-2/comprehension/assessment-comprehension-lena-item-1.wav",
+      "bytes": 276524,
+      "sha256": "8b7ef460876eb667b96a62a694b28bdefd1201c0aef704c4b45b82bea6bf7e4f",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-lena-item-2",
+      "path": "part-2/comprehension/assessment-comprehension-lena-item-2.wav",
+      "bytes": 169004,
+      "sha256": "2fb540dbd1cf42b8f9e7359e7e75a34301146df3a06b529bd4bffe07c3e6a55d",
+      "durationMs": 1760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-lena-item-3",
+      "path": "part-2/comprehension/assessment-comprehension-lena-item-3.wav",
+      "bytes": 122924,
+      "sha256": "0786662c67c5d71ffac2b97834d6b2d6f5eaab3d75e3c3a91ddf2ec77c7aa04f",
+      "durationMs": 1280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-lena-item-4",
+      "path": "part-2/comprehension/assessment-comprehension-lena-item-4.wav",
+      "bytes": 245804,
+      "sha256": "fd885c23131d246e52b29771cc39703bbb3a7cdd5d73df9481c9aa8a475e3ead",
+      "durationMs": 2560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-lena-item-5",
+      "path": "part-2/comprehension/assessment-comprehension-lena-item-5.wav",
+      "bytes": 261164,
+      "sha256": "53f9587ed48727d3e853d216c3fe65ac582bd8b459851e1090e48fe32c40bda6",
+      "durationMs": 2720,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-rosa-item-1",
+      "path": "part-2/comprehension/assessment-comprehension-rosa-item-1.wav",
+      "bytes": 414764,
+      "sha256": "dceca01dce9a8718b289ae2af27bd7a53647e4c031bb77a38e5b00cf19696951",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-rosa-item-2",
+      "path": "part-2/comprehension/assessment-comprehension-rosa-item-2.wav",
+      "bytes": 245804,
+      "sha256": "cc4ebba0bfb2fa437c170cbb1da3bacaac56bae0df3d6be190fa588bd8e55958",
+      "durationMs": 2560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-rosa-item-3",
+      "path": "part-2/comprehension/assessment-comprehension-rosa-item-3.wav",
+      "bytes": 169004,
+      "sha256": "95a12ace7a59949f7b685b00d0b97cf3612eed50478a7a98d060c1b93c537520",
+      "durationMs": 1760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-rosa-item-4",
+      "path": "part-2/comprehension/assessment-comprehension-rosa-item-4.wav",
+      "bytes": 261164,
+      "sha256": "ed342bda0248868e46944c3957a19afdd3df05cf6261f88f0f958b030ef90574",
+      "durationMs": 2720,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-comprehension-rosa-item-5",
+      "path": "part-2/comprehension/assessment-comprehension-rosa-item-5.wav",
+      "bytes": 261164,
+      "sha256": "d501637ab81497bebcfcfc0ebfd0f8654da1ee94bfde4492a5de46fbf526e6e7",
+      "durationMs": 2720,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-final-complete",
+      "path": "completion/assessment-final-complete.wav",
+      "bytes": 399404,
+      "sha256": "668c0ee6fe86bda2fe13c3589f6a5cabc45c8ea3a30d35ae2d1bca9980b8da6f",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters",
+      "path": "part-1/task-1a/assessment-letters.wav",
+      "bytes": 322604,
+      "sha256": "1bf37d3b0834b32f23bdccaa5dc069876d65dcadff778b23b74f3643965d183f",
+      "durationMs": 3360,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters-item-10",
+      "path": "part-1/task-1a/assessment-letters-item-10.wav",
+      "bytes": 261164,
+      "sha256": "feb62bb78967188222c7502aabab5b2e20addd808f45e138071874c7fdab802e",
+      "durationMs": 2720,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters-item-2",
+      "path": "part-1/task-1a/assessment-letters-item-2.wav",
+      "bytes": 153644,
+      "sha256": "d1d8633aab187c80c4f296012bcf1b57aa575f255e7f118ac8f7d51441163d65",
+      "durationMs": 1600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters-item-3",
+      "path": "part-1/task-1a/assessment-letters-item-3.wav",
+      "bytes": 215084,
+      "sha256": "58c4771c1129b3b7fa28d7c3e1bc9c1af86de5c47a7df3f2b6355bfe04a952cc",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters-item-4",
+      "path": "part-1/task-1a/assessment-letters-item-4.wav",
+      "bytes": 291884,
+      "sha256": "bbdc080c90247907686390a58499c232427f1ff1ebfead31d200cb5a2a9ffa1d",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters-item-5",
+      "path": "part-1/task-1a/assessment-letters-item-5.wav",
+      "bytes": 215084,
+      "sha256": "1356428e20f2907ff7b5754099590c2915c2226b5d8f334b3ed352a50c6aa6b8",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters-item-6",
+      "path": "part-1/task-1a/assessment-letters-item-6.wav",
+      "bytes": 215084,
+      "sha256": "58c0aa73694785d6313fcb49bf4dde548f0171cb85ff000c93149522d410ddad",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters-item-7",
+      "path": "part-1/task-1a/assessment-letters-item-7.wav",
+      "bytes": 307244,
+      "sha256": "128baf8532fee2c9f61d7d00fc350cb246f61385f59ae20dcbd56fd1fd65f9dc",
+      "durationMs": 3200,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters-item-8",
+      "path": "part-1/task-1a/assessment-letters-item-8.wav",
+      "bytes": 245804,
+      "sha256": "e15f700e284c4b5dfcfbfac2a0bfa4eeb65c1ab960fe87cb211dae60a0b058d2",
+      "durationMs": 2560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-letters-item-9",
+      "path": "part-1/task-1a/assessment-letters-item-9.wav",
+      "bytes": 276524,
+      "sha256": "36e0e53ccf227e3e9337c4a2aa27b74f0099ceec78a58e7579c444fb41c15122",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-orientation",
+      "path": "part-1/orientation/assessment-orientation.wav",
+      "bytes": 568364,
+      "sha256": "75546a795cc7d7aac0040518699fc5b0d64365ec2a10233fec0b6b04d8a0c5ed",
+      "durationMs": 5920,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-part-one-result",
+      "path": "part-1/results/assessment-part-one-result.wav",
+      "bytes": 414764,
+      "sha256": "5e6fb0db0bd9c0d44d480d8c82a93b0ab18fcb71fe041f6f450e179b03625638",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-part-two-result",
+      "path": "part-2/results/assessment-part-two-result.wav",
+      "bytes": 522284,
+      "sha256": "488f041cfa000937ed99014d5938e0e21f0636e431bdc5b52b601f692cc926bc",
+      "durationMs": 5440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-passage",
+      "path": "part-2/passage/assessment-passage.wav",
+      "bytes": 476204,
+      "sha256": "8c6f4810fdac7b441402224c95661ff850a71ae81decf9d0c354763cc6edce98",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes",
+      "path": "part-1/task-2a/assessment-rhymes.wav",
+      "bytes": 614444,
+      "sha256": "4343ca22305fdb1b8993e760d90fb7d482e3caa080bf84c1309cb143c6ac1048",
+      "durationMs": 6400,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes-item-10",
+      "path": "part-1/task-2a/assessment-rhymes-item-10.wav",
+      "bytes": 215084,
+      "sha256": "b96272715e1bebf3ff574c717213c4540122cdf08573369ebb9b71c7c9c887df",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes-item-2",
+      "path": "part-1/task-2a/assessment-rhymes-item-2.wav",
+      "bytes": 199724,
+      "sha256": "7e0ec6e5e653f8d3d9ee0a90c42080473b0f9f9073c674d4d1c4b5c13b486ba5",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes-item-3",
+      "path": "part-1/task-2a/assessment-rhymes-item-3.wav",
+      "bytes": 230444,
+      "sha256": "4ac34cb57892e757cc76d6322814177d16ffee8b08c747f4730f3249773f1420",
+      "durationMs": 2400,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes-item-4",
+      "path": "part-1/task-2a/assessment-rhymes-item-4.wav",
+      "bytes": 215084,
+      "sha256": "740c3363aac00702d92a43194b253b4664fc33ed4ca5d536fc2b9ac477b1dec6",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes-item-5",
+      "path": "part-1/task-2a/assessment-rhymes-item-5.wav",
+      "bytes": 215084,
+      "sha256": "6610e5e59d5f3e797cc2d7d9b6ec21416032de8de7822a27501c2838189e3867",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes-item-6",
+      "path": "part-1/task-2a/assessment-rhymes-item-6.wav",
+      "bytes": 199724,
+      "sha256": "9b21f6f6f15b2b36213833cc04cdc9b308a4ba63e861a3169f4e6d216ae1173f",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes-item-7",
+      "path": "part-1/task-2a/assessment-rhymes-item-7.wav",
+      "bytes": 199724,
+      "sha256": "806b34c76bc382116269c793b96c152fdb0149947eb4f12ebc5cdde581642e41",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes-item-8",
+      "path": "part-1/task-2a/assessment-rhymes-item-8.wav",
+      "bytes": 230444,
+      "sha256": "a13d95e35221908c8e1a47f1a8df67e4bb4314c7cef7981d6c185cfe0d32a215",
+      "durationMs": 2400,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-rhymes-item-9",
+      "path": "part-1/task-2a/assessment-rhymes-item-9.wav",
+      "bytes": 230444,
+      "sha256": "784ef5b121adc48d5068bffcfeed0dd63a0579700764bd69fc6e8e0c4c2de337",
+      "durationMs": 2400,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-story-choice",
+      "path": "part-2/story-choice/assessment-story-choice.wav",
+      "bytes": 522284,
+      "sha256": "5ac961256c47bbd55e057d91381952816c46baa0fb48988872d23f8e502b6a27",
+      "durationMs": 5440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words",
+      "path": "part-1/task-2b/assessment-words.wav",
+      "bytes": 368684,
+      "sha256": "5f9350c3e5508082832bea485324cb2ca0e81b105781ed82b3111e250216bfeb",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words-item-10",
+      "path": "part-1/task-2b/assessment-words-item-10.wav",
+      "bytes": 199724,
+      "sha256": "2ad70d05349dff1dee6c0bc3e889a7dfb05e7e1f95c24e7d8abc81b2fa1a14e3",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words-item-2",
+      "path": "part-1/task-2b/assessment-words-item-2.wav",
+      "bytes": 199724,
+      "sha256": "1921781116dd8f52fb8dcb1f44253dd41bd994af15f11709afb8fe160b07208c",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words-item-3",
+      "path": "part-1/task-2b/assessment-words-item-3.wav",
+      "bytes": 199724,
+      "sha256": "7f4b9f881888422229bba2be4ff1d163235c69764a7f72f020925d8ece25ad53",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words-item-4",
+      "path": "part-1/task-2b/assessment-words-item-4.wav",
+      "bytes": 245804,
+      "sha256": "a77d3548a4a975a8ef3ff0d35f47c0cca520760b72188fdba2f5a25353627994",
+      "durationMs": 2560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words-item-5",
+      "path": "part-1/task-2b/assessment-words-item-5.wav",
+      "bytes": 215084,
+      "sha256": "4f8e8a70eed5824d052b383b10a3b47f537d68d5b8db1b1b1c8b6ef4986b300a",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words-item-6",
+      "path": "part-1/task-2b/assessment-words-item-6.wav",
+      "bytes": 245804,
+      "sha256": "90ba664fa08645ce3888851c5bedad20e793fb6a94469b1ca1b69a497936270e",
+      "durationMs": 2560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words-item-7",
+      "path": "part-1/task-2b/assessment-words-item-7.wav",
+      "bytes": 169004,
+      "sha256": "af0f65fe1b67c7db1da80dbe54026bb963ce8de7d678a6fe622142115502a27b",
+      "durationMs": 1760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words-item-8",
+      "path": "part-1/task-2b/assessment-words-item-8.wav",
+      "bytes": 199724,
+      "sha256": "df1c8aa60a2938c3435a671e8d970c491945ca50286cca1c8997cb4b440910f0",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "assessment-words-item-9",
+      "path": "part-1/task-2b/assessment-words-item-9.wav",
+      "bytes": 153644,
+      "sha256": "946f91e66210cfea4671ee6a8de027bc98eeaca88e85009baea3f80864d11d24",
+      "durationMs": 1600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-clue-mission-1",
+      "path": "lessons/lesson-1/support/clues/lesson-1-clue-mission-1.wav",
+      "bytes": 522284,
+      "sha256": "25fff685678463dae13dcbb2f20a0bfb1d7d2814b597ec29d77540e8dd02b129",
+      "durationMs": 5440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-clue-mission-2",
+      "path": "lessons/lesson-1/support/clues/lesson-1-clue-mission-2.wav",
+      "bytes": 476204,
+      "sha256": "de055a66787264597a500e0eadb2555620f05c940468fdabfa81bff9a8576538",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-clue-mission-3",
+      "path": "lessons/lesson-1/support/clues/lesson-1-clue-mission-3.wav",
+      "bytes": 445484,
+      "sha256": "e43beeed0bd80bc1231c9d122b8cc91f75f544c9215aa2deb81bb9f5bc3e253b",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-complete",
+      "path": "lessons/lesson-1/completion/lesson-1-complete.wav",
+      "bytes": 337964,
+      "sha256": "b72009819afe0de305dddd7d58888a12ff7ff366c3fbd3b4254d12082c36a41f",
+      "durationMs": 3520,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-feedback-demonstrated",
+      "path": "lessons/lesson-1/support/feedback/lesson-1-feedback-demonstrated.wav",
+      "bytes": 414764,
+      "sha256": "bd59763db87d3cc2c8db8a796444b7b577ac0788e8a168b21fd07250fc5c5a5e",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-feedback-incorrect-first",
+      "path": "lessons/lesson-1/support/feedback/lesson-1-feedback-incorrect-first.wav",
+      "bytes": 353324,
+      "sha256": "09d4c8b99ba11ab211f2060cb47674b4e160549d3ca3902cea66d17ed1582252",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-feedback-independent",
+      "path": "lessons/lesson-1/support/feedback/lesson-1-feedback-independent.wav",
+      "bytes": 291884,
+      "sha256": "0bedc29bb5d26b234a329f97ab10dc85364764497aec3a02f25e301af2c93832",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-feedback-not-yet",
+      "path": "lessons/lesson-1/support/feedback/lesson-1-feedback-not-yet.wav",
+      "bytes": 384044,
+      "sha256": "8bb2fb0320d9b4ea6ebdc2f59f3ebc910080669f8cf7bda80a483ac6f8ac829d",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-feedback-supported",
+      "path": "lessons/lesson-1/support/feedback/lesson-1-feedback-supported.wav",
+      "bytes": 276524,
+      "sha256": "d2bbded5c9c585495d8088fdde62955fc859838e4f336d1c68accfe9ea7cf386",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-feedback-unscorable",
+      "path": "lessons/lesson-1/support/feedback/lesson-1-feedback-unscorable.wav",
+      "bytes": 537644,
+      "sha256": "37fecf856ee74fce00c7ce0bf9aaf0c40950c389f97cdc562e258eaeb976d9dc",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-A",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-A.wav",
+      "bytes": 307244,
+      "sha256": "434b02e58653fbe55f553808582230089dd1f906714b76acec035fdd116a25ca",
+      "durationMs": 3200,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-B",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-B.wav",
+      "bytes": 430124,
+      "sha256": "f37bb39b55063b23f44fe19ba3107d260e54cba89dec2e901f55532ac0802bc3",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-C",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-C.wav",
+      "bytes": 522284,
+      "sha256": "2a0006d5b7d9da4d121fa3c8118ec66c397679c59179dcf4bc1e7ec88787eed1",
+      "durationMs": 5440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-D",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-D.wav",
+      "bytes": 522284,
+      "sha256": "5d94e9c1d922d03bb5c547c6f036c0517fd4260a52c128489f6b4f263de52f04",
+      "durationMs": 5440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-E",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-E.wav",
+      "bytes": 629804,
+      "sha256": "1a6d3345b7a7d4a26263e81238f5119f4337e3bb0b9dbd40db586049682b225f",
+      "durationMs": 6560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-F",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-F.wav",
+      "bytes": 568364,
+      "sha256": "2a1460a570d2adf821faaaae44ebc08f4fa03a6fd034ac55eab0c6c48b555212",
+      "durationMs": 5920,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-G",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-G.wav",
+      "bytes": 537644,
+      "sha256": "2f86dfdc847f209bf96a15da67210d8c738610309ff9fb8b6042b83702f51286",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-H",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-H.wav",
+      "bytes": 491564,
+      "sha256": "7c756555b10f223a908f188605dd460b4b022b94b6ca6728cf3186264f238327",
+      "durationMs": 5120,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-I",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-I.wav",
+      "bytes": 445484,
+      "sha256": "cb9e8423a711252ad9cb58325846c3ee9a98aa8abaa1567337987322a8ff1bd9",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-J",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-J.wav",
+      "bytes": 491564,
+      "sha256": "4494ce56bbad1d044aee25d14366f11cb2754d6269e38fcca51c5bb0c9c2b9d9",
+      "durationMs": 5120,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-K",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-K.wav",
+      "bytes": 414764,
+      "sha256": "2091c910d719262251d592d5fbd35d04170e2f3bf1aef666bef13af7cf7539a6",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-L",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-L.wav",
+      "bytes": 537644,
+      "sha256": "b961912b69b83cc225603c52dad585784dd0e287332f25c2080e1490ae96df9c",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-M",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-M.wav",
+      "bytes": 476204,
+      "sha256": "cc371df32a919389692683a25ddfd192a29002bff0d90153f930f7d99d8d2f32",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-N",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-N.wav",
+      "bytes": 553004,
+      "sha256": "cda3c0e845f3974a196a179676bb9c5e5b8a1ba90c02a936cfe10b9ebafde425",
+      "durationMs": 5760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-O",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-O.wav",
+      "bytes": 399404,
+      "sha256": "9c9234596ce4ae458da3c5af7765d66118d7032fe0c880ace5a6b423cfec9e54",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-P",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-P.wav",
+      "bytes": 506924,
+      "sha256": "3e0e3525a0cdfe84a45850d19eb35c062f17c3aa7723fe9d06d80358b6373a83",
+      "durationMs": 5280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-Q",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-Q.wav",
+      "bytes": 460844,
+      "sha256": "7e46c65a024ffd063bdeea69b64d2949f9a20e7b9ba56a8fe9022848e100ef31",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-R",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-R.wav",
+      "bytes": 537644,
+      "sha256": "c547adf6b8fc2f57ee0ada3161d7407b3ee0f47ab8e91d0de8eaa58fb9c17046",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-S",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-S.wav",
+      "bytes": 430124,
+      "sha256": "6e0dc2f98695a4e6bbccdfb1138486b46f4308bfaed866ea39b8d8d570cba1eb",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-T",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-T.wav",
+      "bytes": 583724,
+      "sha256": "636357e9c8635270e7cba1382861c118f6f05593998845419fa084b99d19860b",
+      "durationMs": 6080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-U",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-U.wav",
+      "bytes": 568364,
+      "sha256": "8770770f8e6cbfeb85cbd0ed35bee1ff1c05679ff850fe2b140e959b2b201ff6",
+      "durationMs": 5920,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-V",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-V.wav",
+      "bytes": 568364,
+      "sha256": "3de5a495e35374f31bcdc50e0c6d49811c263346ba7aebb5ff95bfef88fd1b02",
+      "durationMs": 5920,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-W",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-W.wav",
+      "bytes": 506924,
+      "sha256": "bb2a5bf84f5baaf66280b63175bbb7158b2d9244ae04be800fe3f82c2c39439f",
+      "durationMs": 5280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-X",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-X.wav",
+      "bytes": 476204,
+      "sha256": "3865c883cfcab940527375201584f0f48d8402982190c3356801d9670a0c85f0",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-Y",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-Y.wav",
+      "bytes": 660524,
+      "sha256": "2c08f3ab56756f1a3cbd6e906b7ca9a7561d8f3aa8226ce57ca512ce4338c556",
+      "durationMs": 6880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-letter-demo-Z",
+      "path": "lessons/lesson-1/support/demonstrations/lesson-1-letter-demo-Z.wav",
+      "bytes": 384044,
+      "sha256": "54a74aec37d285735cd5f375de42827821700f49f49a64bcdc06888f139f2840",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-1",
+      "path": "lessons/lesson-1/mission-1/lesson-1-mission-1.wav",
+      "bytes": 537644,
+      "sha256": "6d72c7db18349da8c405cf3ceaae1d013523e3a3f83ebcdaab0817eb2036e730",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-1-item-2",
+      "path": "lessons/lesson-1/mission-1/lesson-1-mission-1-item-2.wav",
+      "bytes": 230444,
+      "sha256": "caf92d1d4d174a7b9f70d458eef79d6b8bb46323f16c98b21966a27a3f71f959",
+      "durationMs": 2400,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-1-item-3",
+      "path": "lessons/lesson-1/mission-1/lesson-1-mission-1-item-3.wav",
+      "bytes": 261164,
+      "sha256": "5b232e1f523027167c95424194fee2a97f04e9a800a10f9f0426de04917ad3ba",
+      "durationMs": 2720,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-1-item-4",
+      "path": "lessons/lesson-1/mission-1/lesson-1-mission-1-item-4.wav",
+      "bytes": 199724,
+      "sha256": "91b2bd34aa9045e0a8a04ca7b043597cda605dfb56868d2c3b8755ad53c9178b",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-1-item-5",
+      "path": "lessons/lesson-1/mission-1/lesson-1-mission-1-item-5.wav",
+      "bytes": 184364,
+      "sha256": "772ec54b7211ce4c159a6493420b40c71afa633798895947bc938dc79b022e2e",
+      "durationMs": 1920,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-2",
+      "path": "lessons/lesson-1/mission-2/lesson-1-mission-2.wav",
+      "bytes": 460844,
+      "sha256": "7725eeeaa857405b6f77ac1ff4c66a18a8d695a7a72294ff1954affffb250390",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-2-item-2",
+      "path": "lessons/lesson-1/mission-2/lesson-1-mission-2-item-2.wav",
+      "bytes": 291884,
+      "sha256": "be4cac0f8ba1935196ef90ed477eff761bcd1956ffa11769fb4389894c4a893a",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-2-item-3",
+      "path": "lessons/lesson-1/mission-2/lesson-1-mission-2-item-3.wav",
+      "bytes": 291884,
+      "sha256": "e2f2f10936dc11c8934d24f1cb6f1ef437616b6cda31bb896de0a6a02bd9dcf9",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-2-item-4",
+      "path": "lessons/lesson-1/mission-2/lesson-1-mission-2-item-4.wav",
+      "bytes": 337964,
+      "sha256": "e06167903d90ff98febbd418d06cce49b750c6c4884b108ea37b590c97e4b6f0",
+      "durationMs": 3520,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-2-item-5",
+      "path": "lessons/lesson-1/mission-2/lesson-1-mission-2-item-5.wav",
+      "bytes": 261164,
+      "sha256": "574461538a82029f539052768d1bcb9645e239370f9c26c1e4bd3a986b822b8f",
+      "durationMs": 2720,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-3",
+      "path": "lessons/lesson-1/mission-3/lesson-1-mission-3.wav",
+      "bytes": 384044,
+      "sha256": "9ceccdc09b2859bc30101a06b6159e3d9bf3cff90af97485a5f0c84b3bbdaae4",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-3-item-2",
+      "path": "lessons/lesson-1/mission-3/lesson-1-mission-3-item-2.wav",
+      "bytes": 230444,
+      "sha256": "fe30c4d6b916245670f35ad6d6802e5117b84d056478cd83d794fe6a91314c53",
+      "durationMs": 2400,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-3-item-3",
+      "path": "lessons/lesson-1/mission-3/lesson-1-mission-3-item-3.wav",
+      "bytes": 276524,
+      "sha256": "cd401099044f88f4c3f3099200465c0f3f6f0bcf092a3d296273dff2de1afc40",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-3-item-4",
+      "path": "lessons/lesson-1/mission-3/lesson-1-mission-3-item-4.wav",
+      "bytes": 291884,
+      "sha256": "6380f90ea6a1d0c4bf4e0dbcf1cf1ce5fe147e3d95e1054bae9107881fd4aa5e",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-mission-3-item-5",
+      "path": "lessons/lesson-1/mission-3/lesson-1-mission-3-item-5.wav",
+      "bytes": 215084,
+      "sha256": "c3d12ba1669d80e4ccde1da86a87730fdf8f612ab2c60108ae550e145135e7fa",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-1-technical-retry",
+      "path": "lessons/lesson-1/support/technical/lesson-1-technical-retry.wav",
+      "bytes": 291884,
+      "sha256": "4124a44163377fde66946ee3cb75a97f516554c8813d0b98973ce3bef0200b7b",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-clue-mission-1",
+      "path": "lessons/lesson-2/support/clues/lesson-2-clue-mission-1.wav",
+      "bytes": 522284,
+      "sha256": "f7df3a940faab835f0c0d5dfaa4086a9c84c6338dd53509b28b9d1c6aecb4507",
+      "durationMs": 5440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-clue-mission-2",
+      "path": "lessons/lesson-2/support/clues/lesson-2-clue-mission-2.wav",
+      "bytes": 522284,
+      "sha256": "f5ffb05b7d435a2486668ea81afc32c149845eead7d33275219e550459b8932d",
+      "durationMs": 5440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-complete",
+      "path": "lessons/lesson-2/completion/lesson-2-complete.wav",
+      "bytes": 414764,
+      "sha256": "c78e6b389fdd942a93f9559503b2c7b90d08653ca4fa0619702fc3975d7de80b",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-feedback-demonstrated",
+      "path": "lessons/lesson-2/support/feedback/lesson-2-feedback-demonstrated.wav",
+      "bytes": 322604,
+      "sha256": "c2cf8045b7402a2aea855200497fe6a1c972e370861a5d927af83d6960a59271",
+      "durationMs": 3360,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-feedback-incorrect-first",
+      "path": "lessons/lesson-2/support/feedback/lesson-2-feedback-incorrect-first.wav",
+      "bytes": 368684,
+      "sha256": "a20442c3b005770ff7c95fcaecc2055e08befd5b797ee37056a5cc2f951f82bb",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-feedback-independent",
+      "path": "lessons/lesson-2/support/feedback/lesson-2-feedback-independent.wav",
+      "bytes": 307244,
+      "sha256": "a47e7012f4199409a8567ab5db45589c4688fb79ff60ac85734016901b713356",
+      "durationMs": 3200,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-feedback-not-yet",
+      "path": "lessons/lesson-2/support/feedback/lesson-2-feedback-not-yet.wav",
+      "bytes": 414764,
+      "sha256": "48a292c95cb48c8f2771aa9c75735d0146cdbc5e5ec8f01be8077dbeeace03c1",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-feedback-supported",
+      "path": "lessons/lesson-2/support/feedback/lesson-2-feedback-supported.wav",
+      "bytes": 261164,
+      "sha256": "5f877c49041f81cb0b1ddc1d6bd7af214ddf920e03f655a586bf047f6fea040b",
+      "durationMs": 2720,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-feedback-unscorable",
+      "path": "lessons/lesson-2/support/feedback/lesson-2-feedback-unscorable.wav",
+      "bytes": 445484,
+      "sha256": "2421f75a50b0c1213277932913c9a6ac91885aa292e84a0690ff9c2db081a927",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-1",
+      "path": "lessons/lesson-2/mission-1/lesson-2-mission-1.wav",
+      "bytes": 384044,
+      "sha256": "5b66ff4bd8badc5089b533b79aeeb5fb86b79e7124feb05ee517ef557a847958",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-1-item-2",
+      "path": "lessons/lesson-2/mission-1/lesson-2-mission-1-item-2.wav",
+      "bytes": 215084,
+      "sha256": "84e6e563fb099471a7a94c1aa1dc34ffd6e5b3c505bc203ea56627c31aa62b51",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-1-item-3",
+      "path": "lessons/lesson-2/mission-1/lesson-2-mission-1-item-3.wav",
+      "bytes": 215084,
+      "sha256": "44f872021143bdaebf229ce54dc3ee1818a28dbc3fe1e88be4c6bfae4a12ffef",
+      "durationMs": 2240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-1-item-4",
+      "path": "lessons/lesson-2/mission-1/lesson-2-mission-1-item-4.wav",
+      "bytes": 169004,
+      "sha256": "563a009847624f7d98453b3fe26082ff3206bea3b7d98c3234dc4e1d2c1afcb0",
+      "durationMs": 1760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-1-item-5",
+      "path": "lessons/lesson-2/mission-1/lesson-2-mission-1-item-5.wav",
+      "bytes": 199724,
+      "sha256": "8d2bedffde501e2814d5a70b68407270a6fc0ad6387edd811e537359685a097a",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-2",
+      "path": "lessons/lesson-2/mission-2/lesson-2-mission-2.wav",
+      "bytes": 414764,
+      "sha256": "b7c6609c89f437873933cc99f3b842ebcfd72c42edeb192fda647a9387f3b985",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-2-item-2",
+      "path": "lessons/lesson-2/mission-2/lesson-2-mission-2-item-2.wav",
+      "bytes": 399404,
+      "sha256": "6780fa2fa1331dfd97902bf86e431cc2434e8193cd455cb06f9a9b1954334ecc",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-2-item-3",
+      "path": "lessons/lesson-2/mission-2/lesson-2-mission-2-item-3.wav",
+      "bytes": 368684,
+      "sha256": "95351a8913be6a340d438a4d6201b2074e689f96aa638eff83b6cf96d5336592",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-2-item-4",
+      "path": "lessons/lesson-2/mission-2/lesson-2-mission-2-item-4.wav",
+      "bytes": 307244,
+      "sha256": "e19714d304c7a068c8b4b9e1bdc736cd66a5b0e3fc796cb82a49821c7d8d13cb",
+      "durationMs": 3200,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-mission-2-item-5",
+      "path": "lessons/lesson-2/mission-2/lesson-2-mission-2-item-5.wav",
+      "bytes": 384044,
+      "sha256": "2fc7164f49c7f634da87bbf015d0cd26bc62bda255b949c9c252adf491d087cd",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-technical-retry",
+      "path": "lessons/lesson-2/support/technical/lesson-2-technical-retry.wav",
+      "bytes": 460844,
+      "sha256": "f12fb9d73dd30bf648819def2332ad5e55c73f08f4bdd996a3553804ca053553",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-bag",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-bag.wav",
+      "bytes": 445484,
+      "sha256": "583cc04c80d213a1bed917215f15ddc2c59c7b318e7a936af4ba35fdc3eb9440",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-bat",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-bat.wav",
+      "bytes": 522284,
+      "sha256": "e8af9be638a22c300f6baa7e00e56006a95188ee189b46752bed00e4a66e3744",
+      "durationMs": 5440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-bed",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-bed.wav",
+      "bytes": 384044,
+      "sha256": "a903a623fed3e83a97c4e92fb60efe6cc04af5b451bc0bbb9be5e26ec7803854",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-big",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-big.wav",
+      "bytes": 476204,
+      "sha256": "330eaadeccc4ac4ad0a21f885af2dcb224e54056ee3feb16775775a03aed5299",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-bun",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-bun.wav",
+      "bytes": 491564,
+      "sha256": "6d54d9047df06066b280ced6c9439d22c435ef74e86ed7515ec1fc4b8d81fed6",
+      "durationMs": 5120,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-can",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-can.wav",
+      "bytes": 553004,
+      "sha256": "d5efc230ed4bbcd3bc7302ca242311d2ff8c20cb55837415f887121b5c7a2dd3",
+      "durationMs": 5760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-cap",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-cap.wav",
+      "bytes": 445484,
+      "sha256": "aea1ac43940c6cf5de99a3716374d426f6df01ee186be87cff47b1a9ca76871b",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-cat",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-cat.wav",
+      "bytes": 414764,
+      "sha256": "457427f86bfe71d2b1ca7732d612a665ac6b2c1b0d3d9f0321de30261206eb53",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-cut",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-cut.wav",
+      "bytes": 414764,
+      "sha256": "f5eb26c57d524a3422a58837488b77661c53f18265de2869ab5ed0a732424a40",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-dad",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-dad.wav",
+      "bytes": 445484,
+      "sha256": "0dafe560b7fbbb94f0349ec20a614caf67729003ded5f3d4d925af20b53dde53",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-den",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-den.wav",
+      "bytes": 629804,
+      "sha256": "7df354e72c4b2d4493632a74e93b4f450275e9a33e58bb336e584ce99fef05c8",
+      "durationMs": 6560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-dig",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-dig.wav",
+      "bytes": 460844,
+      "sha256": "7372aa200e37d2d7881ebbc4bc3e254374dee6c264514da3a6010983ebd068e5",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-dog",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-dog.wav",
+      "bytes": 460844,
+      "sha256": "b4f60d837d19ccd01e9eb9a300e86c2a580a6920f0bbf2f61334816a4058b10f",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-dot",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-dot.wav",
+      "bytes": 537644,
+      "sha256": "2a32ec4aa8907c2e613fa1b8f4e57a070b5e0a6b70de49b9485ded7ab173a0c2",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-fan",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-fan.wav",
+      "bytes": 506924,
+      "sha256": "4216002df0fa89fc4404e41b8622087d276c3ec86fc27e23352d3340164d321e",
+      "durationMs": 5280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-fat",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-fat.wav",
+      "bytes": 583724,
+      "sha256": "312fd5f5e574253ba95dd47e9e46a22592df0af154d4d212765ac29d726e675f",
+      "durationMs": 6080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-fin",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-fin.wav",
+      "bytes": 476204,
+      "sha256": "5472a59fe5ceb106d5b3a6c1bffa3457b2d589bc9f96d43dc3c895aed6b980be",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-fit",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-fit.wav",
+      "bytes": 368684,
+      "sha256": "d38a19b69a4e5002f7cd752a3e80dd673347b7dda85f52046fe9569ba55ddffe",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-fun",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-fun.wav",
+      "bytes": 537644,
+      "sha256": "b76f959b2c69e8318b05fded4e07e8fd85ee92f3d66a1b21d126d4dcaff9bd4c",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-gap",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-gap.wav",
+      "bytes": 460844,
+      "sha256": "bfb01c9d10407cef82fb438a36d269290f61d067c863b0dcd51b9e49c1d50c58",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-gas",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-gas.wav",
+      "bytes": 368684,
+      "sha256": "c9a037da6b2a35449a30b797292d6fa41635b0f48cd053666be7837a2580e954",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-get",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-get.wav",
+      "bytes": 384044,
+      "sha256": "4919cde0cc75029f0df110f22cc444699ffe1438ad26b0c04cc90b150e6ec3ac",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-got",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-got.wav",
+      "bytes": 353324,
+      "sha256": "2f74dc5cfad677dd181495016af26539189a2516a2bda2a6fd28702f56d52461",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-gum",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-gum.wav",
+      "bytes": 491564,
+      "sha256": "8673af022d6cc87e2db40f469bbc0bbf250a3cecf7572266d23589a00a6b6114",
+      "durationMs": 5120,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-ham",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-ham.wav",
+      "bytes": 353324,
+      "sha256": "54ebd343347a7b2ba85c1db5d25cf2ac8b37120601e77c22a159153be4a7ca0b",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-hat",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-hat.wav",
+      "bytes": 430124,
+      "sha256": "eb8736d686aa528bb9fb78c8178a3154efadb28f5d04fd86cf57a9fe9181543e",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-hen",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-hen.wav",
+      "bytes": 430124,
+      "sha256": "dd92c017929cff8713967099d0a0a8e7f6ac394789a9239ad8bd3c4d453eb901",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-hip",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-hip.wav",
+      "bytes": 414764,
+      "sha256": "ee1195474052260bd8059837b33002dca64eccd6aa6722bc9fef09bdd0c7deb6",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-hot",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-hot.wav",
+      "bytes": 430124,
+      "sha256": "6c99cf2e642b88ba8c6953e122d6dbe564bf4a49db26ac26cb97b3c619fee066",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-jam",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-jam.wav",
+      "bytes": 414764,
+      "sha256": "389198c5482706a83f73eda482407672b1e9163b92f314cf9d4a752d75d60ad9",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-jet",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-jet.wav",
+      "bytes": 614444,
+      "sha256": "015c01d32e8cfbd16431b6e813b2b0fd64a1f48e15142084588eb21c76e3072f",
+      "durationMs": 6400,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-job",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-job.wav",
+      "bytes": 506924,
+      "sha256": "7ef76985b6bd4c2ac281f4ad5d870d6dbdfdfba5b0e3496942fdfb70e582ba45",
+      "durationMs": 5280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-jog",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-jog.wav",
+      "bytes": 460844,
+      "sha256": "0425c119fce951c99e1174981bb54e1bb403c157a7f3927db6993edae87c2da7",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-jug",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-jug.wav",
+      "bytes": 445484,
+      "sha256": "543d2559a7cc5ad033d8a6fcbee4448e307cd4a88dabc8b8015fd7dbf6370a52",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-lap",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-lap.wav",
+      "bytes": 337964,
+      "sha256": "6ed2ec540dfad9fbb08a2a2c547342924e3104712e3a64cb0ee1e776755df8d6",
+      "durationMs": 3520,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-leg",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-leg.wav",
+      "bytes": 430124,
+      "sha256": "d0997386dfb033d532c5eb216ed41bcd86ce9f7a86178f2da63eb193d3d8b24d",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-lid",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-lid.wav",
+      "bytes": 414764,
+      "sha256": "85b464199399efd914287f1afdfe209081bc47fd2c854365725e7f76ae030f6f",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-lip",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-lip.wav",
+      "bytes": 430124,
+      "sha256": "bff98c73a1a5a3b9dda561dde9bff6fdd34a939e1d1c7f4750b5c00fe667e0bd",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-log",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-log.wav",
+      "bytes": 353324,
+      "sha256": "f79f1df9bffac7ee140f40c7e4a58739e619f4bf6403a95877477e50cb536c5b",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-man",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-man.wav",
+      "bytes": 614444,
+      "sha256": "f05283e06f7742e17bef614ec42eea88b091ebaad20b4319664a4c2d640b4c7e",
+      "durationMs": 6400,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-map",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-map.wav",
+      "bytes": 368684,
+      "sha256": "df42522eb380eace598bf3dda115c45619f28fc986f4d3598f78dcc4de8e5ae4",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-mat",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-mat.wav",
+      "bytes": 460844,
+      "sha256": "0c179953cee8b8a94860532d7303d1dfcb521ab19110f325e4af8314bb974883",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-men",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-men.wav",
+      "bytes": 414764,
+      "sha256": "6f5d3435b2d46f826ae9183c7ea26f49726275efc588d30239fcdcd4cfe507f8",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-mug",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-mug.wav",
+      "bytes": 476204,
+      "sha256": "3952624adfc393c2b7b03e0e13ee2c0d6046b74b7347deac97ed2fad1d1b3bcd",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-pan",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-pan.wav",
+      "bytes": 384044,
+      "sha256": "d94b0b70a6d3bf542c1484a8c26a0a829ae443cb648bbb89955a8e2ad939e6d5",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-pen",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-pen.wav",
+      "bytes": 307244,
+      "sha256": "49014af3c22d6e871e26b1773e8f35c0688d8ec68a136dd47a0c8b7a7782b2db",
+      "durationMs": 3200,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-pet",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-pet.wav",
+      "bytes": 491564,
+      "sha256": "f6f37532a81d097a3afa1de18d0feaf0513bd433c1f14c36f5e2be10c40b454d",
+      "durationMs": 5120,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-pig",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-pig.wav",
+      "bytes": 445484,
+      "sha256": "38fd885816a95fabd51bd1d923259e7ab7f1c759624a87e012b11d9a6a507e18",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-2-word-demo-pot",
+      "path": "lessons/lesson-2/support/demonstrations/lesson-2-word-demo-pot.wav",
+      "bytes": 476204,
+      "sha256": "41ce6636ee738bcd927e70f9fa31e2711c172c4397444de9e9a57fa53b22e53e",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-clue-mission-1",
+      "path": "lessons/lesson-3/support/clues/lesson-3-clue-mission-1.wav",
+      "bytes": 476204,
+      "sha256": "4adafe97f696fb5995e545e6565d7c41a42624dd55270d131eb91c4b22f47fa9",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-complete",
+      "path": "lessons/lesson-3/completion/lesson-3-complete.wav",
+      "bytes": 384044,
+      "sha256": "1f953d4581459814fc3e4f4aa32d8ea04527093eff5ef16fc5fae138307efdb4",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-big-bag",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-big-bag.wav",
+      "bytes": 261164,
+      "sha256": "6ba3ae16921c22fc319aaa04385f722ce7f1e28efa1464cae920980255f06463",
+      "durationMs": 2720,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-big-dog",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-big-dog.wav",
+      "bytes": 399404,
+      "sha256": "a8d7a23bb4551dbfff621f034f9739a041f37a43b13c8fa5853420b49d9cf30f",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-cat-on-a-mat",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-cat-on-a-mat.wav",
+      "bytes": 384044,
+      "sha256": "b633ae80e7280693cdbe96e06cbace03626b6145f209b7e320f02f75fc647cec",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-dog-on-a-log",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-dog-on-a-log.wav",
+      "bytes": 384044,
+      "sha256": "3913c27200b733e77eaf58c34766c2e8e99339b0f41ebeadc8ce9a8b0537e1a8",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-fan-on-a-mat",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-fan-on-a-mat.wav",
+      "bytes": 368684,
+      "sha256": "09876df55937f9af2237f09dfc2e01641fb184c07146d112b11cc7ba3198578a",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-fat-cat",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-fat-cat.wav",
+      "bytes": 414764,
+      "sha256": "dae0035958deb1a82b61743d647717048fe2fbe327b6e752fcee84133d7f9ac1",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-fat-pig",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-fat-pig.wav",
+      "bytes": 414764,
+      "sha256": "015863d908d2dcd68324b07a33b80280da3920f070b08c8a64dbfc3d449391e2",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-fun-run",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-fun-run.wav",
+      "bytes": 414764,
+      "sha256": "14c13b62c61a5ccbb6a1676e71b8f503d901c97ecd4703aeefc21c4538a719de",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-ham-in-a-pan",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-ham-in-a-pan.wav",
+      "bytes": 491564,
+      "sha256": "5d5971b2423a64e3d00310530e228e37073555cfae994d1f5727cf38b7710cee",
+      "durationMs": 5120,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-hat-on-a-peg",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-hat-on-a-peg.wav",
+      "bytes": 460844,
+      "sha256": "bf8b16762a5a9542b8b56c8a770f94c0735008d6d5f193defb8b923188a93df9",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-hen-in-a-pen",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-hen-in-a-pen.wav",
+      "bytes": 445484,
+      "sha256": "4ba24160e9926a4a9419a5c70e52ebba62be49a25f290a25277f6a0467a37f1e",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-hot-pan",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-hot-pan.wav",
+      "bytes": 353324,
+      "sha256": "4c194724e73108fd77d2c22a9fffa350e94a7dd39b611a96254a44737b1e9fa3",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-kid-in-bed",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-kid-in-bed.wav",
+      "bytes": 368684,
+      "sha256": "08ff84f60655a44b0e61c717059dbf7cd0cb5998c20c4822f4c192deb40f88a8",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-pig-in-mud",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-pig-in-mud.wav",
+      "bytes": 414764,
+      "sha256": "bdc1f82e64f9481bea91ecdf92264ab62fdd7d31de63f88d82f85a89a51086b6",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-red-cap",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-red-cap.wav",
+      "bytes": 353324,
+      "sha256": "84bceb425c2bafdfb76a448a737d91d3963e16efc3ff0cadb64518e427af20a6",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-red-cup",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-red-cup.wav",
+      "bytes": 384044,
+      "sha256": "021b5c833037e7f99e7f1e373382276603a6486fe2e053f1dac912a87b5ced68",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-sad-man",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-sad-man.wav",
+      "bytes": 322604,
+      "sha256": "e73cf763a966128ff70d1e7e4d725bc708772df1721179074eda7372dfd7ecd2",
+      "durationMs": 3360,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-tan-bag",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-tan-bag.wav",
+      "bytes": 414764,
+      "sha256": "47287ba159b5fa1d554ad329f31969fabae4dce107803d43bae9aeb8aa10c5a4",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-wet-dog",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-wet-dog.wav",
+      "bytes": 368684,
+      "sha256": "b1c65835bcb1d0675dafc6fcf64264fa909de52c999d7d82429fdacbaaac0435",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-demo-wet-rag",
+      "path": "lessons/lesson-3/support/demonstrations/lesson-3-demo-wet-rag.wav",
+      "bytes": 353324,
+      "sha256": "cbebc6b9bfd28dcd9ee0a436b4665b289ec4e7676a08b30c93412a82fb8f6486",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-feedback-demonstrated",
+      "path": "lessons/lesson-3/support/feedback/lesson-3-feedback-demonstrated.wav",
+      "bytes": 199724,
+      "sha256": "9c4aab97de3d7164ef2faee5231a5f12003b897cfaa8b24fdd2c9cbe1f181d6f",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-feedback-incorrect-first",
+      "path": "lessons/lesson-3/support/feedback/lesson-3-feedback-incorrect-first.wav",
+      "bytes": 368684,
+      "sha256": "515b54793d8242d06eec306cd500187a4883db40743a5922b60c511a9caa241b",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-feedback-independent",
+      "path": "lessons/lesson-3/support/feedback/lesson-3-feedback-independent.wav",
+      "bytes": 430124,
+      "sha256": "ce7c5dca14d0562f320575e3d3f9f29ec9dcecd62aeaeb260fdf56202c83afd0",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-feedback-not-yet",
+      "path": "lessons/lesson-3/support/feedback/lesson-3-feedback-not-yet.wav",
+      "bytes": 568364,
+      "sha256": "071aa455526e3a4ac6f1d87e9edcebaaa4a972663b4ab88e071655fb76cc2c0a",
+      "durationMs": 5920,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-feedback-supported",
+      "path": "lessons/lesson-3/support/feedback/lesson-3-feedback-supported.wav",
+      "bytes": 322604,
+      "sha256": "c1f93e25d8caa3e9feaef1c3b3754d33bada5209ec194a23a4666b1cc5477a5b",
+      "durationMs": 3360,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-feedback-unscorable",
+      "path": "lessons/lesson-3/support/feedback/lesson-3-feedback-unscorable.wav",
+      "bytes": 460844,
+      "sha256": "f1f5e8f600692a6de6477c462ee27ebce263920c962c47215aef94287711722e",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-mission-1",
+      "path": "lessons/lesson-3/mission-1/lesson-3-mission-1.wav",
+      "bytes": 353324,
+      "sha256": "5e3aec108a3906db248508c02485422c3e200cfa16a2da9ba8f8acbc3ec89ccc",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-mission-1-item-2",
+      "path": "lessons/lesson-3/mission-1/lesson-3-mission-1-item-2.wav",
+      "bytes": 230444,
+      "sha256": "227d868208ed22a859330fa43972752f6b940b02e91d85faf863215bbc1a22b4",
+      "durationMs": 2400,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-mission-1-item-3",
+      "path": "lessons/lesson-3/mission-1/lesson-3-mission-1-item-3.wav",
+      "bytes": 184364,
+      "sha256": "0c317936b0ae7b65af43c259ad17df387a7094a1256bec996e3e981c77ddec6f",
+      "durationMs": 1920,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-mission-1-item-4",
+      "path": "lessons/lesson-3/mission-1/lesson-3-mission-1-item-4.wav",
+      "bytes": 199724,
+      "sha256": "6360a9aabd47ce06a0a81efb8d456db3dbb786bea2a33954886b39ad508363de",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-mission-1-item-5",
+      "path": "lessons/lesson-3/mission-1/lesson-3-mission-1-item-5.wav",
+      "bytes": 337964,
+      "sha256": "f7940a45d2f47249b53c3149f2db9a741d48d0989f3feba5ae2990e50c5c16d5",
+      "durationMs": 3520,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-3-technical-retry",
+      "path": "lessons/lesson-3/support/technical/lesson-3-technical-retry.wav",
+      "bytes": 399404,
+      "sha256": "75a02e785ca4183fdee970143d57cfd9c1a1fb4b3bf161aaa1f19af6add2b26b",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-clue-mission-1",
+      "path": "lessons/lesson-4/support/clues/lesson-4-clue-mission-1.wav",
+      "bytes": 522284,
+      "sha256": "15eac96ba71c21d888292d299b2bb8c42cf8739c7b0e77ef836d9bc20c3f3a32",
+      "durationMs": 5440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-complete",
+      "path": "lessons/lesson-4/completion/lesson-4-complete.wav",
+      "bytes": 368684,
+      "sha256": "24a9ff6638f1415cc63804054453fed2c1efcf7a52f5895548cbd37eda051f85",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-ana-bag",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-ana-bag.wav",
+      "bytes": 460844,
+      "sha256": "38ff69fad6013ac9bc512e86f6b4901472d262c258dac26fdb067d5b6dd76530",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-ben-cap",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-ben-cap.wav",
+      "bytes": 430124,
+      "sha256": "81521cc0baa318ac1bed65236a3928f71b535204babcca705e8b6c7dc8676195",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-big-bag-bed",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-big-bag-bed.wav",
+      "bytes": 553004,
+      "sha256": "0c909027e98ef0ec2fd82fa29d3042ae163311bf6c8429540ce612f30e1aa7e9",
+      "durationMs": 5760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-cat-mat",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-cat-mat.wav",
+      "bytes": 537644,
+      "sha256": "6c966a135d46967c54cdaf0636f0ca39e186684ffc11eab04c3f788cf39ad3e9",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-dog-log",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-dog-log.wav",
+      "bytes": 322604,
+      "sha256": "480cfed31bef272e803fe5dbc2dd60ae1760e06c6fb791ee163599552aadac77",
+      "durationMs": 3360,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-hen-pen",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-hen-pen.wav",
+      "bytes": 506924,
+      "sha256": "18dce97b913d169b2798698bc97ce2bd461a2d46af31c44d31c6b829809a1098",
+      "durationMs": 5280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-hot-pan-mat",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-hot-pan-mat.wav",
+      "bytes": 460844,
+      "sha256": "5218a6ecc11e68d51945bec6b9309a40e338dca8d7a1383b38b60fc72c27a3ef",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-kid-hop",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-kid-hop.wav",
+      "bytes": 337964,
+      "sha256": "c12f0f2cfa784a1bca9518ceded2723fbe9245a6389079ed689078f53ba06352",
+      "durationMs": 3520,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-lena-hop",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-lena-hop.wav",
+      "bytes": 261164,
+      "sha256": "eee0ffaeed3a98b85c6bda1fd3902ec21a2d945385b11609067e878e3ba82dbc",
+      "durationMs": 2720,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-lito-run",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-lito-run.wav",
+      "bytes": 491564,
+      "sha256": "028e207c39f0661743a4c1902f1d90a544958892e55c794c6e55d1dd7947ab8d",
+      "durationMs": 5120,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-man-dig",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-man-dig.wav",
+      "bytes": 399404,
+      "sha256": "ccded2b4cd085cce717591066467772c04c20972c47eb8a0f456d62279164dde",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-mia-cat",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-mia-cat.wav",
+      "bytes": 414764,
+      "sha256": "d471f837782fa5aaf3c55886d44a1cab7b170c1b0907aaaa333f1080857e738e",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-mina-fan",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-mina-fan.wav",
+      "bytes": 460844,
+      "sha256": "007c1e9da3275b61f343ee6f3f896f8977c134ea8c5a7b64ee823be1e1a5be47",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-nena-sit",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-nena-sit.wav",
+      "bytes": 322604,
+      "sha256": "054a246d35c794094f7997ed6c7711f988309abbf91f96b3810fbf409606b1e6",
+      "durationMs": 3360,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-nico-dog",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-nico-dog.wav",
+      "bytes": 399404,
+      "sha256": "5c3db7c2642e6f75bacfd26aa7ceee0a09ff0b870f41a2bd2e8662b38ae5befe",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-pig-mud",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-pig-mud.wav",
+      "bytes": 506924,
+      "sha256": "4902aa277558c95152c445c51de5426c322e165031dea00029380eb48d523b93",
+      "durationMs": 5280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-red-cup-mat",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-red-cup-mat.wav",
+      "bytes": 445484,
+      "sha256": "f17ea8a98b34a47da89a94ac9c0596ab55a93557f2277209c2f928b10d5ca3ea",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-rosa-red-bag",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-rosa-red-bag.wav",
+      "bytes": 460844,
+      "sha256": "119a69d46f4a3fb101571212bec617ebd1563237a8178df1f89c40b44a508f4d",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-tino-pet-pig",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-tino-pet-pig.wav",
+      "bytes": 445484,
+      "sha256": "fdea80942e299d37734e8939309c628bcba594b2469627b3c6e4994124aaf7a3",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-demo-wet-dog-mat",
+      "path": "lessons/lesson-4/support/demonstrations/lesson-4-demo-wet-dog-mat.wav",
+      "bytes": 537644,
+      "sha256": "46abfe6125aba5ed9e50280b4e2590de13d90b45253f8a26b7a12d1250acb72c",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-feedback-demonstrated",
+      "path": "lessons/lesson-4/support/feedback/lesson-4-feedback-demonstrated.wav",
+      "bytes": 414764,
+      "sha256": "1938b18d255656754e8401500632408250ca9e22b411dd2ac7a9ee92e028dd8e",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-feedback-incorrect-first",
+      "path": "lessons/lesson-4/support/feedback/lesson-4-feedback-incorrect-first.wav",
+      "bytes": 384044,
+      "sha256": "45de23932cd0dcd57e149af851127882c10b420a6b0f4ea2e52e52ac12741133",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-feedback-independent",
+      "path": "lessons/lesson-4/support/feedback/lesson-4-feedback-independent.wav",
+      "bytes": 307244,
+      "sha256": "ae23177fa8efb45e172f0e1a9108058f56a331dacd6a22188f837af98d0a9c8e",
+      "durationMs": 3200,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-feedback-not-yet",
+      "path": "lessons/lesson-4/support/feedback/lesson-4-feedback-not-yet.wav",
+      "bytes": 506924,
+      "sha256": "75bdd2a782a4f0390227c16b98ada4bab9cae5119da18b3e7f04a99c4fb3835d",
+      "durationMs": 5280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-feedback-supported",
+      "path": "lessons/lesson-4/support/feedback/lesson-4-feedback-supported.wav",
+      "bytes": 291884,
+      "sha256": "a41e3bd3d63d8291be48e59649fb2bddc9d2ba4dae0724e0b52d1edd4a394f85",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-feedback-unscorable",
+      "path": "lessons/lesson-4/support/feedback/lesson-4-feedback-unscorable.wav",
+      "bytes": 353324,
+      "sha256": "6ad3259b077f8826fc2721eeff9be67cf6d883e908dec41254e63cca329d5b20",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-mission-1",
+      "path": "lessons/lesson-4/mission-1/lesson-4-mission-1.wav",
+      "bytes": 491564,
+      "sha256": "7ac1d865c9e3e6465ec0154cd6f76cbc7c7796acca1f3e4475b797fbce556736",
+      "durationMs": 5120,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-mission-1-item-2",
+      "path": "lessons/lesson-4/mission-1/lesson-4-mission-1-item-2.wav",
+      "bytes": 199724,
+      "sha256": "556e8e449dd51d0c37c2798230040500776b29d2db8548daf0b32efb676609d6",
+      "durationMs": 2080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-mission-1-item-3",
+      "path": "lessons/lesson-4/mission-1/lesson-4-mission-1-item-3.wav",
+      "bytes": 245804,
+      "sha256": "1f4535c3712df87688f49512ad2d6356c39262af7d4ab6b8919e0e5b277de260",
+      "durationMs": 2560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-mission-1-item-4",
+      "path": "lessons/lesson-4/mission-1/lesson-4-mission-1-item-4.wav",
+      "bytes": 276524,
+      "sha256": "0459e5cb554fd7339634c3c72fa593ba2a5725ede4077718bcebefb822d8eebb",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-mission-1-item-5",
+      "path": "lessons/lesson-4/mission-1/lesson-4-mission-1-item-5.wav",
+      "bytes": 245804,
+      "sha256": "4414daa27b8a1b6778571ca91c36de0266e943f055958ecff2d07dad13282c03",
+      "durationMs": 2560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-4-technical-retry",
+      "path": "lessons/lesson-4/support/technical/lesson-4-technical-retry.wav",
+      "bytes": 506924,
+      "sha256": "05ca9500a7f9e3b2880adfb3c2fa0e9cc770078139800634ef97a0f3bb934a1a",
+      "durationMs": 5280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-5-complete",
+      "path": "lessons/lesson-5/completion/lesson-5-complete.wav",
+      "bytes": 399404,
+      "sha256": "4ccb33d3a23fee1ae5fa233a78804a7add9e0edda1029b6ebfe4c140ebc01e43",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-5-mission-1",
+      "path": "lessons/lesson-5/mission-1/lesson-5-mission-1.wav",
+      "bytes": 445484,
+      "sha256": "377dcda55332148e4beeaf406bd0a90de3426a60e837e81a12de5823f5046bb3",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-5-performance-beginning",
+      "path": "lessons/lesson-5/review/lesson-5-performance-beginning.wav",
+      "bytes": 553004,
+      "sha256": "99cb97168d8cab67fb2b3d7c6f09aa46bc5c3fcf47777c5f27031a3ed68eed61",
+      "durationMs": 5760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-5-performance-excellent",
+      "path": "lessons/lesson-5/review/lesson-5-performance-excellent.wav",
+      "bytes": 599084,
+      "sha256": "8c93637b1498def355c18557d55b65bfd9a0c4c0d1a7cd1b550e92a4c1e861f7",
+      "durationMs": 6240,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-5-performance-growing",
+      "path": "lessons/lesson-5/review/lesson-5-performance-growing.wav",
+      "bytes": 460844,
+      "sha256": "a65f426b8446f85becedd12607fd947cfd92eee0ad1bcd1da2a07e28bb607446",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-5-performance-skipped",
+      "path": "lessons/lesson-5/review/lesson-5-performance-skipped.wav",
+      "bytes": 368684,
+      "sha256": "99e3fb988566540d20370349c4377ef8d25a9f5e5be940ec5469d2e81db2da32",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-5-performance-strong",
+      "path": "lessons/lesson-5/review/lesson-5-performance-strong.wav",
+      "bytes": 430124,
+      "sha256": "c0a38815094181498299cd6d4be7c6d99c9c35c401c9b4ba658d969af8e77c15",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-5-performance-unavailable",
+      "path": "lessons/lesson-5/review/lesson-5-performance-unavailable.wav",
+      "bytes": 583724,
+      "sha256": "09628647f5dfe48d683beed9f19f613610fb06976b3b87aa3108f27757397a0f",
+      "durationMs": 6080,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-5-technical-retry",
+      "path": "lessons/lesson-5/support/technical/lesson-5-technical-retry.wav",
+      "bytes": 460844,
+      "sha256": "0f84ae4a475a50b3762b8888347a7e4661809b076f0067bf2ebae48b87707886",
+      "durationMs": 4800,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-clue-what",
+      "path": "lessons/lesson-6/support/clues/lesson-6-clue-what.wav",
+      "bytes": 537644,
+      "sha256": "20dc5f73c46c75693e7981a34433803422c436215d55456adb77b17074f3bb0d",
+      "durationMs": 5600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-clue-when",
+      "path": "lessons/lesson-6/support/clues/lesson-6-clue-when.wav",
+      "bytes": 399404,
+      "sha256": "a6429b6c017c3cb26f7fccda276f64a06a8052de68c623e3560e529db46db5dd",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-clue-where",
+      "path": "lessons/lesson-6/support/clues/lesson-6-clue-where.wav",
+      "bytes": 399404,
+      "sha256": "79b7da64b2476855a6b2eb9a855567920cb2e06b5cfcff4fb48efb5332e2b476",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-clue-who",
+      "path": "lessons/lesson-6/support/clues/lesson-6-clue-who.wav",
+      "bytes": 430124,
+      "sha256": "c87520a9af670cb81b22d852421d2fb3802dee47c3173a1637f7da1044404ca5",
+      "durationMs": 4480,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-clue-why",
+      "path": "lessons/lesson-6/support/clues/lesson-6-clue-why.wav",
+      "bytes": 553004,
+      "sha256": "af2e4e77f0135c56c2e39a2aa5001ef28645fe66b86f1db32b57eeae78a4e273",
+      "durationMs": 5760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-complete",
+      "path": "lessons/lesson-6/completion/lesson-6-complete.wav",
+      "bytes": 629804,
+      "sha256": "fcdca1ea731b905653e0974a1ccda62a68388520a7a413e2d75c11178c7dad7a",
+      "durationMs": 6560,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-what-ben",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-what-ben.wav",
+      "bytes": 291884,
+      "sha256": "0f0e066825ee8385c8ade13b7c06ca41c7f42b2efec31e17365cb3cbb8a2e45d",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-what-mia",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-what-mia.wav",
+      "bytes": 276524,
+      "sha256": "b90ab28434b12205f54eb2ef07879ef78e72c974eb8fc8dc46af2881e874d9a1",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-when-lito",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-when-lito.wav",
+      "bytes": 276524,
+      "sha256": "99544e416fad9d282a18cb48bc0baa429e40e9310d64e7987a9a72d242c8f340",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-when-nena",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-when-nena.wav",
+      "bytes": 291884,
+      "sha256": "9618152cb15fd0f7626500e522e9059fa41617724d84cb5ba0993dae29453c9f",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-where-cat",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-where-cat.wav",
+      "bytes": 322604,
+      "sha256": "e4ad3767a2f61b2506562be61d31624311ff59a5ce403f71c8493466ee89bf4c",
+      "durationMs": 3360,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-where-hen",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-where-hen.wav",
+      "bytes": 337964,
+      "sha256": "299536ee042dfce8e389bc9c35bfee6fe94aafbed8ed81603a4c99abbfd64c7d",
+      "durationMs": 3520,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-who-lena",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-who-lena.wav",
+      "bytes": 291884,
+      "sha256": "950b43aa52f8b333c15a45d51c7420b91dc04a1edf80e44a8069d265a7a68ff3",
+      "durationMs": 3040,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-who-rosa",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-who-rosa.wav",
+      "bytes": 322604,
+      "sha256": "090f39e898fa38c9d17e212b61094df8e4d5ddded65fcea1bd80ca666740bc93",
+      "durationMs": 3360,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-why-mila",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-why-mila.wav",
+      "bytes": 276524,
+      "sha256": "79b8b70a891da96591071a17df6de91ad492186f66a3bd10fbd7797a631089aa",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-correct-why-tino",
+      "path": "lessons/lesson-6/correct/lesson-6-correct-why-tino.wav",
+      "bytes": 307244,
+      "sha256": "bc52cdbaadcfa07987ba9162658eb5988ea75c04d6f67fe1760bdc5508526000",
+      "durationMs": 3200,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-what-ben",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-what-ben.wav",
+      "bytes": 353324,
+      "sha256": "a2e028299d36849af405debf6c461f44a8c1e3b1fdbb5bddc72864d922efc055",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-what-mia",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-what-mia.wav",
+      "bytes": 414764,
+      "sha256": "fbf1e52f2b6aa6968d20e547e90847e9a5ebe31c8b3685f350afdc3ee8663867",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-when-lito",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-when-lito.wav",
+      "bytes": 368684,
+      "sha256": "89bfd51b3de82c0a4367f1b80191541ffa1ed3c66280eae6cc2707822d9c93cb",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-when-nena",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-when-nena.wav",
+      "bytes": 353324,
+      "sha256": "e4e94562e55619bd230646d50f6532731c1dcdbe3f3351f50222af2ab9e91bb5",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-where-cat",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-where-cat.wav",
+      "bytes": 384044,
+      "sha256": "6a94d93c2ba0642341a179968dea407744b39b98cc8202053d053ebda875df9d",
+      "durationMs": 4000,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-where-hen",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-where-hen.wav",
+      "bytes": 414764,
+      "sha256": "cad54e3034150c292a67848482d811ffe5d2cac32a812fea72ff6c91524501ed",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-who-lena",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-who-lena.wav",
+      "bytes": 445484,
+      "sha256": "0c2ddffd21b921877a311e764e3179c7a1abbdb4af257a34ad5298b4142e32a6",
+      "durationMs": 4640,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-who-rosa",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-who-rosa.wav",
+      "bytes": 399404,
+      "sha256": "e4b66469c36f771ab251482d3f2609e4c15c8607ac826304d12cc6e386772564",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-why-mila",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-why-mila.wav",
+      "bytes": 414764,
+      "sha256": "d0acaed0f3a9d7f02a50ac2b5be658ef59647e7cc99f329f1598e5c61e3625ef",
+      "durationMs": 4320,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-demo-why-tino",
+      "path": "lessons/lesson-6/demo/lesson-6-demo-why-tino.wav",
+      "bytes": 476204,
+      "sha256": "ea280b4c17970d552e110cc8f62e51a5cb0405572be52d4e2434f5f8c1d9b31f",
+      "durationMs": 4960,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-what-ben",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-what-ben.wav",
+      "bytes": 368684,
+      "sha256": "f6802b600c916facfae546ac15a3d58b255d41fb2ee80384cfc76ac2f61f0901",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-what-mia",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-what-mia.wav",
+      "bytes": 322604,
+      "sha256": "8a58f5d370049d168ebe7a9586c16bf4736f1d8c3eb47ea6dbd97dfae285ce4a",
+      "durationMs": 3360,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-when-lito",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-when-lito.wav",
+      "bytes": 337964,
+      "sha256": "ec9d28e4c5c1943f21f13c87f8d68852e744f427cba3e7b882294a8e5740dc9f",
+      "durationMs": 3520,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-when-nena",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-when-nena.wav",
+      "bytes": 307244,
+      "sha256": "476e5f2a7c8b72628c05f3f8e591aa5cb759e844a6e13e15b4ae6326bef5a5a0",
+      "durationMs": 3200,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-where-cat",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-where-cat.wav",
+      "bytes": 353324,
+      "sha256": "e7149cca66b355a44b6ad5e44be52f8cf639249603535ba4d814ba6c6f1c7d0e",
+      "durationMs": 3680,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-where-hen",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-where-hen.wav",
+      "bytes": 276524,
+      "sha256": "4e5c07e9b1565aa0e566e7a131b0a158fbd46e36694feb485519155f32499768",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-who-lena",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-who-lena.wav",
+      "bytes": 276524,
+      "sha256": "b1534ad3d15447b0f647871d00f655572aad1881a13bfc5f0af9a8d10fbe01ce",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-who-rosa",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-who-rosa.wav",
+      "bytes": 368684,
+      "sha256": "288eede5d1fe3f07368bb27aacd4f0eedc576e00558bb821a8026e6d6adf0ed7",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-why-mila",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-why-mila.wav",
+      "bytes": 337964,
+      "sha256": "fc08572be51d9a399fc396e0d45183935f3c62956c3a84d69625d11016d8444e",
+      "durationMs": 3520,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-guided-why-tino",
+      "path": "lessons/lesson-6/guided/lesson-6-guided-why-tino.wav",
+      "bytes": 337964,
+      "sha256": "294033467a54cefde44fe9e70054af26e928e4145be6eefe6481025853682b46",
+      "durationMs": 3520,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-mission-1",
+      "path": "lessons/lesson-6/mission-1/lesson-6-mission-1.wav",
+      "bytes": 399404,
+      "sha256": "32a02701820b262d2da1aced83018f391d142083df8edc70cb2f7c76af8926f4",
+      "durationMs": 4160,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-what-ben",
+      "path": "lessons/lesson-6/question/lesson-6-question-what-ben.wav",
+      "bytes": 184364,
+      "sha256": "2b362f826b71aba3ebacfa6191218fd4ec751d4c78c7495a77241539f8e1e5c2",
+      "durationMs": 1920,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-what-mia",
+      "path": "lessons/lesson-6/question/lesson-6-question-what-mia.wav",
+      "bytes": 138284,
+      "sha256": "de7fc774d3c8deeca6e620eebcbc5826d26fdd4cd2607289fcd961b20f904ee7",
+      "durationMs": 1440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-when-lito",
+      "path": "lessons/lesson-6/question/lesson-6-question-when-lito.wav",
+      "bytes": 368684,
+      "sha256": "d32b61df1f8003758fbf9c4f01b245923f05e08ebfecdcffb85a88ef8984ef3c",
+      "durationMs": 3840,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-when-nena",
+      "path": "lessons/lesson-6/question/lesson-6-question-when-nena.wav",
+      "bytes": 169004,
+      "sha256": "0e8086f27b0ab8e04a9ad807801e3e43e012fe67c414dc4a99b73c18e659c6b4",
+      "durationMs": 1760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-where-cat",
+      "path": "lessons/lesson-6/question/lesson-6-question-where-cat.wav",
+      "bytes": 276524,
+      "sha256": "2e4e84c00bbb47ada54959be5133ca2e21c25485ba445723bd274f581d07d48d",
+      "durationMs": 2880,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-where-hen",
+      "path": "lessons/lesson-6/question/lesson-6-question-where-hen.wav",
+      "bytes": 153644,
+      "sha256": "f26623454d74903379eca86a53100d7e846dc66a13d84ed4189535dd82af306f",
+      "durationMs": 1600,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-who-lena",
+      "path": "lessons/lesson-6/question/lesson-6-question-who-lena.wav",
+      "bytes": 184364,
+      "sha256": "7881175c63e2c1786a4106b02b6706a376527861b3d867d27d1823fb8d988ef9",
+      "durationMs": 1920,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-who-rosa",
+      "path": "lessons/lesson-6/question/lesson-6-question-who-rosa.wav",
+      "bytes": 169004,
+      "sha256": "471c350cf84a1e7796aa2be68aabddd6ee2a863f19244b76e2cdbc587c3e675e",
+      "durationMs": 1760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-why-mila",
+      "path": "lessons/lesson-6/question/lesson-6-question-why-mila.wav",
+      "bytes": 138284,
+      "sha256": "4e63b368a4377991a79888c5b7127ee81c61b8cdb67fdbbcb99b267fad1885d9",
+      "durationMs": 1440,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-6-question-why-tino",
+      "path": "lessons/lesson-6/question/lesson-6-question-why-tino.wav",
+      "bytes": 169004,
+      "sha256": "ba4df89c4fd42a361471fb63fac4b89c25743714fa1789067122c98e53542489",
+      "durationMs": 1760,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    },
+    {
+      "key": "lesson-intro",
+      "path": "lesson-intro/lesson-intro.wav",
+      "bytes": 506924,
+      "sha256": "5744ad1566bc2c796c9216ba9c7deb75bbe888124429d297b3bdca5829ce9bd3",
+      "durationMs": 5280,
+      "sampleRateHz": 48000,
+      "channels": 1,
+      "bitsPerSample": 16
+    }
+  ]
+}

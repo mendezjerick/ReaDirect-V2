@@ -1,0 +1,191 @@
+import groovy.json.JsonSlurper
+import java.security.MessageDigest
+
+apply plugin: 'com.android.application'
+
+def offlineAsrPackageDir = file("${rootProject.projectDir}/../../../services/asr/model_artifacts/mobile/package")
+def offlineTtsPackageDir = file("${rootProject.projectDir}/../../../services/tts/storage/offline-apk-package")
+def playStoreBundle = providers.gradleProperty('readirectPlayStore').orNull == 'true'
+def validationAbi = providers.gradleProperty('readirectValidationAbi').orNull
+def requiredAsrAssets = [
+    'asr/models/low.bin': 59721011L,
+    'asr/models/medium.bin': 133047977L,
+    'asr/models/high.bin': 574041195L,
+]
+def sha256File = { File file ->
+    def digest = MessageDigest.getInstance('SHA-256')
+    file.withInputStream { stream ->
+        byte[] buffer = new byte[8192]
+        int read
+        while ((read = stream.read(buffer)) != -1) {
+            digest.update(buffer, 0, read)
+        }
+    }
+    digest.digest().encodeHex().toString()
+}
+
+android {
+    namespace = "com.readirect.offline"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.readirect.offline"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+            if (validationAbi) {
+                abiFilters.clear()
+                abiFilters validationAbi
+            }
+        }
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared',
+                    '-DGGML_NATIVE=OFF',
+                    '-DGGML_OPENMP=OFF',
+                    '-DGGML_LLAMAFILE=OFF',
+                    '-DWHISPER_BUILD_EXAMPLES=OFF',
+                    '-DWHISPER_BUILD_TESTS=OFF',
+                    '-DWHISPER_BUILD_SERVER=OFF'
+            }
+        }
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    ndkVersion "27.1.12297006"
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+    sourceSets {
+        main {
+            assets.srcDir offlineTtsPackageDir
+            if (!playStoreBundle) {
+                assets.srcDir offlineAsrPackageDir
+            }
+        }
+    }
+    if (playStoreBundle) {
+        assetPacks = [':offline_models']
+    }
+    androidResources {
+        noCompress += ['bin', 'ogg']
+    }
+}
+
+tasks.register('verifyOfflineAsrAssets') {
+    doLast {
+        def catalogFile = new File(offlineAsrPackageDir, 'catalog.json')
+        if (!catalogFile.isFile()) {
+            throw new GradleException("Missing offline ASR catalog: ${catalogFile}. Run pnpm prepare:apk:asr first.")
+        }
+        def catalog = new JsonSlurper().parse(catalogFile)
+        if (catalog.schema_version != '2.0' || catalog.tier_order != ['low', 'medium', 'high']) {
+            throw new GradleException("Offline ASR catalog has an unsupported schema or tier order.")
+        }
+        requiredAsrAssets.each { relativePath, expectedBytes ->
+            def artifact = new File(offlineAsrPackageDir, relativePath)
+            if (!artifact.isFile()) {
+                throw new GradleException("Missing offline ASR asset: ${artifact}. Run pnpm prepare:apk:asr first.")
+            }
+            if (artifact.length() != expectedBytes) {
+                throw new GradleException("Offline ASR asset has the wrong size: ${artifact}.")
+            }
+            def tier = artifact.name.replace('.bin', '')
+            def catalogModel = catalog.models[tier]
+            if (
+                catalogModel?.asset_path != relativePath ||
+                catalogModel?.size_bytes != expectedBytes ||
+                sha256File(artifact) != catalogModel?.sha256
+            ) {
+                throw new GradleException("Offline ASR catalog or checksum mismatch: ${artifact}.")
+            }
+        }
+    }
+}
+
+tasks.register('verifyOfflineTtsAssets') {
+    doLast {
+        def catalogFile = new File(offlineTtsPackageDir, 'tts/catalog.json')
+        if (!catalogFile.isFile()) {
+            throw new GradleException("Missing offline TTS catalog: ${catalogFile}. Run pnpm prepare:apk:tts first.")
+        }
+
+        def catalog = new JsonSlurper().parse(catalogFile)
+        if (
+            catalog.schemaVersion != 2 ||
+            catalog.assetCount != 293 ||
+            catalog.encoding?.codec != 'vorbis' ||
+            catalog.encoding?.sampleRateHz != 32000
+        ) {
+            throw new GradleException("Offline TTS catalog has an unsupported schema or asset count.")
+        }
+
+        long observedBytes = 0L
+        catalog.assets.each { asset ->
+            def audioFile = new File(offlineTtsPackageDir, "tts/audio/${asset.path}")
+            if (!audioFile.isFile() || audioFile.length() != (asset.bytes as long)) {
+                throw new GradleException("Missing or invalid offline TTS asset: ${audioFile}")
+            }
+            def observedSha256 = sha256File(audioFile)
+            if (observedSha256 != asset.sha256) {
+                throw new GradleException("Offline TTS checksum mismatch: ${audioFile}")
+            }
+            observedBytes += audioFile.length()
+        }
+        if (observedBytes != (catalog.totalBytes as long)) {
+            throw new GradleException("Offline TTS package byte total does not match its catalog.")
+        }
+    }
+}
+
+preBuild.dependsOn verifyOfflineAsrAssets
+preBuild.dependsOn verifyOfflineTtsAssets
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "target": "offline-apk",
+  "entry": "src/apk/main.tsx",
+  "output_directory": "dist-apk",
+  "network_policy": "native_local_only",
+  "allowed_route_families": [
+    "/onboarding",
+    "/intro",
+    "/learner/dashboard",
+    "/learner/lesson-intro",
+    "/learner/assessment",
+    "/learner/final-assessment",
+    "/learner/lessons"
+  ],
+  "forbidden_route_families": [
+    "/home",
+    "/learner/login",
+    "/learner/games",
+    "/learner/learn-with-clara",
+    "/staff"
+  ],
+  "forbidden_module_fragments": [
+    "/src/main.tsx",
+    "/apps/games/",
+    "/components/staff/",
+    "/features/game-one/",
+    "/features/learn-with-clara/",
+    "/features/realtime/",
+    "/features/staff-auth/",
+    "/features/staff-dashboard/",
+    "/features/learner-auth/learnerloginpage",
+    "/node_modules/laravel-echo/",
+    "/node_modules/pusher-js/",
+    "/node_modules/vite-plugin-pwa/",
+    "/node_modules/workbox-"
+  ],
+  "forbidden_bundle_tokens": [
+    "/api/",
+    "/app/",
+    "/home",
+    "/learner/login",
+    "/learner/games",
+    "/learner/learn-with-clara",
+    "/staff/",
+    "ws://",
+    "wss://"
+  ],
+  "forbidden_output_fragments": [
+    "game-alpha",
+    "game-lobby",
+    "game-one",
+    "game-two",
+    "game-zero",
+    "learnwithclara",
+    "staffdashboard",
+    "stafflogin"
+  ],
+  "required_properties": {
+    "authentication": false,
+    "staff_experience": false,
+    "games": false,
+    "learn_with_clara": false,
+    "production_network": false,
+    "local_learner_profile": true,
+    "local_progress": true,
+    "local_achievements": true,
+    "offline_asr": true,
+    "pregenerated_tts": true
+  }
+}

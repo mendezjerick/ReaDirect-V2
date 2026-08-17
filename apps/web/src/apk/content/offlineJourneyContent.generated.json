@@ -1,0 +1,1629 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "v1",
+  "assessments": {
+    "diagnostic": {
+      "key": "diagnostic",
+      "title": "Diagnostic Assessment",
+      "completionTtsKey": "assessment-complete",
+      "items": [
+        {
+          "key": "diagnostic-task-1a-01",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "A a",
+          "expected": "A",
+          "ttsKey": "assessment-letters",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-1a-02",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "C c",
+          "expected": "C",
+          "ttsKey": "assessment-letters-item-2",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-1a-03",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "F f",
+          "expected": "F",
+          "ttsKey": "assessment-letters-item-3",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-1a-04",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "K k",
+          "expected": "K",
+          "ttsKey": "assessment-letters-item-4",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-1a-05",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "L l",
+          "expected": "L",
+          "ttsKey": "assessment-letters-item-5",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-1a-06",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "M m",
+          "expected": "M",
+          "ttsKey": "assessment-letters-item-6",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-1a-07",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "O o",
+          "expected": "O",
+          "ttsKey": "assessment-letters-item-7",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-1a-08",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "P p",
+          "expected": "P",
+          "ttsKey": "assessment-letters-item-8",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-1a-09",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "S s",
+          "expected": "S",
+          "ttsKey": "assessment-letters-item-9",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-1a-10",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "U u",
+          "expected": "U",
+          "ttsKey": "assessment-letters-item-10",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2a-01",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "cat — hat",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes"
+        },
+        {
+          "key": "diagnostic-task-2a-02",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "sun — fun",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-2"
+        },
+        {
+          "key": "diagnostic-task-2a-03",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "pig — map",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "no",
+          "ttsKey": "assessment-rhymes-item-3"
+        },
+        {
+          "key": "diagnostic-task-2a-04",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "bed — red",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-4"
+        },
+        {
+          "key": "diagnostic-task-2a-05",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "cup — net",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "no",
+          "ttsKey": "assessment-rhymes-item-5"
+        },
+        {
+          "key": "diagnostic-task-2a-06",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "kid — bus",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "no",
+          "ttsKey": "assessment-rhymes-item-6"
+        },
+        {
+          "key": "diagnostic-task-2a-07",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "log — dog",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-7"
+        },
+        {
+          "key": "diagnostic-task-2a-08",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "man — fan",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-8"
+        },
+        {
+          "key": "diagnostic-task-2a-09",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "run — top",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "no",
+          "ttsKey": "assessment-rhymes-item-9"
+        },
+        {
+          "key": "diagnostic-task-2a-10",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "hen — pen",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-10"
+        },
+        {
+          "key": "diagnostic-task-2b-01",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "bag",
+          "expected": "bag",
+          "ttsKey": "assessment-words",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2b-02",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "cap",
+          "expected": "cap",
+          "ttsKey": "assessment-words-item-2",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2b-03",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "gum",
+          "expected": "gum",
+          "ttsKey": "assessment-words-item-3",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2b-04",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "hip",
+          "expected": "hip",
+          "ttsKey": "assessment-words-item-4",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2b-05",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "lap",
+          "expected": "lap",
+          "ttsKey": "assessment-words-item-5",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2b-06",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "mug",
+          "expected": "mug",
+          "ttsKey": "assessment-words-item-6",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2b-07",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "nap",
+          "expected": "nap",
+          "ttsKey": "assessment-words-item-7",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2b-08",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "pet",
+          "expected": "pet",
+          "ttsKey": "assessment-words-item-8",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2b-09",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "sit",
+          "expected": "sit",
+          "ttsKey": "assessment-words-item-9",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-2b-10",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "tub",
+          "expected": "tub",
+          "ttsKey": "assessment-words-item-10",
+          "long": false
+        },
+        {
+          "key": "diagnostic-task-3a-story-1",
+          "phase": "Passage",
+          "kind": "speech",
+          "prompt": "Read the passage aloud.",
+          "display": "Lena goes to the park on Sunday, and she takes a ball to play. She holds the ball, rolls it, kicks it, and runs after it. Lena plays with the ball, then she sits, rests, and plays again. She likes to play, and she stays at the park on Sunday.",
+          "expected": "lena goes to the park on sunday and she takes a ball to play she holds the ball rolls it kicks it and runs after it lena plays with the ball then she sits rests and plays again she likes to play and she stays at the park on sunday",
+          "ttsKey": "assessment-passage",
+          "long": true
+        },
+        {
+          "key": "diagnostic-task-3b-story-1-who",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "Who goes to the park?",
+          "display": "Lena at the Park",
+          "choices": [
+            {
+              "key": "a",
+              "label": "Lena"
+            },
+            {
+              "key": "b",
+              "label": "Rosa"
+            },
+            {
+              "key": "c",
+              "label": "Mia"
+            },
+            {
+              "key": "d",
+              "label": "Ben"
+            }
+          ],
+          "correctChoice": "a",
+          "ttsKey": "assessment-comprehension-lena-item-1"
+        },
+        {
+          "key": "diagnostic-task-3b-story-1-what",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "What does Lena take?",
+          "display": "Lena at the Park",
+          "choices": [
+            {
+              "key": "a",
+              "label": "A pail"
+            },
+            {
+              "key": "b",
+              "label": "A ball"
+            },
+            {
+              "key": "c",
+              "label": "A bag"
+            },
+            {
+              "key": "d",
+              "label": "A book"
+            }
+          ],
+          "correctChoice": "b",
+          "ttsKey": "assessment-comprehension-lena-item-2"
+        },
+        {
+          "key": "diagnostic-task-3b-story-1-where",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "Where does Lena go?",
+          "display": "Lena at the Park",
+          "choices": [
+            {
+              "key": "a",
+              "label": "The garden"
+            },
+            {
+              "key": "b",
+              "label": "The market"
+            },
+            {
+              "key": "c",
+              "label": "The park"
+            },
+            {
+              "key": "d",
+              "label": "The school"
+            }
+          ],
+          "correctChoice": "c",
+          "ttsKey": "assessment-comprehension-lena-item-3"
+        },
+        {
+          "key": "diagnostic-task-3b-story-1-when",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "When does Lena go to the park?",
+          "display": "Lena at the Park",
+          "choices": [
+            {
+              "key": "a",
+              "label": "On Sunday"
+            },
+            {
+              "key": "b",
+              "label": "On Monday"
+            },
+            {
+              "key": "c",
+              "label": "On Tuesday"
+            },
+            {
+              "key": "d",
+              "label": "On Friday"
+            }
+          ],
+          "correctChoice": "a",
+          "ttsKey": "assessment-comprehension-lena-item-4"
+        },
+        {
+          "key": "diagnostic-task-3b-story-1-why",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "Why does Lena go to the park?",
+          "display": "Lena at the Park",
+          "choices": [
+            {
+              "key": "a",
+              "label": "To eat"
+            },
+            {
+              "key": "b",
+              "label": "To sleep"
+            },
+            {
+              "key": "c",
+              "label": "To play"
+            },
+            {
+              "key": "d",
+              "label": "To read"
+            }
+          ],
+          "correctChoice": "c",
+          "ttsKey": "assessment-comprehension-lena-item-5"
+        }
+      ]
+    },
+    "final": {
+      "key": "final",
+      "title": "Final Assessment",
+      "completionTtsKey": "assessment-final-complete",
+      "items": [
+        {
+          "key": "final-task-1a-01",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "A a",
+          "expected": "A",
+          "ttsKey": "assessment-letters",
+          "long": false
+        },
+        {
+          "key": "final-task-1a-02",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "C c",
+          "expected": "C",
+          "ttsKey": "assessment-letters-item-2",
+          "long": false
+        },
+        {
+          "key": "final-task-1a-03",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "F f",
+          "expected": "F",
+          "ttsKey": "assessment-letters-item-3",
+          "long": false
+        },
+        {
+          "key": "final-task-1a-04",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "K k",
+          "expected": "K",
+          "ttsKey": "assessment-letters-item-4",
+          "long": false
+        },
+        {
+          "key": "final-task-1a-05",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "L l",
+          "expected": "L",
+          "ttsKey": "assessment-letters-item-5",
+          "long": false
+        },
+        {
+          "key": "final-task-1a-06",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "M m",
+          "expected": "M",
+          "ttsKey": "assessment-letters-item-6",
+          "long": false
+        },
+        {
+          "key": "final-task-1a-07",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "O o",
+          "expected": "O",
+          "ttsKey": "assessment-letters-item-7",
+          "long": false
+        },
+        {
+          "key": "final-task-1a-08",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "P p",
+          "expected": "P",
+          "ttsKey": "assessment-letters-item-8",
+          "long": false
+        },
+        {
+          "key": "final-task-1a-09",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "S s",
+          "expected": "S",
+          "ttsKey": "assessment-letters-item-9",
+          "long": false
+        },
+        {
+          "key": "final-task-1a-10",
+          "phase": "Letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "U u",
+          "expected": "U",
+          "ttsKey": "assessment-letters-item-10",
+          "long": false
+        },
+        {
+          "key": "final-task-2a-01",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "cat — hat",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes"
+        },
+        {
+          "key": "final-task-2a-02",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "sun — fun",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-2"
+        },
+        {
+          "key": "final-task-2a-03",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "pig — map",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "no",
+          "ttsKey": "assessment-rhymes-item-3"
+        },
+        {
+          "key": "final-task-2a-04",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "bed — red",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-4"
+        },
+        {
+          "key": "final-task-2a-05",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "cup — net",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "no",
+          "ttsKey": "assessment-rhymes-item-5"
+        },
+        {
+          "key": "final-task-2a-06",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "kid — bus",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "no",
+          "ttsKey": "assessment-rhymes-item-6"
+        },
+        {
+          "key": "final-task-2a-07",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "log — dog",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-7"
+        },
+        {
+          "key": "final-task-2a-08",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "man — fan",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-8"
+        },
+        {
+          "key": "final-task-2a-09",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "run — top",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "no",
+          "ttsKey": "assessment-rhymes-item-9"
+        },
+        {
+          "key": "final-task-2a-10",
+          "phase": "Rhyming Words",
+          "kind": "choice",
+          "prompt": "Do these words rhyme?",
+          "display": "hen — pen",
+          "choices": [
+            {
+              "key": "yes",
+              "label": "Yes"
+            },
+            {
+              "key": "no",
+              "label": "No"
+            }
+          ],
+          "correctChoice": "yes",
+          "ttsKey": "assessment-rhymes-item-10"
+        },
+        {
+          "key": "final-task-2b-01",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "bag",
+          "expected": "bag",
+          "ttsKey": "assessment-words",
+          "long": false
+        },
+        {
+          "key": "final-task-2b-02",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "cap",
+          "expected": "cap",
+          "ttsKey": "assessment-words-item-2",
+          "long": false
+        },
+        {
+          "key": "final-task-2b-03",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "gum",
+          "expected": "gum",
+          "ttsKey": "assessment-words-item-3",
+          "long": false
+        },
+        {
+          "key": "final-task-2b-04",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "hip",
+          "expected": "hip",
+          "ttsKey": "assessment-words-item-4",
+          "long": false
+        },
+        {
+          "key": "final-task-2b-05",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "lap",
+          "expected": "lap",
+          "ttsKey": "assessment-words-item-5",
+          "long": false
+        },
+        {
+          "key": "final-task-2b-06",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "mug",
+          "expected": "mug",
+          "ttsKey": "assessment-words-item-6",
+          "long": false
+        },
+        {
+          "key": "final-task-2b-07",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "nap",
+          "expected": "nap",
+          "ttsKey": "assessment-words-item-7",
+          "long": false
+        },
+        {
+          "key": "final-task-2b-08",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "pet",
+          "expected": "pet",
+          "ttsKey": "assessment-words-item-8",
+          "long": false
+        },
+        {
+          "key": "final-task-2b-09",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "sit",
+          "expected": "sit",
+          "ttsKey": "assessment-words-item-9",
+          "long": false
+        },
+        {
+          "key": "final-task-2b-10",
+          "phase": "Words",
+          "kind": "speech",
+          "prompt": "Read the word.",
+          "display": "tub",
+          "expected": "tub",
+          "ttsKey": "assessment-words-item-10",
+          "long": false
+        },
+        {
+          "key": "final-task-3a-story-2",
+          "phase": "Passage",
+          "kind": "speech",
+          "prompt": "Read the passage aloud.",
+          "display": "Rosa goes to the garden on Monday, and she picks a tomato to eat. She holds the tomato, looks at it, cleans it, and keeps it with her. Rosa walks in the garden, then she rests and looks at it. She eats it, then stays in the garden on Monday.",
+          "expected": "rosa goes to the garden on monday and she picks a tomato to eat she holds the tomato looks at it cleans it and keeps it with her rosa walks in the garden then she rests and looks at it she eats it then stays in the garden on monday",
+          "ttsKey": "assessment-passage",
+          "long": true
+        },
+        {
+          "key": "final-task-3b-story-2-who",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "Who goes to the garden?",
+          "display": "Rosa in the Garden",
+          "choices": [
+            {
+              "key": "a",
+              "label": "Lena"
+            },
+            {
+              "key": "b",
+              "label": "Ben"
+            },
+            {
+              "key": "c",
+              "label": "Rosa"
+            },
+            {
+              "key": "d",
+              "label": "Mia"
+            }
+          ],
+          "correctChoice": "c",
+          "ttsKey": "assessment-comprehension-rosa-item-1"
+        },
+        {
+          "key": "final-task-3b-story-2-what",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "What does Rosa pick?",
+          "display": "Rosa in the Garden",
+          "choices": [
+            {
+              "key": "a",
+              "label": "A ball"
+            },
+            {
+              "key": "b",
+              "label": "A book"
+            },
+            {
+              "key": "c",
+              "label": "A tomato"
+            },
+            {
+              "key": "d",
+              "label": "A seed"
+            }
+          ],
+          "correctChoice": "c",
+          "ttsKey": "assessment-comprehension-rosa-item-2"
+        },
+        {
+          "key": "final-task-3b-story-2-where",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "Where does Rosa go?",
+          "display": "Rosa in the Garden",
+          "choices": [
+            {
+              "key": "a",
+              "label": "The park"
+            },
+            {
+              "key": "b",
+              "label": "The school"
+            },
+            {
+              "key": "c",
+              "label": "The market"
+            },
+            {
+              "key": "d",
+              "label": "The garden"
+            }
+          ],
+          "correctChoice": "d",
+          "ttsKey": "assessment-comprehension-rosa-item-3"
+        },
+        {
+          "key": "final-task-3b-story-2-when",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "When does Rosa go to the garden?",
+          "display": "Rosa in the Garden",
+          "choices": [
+            {
+              "key": "a",
+              "label": "On Sunday"
+            },
+            {
+              "key": "b",
+              "label": "On Tuesday"
+            },
+            {
+              "key": "c",
+              "label": "On Friday"
+            },
+            {
+              "key": "d",
+              "label": "On Monday"
+            }
+          ],
+          "correctChoice": "d",
+          "ttsKey": "assessment-comprehension-rosa-item-4"
+        },
+        {
+          "key": "final-task-3b-story-2-why",
+          "phase": "Comprehension",
+          "kind": "choice",
+          "prompt": "Why does Rosa go to the garden?",
+          "display": "Rosa in the Garden",
+          "choices": [
+            {
+              "key": "a",
+              "label": "To play"
+            },
+            {
+              "key": "b",
+              "label": "To sleep"
+            },
+            {
+              "key": "c",
+              "label": "To eat"
+            },
+            {
+              "key": "d",
+              "label": "To read"
+            }
+          ],
+          "correctChoice": "c",
+          "ttsKey": "assessment-comprehension-rosa-item-5"
+        }
+      ]
+    }
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "title": "Letters",
+      "completionTtsKey": "lesson-1-complete",
+      "items": [
+        {
+          "key": "lesson-1-mission-1-1",
+          "phase": "Meet the letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "A a",
+          "expected": "A",
+          "ttsKey": "lesson-1-mission-1",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-1-2",
+          "phase": "Meet the letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "B b",
+          "expected": "B",
+          "ttsKey": "lesson-1-mission-1-item-2",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-1-3",
+          "phase": "Meet the letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "C c",
+          "expected": "C",
+          "ttsKey": "lesson-1-mission-1-item-3",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-1-4",
+          "phase": "Meet the letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "D d",
+          "expected": "D",
+          "ttsKey": "lesson-1-mission-1-item-4",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-1-5",
+          "phase": "Meet the letters",
+          "kind": "speech",
+          "prompt": "Say the letter.",
+          "display": "E e",
+          "expected": "E",
+          "ttsKey": "lesson-1-mission-1-item-5",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-2-1",
+          "phase": "Find the first letter",
+          "kind": "speech",
+          "prompt": "Say the first letter.",
+          "display": "Fan",
+          "expected": "F",
+          "ttsKey": "lesson-1-mission-2",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-2-2",
+          "phase": "Find the first letter",
+          "kind": "speech",
+          "prompt": "Say the first letter.",
+          "display": "Gum",
+          "expected": "G",
+          "ttsKey": "lesson-1-mission-2-item-2",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-2-3",
+          "phase": "Find the first letter",
+          "kind": "speech",
+          "prompt": "Say the first letter.",
+          "display": "Hat",
+          "expected": "H",
+          "ttsKey": "lesson-1-mission-2-item-3",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-2-4",
+          "phase": "Find the first letter",
+          "kind": "speech",
+          "prompt": "Say the first letter.",
+          "display": "It",
+          "expected": "I",
+          "ttsKey": "lesson-1-mission-2-item-4",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-2-5",
+          "phase": "Find the first letter",
+          "kind": "speech",
+          "prompt": "Say the first letter.",
+          "display": "Jam",
+          "expected": "J",
+          "ttsKey": "lesson-1-mission-2-item-5",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-3-1",
+          "phase": "Complete the word",
+          "kind": "speech",
+          "prompt": "Say the missing letter.",
+          "display": "kid - _id",
+          "expected": "K",
+          "ttsKey": "lesson-1-mission-3",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-3-2",
+          "phase": "Complete the word",
+          "kind": "speech",
+          "prompt": "Say the missing letter.",
+          "display": "lip - _ip",
+          "expected": "L",
+          "ttsKey": "lesson-1-mission-3-item-2",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-3-3",
+          "phase": "Complete the word",
+          "kind": "speech",
+          "prompt": "Say the missing letter.",
+          "display": "map - _ap",
+          "expected": "M",
+          "ttsKey": "lesson-1-mission-3-item-3",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-3-4",
+          "phase": "Complete the word",
+          "kind": "speech",
+          "prompt": "Say the missing letter.",
+          "display": "net - _et",
+          "expected": "N",
+          "ttsKey": "lesson-1-mission-3-item-4",
+          "long": false
+        },
+        {
+          "key": "lesson-1-mission-3-5",
+          "phase": "Complete the word",
+          "kind": "speech",
+          "prompt": "Say the missing letter.",
+          "display": "on - _n",
+          "expected": "O",
+          "ttsKey": "lesson-1-mission-3-item-5",
+          "long": false
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Words",
+      "completionTtsKey": "lesson-2-complete",
+      "items": [
+        {
+          "key": "lesson-2-mission-1-1",
+          "phase": "Read the word",
+          "kind": "speech",
+          "prompt": "Read the word aloud.",
+          "display": "bag",
+          "expected": "bag",
+          "ttsKey": "lesson-2-mission-1",
+          "long": false
+        },
+        {
+          "key": "lesson-2-mission-1-2",
+          "phase": "Read the word",
+          "kind": "speech",
+          "prompt": "Read the word aloud.",
+          "display": "bat",
+          "expected": "bat",
+          "ttsKey": "lesson-2-mission-1-item-2",
+          "long": false
+        },
+        {
+          "key": "lesson-2-mission-1-3",
+          "phase": "Read the word",
+          "kind": "speech",
+          "prompt": "Read the word aloud.",
+          "display": "bed",
+          "expected": "bed",
+          "ttsKey": "lesson-2-mission-1-item-3",
+          "long": false
+        },
+        {
+          "key": "lesson-2-mission-1-4",
+          "phase": "Read the word",
+          "kind": "speech",
+          "prompt": "Read the word aloud.",
+          "display": "big",
+          "expected": "big",
+          "ttsKey": "lesson-2-mission-1-item-4",
+          "long": false
+        },
+        {
+          "key": "lesson-2-mission-1-5",
+          "phase": "Read the word",
+          "kind": "speech",
+          "prompt": "Read the word aloud.",
+          "display": "bun",
+          "expected": "bun",
+          "ttsKey": "lesson-2-mission-1-item-5",
+          "long": false
+        },
+        {
+          "key": "lesson-2-mission-2-1",
+          "phase": "Find the word",
+          "kind": "speech",
+          "prompt": "Read the highlighted word.",
+          "display": "A can is on a mat.",
+          "expected": "can",
+          "ttsKey": "lesson-2-mission-2",
+          "long": false
+        },
+        {
+          "key": "lesson-2-mission-2-2",
+          "phase": "Find the word",
+          "kind": "speech",
+          "prompt": "Read the highlighted word.",
+          "display": "A cap is red.",
+          "expected": "cap",
+          "ttsKey": "lesson-2-mission-2-item-2",
+          "long": false
+        },
+        {
+          "key": "lesson-2-mission-2-3",
+          "phase": "Find the word",
+          "kind": "speech",
+          "prompt": "Read the highlighted word.",
+          "display": "Ana has a cat.",
+          "expected": "cat",
+          "ttsKey": "lesson-2-mission-2-item-3",
+          "long": false
+        },
+        {
+          "key": "lesson-2-mission-2-4",
+          "phase": "Find the word",
+          "kind": "speech",
+          "prompt": "Read the highlighted word.",
+          "display": "Ben has a cut.",
+          "expected": "cut",
+          "ttsKey": "lesson-2-mission-2-item-4",
+          "long": false
+        },
+        {
+          "key": "lesson-2-mission-2-5",
+          "phase": "Find the word",
+          "kind": "speech",
+          "prompt": "Read the highlighted word.",
+          "display": "Dad has a bag.",
+          "expected": "dad",
+          "ttsKey": "lesson-2-mission-2-item-5",
+          "long": false
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Phrases",
+      "completionTtsKey": "lesson-3-complete",
+      "items": [
+        {
+          "key": "lesson-3-mission-1-1",
+          "phase": "Read a phrase",
+          "kind": "speech",
+          "prompt": "Read the phrase aloud.",
+          "display": "big bag",
+          "expected": "big bag",
+          "ttsKey": "lesson-3-mission-1",
+          "long": false
+        },
+        {
+          "key": "lesson-3-mission-1-2",
+          "phase": "Read a phrase",
+          "kind": "speech",
+          "prompt": "Read the phrase aloud.",
+          "display": "big dog",
+          "expected": "big dog",
+          "ttsKey": "lesson-3-mission-1-item-2",
+          "long": false
+        },
+        {
+          "key": "lesson-3-mission-1-3",
+          "phase": "Read a phrase",
+          "kind": "speech",
+          "prompt": "Read the phrase aloud.",
+          "display": "fat cat",
+          "expected": "fat cat",
+          "ttsKey": "lesson-3-mission-1-item-3",
+          "long": false
+        },
+        {
+          "key": "lesson-3-mission-1-4",
+          "phase": "Read a phrase",
+          "kind": "speech",
+          "prompt": "Read the phrase aloud.",
+          "display": "fat pig",
+          "expected": "fat pig",
+          "ttsKey": "lesson-3-mission-1-item-4",
+          "long": false
+        },
+        {
+          "key": "lesson-3-mission-1-5",
+          "phase": "Read a phrase",
+          "kind": "speech",
+          "prompt": "Read the phrase aloud.",
+          "display": "hot pan",
+          "expected": "hot pan",
+          "ttsKey": "lesson-3-mission-1-item-5",
+          "long": false
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Sentences",
+      "completionTtsKey": "lesson-4-complete",
+      "items": [
+        {
+          "key": "lesson-4-mission-1-1",
+          "phase": "Read a sentence",
+          "kind": "speech",
+          "prompt": "Read the sentence aloud.",
+          "display": "A big bag is on a bed.",
+          "expected": "a big bag is on a bed",
+          "ttsKey": "lesson-4-mission-1",
+          "long": false
+        },
+        {
+          "key": "lesson-4-mission-1-2",
+          "phase": "Read a sentence",
+          "kind": "speech",
+          "prompt": "Read the sentence aloud.",
+          "display": "A cat is on a mat.",
+          "expected": "a cat is on a mat",
+          "ttsKey": "lesson-4-mission-1-item-2",
+          "long": false
+        },
+        {
+          "key": "lesson-4-mission-1-3",
+          "phase": "Read a sentence",
+          "kind": "speech",
+          "prompt": "Read the sentence aloud.",
+          "display": "A dog is on a log.",
+          "expected": "a dog is on a log",
+          "ttsKey": "lesson-4-mission-1-item-3",
+          "long": false
+        },
+        {
+          "key": "lesson-4-mission-1-4",
+          "phase": "Read a sentence",
+          "kind": "speech",
+          "prompt": "Read the sentence aloud.",
+          "display": "A hen is in a pen.",
+          "expected": "a hen is in a pen",
+          "ttsKey": "lesson-4-mission-1-item-4",
+          "long": false
+        },
+        {
+          "key": "lesson-4-mission-1-5",
+          "phase": "Read a sentence",
+          "kind": "speech",
+          "prompt": "Read the sentence aloud.",
+          "display": "A hot pan is on a mat.",
+          "expected": "a hot pan is on a mat",
+          "ttsKey": "lesson-4-mission-1-item-5",
+          "long": false
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Short Passage",
+      "completionTtsKey": "lesson-5-complete",
+      "items": [
+        {
+          "key": "lesson-5-mission-1-1",
+          "phase": "Read a passage",
+          "kind": "speech",
+          "prompt": "Read the passage aloud.",
+          "display": "Mila goes to the school on Tuesday, and she takes a book to read. She holds the book, opens it, reads it, and looks at it. Mila reads from the book, then she sits, rests, and reads again. She likes to read, and she stays at the school on Tuesday.",
+          "expected": "mila goes to the school on tuesday and she takes a book to read she holds the book opens it reads it and looks at it mila reads from the book then she sits rests and reads again she likes to read and she stays at the school on tuesday",
+          "ttsKey": "lesson-5-mission-1",
+          "long": true
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Comprehension",
+      "completionTtsKey": "lesson-6-complete",
+      "items": [
+        {
+          "key": "lesson-6-who",
+          "phase": "Answer the question",
+          "kind": "choice",
+          "prompt": "Who has a red bag?",
+          "display": "Lena has a red bag.",
+          "choices": [
+            {
+              "key": "a",
+              "label": "Lena"
+            },
+            {
+              "key": "b",
+              "label": "Rosa"
+            },
+            {
+              "key": "c",
+              "label": "Mia"
+            },
+            {
+              "key": "d",
+              "label": "Ben"
+            }
+          ],
+          "correctChoice": "a",
+          "ttsKey": "lesson-6-question-who-lena"
+        },
+        {
+          "key": "lesson-6-what",
+          "phase": "Answer the question",
+          "kind": "choice",
+          "prompt": "What does Mia have?",
+          "display": "Mia has a red pen.",
+          "choices": [
+            {
+              "key": "a",
+              "label": "A red bag"
+            },
+            {
+              "key": "b",
+              "label": "A red pen"
+            },
+            {
+              "key": "c",
+              "label": "A pet cat"
+            },
+            {
+              "key": "d",
+              "label": "A book"
+            }
+          ],
+          "correctChoice": "b",
+          "ttsKey": "lesson-6-question-what-mia"
+        },
+        {
+          "key": "lesson-6-where",
+          "phase": "Answer the question",
+          "kind": "choice",
+          "prompt": "Where is the cat?",
+          "display": "A cat is on a bed.",
+          "choices": [
+            {
+              "key": "a",
+              "label": "On a mat"
+            },
+            {
+              "key": "b",
+              "label": "In a hut"
+            },
+            {
+              "key": "c",
+              "label": "On a bed"
+            },
+            {
+              "key": "d",
+              "label": "In a box"
+            }
+          ],
+          "correctChoice": "c",
+          "ttsKey": "lesson-6-question-where-cat"
+        },
+        {
+          "key": "lesson-6-when",
+          "phase": "Answer the question",
+          "kind": "choice",
+          "prompt": "When can Lito run?",
+          "display": "Lito can run at noon.",
+          "choices": [
+            {
+              "key": "a",
+              "label": "At ten"
+            },
+            {
+              "key": "b",
+              "label": "On Monday"
+            },
+            {
+              "key": "c",
+              "label": "At noon"
+            },
+            {
+              "key": "d",
+              "label": "On Friday"
+            }
+          ],
+          "correctChoice": "c",
+          "ttsKey": "lesson-6-question-when-lito"
+        },
+        {
+          "key": "lesson-6-why",
+          "phase": "Answer the question",
+          "kind": "choice",
+          "prompt": "Why is Mila wet?",
+          "display": "Rain made Mila wet.",
+          "choices": [
+            {
+              "key": "a",
+              "label": "A cut"
+            },
+            {
+              "key": "b",
+              "label": "A fall"
+            },
+            {
+              "key": "c",
+              "label": "Rain"
+            },
+            {
+              "key": "d",
+              "label": "A game"
+            }
+          ],
+          "correctChoice": "c",
+          "ttsKey": "lesson-6-question-why-mila"
+        }
+      ]
+    }
+  ]
+}

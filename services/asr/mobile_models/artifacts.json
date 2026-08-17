@@ -1,0 +1,99 @@
+{
+  "schema_version": "2.0",
+  "runtime": {
+    "name": "whisper.cpp",
+    "repository": "https://github.com/ggml-org/whisper.cpp.git",
+    "commit": "1fe009caeda75f69bc864d6370b10674e45a92bd",
+    "artifact_format": "ggml",
+    "android_compatible": true,
+    "language": "en"
+  },
+  "package": {
+    "output_directory": "services/asr/model_artifacts/mobile/package",
+    "asset_directory": "asr/models",
+    "tier_order": ["low", "medium", "high"],
+    "total_model_bytes": 766810183
+  },
+  "models": {
+    "low": {
+      "user_facing_name": "Low",
+      "technical_name": "Whisper Base English Q5_1",
+      "deployment_role": "low_end_fallback",
+      "adaptation_status": "upstream_baseline_pending_child_speech_adaptation",
+      "source_model": "openai/whisper-base.en",
+      "source_url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en-q5_1.bin",
+      "minimum_capability": {
+        "memory_mb": 0,
+        "logical_cpu_cores": 1,
+        "arm64": false
+      },
+      "deployment_artifact": {
+        "local_path": "services/asr/model_artifacts/mobile/mu-lite/model/ggml-base.en-q5_1.bin",
+        "package_filename": "low.bin",
+        "size_bytes": 59721011,
+        "sha256": "4baf70dd0d7c4247ba2b81fafd9c01005ac77c2f9ef064e00dcf195d0e2fdd2f",
+        "quantization": "q5_1",
+        "quantized_locally": false
+      }
+    },
+    "medium": {
+      "user_facing_name": "Medium",
+      "technical_name": "Distil-Whisper Small English Q5_1",
+      "deployment_role": "standard_mobile_default",
+      "adaptation_status": "upstream_baseline_pending_child_speech_adaptation",
+      "source_model": "distil-whisper/distil-small.en",
+      "source_url": "https://huggingface.co/distil-whisper/distil-small.en/resolve/main/ggml-distil-small.en.bin",
+      "minimum_capability": {
+        "memory_mb": 3072,
+        "logical_cpu_cores": 4,
+        "arm64": true
+      },
+      "source_artifact": {
+        "local_path": "services/asr/model_artifacts/mobile/mu-mobile/source/ggml-distil-small.en.bin",
+        "size_bytes": 336191657,
+        "sha256": "7691eb11167ab7aaf6b3e05d8266f2fd9ad89c550e433f86ac266ebdee6c970a"
+      },
+      "deployment_artifact": {
+        "local_path": "services/asr/model_artifacts/mobile/mu-mobile/model/ggml-distil-small.en-q5_1.bin",
+        "package_filename": "medium.bin",
+        "size_bytes": 133047977,
+        "sha256": "59abc3182742c9fd3a1fef669c3c7f2ca9aa8172f4fac2bbd5cefb95e1fab15d",
+        "quantization": "q5_1",
+        "quantized_locally": true
+      }
+    },
+    "high": {
+      "user_facing_name": "High",
+      "technical_name": "Whisper Large V3 Turbo Q5_0",
+      "deployment_role": "high_end_best_quality",
+      "adaptation_status": "upstream_baseline_pending_child_speech_adaptation",
+      "source_model": "openai/whisper-large-v3-turbo",
+      "source_url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin",
+      "minimum_capability": {
+        "memory_mb": 6144,
+        "logical_cpu_cores": 8,
+        "arm64": true
+      },
+      "deployment_artifact": {
+        "local_path": "services/asr/model_artifacts/mobile/high/model/ggml-large-v3-turbo-q5_0.bin",
+        "package_filename": "high.bin",
+        "size_bytes": 574041195,
+        "sha1": "e050f7970618a659205450ad97eb95a18d69c9ee",
+        "sha256": "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
+        "quantization": "q5_0",
+        "quantized_locally": false
+      }
+    }
+  },
+  "smoke_test": {
+    "runtime_platform": "windows_x86_64_cpu",
+    "fixture": "services/asr/fixtures/content/shai/word/assessment-v1-task-2b-01.wav",
+    "expected_transcript": "bag",
+    "transcripts": {
+      "low": "bag",
+      "medium": "bag",
+      "high": "bag"
+    },
+    "status": "passed"
+  }
+}

@@ -7,9 +7,12 @@
 node_modules/
 .pnpm-store/
 dist/
+apps/web/dist-apk/
+apps/web/android-apk/offline_models/src/main/assets/
 coverage/
 playwright-report/
 test-results/
+output/releases/
 *.tsbuildinfo
 
 # PHP and Laravel output
@@ -54,6 +57,8 @@ services/asr/model_artifacts/
 services/tts/storage/cache/*
 !services/tts/storage/cache/.gitkeep
 services/tts/storage/reference-cache/*
+services/tts/storage/offline-apk-package/
+services/tts/storage/offline-apk-vorbis-cache/
 
 # Local CUDA/GPU environments and generated artifacts
 # Keep shared GPU-aware source/configuration tracked; ignore only host-specific

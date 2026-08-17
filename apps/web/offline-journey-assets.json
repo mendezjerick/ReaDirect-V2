@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "bundleId": "reading-journey-offline-ui-v1",
+  "assetCount": 8,
+  "totalBytes": 10058,
+  "assets": [
+    {
+      "source": "assets/icons/achievements/ready-reader.png",
+      "output": "assets/icons/achievements/ready-reader.png",
+      "bytes": 1256,
+      "sha256": "9b4497b6f9fd1e6b34604158b8ce99cb4fdce467b503db0951e8983d1c6c8dc3"
+    },
+    {
+      "source": "assets/icons/achievements/letter-leader.png",
+      "output": "assets/icons/achievements/letter-leader.png",
+      "bytes": 1248,
+      "sha256": "4d2089278b2f23dd6640787fe549427118b431b224e0fd83208c71cae22395f9"
+    },
+    {
+      "source": "assets/icons/achievements/word-wizard.png",
+      "output": "assets/icons/achievements/word-wizard.png",
+      "bytes": 1312,
+      "sha256": "cf80115a7cf7c70b8d7cf77c9a69c6481dc5b288e2ff310acb4b6d64f9fe5e7e"
+    },
+    {
+      "source": "assets/icons/achievements/phrase-pro.png",
+      "output": "assets/icons/achievements/phrase-pro.png",
+      "bytes": 1200,
+      "sha256": "21471970cc59fa8b6514b2f70b38aa5758849fa518a0e845da14ff94245161e1"
+    },
+    {
+      "source": "assets/icons/achievements/sentence-star.png",
+      "output": "assets/icons/achievements/sentence-star.png",
+      "bytes": 1332,
+      "sha256": "c170fad6877873ceac227c2bd7b26c1ee2a5d59fdadb4dfc5a9791bd46f246b6"
+    },
+    {
+      "source": "assets/icons/achievements/passage-explorer.png",
+      "output": "assets/icons/achievements/passage-explorer.png",
+      "bytes": 1214,
+      "sha256": "7cb18424a3cd68125a05b05170f1281299318074bbcd497b957008c60e2152cc"
+    },
+    {
+      "source": "assets/icons/achievements/question-detective.png",
+      "output": "assets/icons/achievements/question-detective.png",
+      "bytes": 1188,
+      "sha256": "6d11cff2f9f97a3a603c412b814fc012587e761e46e6ea1b62dc1ccec1e1fc14"
+    },
+    {
+      "source": "assets/icons/achievements/readirect-champion.png",
+      "output": "assets/icons/achievements/readirect-champion.png",
+      "bytes": 1308,
+      "sha256": "58fc2bed7adc24c7997828c3ab358584a2d9917e20f74f0e28435f02644dc45d"
+    }
+  ]
+}

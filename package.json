@@ -8,6 +8,23 @@
   "scripts": {
     "dev:web": "pnpm --filter @readirect/web dev",
     "build:web": "pnpm --filter @readirect/web build",
+    "prepare:apk:asr": "node services/asr/mobile_models/prepare-package.mjs",
+    "verify:apk:asr": "node services/asr/mobile_models/prepare-package.mjs --verify-only",
+    "prepare:apk:tts": "node services/tts/offline_catalog/prepare-package.mjs",
+    "verify:apk:tts": "node services/tts/offline_catalog/prepare-package.mjs --verify-only",
+    "verify:apk:clara": "node apps/web/scripts/prepare-offline-clara-assets.mjs",
+    "verify:apk:journey": "node apps/web/scripts/prepare-offline-journey-assets.mjs",
+    "verify:apk:content": "node apps/web/scripts/prepare-offline-journey-content.mjs",
+    "build:apk": "pnpm prepare:apk:asr && pnpm prepare:apk:tts && pnpm verify:apk:clara && pnpm verify:apk:journey && pnpm verify:apk:content && pnpm --filter @readirect/web build:apk",
+    "verify:apk:native": "pnpm build:apk && pnpm --filter @readirect/web android:verify:apk",
+    "build:apk:debug": "pnpm build:apk && pnpm --filter @readirect/web android:build:debug-apk",
+    "build:apk:release": "pnpm build:apk && pnpm --filter @readirect/web android:build:release-apk",
+    "build:aab:play": "pnpm build:apk && pnpm --filter @readirect/web android:build:play-aab",
+    "release:android:prepare-signing": "pnpm --filter @readirect/web android:signing:prepare",
+    "release:android:sign": "pnpm --filter @readirect/web android:sign:release",
+    "release:android:prepare-bundletool": "pnpm --filter @readirect/web android:bundletool:prepare",
+    "release:android:verify": "pnpm release:android:prepare-bundletool && pnpm --filter @readirect/web android:verify:distribution",
+    "release:android": "pnpm release:android:prepare-signing && pnpm build:apk:release && pnpm build:aab:play && pnpm release:android:sign && pnpm release:android:verify",
     "test:web": "pnpm --filter @readirect/web test",
     "test:e2e": "pnpm --filter @readirect/web test:e2e"
   }
