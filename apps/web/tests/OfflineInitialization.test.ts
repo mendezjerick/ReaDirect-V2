@@ -57,10 +57,11 @@ describe("offline initialization", () => {
       prepareTts: vi.fn(async () => {
         calls.push("voice");
         return {
-          catalogId: "clara-sh-offline-apk-v1" as const,
-          assetCount: 293,
-          totalBytes: 9_887_949,
-          totalDurationMs: 1_154_880,
+          catalogId: "clara-sh-offline-apk-v2" as const,
+          languages: ["en", "fil-PH"] as const,
+          assetCount: 586,
+          totalBytes: 19_887_949,
+          totalDurationMs: 2_635_040,
         };
       }),
       initializeAsr: vi.fn(async () => {
@@ -113,10 +114,11 @@ describe("offline initialization", () => {
       prepareTts: vi.fn(async () => {
         await voiceGate;
         return {
-          catalogId: "clara-sh-offline-apk-v1" as const,
-          assetCount: 293,
-          totalBytes: 9_887_949,
-          totalDurationMs: 1_154_880,
+          catalogId: "clara-sh-offline-apk-v2" as const,
+          languages: ["en", "fil-PH"] as const,
+          assetCount: 586,
+          totalBytes: 19_887_949,
+          totalDurationMs: 2_635_040,
         };
       }),
       initializeAsr: vi.fn(async () => {

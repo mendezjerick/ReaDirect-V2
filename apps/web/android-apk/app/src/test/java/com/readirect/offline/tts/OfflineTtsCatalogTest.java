@@ -25,4 +25,11 @@ public final class OfflineTtsCatalogTest {
         assertFalse(OfflineTtsCatalog.isSafePath("lessons//voice.ogg"));
         assertFalse(OfflineTtsCatalog.isSafePath("lessons/voice.wav"));
     }
+
+    @Test
+    public void keepsEnglishAndFilipinoAssetsIndependent() {
+        assertTrue(OfflineTtsCatalog.isSafeLanguage("en"));
+        assertTrue(OfflineTtsCatalog.isSafeLanguage("fil-PH"));
+        assertFalse(OfflineTtsCatalog.isSafeLanguage("../fil-PH"));
+    }
 }

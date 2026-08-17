@@ -19,7 +19,7 @@ public final class OfflineLearnerStorePlugin extends Plugin {
     private static final String REVISION_KEY = "revision";
     private static final String BACKUP_STATE_KEY = "backup_state_json";
     private static final String BACKUP_REVISION_KEY = "backup_revision";
-    private static final int SCHEMA_VERSION = 2;
+    private static final int SCHEMA_VERSION = 4;
 
     private final Object stateLock = new Object();
 

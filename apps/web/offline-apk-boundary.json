@@ -44,7 +44,9 @@
     "/learner/learn-with-clara",
     "/staff/",
     "ws://",
-    "wss://"
+    "wss://",
+    "APK Simulator",
+    "readirect.offline.simulator"
   ],
   "forbidden_output_fragments": [
     "game-alpha",

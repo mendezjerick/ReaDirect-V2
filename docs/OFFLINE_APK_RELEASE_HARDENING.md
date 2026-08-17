@@ -19,6 +19,11 @@ Final signed artifact sizes and checksums are recorded in
 `OFFLINE_APK_DISTRIBUTION.md`.
 R8 code shrinking and Android resource shrinking are enabled for release builds.
 
+Version 1.3 adds about 20.4 MB to each signed distribution so main's complete
+theme backgrounds, learner fonts, Journey icon, and themed Static Clara stills
+remain available without a network connection. These files are checksum-pinned
+in `apps/web/offline-main-ui-assets.json`.
+
 The largest remaining payload is the required ASR set: Low 59,721,011 bytes,
 Medium 133,047,977 bytes, and High 574,041,195 bytes. Direct APK builds include
 all three in the base package. The Play AAB moves them to the `offline_models`
@@ -27,7 +32,8 @@ compressed entries. Install-time delivery preserves the requirement that all
 models are present before the app starts and remain usable offline afterward.
 
 The 293 approved TTS WAV sources total 110,881,372 bytes. Their release package
-is mono 32 kHz Ogg Vorbis totaling 9,887,949 bytes (8.9% of the PCM source).
+is mono 32 kHz Ogg Vorbis totaling 22,654,046 bytes (9.0% of the combined
+English and Filipino PCM sources).
 Source and encoded checksums are pinned and checked independently by the
 preparation script and Android Gradle build.
 
@@ -41,7 +47,7 @@ preparation script and Android Gradle build.
   explicit retry state. No captured audio is written to disk.
 - Native plugins also stop/cancel active audio from their Android lifecycle
   hooks, covering WebView suspension independently of React cleanup.
-- Learner state now uses schema version 2 and migrates version 1 state locally
+- Learner state now uses schema version 3 and migrates version 1 or 2 state locally
   through the repository's atomic write path.
 
 ## Privacy, permissions, and accessibility
@@ -51,8 +57,8 @@ app-scoped dynamic-receiver permission only. It has no Internet, network-state,
 or Wi-Fi permission. Cleartext traffic remains disabled.
 
 The lesson runner exposes determinate progress semantics, recording state via
-`aria-pressed`, status announcements for feedback, reduced-motion behavior, and
-large touch targets inherited from the offline design system.
+`aria-pressed`, alert/status announcements, reduced-motion behavior, and main's
+existing responsive learner activity and rectangular recorder touch targets.
 
 ## Reproducible commands
 
@@ -71,12 +77,12 @@ is not already set.
 ## Verification completed
 
 - TypeScript typecheck: pass.
-- Offline web tests: 59 pass across 15 files.
+- Offline web tests: 66 pass across 16 files.
 - ESLint: zero errors; two pre-existing Fast Refresh warnings outside the APK
   implementation.
 - Android JVM tests, Java compilation, both native ABIs, and Android lint: pass.
 - Direct release APK: three exact-size ASR models, 293 Ogg cues totaling
-  9,887,949 bytes, zero WAV cues, and no network permission.
+  22,654,046 bytes, zero WAV cues, and no network permission.
 - Play AAB: base module contains no ASR model; the install-time asset pack
   contains all three models; 293 Ogg cues remain in the base runtime.
 

@@ -16,11 +16,28 @@ import { promisify } from "node:util";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, "../../..");
-const sourceRoot = path.join(
-  repositoryRoot,
-  "apps/api/storage/app/private/tts/catalog/sh",
-);
-const manifestPath = path.join(scriptDirectory, "artifacts.json");
+const speechSources = [
+  {
+    language: "en",
+    catalogId: "clara-sh-offline-apk-v1",
+    voice: "Ma'am Clara (SH)",
+    sourceRoot: path.join(
+      repositoryRoot,
+      "apps/api/storage/app/private/tts/catalog/sh",
+    ),
+    manifestPath: path.join(scriptDirectory, "artifacts.json"),
+  },
+  {
+    language: "fil-PH",
+    catalogId: "clara-sh-fil-offline-apk-v1",
+    voice: "Ma'am Clara (SH Filipino)",
+    sourceRoot: path.join(
+      repositoryRoot,
+      "apps/api/storage/app/private/tts/staging/fil-PH-v1/sh-fil",
+    ),
+    manifestPath: path.join(scriptDirectory, "artifacts.fil-PH.json"),
+  },
+];
 const packageRoot = path.join(
   repositoryRoot,
   "services/tts/storage/offline-apk-package",
@@ -133,8 +150,8 @@ function parseWav(buffer, relativePath) {
   };
 }
 
-async function inspectSource(relativePath) {
-  const absolutePath = path.join(sourceRoot, ...relativePath.split("/"));
+async function inspectSource(source, relativePath) {
+  const absolutePath = path.join(source.sourceRoot, ...relativePath.split("/"));
   const buffer = await readFile(absolutePath);
   const wav = parseWav(buffer, relativePath);
 
@@ -147,12 +164,12 @@ async function inspectSource(relativePath) {
   };
 }
 
-async function buildManifest() {
-  const sourcePaths = await walk(sourceRoot);
+async function buildManifest(source) {
+  const sourcePaths = await walk(source.sourceRoot);
   const assets = [];
 
   for (const relativePath of sourcePaths) {
-    assets.push(await inspectSource(relativePath));
+    assets.push(await inspectSource(source, relativePath));
   }
 
   assets.sort((left, right) => left.key.localeCompare(right.key));
@@ -165,9 +182,9 @@ async function buildManifest() {
 
   return {
     schemaVersion: 1,
-    catalogId: "clara-sh-offline-apk-v1",
-    language: "en-PH",
-    voice: "Ma'am Clara (SH)",
+    catalogId: source.catalogId,
+    language: source.language,
+    voice: source.voice,
     excludedFeatures: ["learn-with-clara"],
     assetCount: assets.length,
     totalBytes: assets.reduce((total, asset) => total + asset.bytes, 0),
@@ -208,10 +225,17 @@ async function sha256File(file) {
   return createHash("sha256").update(buffer).digest("hex");
 }
 
-async function prepareCompressedAsset(asset, index) {
+async function prepareCompressedAsset(sourceDefinition, asset, index) {
   const relativePath = releasePath(asset.path);
-  const source = path.join(sourceRoot, ...asset.path.split("/"));
-  const cached = path.join(compressedCacheRoot, ...relativePath.split("/"));
+  const source = path.join(
+    sourceDefinition.sourceRoot,
+    ...asset.path.split("/"),
+  );
+  const cached = path.join(
+    compressedCacheRoot,
+    sourceDefinition.language,
+    ...relativePath.split("/"),
+  );
   const marker = `${cached}.source.json`;
 
   let reusable = false;
@@ -289,13 +313,15 @@ async function prepareCompressedAsset(asset, index) {
   const destination = path.join(
     packageRoot,
     "tts/audio",
+    sourceDefinition.language,
     ...relativePath.split("/"),
   );
   await hardlinkOrCopy(cached, destination);
 
   return {
     key: asset.key,
-    path: relativePath,
+    language: sourceDefinition.language,
+    path: path.posix.join(sourceDefinition.language, relativePath),
     bytes: cachedStat.size,
     sha256,
     sourceSha256: asset.sha256,
@@ -303,18 +329,39 @@ async function prepareCompressedAsset(asset, index) {
   };
 }
 
-const actualManifest = await buildManifest();
-let packagedBytes = actualManifest.totalBytes;
-
-if (refreshManifest) {
-  await writeFile(manifestPath, `${JSON.stringify(actualManifest, null, 2)}\n`);
-  console.log(
-    `Refreshed ${path.relative(repositoryRoot, manifestPath)} with ${actualManifest.assetCount} assets.`,
-  );
-} else {
-  const expectedManifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  assertManifestsMatch(expectedManifest, actualManifest);
+const actualManifests = [];
+for (const source of speechSources) {
+  const actualManifest = await buildManifest(source);
+  actualManifests.push(actualManifest);
+  if (refreshManifest) {
+    await writeFile(
+      source.manifestPath,
+      `${JSON.stringify(actualManifest, null, 2)}\n`,
+    );
+    console.log(
+      `Refreshed ${path.relative(repositoryRoot, source.manifestPath)} with ${actualManifest.assetCount} ${source.language} assets.`,
+    );
+  } else {
+    const expectedManifest = JSON.parse(
+      await readFile(source.manifestPath, "utf8"),
+    );
+    assertManifestsMatch(expectedManifest, actualManifest);
+  }
 }
+
+const sourceTotalBytes = actualManifests.reduce(
+  (total, manifest) => total + manifest.totalBytes,
+  0,
+);
+const totalDurationMs = actualManifests.reduce(
+  (total, manifest) => total + manifest.totalDurationMs,
+  0,
+);
+const assetCount = actualManifests.reduce(
+  (total, manifest) => total + manifest.assetCount,
+  0,
+);
+let packagedBytes = sourceTotalBytes;
 
 if (!verifyOnly) {
   const resolvedPackageRoot = path.resolve(packageRoot);
@@ -327,20 +374,28 @@ if (!verifyOnly) {
 
   await rm(resolvedPackageRoot, { recursive: true, force: true });
   const releaseAssets = [];
-  for (const [index, asset] of actualManifest.assets.entries()) {
-    releaseAssets.push(await prepareCompressedAsset(asset, index));
+  let releaseIndex = 0;
+  for (const [sourceIndex, source] of speechSources.entries()) {
+    for (const asset of actualManifests[sourceIndex].assets) {
+      releaseAssets.push(
+        await prepareCompressedAsset(source, asset, releaseIndex),
+      );
+      releaseIndex += 1;
+    }
   }
   const releaseManifest = {
-    schemaVersion: 2,
-    catalogId: actualManifest.catalogId,
-    language: actualManifest.language,
-    voice: actualManifest.voice,
-    excludedFeatures: actualManifest.excludedFeatures,
+    schemaVersion: 3,
+    catalogId: "clara-sh-offline-apk-v2",
+    languages: speechSources.map(({ language }) => language),
+    voices: Object.fromEntries(
+      speechSources.map(({ language, voice }) => [language, voice]),
+    ),
+    excludedFeatures: ["learn-with-clara"],
     encoding: RELEASE_ENCODING,
-    sourceTotalBytes: actualManifest.totalBytes,
+    sourceTotalBytes,
     assetCount: releaseAssets.length,
     totalBytes: releaseAssets.reduce((total, asset) => total + asset.bytes, 0),
-    totalDurationMs: actualManifest.totalDurationMs,
+    totalDurationMs,
     assets: releaseAssets,
   };
   packagedBytes = releaseManifest.totalBytes;
@@ -351,11 +406,11 @@ if (!verifyOnly) {
     "utf8",
   );
   console.log(
-    `Compressed offline TTS from ${actualManifest.totalBytes} to ${releaseManifest.totalBytes} bytes (${((releaseManifest.totalBytes / actualManifest.totalBytes) * 100).toFixed(1)}%).`,
+    `Compressed offline TTS from ${sourceTotalBytes} to ${releaseManifest.totalBytes} bytes (${((releaseManifest.totalBytes / sourceTotalBytes) * 100).toFixed(1)}%).`,
   );
 }
 
 const packageStatus = verifyOnly ? "verified" : "prepared";
 console.log(
-  `Offline TTS ${packageStatus}: ${actualManifest.assetCount} assets, ${packagedBytes} bytes, ${actualManifest.totalDurationMs} ms.`,
+  `Offline TTS ${packageStatus}: ${assetCount} assets across ${speechSources.length} languages, ${packagedBytes} bytes, ${totalDurationMs} ms.`,
 );

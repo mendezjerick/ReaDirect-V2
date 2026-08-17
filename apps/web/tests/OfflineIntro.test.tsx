@@ -7,6 +7,7 @@ import {
   acknowledgeOfflineClara,
   createInitialOfflineLearnerState,
 } from "../src/apk/storage/offlineLearnerState";
+import { ThemeProvider } from "../src/features/theme/ThemeProvider";
 
 import type { ClaraSelection } from "../src/apk/clara/claraCapability";
 
@@ -39,24 +40,27 @@ const staticSelection: ClaraSelection = {
 };
 
 describe("offline intro", () => {
-  it("persists first-run intro completion before starting Link Start", async () => {
+  it("uses the main intro theme UI and saves completion before Link Start", async () => {
     const learner = readyLearner();
     const repository = {
       update: vi.fn(async (mutate) => mutate(learner, times[3])),
     };
     const onLinkStart = vi.fn();
     const { container } = render(
-      <OfflineIntro
-        learner={learner}
-        claraSelection={staticSelection}
-        repository={repository}
-        onLinkStart={onLinkStart}
-      />,
+      <ThemeProvider>
+        <OfflineIntro
+          learner={learner}
+          claraSelection={staticSelection}
+          repository={repository}
+          onLinkStart={onLinkStart}
+        />
+      </ThemeProvider>,
     );
 
-    const continueButton = screen.getByRole("button", {
-      name: "Loading Clara…",
-    });
+    expect(
+      screen.getByRole("navigation", { name: "Choose a theme" }),
+    ).toBeInTheDocument();
+    const continueButton = screen.getByRole("button", { name: "Loading..." });
     expect(continueButton).toBeDisabled();
     fireEvent.load(container.querySelector("img")!);
     expect(continueButton).toHaveTextContent("Tap to continue");

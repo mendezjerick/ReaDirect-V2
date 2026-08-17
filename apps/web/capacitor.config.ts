@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.readirect.offline",
-  appName: "ReaDirect",
+  appName: "ReaDirect Offline",
   webDir: "dist-apk",
   loggingBehavior: "none",
   server: {

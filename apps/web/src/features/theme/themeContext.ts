@@ -9,8 +9,12 @@ interface ThemeContextValue {
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+export function useOptionalTheme(): ThemeContextValue | null {
+  return useContext(ThemeContext);
+}
+
 export function useTheme(): ThemeContextValue {
-  const context = useContext(ThemeContext);
+  const context = useOptionalTheme();
 
   if (!context) {
     throw new Error("useTheme must be used inside ThemeProvider.");

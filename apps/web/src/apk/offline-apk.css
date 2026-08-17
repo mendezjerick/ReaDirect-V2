@@ -1,100 +1,3 @@
-:root {
-  --font-display-family:
-    "Fredoka", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
-  --font-interface-family: "Lexend", "Trebuchet MS", system-ui, sans-serif;
-  --font-support: clamp(0.875rem, 0.84rem + 0.15vw, 1rem);
-  --font-body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
-  --font-button-large: clamp(1.1875rem, 1.08rem + 0.4vw, 1.375rem);
-  --color-surface-page: #f7efdc;
-  --color-surface-panel: #fffdf7;
-  --color-surface-frame: #f1e3c3;
-  --color-surface-muted: #f4f2ec;
-  --color-text-primary: #102a43;
-  --color-text-secondary: #40566d;
-  --color-text-on-action: #ffffff;
-  --color-border-warm: #dfc994;
-  --color-border-strong: #8f6b32;
-  --color-frame-depth: #c9ae70;
-  --color-action-primary: #c94712;
-  --color-action-primary-pressed: #a73509;
-  --color-action-primary-depth: #892b08;
-  --color-accent-sun: #f3c85b;
-  --color-focus: #1769d2;
-  --color-success: #247451;
-  --color-success-soft: #e8f6ef;
-  --color-danger: #a12d2d;
-  --color-danger-depth: #6f1d1d;
-  --color-danger-soft: #fff0eb;
-  --color-achievement-holder-rim: #493a55;
-  --color-achievement-holder-depth: #211927;
-  --color-achievement-holder-shadow: #0c0910;
-  --color-achievement-well: #08070d;
-  --color-achievement-slot: #17111f;
-  --color-achievement-slot-border: #6b587b;
-  --color-achievement-slot-depth: #030205;
-  --color-achievement-selected: var(--color-accent-sun);
-  --color-achievement-earned: #f3c85b;
-  --color-achievement-detail-text: #fffdf7;
-  --color-achievement-detail-muted: #c5b9d0;
-  --color-link-start-fixed-core: #fff7fd;
-  --color-link-start-fixed-cover: #ffffff;
-  --color-link-start-fixed-prism-pink: #ff2a8a;
-  --color-link-start-fixed-prism-yellow: #f4ee45;
-  --color-link-start-fixed-prism-crimson: #d80d46;
-  --color-link-start-fixed-prism-violet: #6e35d5;
-  --color-link-start-fixed-prism-coral: #ff625c;
-  --color-link-start-fixed-prism-glass: #dff4ff;
-  --color-live2d-recolor-base: #000000;
-  --color-live2d-canvas-clear: transparent;
-  --color-clara-hair: #5faf67;
-  --color-clara-hair-outline: #356b3f;
-  --color-clara-hair-highlight: #a8d8aa;
-  --color-clara-hair-shadow: color-mix(
-    in srgb,
-    var(--color-clara-hair) 72%,
-    var(--color-live2d-recolor-base)
-  );
-  --color-clara-hair-deep-shadow: color-mix(
-    in srgb,
-    var(--color-clara-hair) 44%,
-    var(--color-live2d-recolor-base)
-  );
-  --color-clara-glasses: #000000;
-  --color-clara-skin-primary: #ffa461;
-  --color-clara-skin-shade: #cf7442;
-  --color-clara-hoodie: #000000;
-  --color-clara-strings: #ead8b7;
-  --radius-control: 1rem;
-  --radius-frame: 2rem;
-  --radius-pill: 999px;
-  --shadow-panel-depth: 0 7px 0 var(--color-frame-depth);
-
-  color: var(--color-text-primary);
-  background: var(--color-surface-page);
-  font-family: var(--font-interface-family);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  min-width: 20rem;
-  min-height: 100vh;
-  min-height: 100svh;
-  margin: 0;
-  background: var(--color-surface-page);
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
 .offline-button {
   min-height: 3.5rem;
   padding: 0.8rem 1.25rem;
@@ -474,6 +377,154 @@ select {
   }
 }
 
+/* Offline adapters intentionally keep the production learner UI classes.
+   These rules only cover APK-only content and omitted online controls. */
+.offline-dashboard__quick-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.offline-dashboard__reset-card {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.offline-dashboard__reset-card h2,
+.offline-dashboard__reset-card p {
+  margin: 0;
+}
+
+.offline-dashboard__reset-card > div:first-child {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.offline-dashboard__reset-confirm {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.offline-dashboard__reset-confirm > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.offline-intro__error {
+  grid-area: 2 / 1;
+  max-width: 30rem;
+  margin: 0.6rem 0 0;
+  color: var(--color-danger);
+  font-family: var(--font-reading-family);
+  font-size: var(--font-support);
+  font-weight: 700;
+}
+
+.offline-main-activity__item {
+  gap: clamp(0.3rem, 1svh, 0.55rem);
+}
+
+.offline-main-activity__listen {
+  min-height: 2.35rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  padding: 0.35rem 0.8rem;
+  color: var(--color-text-primary);
+  background: var(--color-action-secondary);
+  box-shadow: 0 3px 0 var(--color-border-warm);
+  font-family: var(--font-reading-family);
+  font-size: var(--font-support);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.offline-main-activity__listen:disabled {
+  color: var(--color-button-unavailable-text);
+  background: var(--color-button-unavailable-surface);
+  cursor: not-allowed;
+}
+
+.offline-main-activity__prompt,
+.offline-main-activity__transcript,
+.offline-main-activity__feedback,
+.offline-main-activity__error {
+  margin: 0;
+  font-family: var(--font-reading-family);
+  font-size: var(--font-support);
+  line-height: 1.3;
+  text-align: center;
+}
+
+.offline-main-activity__prompt,
+.offline-main-activity__transcript {
+  color: var(--color-text-secondary);
+}
+
+.offline-main-activity__feedback {
+  color: var(--color-success);
+  font-weight: 750;
+}
+
+.offline-main-activity__error {
+  color: var(--color-danger);
+  font-weight: 750;
+}
+
+.offline-main-activity__display strong {
+  max-width: 100%;
+  font-size: clamp(2rem, 10vw, 4.5rem);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.offline-main-activity__passage {
+  width: 100%;
+  max-height: 100%;
+  overflow: auto;
+}
+
+.offline-main-activity__passage p {
+  font-size: clamp(1rem, 3.5vw, 1.5rem);
+}
+
+/*
+ * The offline runner keeps the production assessment DOM, but its native
+ * Clara and persisted actions do not have the online guide loader's sizing
+ * cycle. Give the production portrait grid a definite dock track so the
+ * vertical buttons cannot grow the dock and collapse the prompt row.
+ */
+@media (max-width: 47.999rem) and (orientation: portrait) {
+  .offline-main-activity--speech .assessment-action-dock,
+  .offline-main-activity--choice .assessment-action-dock {
+    --offline-main-action-dock-height: clamp(13.5rem, 28svh, 15rem);
+
+    height: var(--offline-main-action-dock-height);
+    min-height: 0;
+    max-height: var(--offline-main-action-dock-height);
+    overflow: hidden;
+  }
+
+  .offline-main-activity .assessment-action-slot,
+  .offline-main-activity .assessment-clara {
+    height: auto;
+    min-height: 0;
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 24rem) {
+  .offline-dashboard__reset-confirm > div {
+    display: grid;
+  }
+
+  .offline-main-activity__prompt,
+  .offline-main-activity__transcript,
+  .offline-main-activity__feedback,
+  .offline-main-activity__error {
+    font-size: 0.85rem;
+  }
+}
+
 .offline-intro {
   width: 100%;
   height: 100vh;
@@ -765,6 +816,22 @@ select {
   font-weight: 800;
 }
 
+.offline-dashboard__milestone-action {
+  min-height: 2.25rem;
+  border: 0.1rem solid var(--color-action-primary);
+  color: var(--color-action-primary);
+  cursor: pointer;
+}
+
+.offline-dashboard__milestone-action:active {
+  transform: translateY(0.08rem);
+}
+
+.offline-dashboard__milestone-action:focus-visible {
+  outline: 0.18rem solid var(--color-focus);
+  outline-offset: 0.12rem;
+}
+
 .offline-dashboard__achievement-count {
   min-width: 3.5rem;
   padding: 0.45rem 0.65rem;
@@ -899,6 +966,29 @@ select {
   border: 0.15rem solid var(--color-border-strong);
   color: var(--color-text-primary);
   background: var(--color-surface-panel);
+}
+
+@media (max-height: 40rem) and (orientation: landscape) {
+  .offline-journey-menu[data-diagnostic-skip-available="true"]
+    .reading-journey-menu__shell {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  }
+
+  .offline-journey-menu[data-diagnostic-skip-available="true"]
+    .reading-journey-menu__footer {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(0.65rem, env(safe-area-inset-bottom));
+    left: max(1rem, env(safe-area-inset-left));
+    z-index: 12;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .offline-journey-menu[data-diagnostic-skip-available="true"]
+    .reading-journey-menu__skip {
+    pointer-events: auto;
+  }
 }
 
 .offline-dashboard__skip-confirm {

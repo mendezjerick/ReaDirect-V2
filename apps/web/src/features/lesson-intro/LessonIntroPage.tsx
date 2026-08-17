@@ -20,7 +20,7 @@ import {
 import { ThemeSelector } from "../theme/ThemeSelector";
 import "./lesson-intro.css";
 
-interface JourneyActivityProps {
+export interface JourneyActivityProps {
   title: string;
   description: string;
   statusLabel: string;
@@ -30,7 +30,7 @@ interface JourneyActivityProps {
   onSelect?: () => void;
 }
 
-interface SpeechLanguageSwitchProps {
+export interface SpeechLanguageSwitchProps {
   selectedLanguage: LearnerSpeechLanguage;
   filipinoAvailable: boolean;
   checkingAvailability: boolean;
@@ -39,7 +39,7 @@ interface SpeechLanguageSwitchProps {
   onToggle: () => void;
 }
 
-function SpeechLanguageSwitch({
+export function SpeechLanguageSwitch({
   selectedLanguage,
   filipinoAvailable,
   checkingAvailability,
@@ -136,7 +136,7 @@ function SpeechLanguageSwitch({
   );
 }
 
-function AssessmentIcon({ final = false }: { final?: boolean }) {
+export function AssessmentIcon({ final = false }: { final?: boolean }) {
   return (
     <svg viewBox="0 0 48 48" aria-hidden="true">
       <path d="M14 6h20v6H14zM10 10h28v32H10z" />
@@ -148,7 +148,7 @@ function AssessmentIcon({ final = false }: { final?: boolean }) {
   );
 }
 
-function BookIcon() {
+export function BookIcon() {
   return (
     <img
       className="reading-journey-card__book-icon"
@@ -176,7 +176,7 @@ function CheckIcon() {
   );
 }
 
-function JourneyActivity({
+export function JourneyActivity({
   title,
   description,
   statusLabel,
@@ -493,13 +493,14 @@ export function ReadingJourneyMenuPage() {
           />
           {sessionQuery.data.learner.account_purpose === "standard" &&
           path.diagnostic.status === "required" ? (
-            <button
+            <BigButton
               className="reading-journey-menu__skip"
-              type="button"
+              variant="secondary"
+              size="regular"
               onClick={() => setConfirmingSkip(true)}
             >
               Skip Diagnostic
-            </button>
+            </BigButton>
           ) : null}
         </section>
 

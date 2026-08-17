@@ -7,27 +7,41 @@ import {
   LinkStartTransition,
 } from "../components/transitions/LinkStartTransition";
 import { OfflineDashboard } from "./dashboard/OfflineDashboard";
+import { OfflineJourneyMenu } from "./dashboard/OfflineJourneyMenu";
 import { OfflineJourneyActivity } from "./activity/OfflineJourneyActivity";
 import { offlineJourneyContent } from "./content/offlineJourneyContent";
 import { OfflineIntro } from "./intro/OfflineIntro";
 import { OfflineOnboarding } from "./onboarding/OfflineOnboarding";
-import { offlineLearnerRepository } from "./storage/offlineLearnerRepository";
+import { nativeOfflineAppRuntime } from "./runtime/offlineAppRuntime";
 import {
   resetOfflineJourneyProgress,
   skipOfflineDiagnostic,
+  updateOfflineSpeechLanguage,
 } from "./storage/offlineLearnerState";
 
 import type { OfflineInitializationResult } from "./onboarding/offlineInitialization";
-import type { OfflineLearnerState } from "./storage/offlineLearnerState";
+import type { OfflineAppRuntime } from "./runtime/offlineAppRuntime";
+import type {
+  OfflineJourneyStage,
+  OfflineLearnerState,
+} from "./storage/offlineLearnerState";
 
 type ReadyState = {
   learner: OfflineLearnerState;
   initialization: OfflineInitializationResult;
 };
 
-export function OfflineApkApp() {
+export function OfflineApkApp({
+  runtime = nativeOfflineAppRuntime,
+}: {
+  runtime?: OfflineAppRuntime;
+}) {
   const [ready, setReady] = useState<ReadyState | null>(null);
-  const [screen, setScreen] = useState<"dashboard" | "activity">("dashboard");
+  const [screen, setScreen] = useState<"dashboard" | "journey" | "activity">(
+    "dashboard",
+  );
+  const [activityStage, setActivityStage] =
+    useState<OfflineJourneyStage | null>(null);
   const [linkStartLearner, setLinkStartLearner] =
     useState<OfflineLearnerState | null>(null);
 
@@ -59,6 +73,8 @@ export function OfflineApkApp() {
   if (!ready) {
     return (
       <OfflineOnboarding
+        initialize={runtime.initialize}
+        repository={runtime.repository}
         onReady={(learner, initialization) =>
           setReady({ learner, initialization })
         }
@@ -71,22 +87,36 @@ export function OfflineApkApp() {
       <OfflineIntro
         learner={ready.learner}
         claraSelection={ready.initialization.clara}
+        repository={runtime.repository}
         onLinkStart={setLinkStartLearner}
       />
     ) : screen === "activity" ? (
       <OfflineJourneyActivity
         learner={ready.learner}
+        stage={activityStage ?? undefined}
         onLearnerChange={(learner) =>
           setReady((current) => (current ? { ...current, learner } : current))
         }
-        onExit={() => setScreen("dashboard")}
+        claraSelection={ready.initialization.clara}
+        repository={runtime.repository}
+        asr={runtime.asr}
+        tts={runtime.tts}
+        onExit={() => {
+          setActivityStage(null);
+          setScreen("journey");
+        }}
       />
-    ) : (
-      <OfflineDashboard
+    ) : screen === "journey" ? (
+      <OfflineJourneyMenu
         learner={ready.learner}
-        onOpenJourney={() => setScreen("activity")}
+        onBack={() => setScreen("dashboard")}
+        onSelectActivity={(stage) => {
+          if (stage === "complete") return;
+          setActivityStage(stage);
+          setScreen("activity");
+        }}
         onSkipDiagnostic={async () => {
-          const learner = await offlineLearnerRepository.update((state, now) =>
+          const learner = await runtime.repository.update((state, now) =>
             skipOfflineDiagnostic(
               state,
               offlineJourneyContent.assessments.diagnostic.items.length,
@@ -95,8 +125,19 @@ export function OfflineApkApp() {
           );
           setReady((current) => (current ? { ...current, learner } : current));
         }}
+        onLanguageChange={async (language) => {
+          const learner = await runtime.repository.update((state, now) =>
+            updateOfflineSpeechLanguage(state, language, now),
+          );
+          setReady((current) => (current ? { ...current, learner } : current));
+        }}
+      />
+    ) : (
+      <OfflineDashboard
+        learner={ready.learner}
+        onOpenJourney={() => setScreen("journey")}
         onResetProgress={async () => {
-          const learner = await offlineLearnerRepository.update(
+          const learner = await runtime.repository.update(
             resetOfflineJourneyProgress,
           );
           setReady((current) => (current ? { ...current, learner } : current));

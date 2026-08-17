@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const CURRENT_OFFLINE_LEARNER_SCHEMA_VERSION = 2 as const;
+export const CURRENT_OFFLINE_LEARNER_SCHEMA_VERSION = 4 as const;
 
 export const offlineAchievementKeys = [
   "reading.ready_reader",
@@ -71,6 +71,7 @@ export const offlineLearnerStateSchema = z
     setup: z.object({
       onboardingCompletedAt: timestampSchema.nullable(),
       introCompletedAt: timestampSchema.nullable(),
+      speechLanguage: z.enum(["en", "fil-PH"]),
       asr: z.object({
         tier: z.enum(["low", "medium", "high"]).nullable(),
         acknowledgedAt: timestampSchema.nullable(),
@@ -176,7 +177,6 @@ export const offlineLearnerStateSchema = z
     }
 
     const diagnosticComplete = state.journey.diagnostic.status === "completed";
-    let reachedFrontier = false;
     for (const [index, lesson] of state.journey.lessons.entries()) {
       const isCompleted = lesson.status === "completed";
       if (isCompleted !== (lesson.completedAt !== null)) {
@@ -205,25 +205,11 @@ export const offlineLearnerStateSchema = z
           message: "Lessons remain locked until the diagnostic is complete.",
         });
       }
-      if (reachedFrontier && lesson.status !== "locked") {
+      if (diagnosticComplete && lesson.status === "locked") {
         context.addIssue({
           code: "custom",
           path: ["journey", "lessons", index, "status"],
-          message: "Only the next required lesson may be unlocked.",
-        });
-      }
-      if (!isCompleted) reachedFrontier = true;
-    }
-
-    if (diagnosticComplete) {
-      const firstIncomplete = state.journey.lessons.find(
-        ({ status }) => status !== "completed",
-      );
-      if (firstIncomplete?.status === "locked") {
-        context.addIssue({
-          code: "custom",
-          path: ["journey", "lessons", firstIncomplete.order - 1, "status"],
-          message: "The next required lesson must be available.",
+          message: "All lessons must be available after the diagnostic.",
         });
       }
     }
@@ -293,18 +279,55 @@ export type OfflineActivityCheckpoint = {
 };
 
 export function migrateOfflineLearnerState(input: unknown): unknown {
+  if (typeof input !== "object" || input === null) return input;
+
+  const stored = input as Record<string, unknown>;
   if (
-    typeof input === "object" &&
-    input !== null &&
-    "schemaVersion" in input &&
-    input.schemaVersion === 1
+    stored.schemaVersion !== 1 &&
+    stored.schemaVersion !== 2 &&
+    stored.schemaVersion !== 3
   ) {
-    return {
-      ...input,
-      schemaVersion: CURRENT_OFFLINE_LEARNER_SCHEMA_VERSION,
-    };
+    return input;
   }
-  return input;
+
+  const journey =
+    typeof stored.journey === "object" && stored.journey !== null
+      ? (stored.journey as Record<string, unknown>)
+      : null;
+  const diagnostic =
+    journey &&
+    typeof journey.diagnostic === "object" &&
+    journey.diagnostic !== null
+      ? (journey.diagnostic as Record<string, unknown>)
+      : null;
+  const lessons =
+    journey && Array.isArray(journey.lessons)
+      ? journey.lessons.map((lesson) =>
+          diagnostic?.status === "completed" &&
+          typeof lesson === "object" &&
+          lesson !== null &&
+          (lesson as Record<string, unknown>).status === "locked"
+            ? { ...(lesson as Record<string, unknown>), status: "available" }
+            : lesson,
+        )
+      : journey?.lessons;
+
+  return {
+    ...stored,
+    schemaVersion: CURRENT_OFFLINE_LEARNER_SCHEMA_VERSION,
+    setup:
+      typeof stored.setup === "object" && stored.setup !== null
+        ? {
+            ...(stored.setup as Record<string, unknown>),
+            speechLanguage:
+              (stored.setup as Record<string, unknown>).speechLanguage ===
+              "fil-PH"
+                ? "fil-PH"
+                : "en",
+          }
+        : stored.setup,
+    ...(journey ? { journey: { ...journey, lessons } } : {}),
+  };
 }
 
 function emptyAssessment(status: "locked" | "available") {
@@ -359,6 +382,7 @@ export function createInitialOfflineLearnerState(options: {
     setup: {
       onboardingCompletedAt: null,
       introCompletedAt: null,
+      speechLanguage: "en",
       asr: { tier: null, acknowledgedAt: null },
       clara: { mode: null, acknowledgedAt: null },
     },
@@ -379,8 +403,14 @@ export function getOfflineJourneyStage(
   state: OfflineLearnerState,
 ): OfflineJourneyStage {
   if (state.journey.diagnostic.status !== "completed") return "diagnostic";
+  const inProgressLesson = state.journey.lessons.find(
+    ({ status }) => status === "in_progress",
+  );
+  if (inProgressLesson) {
+    return `lesson-${inProgressLesson.order}` as OfflineJourneyStage;
+  }
   const nextLesson = state.journey.lessons.find(
-    ({ status }) => status !== "completed",
+    ({ status }) => status === "available",
   );
   if (nextLesson) return `lesson-${nextLesson.order}` as OfflineJourneyStage;
   if (state.journey.finalAssessment.status !== "completed") {
@@ -410,6 +440,12 @@ function unlockAchievement(
     !state.journey.achievements.some((achievement) => achievement.key === key)
   ) {
     state.journey.achievements.push({ key, unlockedAt: now, seenAt: null });
+  }
+}
+
+function unlockAllLessons(state: OfflineLearnerState) {
+  for (const lesson of state.journey.lessons) {
+    if (lesson.status === "locked") lesson.status = "available";
   }
 }
 
@@ -472,7 +508,7 @@ export function completeOfflineAssessment(
   progress.completedAt = now;
 
   if (assessment === "diagnostic") {
-    next.journey.lessons[0].status = "available";
+    unlockAllLessons(next);
     unlockAchievement(next, offlineAchievementKeys[0], now);
   } else {
     unlockAchievement(next, offlineAchievementKeys[7], now);
@@ -498,7 +534,7 @@ export function skipOfflineDiagnostic(
   next.journey.diagnostic.score = 0;
   next.journey.diagnostic.maximum = maximum;
   next.journey.diagnostic.completedAt = now;
-  next.journey.lessons[0].status = "available";
+  unlockAllLessons(next);
   unlockAchievement(next, offlineAchievementKeys[0], now);
   next.journey.updatedAt = now;
   return offlineLearnerStateSchema.parse(next);
@@ -540,9 +576,7 @@ export function completeOfflineLesson(
   lesson.completedAt = now;
   unlockAchievement(next, offlineAchievementKeys[order], now);
 
-  if (order < 6) {
-    next.journey.lessons[order].status = "available";
-  } else {
+  if (next.journey.lessons.every(({ status }) => status === "completed")) {
     next.journey.finalAssessment.status = "available";
   }
   next.journey.updatedAt = now;
@@ -556,6 +590,17 @@ export function updateOfflineLearnerProfile(
 ): OfflineLearnerState {
   const next = cloneState(state);
   next.profile.displayName = displayName.trim();
+  next.profile.updatedAt = now;
+  return offlineLearnerStateSchema.parse(next);
+}
+
+export function updateOfflineSpeechLanguage(
+  state: OfflineLearnerState,
+  language: "en" | "fil-PH",
+  now: string,
+): OfflineLearnerState {
+  const next = cloneState(state);
+  next.setup.speechLanguage = language;
   next.profile.updatedAt = now;
   return offlineLearnerStateSchema.parse(next);
 }

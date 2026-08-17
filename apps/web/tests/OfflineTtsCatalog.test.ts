@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 type Catalog = {
+  language: "en" | "fil-PH";
   schemaVersion: number;
   assetCount: number;
   totalBytes: number;
@@ -18,6 +19,7 @@ type Catalog = {
 };
 
 type ReleaseCatalog = {
+  languages: ["en", "fil-PH"];
   schemaVersion: number;
   sourceTotalBytes: number;
   totalBytes: number;
@@ -29,16 +31,19 @@ type ReleaseCatalog = {
     sampleRateHz: number;
   };
   assets: Array<{
+    language: "en" | "fil-PH";
     path: string;
     sha256: string;
     sourceSha256: string;
   }>;
 };
 
-async function readCatalog(): Promise<Catalog> {
+async function readCatalog(language: "en" | "fil-PH" = "en"): Promise<Catalog> {
   const catalogPath = path.resolve(
     process.cwd(),
-    "../../services/tts/offline_catalog/artifacts.json",
+    language === "en"
+      ? "../../services/tts/offline_catalog/artifacts.json"
+      : "../../services/tts/offline_catalog/artifacts.fil-PH.json",
   );
   return JSON.parse(await readFile(catalogPath, "utf8")) as Catalog;
 }
@@ -57,26 +62,36 @@ async function readReleaseCatalog(): Promise<ReleaseCatalog> {
 
 describe("offline TTS catalog", () => {
   it("contains only APK lesson-journey speech", async () => {
-    const catalog = await readCatalog();
+    const english = await readCatalog("en");
+    const filipino = await readCatalog("fil-PH");
 
-    expect(catalog.schemaVersion).toBe(1);
-    expect(catalog.assetCount).toBe(293);
-    expect(catalog.assets).toHaveLength(293);
-    expect(
-      catalog.assets.some(({ path }) => path.startsWith("learn-with-clara/")),
-    ).toBe(false);
-    expect(new Set(catalog.assets.map(({ key }) => key)).size).toBe(293);
+    for (const catalog of [english, filipino]) {
+      expect(catalog.schemaVersion).toBe(1);
+      expect(catalog.assetCount).toBe(293);
+      expect(catalog.assets).toHaveLength(293);
+      expect(
+        catalog.assets.some(({ path }) => path.startsWith("learn-with-clara/")),
+      ).toBe(false);
+      expect(new Set(catalog.assets.map(({ key }) => key)).size).toBe(293);
+    }
+    expect(filipino.assets.map(({ key }) => key)).toEqual(
+      english.assets.map(({ key }) => key),
+    );
   });
 
   it("pins each compatible PCM WAV by SHA-256", async () => {
-    const catalog = await readCatalog();
+    const english = await readCatalog("en");
+    const filipino = await readCatalog("fil-PH");
 
-    expect(catalog.totalBytes).toBe(110_881_372);
-    for (const asset of catalog.assets) {
-      expect(asset.sha256).toMatch(/^[a-f0-9]{64}$/);
-      expect(asset.channels).toBe(1);
-      expect(asset.bitsPerSample).toBe(16);
-      expect(asset.sampleRateHz).toBe(48_000);
+    expect(english.totalBytes).toBe(110_881_372);
+    expect(filipino.totalBytes).toBe(142_108_252);
+    for (const catalog of [english, filipino]) {
+      for (const asset of catalog.assets) {
+        expect(asset.sha256).toMatch(/^[a-f0-9]{64}$/);
+        expect(asset.channels).toBe(1);
+        expect(asset.bitsPerSample).toBe(16);
+        expect(asset.sampleRateHz).toBe(48_000);
+      }
     }
   });
 
@@ -84,8 +99,9 @@ describe("offline TTS catalog", () => {
     const catalog = await readReleaseCatalog();
 
     expect(catalog).toMatchObject({
-      schemaVersion: 2,
-      assetCount: 293,
+      schemaVersion: 3,
+      languages: ["en", "fil-PH"],
+      assetCount: 586,
       encoding: {
         container: "ogg",
         codec: "vorbis",
@@ -93,10 +109,10 @@ describe("offline TTS catalog", () => {
         sampleRateHz: 32_000,
       },
     });
-    expect(catalog.sourceTotalBytes).toBe(110_881_372);
+    expect(catalog.sourceTotalBytes).toBe(252_989_624);
     expect(catalog.totalBytes / catalog.sourceTotalBytes).toBeLessThan(0.12);
     for (const asset of catalog.assets) {
-      expect(asset.path).toMatch(/\.ogg$/);
+      expect(asset.path).toMatch(new RegExp(`^${asset.language}/.+\\.ogg$`));
       expect(asset.sha256).toMatch(/^[a-f0-9]{64}$/);
       expect(asset.sourceSha256).toMatch(/^[a-f0-9]{64}$/);
     }

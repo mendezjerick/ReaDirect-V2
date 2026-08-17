@@ -8,6 +8,8 @@
     "live2d:generate-fallback": "node scripts/generate-clara-fallback.mjs",
     "predev": "corepack pnpm live2d:build-framework",
     "dev": "vite",
+    "predev:apk:simulator": "corepack pnpm live2d:build-framework",
+    "dev:apk:simulator": "vite --mode offline-apk-simulator --host 127.0.0.1 --port 4173 --strictPort",
     "prebuild": "corepack pnpm live2d:build-framework",
     "build": "tsc -b && vite build",
     "prebuild:apk": "corepack pnpm live2d:build-framework",

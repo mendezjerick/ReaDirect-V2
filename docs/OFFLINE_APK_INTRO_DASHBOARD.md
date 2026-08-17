@@ -1,15 +1,35 @@
-# Offline APK intro and dashboard
+# Offline APK intro, dashboard, and Journey
 
-The first successful device setup opens the cream ReaDirect intro with the device-approved Static or Dynamic Clara. The continue action is unavailable until Clara is visibly ready. Continuing saves `introCompletedAt` in the private local learner record before the fixed three-second Link Start transition begins. The dashboard appears at the transition's approved route-swap point. Later app launches still warm up the native components but skip the completed intro and open the dashboard directly.
+The first successful device setup opens main's cream ReaDirect intro with its
+theme selector and the device-approved Static or Dynamic Clara. Continue stays
+unavailable until Clara is visibly ready. Continuing saves `introCompletedAt`
+in the private local learner record before the fixed Link Start transition.
+Later launches still warm the native components, then skip the completed intro
+and open the dashboard directly.
 
-The offline dashboard reads only the local learner journey. It contains:
+The offline dashboard uses main's learner dashboard presentation and contains:
 
-- Diagnostic Assessment;
-- Lessons 1–6 in the required order;
-- Final Assessment;
-- status, current-step, and completed-lesson indicators; and
-- the eight Reading Journey achievements tied to those same completions.
+- the primary `Your Reading Journey` card and `Open Journey` action;
+- completed-lesson and journey status;
+- the eight Reading Journey achievements tied to those completions; and
+- the confirmed reset-progress control at the very bottom.
 
-It contains no login, learner code, logout, games, Learn with Clara, network query, or renderer preference control. A dashboard-bottom reset section can clear only local journey progress after explicit confirmation while preserving device setup and the reader profile.
+`Open Journey` leads to main's Reading Journey page. That page contains the
+theme selector, English/Filipino control, Diagnostic, prominent skip
+confirmation, Lessons 1-6, and Final Assessment. All lessons become
+independently selectable after the Diagnostic is completed or skipped.
 
-The eight achievement icons are fixed in `apps/web/offline-journey-assets.json` and are checksum-verified and explicitly emitted because the offline Vite target does not copy the public directory.
+The current APK contains the English pre-generated TTS catalog. The same main
+English/Filipino control remains visible, but Filipino is disabled until a
+Filipino offline catalog is bundled; English audio is never labeled Filipino.
+
+The APK removes only login, learner code, logout, games, Learn with Clara,
+network queries, and online account actions. It does not replace main's learner
+layout or its responsive behavior.
+
+The eight achievement icons are fixed in
+`apps/web/offline-journey-assets.json`. Main's backgrounds, fonts, Journey book
+icon, and themed Clara stills are fixed in
+`apps/web/offline-main-ui-assets.json`. Both manifests are checksum-verified
+and explicitly emitted because the offline target does not copy the public
+directory.

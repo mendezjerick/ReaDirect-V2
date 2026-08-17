@@ -8,6 +8,6 @@ Reset requires a separate confirmation step. The confirmation explicitly identif
 - all lesson responses and checkpoints; and
 - every connected Reading Journey achievement.
 
-The reset preserves the local reader ID and display name, the device-selected ASR tier and Clara mode, and completed onboarding and intro state. After a successful atomic repository write, the dashboard immediately shows a fresh Diagnostic Assessment. The user is not returned to onboarding and no network operation is performed.
+The reset preserves the local reader ID and display name, the device-selected ASR tier and Clara mode, and completed onboarding and intro state. After a successful atomic repository write, the dashboard immediately shows a fresh journey summary and its `Open Journey` action leads to the available Diagnostic Assessment. The user is not returned to onboarding and no network operation is performed.
 
 The section uses the cream dashboard surface, established type and spacing tokens, touch-sized controls, safe responsive wrapping, and a restrained destructive color reserved for the confirmed action.

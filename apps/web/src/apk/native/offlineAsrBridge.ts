@@ -41,10 +41,22 @@ export type OfflineAsrTranscription = {
   inferenceDurationMs: number;
 };
 
+export type OfflineAsrCapture = Pick<
+  OfflineAsrTranscription,
+  "sampleCount" | "audioDurationMs"
+>;
+
+export type OfflineAsrPlayback = {
+  audioDurationMs: number;
+  completed: true;
+};
+
 export type OfflineAsrRuntimeState = {
   initialized: boolean;
   tier: AsrTier | null;
   recording: boolean;
+  recorded: boolean;
+  playing: boolean;
   busy: boolean;
   threads: number;
 };
@@ -58,6 +70,10 @@ export interface OfflineAsrNativePlugin {
     sampleRateHz: 16000;
     maxDurationMs: number;
   }>;
+  stopRecording(): Promise<OfflineAsrCapture>;
+  playRecording(): Promise<OfflineAsrPlayback>;
+  transcribeRecording(): Promise<OfflineAsrTranscription>;
+  clearRecording(): Promise<void>;
   stopAndTranscribe(): Promise<OfflineAsrTranscription>;
   cancelRecording(): Promise<void>;
   getRuntimeState(): Promise<OfflineAsrRuntimeState>;
@@ -132,6 +148,26 @@ export const offlineAsrBridge = {
   async stopAndTranscribe(): Promise<OfflineAsrTranscription> {
     assertAndroidRuntime();
     return NativeOfflineAsr.stopAndTranscribe();
+  },
+
+  async stopRecording(): Promise<OfflineAsrCapture> {
+    assertAndroidRuntime();
+    return NativeOfflineAsr.stopRecording();
+  },
+
+  async playRecording(): Promise<OfflineAsrPlayback> {
+    assertAndroidRuntime();
+    return NativeOfflineAsr.playRecording();
+  },
+
+  async transcribeRecording(): Promise<OfflineAsrTranscription> {
+    assertAndroidRuntime();
+    return NativeOfflineAsr.transcribeRecording();
+  },
+
+  async clearRecording(): Promise<void> {
+    assertAndroidRuntime();
+    await NativeOfflineAsr.clearRecording();
   },
 
   async cancelRecording(): Promise<void> {

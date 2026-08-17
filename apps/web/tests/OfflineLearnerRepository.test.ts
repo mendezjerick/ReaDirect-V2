@@ -17,6 +17,7 @@ import {
   saveOfflineLessonCheckpoint,
   skipOfflineDiagnostic,
   updateOfflineLearnerProfile,
+  updateOfflineSpeechLanguage,
 } from "../src/apk/storage/offlineLearnerState";
 
 const profileId = "5bc9dfb4-8163-4b59-aeab-f510fc2793e3";
@@ -113,13 +114,13 @@ describe("offline learner repository", () => {
     await repository.update((state, now) =>
       saveOfflineLessonCheckpoint(
         state,
-        1,
+        4,
         {
-          currentMissionKey: "mission-1",
-          currentItemKey: "lesson-1-item-2",
-          completedItemKeys: ["lesson-1-item-1"],
+          currentMissionKey: "mission-4",
+          currentItemKey: "lesson-4-item-2",
+          completedItemKeys: ["lesson-4-item-1"],
           response: {
-            itemKey: "lesson-1-item-1",
+            itemKey: "lesson-4-item-1",
             kind: "speech",
             value: "A",
             outcome: "correct",
@@ -139,19 +140,20 @@ describe("offline learner repository", () => {
       () => profileId,
     ).read();
     expect(restored.profile.displayName).toBe("Ari");
-    expect(restored.journey.lessons[0]).toMatchObject({
+    expect(restored.journey.lessons[3]).toMatchObject({
       status: "in_progress",
-      currentMissionKey: "mission-1",
-      currentItemKey: "lesson-1-item-2",
-      completedItemKeys: ["lesson-1-item-1"],
+      currentMissionKey: "mission-4",
+      currentItemKey: "lesson-4-item-2",
+      completedItemKeys: ["lesson-4-item-1"],
     });
-    expect(restored.journey.lessons[0].responses[0]).toMatchObject({
+    expect(restored.journey.lessons[3].responses[0]).toMatchObject({
       value: "A",
       outcome: "correct",
     });
+    expect(getOfflineJourneyStage(restored)).toBe("lesson-4");
   });
 
-  it("unlocks the journey and achievements only in required order", async () => {
+  it("unlocks every lesson after the diagnostic while achievements remain independent", async () => {
     const storage = new MemoryLearnerStore();
     const repository = new OfflineLearnerRepository(
       storage,
@@ -175,11 +177,17 @@ describe("offline learner repository", () => {
     expect(state.journey.achievements.map(({ key }) => key)).toEqual([
       "reading.ready_reader",
     ]);
+    expect(state.journey.lessons.map(({ status }) => status)).toEqual(
+      Array(6).fill("available"),
+    );
 
-    for (const order of [1, 2, 3, 4, 5, 6] as const) {
+    for (const order of [4, 2, 6, 1, 5, 3] as const) {
       state = await repository.update((current, now) =>
         completeOfflineLesson(current, order, now),
       );
+      if (order === 4) {
+        expect(state.journey.finalAssessment.status).toBe("locked");
+      }
     }
     expect(getOfflineJourneyStage(state)).toBe("final-assessment");
     expect(state.journey.finalAssessment.status).toBe("available");
@@ -200,7 +208,7 @@ describe("offline learner repository", () => {
     );
   });
 
-  it("records a skipped Diagnostic and unlocks Lesson 1", async () => {
+  it("records a skipped Diagnostic and unlocks every lesson", async () => {
     const storage = new MemoryLearnerStore();
     const repository = new OfflineLearnerRepository(
       storage,
@@ -219,7 +227,9 @@ describe("offline learner repository", () => {
       score: 0,
       maximum: 36,
     });
-    expect(state.journey.lessons[0].status).toBe("available");
+    expect(state.journey.lessons.map(({ status }) => status)).toEqual(
+      Array(6).fill("available"),
+    );
     expect(getOfflineJourneyStage(state)).toBe("lesson-1");
     expect(state.journey.achievements[0]?.key).toBe("reading.ready_reader");
   });
@@ -324,17 +334,62 @@ describe("offline learner repository", () => {
     );
 
     const migrated = await repository.initialize();
-    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.setup.speechLanguage).toBe("en");
     expect(migrated.revision).toBe(4);
 
     const saved = await repository.update((state, now) =>
       updateOfflineLearnerProfile(state, "Mia", now),
     );
-    expect(saved.schemaVersion).toBe(2);
+    expect(saved.schemaVersion).toBe(4);
     expect(JSON.parse(storage.snapshot.stateJson ?? "{}")).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 4,
       revision: 5,
     });
+  });
+
+  it("migrates schema-two sequential locks without losing saved progress", async () => {
+    const storage = new MemoryLearnerStore();
+    const diagnosticComplete = completeOfflineAssessment(
+      createInitialOfflineLearnerState({
+        id: profileId,
+        now: times[0],
+        revision: 7,
+      }),
+      "diagnostic",
+      { score: 22, maximum: 30 },
+      times[1],
+    );
+    const legacy = {
+      ...diagnosticComplete,
+      schemaVersion: 2,
+      journey: {
+        ...diagnosticComplete.journey,
+        lessons: diagnosticComplete.journey.lessons.map((lesson, index) => ({
+          ...lesson,
+          status: index === 0 ? "available" : "locked",
+        })),
+      },
+    };
+    storage.snapshot = {
+      revision: 7,
+      stateJson: JSON.stringify(legacy),
+      backupRevision: 0,
+      backupStateJson: null,
+    };
+
+    const migrated = await new OfflineLearnerRepository(
+      storage,
+      clock(...times.slice(2)),
+      () => profileId,
+    ).initialize();
+
+    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.revision).toBe(7);
+    expect(migrated.journey.diagnostic.score).toBe(22);
+    expect(migrated.journey.lessons.map(({ status }) => status)).toEqual(
+      Array(6).fill("available"),
+    );
   });
 
   it("does not advance progress when Android reports a low-storage write failure", async () => {
@@ -388,5 +443,24 @@ describe("offline learner repository", () => {
 
     const withIntro = await repository.update(completeOfflineIntro);
     expect(withIntro.setup.introCompletedAt).not.toBeNull();
+  });
+
+  it("persists Clara's offline speech language without resetting progress", async () => {
+    const storage = new MemoryLearnerStore();
+    const repository = new OfflineLearnerRepository(
+      storage,
+      clock(...times),
+      () => profileId,
+    );
+    await repository.initialize();
+    const updated = await repository.update((state, now) =>
+      updateOfflineSpeechLanguage(state, "fil-PH", now),
+    );
+
+    expect(updated.setup.speechLanguage).toBe("fil-PH");
+    expect(updated.journey.diagnostic.status).toBe("available");
+    await expect(repository.read()).resolves.toMatchObject({
+      setup: { speechLanguage: "fil-PH" },
+    });
   });
 });

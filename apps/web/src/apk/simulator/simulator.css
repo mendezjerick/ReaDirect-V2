@@ -1,0 +1,142 @@
+.offline-simulator {
+  min-height: 100%;
+}
+
+.offline-simulator__panel,
+.offline-simulator__launcher {
+  position: fixed;
+  z-index: 10000;
+  font-family: system-ui, sans-serif;
+}
+
+.offline-simulator__panel {
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.34);
+  padding: 14px;
+  backdrop-filter: blur(14px);
+}
+
+.offline-simulator__header,
+.offline-simulator__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.offline-simulator__header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.offline-simulator__header strong {
+  font-size: 15px;
+}
+
+.offline-simulator__header span,
+.offline-simulator__footer span {
+  color: #cbd5e1;
+  font-size: 11px;
+}
+
+.offline-simulator__panel button,
+.offline-simulator__panel select,
+.offline-simulator__panel input,
+.offline-simulator__launcher {
+  min-height: 34px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-radius: 9px;
+  color: #f8fafc;
+  background: #1e293b;
+  font: inherit;
+}
+
+.offline-simulator__panel button,
+.offline-simulator__launcher {
+  cursor: pointer;
+  padding: 6px 10px;
+  font-weight: 700;
+}
+
+.offline-simulator__panel button:hover,
+.offline-simulator__panel button:focus-visible,
+.offline-simulator__launcher:hover,
+.offline-simulator__launcher:focus-visible {
+  border-color: #a78bfa;
+  outline: 2px solid rgba(167, 139, 250, 0.4);
+  outline-offset: 2px;
+}
+
+.offline-simulator__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-block: 14px;
+}
+
+.offline-simulator__grid label {
+  display: grid;
+  gap: 4px;
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.offline-simulator__grid select,
+.offline-simulator__grid input {
+  width: 100%;
+  padding-inline: 8px;
+}
+
+.offline-simulator__presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0 0 14px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+}
+
+.offline-simulator__presets legend {
+  padding-inline: 5px;
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.offline-simulator__footer > button {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.offline-simulator__launcher {
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  color: #fff;
+  background: #6d28d9;
+  box-shadow: 0 10px 30px rgba(76, 29, 149, 0.35);
+}
+
+@media (max-width: 719px) {
+  .offline-simulator__panel {
+    top: auto;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    right: max(8px, env(safe-area-inset-right));
+    width: min(340px, calc(100vw - 16px));
+    max-height: min(70dvh, 560px);
+  }
+
+  .offline-simulator__grid,
+  .offline-simulator__presets {
+    grid-template-columns: 1fr;
+  }
+}

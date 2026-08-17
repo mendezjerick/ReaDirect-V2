@@ -1,7 +1,8 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { createReadStream, readFileSync } from "node:fs";
+import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig, type Plugin } from "vite";
 
@@ -23,6 +24,14 @@ type OfflineClaraAssetManifest = {
   }>;
 };
 
+type OfflineTtsCatalog = {
+  assets: Array<{
+    key: string;
+    language: "en" | "fil-PH";
+    path: string;
+  }>;
+};
+
 const offlineBoundaryPath = fileURLToPath(
   new URL("./offline-apk-boundary.json", import.meta.url),
 );
@@ -31,6 +40,9 @@ const offlineClaraManifestPath = fileURLToPath(
 );
 const offlineJourneyManifestPath = fileURLToPath(
   new URL("./offline-journey-assets.json", import.meta.url),
+);
+const offlineMainUiManifestPath = fileURLToPath(
+  new URL("./offline-main-ui-assets.json", import.meta.url),
 );
 
 function readOfflineApkBoundary(): OfflineApkBoundary {
@@ -153,8 +165,87 @@ function offlineApkBoundaryPlugin(boundary: OfflineApkBoundary): Plugin {
   };
 }
 
+function offlineApkSimulatorEntryPlugin(): Plugin {
+  return {
+    name: "readirect-offline-apk-simulator-entry",
+    transformIndexHtml: {
+      order: "pre",
+      handler(html) {
+        return html.replace("/src/main.tsx", "/src/apk/simulator/main.tsx");
+      },
+    },
+  };
+}
+
+function offlineApkSimulatorTtsPlugin(): Plugin {
+  const packageRoot = fileURLToPath(
+    new URL(
+      "../../services/tts/storage/offline-apk-package/tts/",
+      import.meta.url,
+    ),
+  );
+  const audioRoot = path.resolve(packageRoot, "audio");
+  const catalog = JSON.parse(
+    readFileSync(path.join(packageRoot, "catalog.json"), "utf8"),
+  ) as OfflineTtsCatalog;
+  const assets = new Map(
+    catalog.assets.map((asset) => [
+      `${asset.language}/${asset.key}`,
+      asset.path,
+    ]),
+  );
+
+  return {
+    name: "readirect-offline-apk-simulator-tts",
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const pathname = new URL(
+          request.url ?? "/",
+          "http://readirect.local",
+        ).pathname;
+        const match = pathname.match(
+          /^\/__offline-tts\/(en|fil-PH)\/([A-Za-z0-9-]+)\.ogg$/,
+        );
+        if (!match) {
+          next();
+          return;
+        }
+
+        const packagedPath = assets.get(`${match[1]}/${match[2]}`);
+        if (!packagedPath) {
+          response.statusCode = 404;
+          response.end("Offline Clara cue not found.");
+          return;
+        }
+
+        const assetPath = path.resolve(audioRoot, packagedPath);
+        const relativePath = path.relative(audioRoot, assetPath);
+        if (
+          relativePath.startsWith("..") ||
+          path.isAbsolute(relativePath)
+        ) {
+          response.statusCode = 403;
+          response.end("Invalid offline Clara cue path.");
+          return;
+        }
+
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "audio/ogg");
+        response.setHeader("Cache-Control", "no-store");
+        createReadStream(assetPath)
+          .on("error", () => {
+            if (!response.headersSent) response.statusCode = 404;
+            response.end();
+          })
+          .pipe(response);
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const isOfflineApk = mode === "offline-apk";
+  const isOfflineApkSimulator = mode === "offline-apk-simulator";
   const offlineBoundary = isOfflineApk ? readOfflineApkBoundary() : null;
 
   return {
@@ -166,9 +257,13 @@ export default defineConfig(({ mode }) => {
         ? [
             offlineAssetsPlugin("clara", offlineClaraManifestPath),
             offlineAssetsPlugin("journey", offlineJourneyManifestPath),
+            offlineAssetsPlugin("main-ui", offlineMainUiManifestPath),
           ]
         : []),
       ...(offlineBoundary ? [offlineApkBoundaryPlugin(offlineBoundary)] : []),
+      ...(isOfflineApkSimulator
+        ? [offlineApkSimulatorEntryPlugin(), offlineApkSimulatorTtsPlugin()]
+        : []),
     ],
     build: offlineBoundary
       ? {
@@ -177,17 +272,18 @@ export default defineConfig(({ mode }) => {
           emptyOutDir: true,
         }
       : undefined,
-    server: isOfflineApk
-      ? undefined
-      : {
-          proxy: {
-            "/api": "http://127.0.0.1:8000",
-            "/app": {
-              target: "ws://127.0.0.1:8080",
-              ws: true,
+    server:
+      isOfflineApk || isOfflineApkSimulator
+        ? undefined
+        : {
+            proxy: {
+              "/api": "http://127.0.0.1:8000",
+              "/app": {
+                target: "ws://127.0.0.1:8080",
+                ws: true,
+              },
             },
           },
-        },
     resolve: {
       alias: {
         "@cubism-framework": fileURLToPath(

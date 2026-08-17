@@ -13,6 +13,8 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { resolveOfflineAndroidRelease } from "./offline-android-release.mjs";
+
 const webRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
@@ -30,6 +32,10 @@ const privateDirectory = path.join(
 );
 const secretsPath = path.join(privateDirectory, "signing-secrets.json");
 const outputDirectory = path.join(repositoryRoot, "output", "releases");
+const release = resolveOfflineAndroidRelease({
+  gradlePath: path.join(androidRoot, "app", "build.gradle"),
+  outputDirectory,
+});
 const unsignedApk = path.join(
   androidRoot,
   "app",
@@ -49,8 +55,7 @@ const unsignedAab = path.join(
   "app-release.aab",
 );
 const alignedApk = path.join(outputDirectory, ".readirect-offline-aligned.apk");
-const signedApk = path.join(outputDirectory, "ReaDirect-Offline-1.0.apk");
-const signedAab = path.join(outputDirectory, "ReaDirect-Offline-1.0.aab");
+const { signedApk, signedAab } = release;
 
 function resolveJavaTool(name) {
   let javaHome = process.env.JAVA_HOME;

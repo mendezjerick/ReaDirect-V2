@@ -39,13 +39,21 @@ public final class OfflineAsrPlugin extends Plugin {
         thread.setDaemon(true);
         return thread;
     });
+    private final ExecutorService playbackExecutor = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "readirect-offline-playback");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private volatile long contextPointer;
     private volatile String activeTier;
     private volatile int inferenceThreads = 1;
     private PcmAudioRecorder recorder;
+    private float[] capturedSamples;
+    private PcmAudioPlayback playback;
     private boolean initializing;
     private boolean processing;
+    private boolean playing;
     private boolean destroyed;
 
     @PluginMethod
@@ -97,7 +105,7 @@ public final class OfflineAsrPlugin extends Plugin {
                 call.reject("Offline ASR has already shut down.", "ASR_SHUT_DOWN");
                 return;
             }
-            if (initializing || processing || recorder != null) {
+            if (initializing || processing || playing || recorder != null) {
                 call.reject("Offline ASR is currently busy.", "ASR_BUSY");
                 return;
             }
@@ -155,6 +163,85 @@ public final class OfflineAsrPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void stopRecording(PluginCall call) {
+        PcmAudioRecorder currentRecorder;
+
+        synchronized (stateLock) {
+            if (recorder == null) {
+                call.reject("No offline ASR recording is active.", "ASR_NOT_RECORDING");
+                return;
+            }
+            if (processing) {
+                call.reject("Offline ASR is currently busy.", "ASR_BUSY");
+                return;
+            }
+
+            currentRecorder = recorder;
+            recorder = null;
+            processing = true;
+        }
+
+        inferenceExecutor.execute(() -> finishRecording(call, currentRecorder));
+    }
+
+    @PluginMethod
+    public void playRecording(PluginCall call) {
+        float[] samples;
+        PcmAudioPlayback currentPlayback = new PcmAudioPlayback();
+
+        synchronized (stateLock) {
+            if (capturedSamples == null) {
+                call.reject("Record your voice before playing it.", "ASR_NO_CAPTURE");
+                return;
+            }
+            if (initializing || processing || playing || recorder != null) {
+                call.reject("Offline ASR is currently busy.", "ASR_BUSY");
+                return;
+            }
+            samples = capturedSamples;
+            playback = currentPlayback;
+            playing = true;
+        }
+
+        playbackExecutor.execute(() -> playCapturedRecording(call, currentPlayback, samples));
+    }
+
+    @PluginMethod
+    public void transcribeRecording(PluginCall call) {
+        float[] samples;
+        String tier;
+
+        synchronized (stateLock) {
+            if (capturedSamples == null) {
+                call.reject("Record your voice before checking it.", "ASR_NO_CAPTURE");
+                return;
+            }
+            if (initializing || processing || playing || recorder != null) {
+                call.reject("Offline ASR is currently busy.", "ASR_BUSY");
+                return;
+            }
+            samples = capturedSamples;
+            tier = activeTier;
+            processing = true;
+        }
+
+        inferenceExecutor.execute(() -> transcribeSamples(call, samples, tier));
+    }
+
+    @PluginMethod
+    public void clearRecording(PluginCall call) {
+        synchronized (stateLock) {
+            if (initializing || processing || recorder != null) {
+                call.reject("Offline ASR is currently busy.", "ASR_BUSY");
+                return;
+            }
+            capturedSamples = null;
+        }
+        stopPlayback();
+        call.resolve();
+    }
+
+    @PluginMethod
     public void cancelRecording(PluginCall call) {
         PcmAudioRecorder currentRecorder;
 
@@ -194,6 +281,8 @@ public final class OfflineAsrPlugin extends Plugin {
             result.put("initialized", contextPointer != 0);
             result.put("tier", activeTier);
             result.put("recording", recorder != null);
+            result.put("recorded", capturedSamples != null);
+            result.put("playing", playing);
             result.put("busy", initializing || processing);
             result.put("threads", inferenceThreads);
         }
@@ -202,6 +291,7 @@ public final class OfflineAsrPlugin extends Plugin {
 
     @PluginMethod
     public void shutdown(PluginCall call) {
+        stopPlayback();
         PcmAudioRecorder currentRecorder;
         synchronized (stateLock) {
             if (initializing || processing) {
@@ -210,6 +300,7 @@ public final class OfflineAsrPlugin extends Plugin {
             }
             currentRecorder = recorder;
             recorder = null;
+            capturedSamples = null;
             processing = true;
         }
 
@@ -232,6 +323,7 @@ public final class OfflineAsrPlugin extends Plugin {
 
     @Override
     protected void handleOnPause() {
+        stopPlayback();
         PcmAudioRecorder currentRecorder;
         synchronized (stateLock) {
             currentRecorder = recorder;
@@ -259,11 +351,13 @@ public final class OfflineAsrPlugin extends Plugin {
 
     @Override
     protected void handleOnDestroy() {
+        stopPlayback();
         PcmAudioRecorder currentRecorder;
         synchronized (stateLock) {
             destroyed = true;
             currentRecorder = recorder;
             recorder = null;
+            capturedSamples = null;
         }
 
         if (currentRecorder != null) {
@@ -276,6 +370,7 @@ public final class OfflineAsrPlugin extends Plugin {
 
         inferenceExecutor.execute(this::releaseModel);
         inferenceExecutor.shutdown();
+        playbackExecutor.shutdown();
         super.handleOnDestroy();
     }
 
@@ -341,7 +436,7 @@ public final class OfflineAsrPlugin extends Plugin {
                 call.reject("Initialize offline ASR before recording.", "ASR_NOT_INITIALIZED");
                 return;
             }
-            if (initializing || processing || recorder != null) {
+            if (initializing || processing || playing || recorder != null) {
                 call.reject("Offline ASR is currently busy.", "ASR_BUSY");
                 return;
             }
@@ -349,6 +444,7 @@ public final class OfflineAsrPlugin extends Plugin {
             PcmAudioRecorder nextRecorder = new PcmAudioRecorder(maximumDurationMillis);
             try {
                 nextRecorder.start();
+                capturedSamples = null;
                 recorder = nextRecorder;
             } catch (RuntimeException error) {
                 call.reject("The microphone could not start.", "MICROPHONE_START_FAILED", error);
@@ -369,31 +465,108 @@ public final class OfflineAsrPlugin extends Plugin {
     ) {
         try {
             float[] samples = currentRecorder.stopAndGetSamples();
-            if (contextPointer == 0) {
-                throw new IllegalStateException("The offline ASR model is no longer initialized.");
-            }
-
-            long startedAt = SystemClock.elapsedRealtime();
-            String transcript = WhisperNative
-                .transcribe(contextPointer, inferenceThreads, samples)
-                .trim();
-
-            JSObject result = new JSObject();
-            result.put("transcript", transcript);
-            result.put("tier", tier);
-            result.put("sampleCount", samples.length);
-            result.put(
-                "audioDurationMs",
-                (samples.length * 1000L) / PcmAudioRecorder.SAMPLE_RATE_HZ
-            );
-            result.put("inferenceDurationMs", SystemClock.elapsedRealtime() - startedAt);
-            call.resolve(result);
+            resolveTranscription(call, samples, tier);
         } catch (RuntimeException error) {
             call.reject("Offline speech recognition failed.", "ASR_TRANSCRIPTION_FAILED", error);
         } finally {
             synchronized (stateLock) {
                 processing = false;
             }
+        }
+    }
+
+    private void finishRecording(PluginCall call, PcmAudioRecorder currentRecorder) {
+        try {
+            float[] samples = currentRecorder.stopAndGetSamples();
+            synchronized (stateLock) {
+                capturedSamples = samples;
+            }
+
+            JSObject result = new JSObject();
+            result.put("sampleCount", samples.length);
+            result.put(
+                "audioDurationMs",
+                (samples.length * 1000L) / PcmAudioRecorder.SAMPLE_RATE_HZ
+            );
+            call.resolve(result);
+        } catch (RuntimeException error) {
+            call.reject("The microphone could not finish recording.", "MICROPHONE_STOP_FAILED", error);
+        } finally {
+            synchronized (stateLock) {
+                processing = false;
+            }
+        }
+    }
+
+    private void playCapturedRecording(
+        PluginCall call,
+        PcmAudioPlayback currentPlayback,
+        float[] samples
+    ) {
+        try {
+            currentPlayback.play(samples);
+            JSObject result = new JSObject();
+            result.put(
+                "audioDurationMs",
+                (samples.length * 1000L) / PcmAudioRecorder.SAMPLE_RATE_HZ
+            );
+            result.put("completed", true);
+            call.resolve(result);
+        } catch (RuntimeException error) {
+            call.reject("Your recording could not play.", "RECORDING_PLAYBACK_FAILED", error);
+        } finally {
+            synchronized (stateLock) {
+                if (playback == currentPlayback) {
+                    playback = null;
+                    playing = false;
+                }
+            }
+        }
+    }
+
+    private void transcribeSamples(PluginCall call, float[] samples, String tier) {
+        try {
+            resolveTranscription(call, samples, tier);
+        } catch (RuntimeException error) {
+            call.reject("Offline speech recognition failed.", "ASR_TRANSCRIPTION_FAILED", error);
+        } finally {
+            synchronized (stateLock) {
+                processing = false;
+            }
+        }
+    }
+
+    private void resolveTranscription(PluginCall call, float[] samples, String tier) {
+        if (contextPointer == 0) {
+            throw new IllegalStateException("The offline ASR model is no longer initialized.");
+        }
+
+        long startedAt = SystemClock.elapsedRealtime();
+        String transcript = WhisperNative
+            .transcribe(contextPointer, inferenceThreads, samples)
+            .trim();
+
+        JSObject result = new JSObject();
+        result.put("transcript", transcript);
+        result.put("tier", tier);
+        result.put("sampleCount", samples.length);
+        result.put(
+            "audioDurationMs",
+            (samples.length * 1000L) / PcmAudioRecorder.SAMPLE_RATE_HZ
+        );
+        result.put("inferenceDurationMs", SystemClock.elapsedRealtime() - startedAt);
+        call.resolve(result);
+    }
+
+    private void stopPlayback() {
+        PcmAudioPlayback currentPlayback;
+        synchronized (stateLock) {
+            currentPlayback = playback;
+            playback = null;
+            playing = false;
+        }
+        if (currentPlayback != null) {
+            currentPlayback.stop();
         }
     }
 

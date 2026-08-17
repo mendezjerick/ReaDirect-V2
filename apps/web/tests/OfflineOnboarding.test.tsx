@@ -60,10 +60,11 @@ function createResult(): OfflineInitializationResult {
       },
     },
     tts: {
-      catalogId: "clara-sh-offline-apk-v1",
-      assetCount: 293,
-      totalBytes: 9_887_949,
-      totalDurationMs: 1_154_880,
+      catalogId: "clara-sh-offline-apk-v2",
+      languages: ["en", "fil-PH"],
+      assetCount: 586,
+      totalBytes: 19_887_949,
+      totalDurationMs: 2_635_040,
     },
     clara: {
       mode: "static",

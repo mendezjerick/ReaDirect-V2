@@ -1,5 +1,8 @@
 import { useAudioRecorder } from "./useAudioRecorder";
 
+export type AssessmentRecorderViewState =
+  "idle" | "recording" | "recorded" | "playing" | "processing";
+
 function MicrophoneIcon() {
   return (
     <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -51,15 +54,6 @@ export function AssessmentRecorder({
   submitAvailableAfterCapture?: boolean;
   onAudioAction: () => void;
 }) {
-  const label =
-    recorder.state === "recording"
-      ? "Stop"
-      : recorder.state === "playing"
-        ? "Playing"
-        : recorder.state === "recorded"
-          ? "Play"
-          : "Record";
-
   const useRecorder = () => {
     if (unavailable || committed) return;
     onAudioAction();
@@ -69,19 +63,76 @@ export function AssessmentRecorder({
   };
 
   return (
+    <AssessmentRecorderView
+      state={recorder.state}
+      unavailable={unavailable}
+      committed={committed}
+      hasCapture={Boolean(recorder.audio)}
+      hasPlayed={recorder.hasPlayed}
+      submitAvailableAfterCapture={submitAvailableAfterCapture}
+      error={recorder.error}
+      onControl={useRecorder}
+      onRetry={recorder.retry}
+    />
+  );
+}
+
+export function AssessmentRecorderView({
+  state,
+  unavailable,
+  committed = false,
+  hasCapture = false,
+  hasPlayed = false,
+  submitAvailableAfterCapture = false,
+  error = "",
+  recordLabel = "Record",
+  stopLabel = "Stop",
+  onControl,
+  onRetry,
+}: {
+  state: AssessmentRecorderViewState;
+  unavailable: boolean;
+  committed?: boolean;
+  hasCapture?: boolean;
+  hasPlayed?: boolean;
+  submitAvailableAfterCapture?: boolean;
+  error?: string;
+  recordLabel?: string;
+  stopLabel?: string;
+  onControl: () => void;
+  onRetry?: () => void;
+}) {
+  const label =
+    state === "recording"
+      ? stopLabel
+      : state === "playing"
+        ? "Playing"
+        : state === "recorded"
+          ? "Play"
+          : state === "processing"
+            ? "Checking"
+            : recordLabel;
+
+  return (
     <div className="assessment-recorder">
       <button
         type="button"
         className="assessment-recorder__control"
-        data-state={recorder.state}
-        disabled={unavailable || committed || recorder.state === "playing"}
+        data-state={state}
+        disabled={
+          unavailable ||
+          committed ||
+          state === "playing" ||
+          state === "processing"
+        }
         aria-label={label}
-        onClick={useRecorder}
+        aria-pressed={state === "recording" || undefined}
+        onClick={onControl}
       >
         <span className="assessment-recorder__icon">
-          {recorder.state === "recording" ? (
+          {state === "recording" ? (
             <StopIcon />
-          ) : recorder.state === "recorded" || recorder.state === "playing" ? (
+          ) : state === "recorded" || state === "playing" ? (
             <PlayIcon />
           ) : (
             <MicrophoneIcon />
@@ -97,20 +148,26 @@ export function AssessmentRecorder({
         </span>
       </button>
       <div className="assessment-recorder__review-slot">
-        {recorder.hasPlayed && !committed ? (
+        {hasPlayed && !committed && onRetry ? (
           <button
             type="button"
             className="assessment-recorder__retry"
-            onClick={recorder.retry}
+            onClick={onRetry}
           >
             Retry?
           </button>
-        ) : submitAvailableAfterCapture && recorder.audio && !recorder.hasPlayed ? (
-          <span className="assessment-recorder__capture-note">Ready to submit</span>
+        ) : submitAvailableAfterCapture && hasCapture && !hasPlayed ? (
+          <span className="assessment-recorder__capture-note">
+            Ready to submit
+          </span>
         ) : null}
       </div>
-      <p className="assessment-recorder__error" aria-live="polite">
-        {recorder.error}
+      <p
+        className="assessment-recorder__error"
+        role={error ? "alert" : undefined}
+        aria-live="polite"
+      >
+        {error}
       </p>
     </div>
   );

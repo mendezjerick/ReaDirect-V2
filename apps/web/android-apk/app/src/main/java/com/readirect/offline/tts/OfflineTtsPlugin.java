@@ -5,6 +5,7 @@ import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 
 import com.getcapacitor.JSObject;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -20,6 +21,7 @@ public final class OfflineTtsPlugin extends Plugin {
     private MediaPlayer player;
     private PluginCall activeCall;
     private String activeKey;
+    private String activeLanguage;
     private boolean preparing;
     private boolean destroyed;
 
@@ -50,6 +52,7 @@ public final class OfflineTtsPlugin extends Plugin {
     @PluginMethod
     public void play(PluginCall call) {
         String key = call.getString("key", "");
+        String language = call.getString("language", "");
         OfflineTtsCatalog.Asset asset;
 
         synchronized (stateLock) {
@@ -62,9 +65,12 @@ public final class OfflineTtsPlugin extends Plugin {
                 return;
             }
 
-            asset = catalog.find(key);
+            asset = catalog.find(language, key);
             if (asset == null) {
-                call.reject("This offline speech line is not packaged: " + key, "TTS_KEY_NOT_FOUND");
+                call.reject(
+                    "This offline speech line is not packaged: " + language + "/" + key,
+                    "TTS_KEY_NOT_FOUND"
+                );
                 return;
             }
 
@@ -72,15 +78,17 @@ public final class OfflineTtsPlugin extends Plugin {
             preparing = true;
             activeCall = call;
             activeKey = key;
+            activeLanguage = language;
         }
 
         MediaPlayer nextPlayer = new MediaPlayer();
         nextPlayer.setAudioAttributes(
             new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+                .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                 .build()
         );
+        nextPlayer.setVolume(1.0f, 1.0f);
         nextPlayer.setOnPreparedListener(readyPlayer -> {
             synchronized (stateLock) {
                 if (player != readyPlayer || destroyed) {
@@ -123,6 +131,7 @@ public final class OfflineTtsPlugin extends Plugin {
                 if (activeCall == call) {
                     activeCall = null;
                     activeKey = null;
+                    activeLanguage = null;
                     preparing = false;
                 }
             }
@@ -151,6 +160,7 @@ public final class OfflineTtsPlugin extends Plugin {
             result.put("playing", player != null && !preparing);
             result.put("preparing", preparing);
             result.put("key", activeKey);
+            result.put("language", activeLanguage);
             result.put("assetCount", catalog == null ? 0 : catalog.size());
             result.put("totalBytes", catalog == null ? 0 : catalog.totalBytes());
         }
@@ -187,6 +197,7 @@ public final class OfflineTtsPlugin extends Plugin {
     private JSObject catalogSummary(OfflineTtsCatalog loadedCatalog) {
         JSObject result = new JSObject();
         result.put("catalogId", loadedCatalog.catalogId());
+        result.put("languages", new JSArray(loadedCatalog.languages()));
         result.put("assetCount", loadedCatalog.size());
         result.put("totalBytes", loadedCatalog.totalBytes());
         result.put("totalDurationMs", loadedCatalog.totalDurationMs());
@@ -206,6 +217,7 @@ public final class OfflineTtsPlugin extends Plugin {
         if (completedCall != null) {
             JSObject result = new JSObject();
             result.put("key", asset.key());
+            result.put("language", asset.language());
             result.put("durationMs", asset.durationMs());
             result.put("completed", true);
             completedCall.resolve(result);
@@ -246,6 +258,7 @@ public final class OfflineTtsPlugin extends Plugin {
         player = null;
         activeCall = null;
         activeKey = null;
+        activeLanguage = null;
         preparing = false;
 
         if (currentPlayer != null) {

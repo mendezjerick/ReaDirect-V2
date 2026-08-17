@@ -10,6 +10,26 @@ function read(relativePath: string) {
 }
 
 describe("offline Android native boundary", () => {
+  it("ships as the upgrade-compatible ReaDirect Offline 1.4 application", () => {
+    const capacitorConfig = read("capacitor.config.ts");
+    const appBuild = read("android-apk/app/build.gradle");
+    const strings = read("android-apk/app/src/main/res/values/strings.xml");
+
+    expect(capacitorConfig).toContain('appName: "ReaDirect Offline"');
+    expect(appBuild).toContain('applicationId "com.readirect.offline"');
+    expect(appBuild).toContain("versionCode 5");
+    expect(appBuild).toContain('versionName "1.4"');
+    expect(strings).toContain(
+      '<string name="app_name">ReaDirect Offline</string>',
+    );
+    expect(strings).toContain(
+      '<string name="title_activity_main">ReaDirect Offline</string>',
+    );
+    expect(strings).toContain(
+      '<string name="package_name">com.readirect.offline</string>',
+    );
+  });
+
   it("uses a dedicated Capacitor Android project", () => {
     const capacitorConfig = read("capacitor.config.ts");
 
@@ -58,6 +78,18 @@ describe("offline Android native boundary", () => {
     expect(ttsPlugin).toContain("interruptActiveLocked()");
   });
 
+  it("routes Clara speech through the audible media stream", () => {
+    const ttsPlugin = read(
+      "android-apk/app/src/main/java/com/readirect/offline/tts/OfflineTtsPlugin.java",
+    );
+
+    expect(ttsPlugin).toContain("AudioAttributes.USAGE_MEDIA");
+    expect(ttsPlugin).toContain("nextPlayer.setVolume(1.0f, 1.0f);");
+    expect(ttsPlugin).not.toContain(
+      "AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY",
+    );
+  });
+
   it("registers only the required local application plugins", () => {
     const activity = read(
       "android-apk/app/src/main/java/com/readirect/offline/MainActivity.java",
@@ -92,7 +124,7 @@ describe("offline Android native boundary", () => {
     );
 
     expect(learnerStore).toContain(
-      "private static final int SCHEMA_VERSION = 2;",
+      "private static final int SCHEMA_VERSION = 4;",
     );
     expect(learnerStore).toContain('call.getData().opt("expectedRevision")');
     expect(learnerStore).toContain("expectedRevisionValue instanceof Number");

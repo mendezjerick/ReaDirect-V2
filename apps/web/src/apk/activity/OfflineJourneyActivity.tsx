@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
+import { useReducedMotion } from "motion/react";
 
+import { BigButton } from "../../components/ui/BigButton";
+import {
+  AssessmentDockActionIcon,
+  AssessmentRecorderView,
+} from "../../features/assessment/AssessmentRecorder";
+import { LearnerActivityResult } from "../../features/learner-activity/LearnerActivityResult";
+import { LearnerActivityShell } from "../../features/learner-activity/LearnerActivityShell";
+import { LessonProgressRail } from "../../features/lesson/LessonProgressRail";
+import "../../features/assessment/assessment.css";
+import "../../features/lesson/lesson.css";
+import { OfflineClaraStage } from "../clara/OfflineClaraStage";
+import { offlineJourneyContent } from "../content/offlineJourneyContent";
 import { offlineAsrBridge } from "../native/offlineAsrBridge";
 import { offlineTtsBridge } from "../native/offlineTtsBridge";
 import { offlineLearnerRepository } from "../storage/offlineLearnerRepository";
@@ -10,16 +23,33 @@ import {
   saveOfflineAssessmentCheckpoint,
   saveOfflineLessonCheckpoint,
 } from "../storage/offlineLearnerState";
-import { offlineJourneyContent } from "../content/offlineJourneyContent";
 import { scoreOfflineSpeech } from "./offlineSpeechScoring";
 
+import type { ClaraSelection } from "../clara/claraCapability";
 import type { OfflineAsrTranscription } from "../native/offlineAsrBridge";
-import type { OfflineLearnerState } from "../storage/offlineLearnerState";
+import type {
+  OfflineActivityAsr,
+  OfflineActivityTts,
+} from "../runtime/offlineAppRuntime";
+import type {
+  OfflineJourneyStage,
+  OfflineLearnerState,
+} from "../storage/offlineLearnerState";
 
-type RunnerState = "ready" | "recording" | "processing" | "saving";
+type RunnerState =
+  | "ready"
+  | "recording"
+  | "recorded"
+  | "playing"
+  | "processing"
+  | "checking"
+  | "saving";
 
-function getActivity(learner: OfflineLearnerState) {
-  const stage = getOfflineJourneyStage(learner);
+function getActivity(
+  learner: OfflineLearnerState,
+  requestedStage?: OfflineJourneyStage,
+) {
+  const stage = requestedStage ?? getOfflineJourneyStage(learner);
   if (stage === "diagnostic") {
     return {
       stage,
@@ -63,6 +93,8 @@ function progressResponses(
 
 export function OfflineJourneyActivity({
   learner,
+  stage: requestedStage,
+  claraSelection,
   onLearnerChange,
   onExit,
   repository = offlineLearnerRepository,
@@ -70,16 +102,19 @@ export function OfflineJourneyActivity({
   tts = offlineTtsBridge,
 }: {
   learner: OfflineLearnerState;
+  stage?: OfflineJourneyStage;
+  claraSelection?: ClaraSelection;
   onLearnerChange: (learner: OfflineLearnerState) => void;
   onExit: () => void;
   repository?: Pick<typeof offlineLearnerRepository, "update">;
-  asr?: Pick<
-    typeof offlineAsrBridge,
-    "startRecording" | "stopAndTranscribe" | "cancelRecording"
-  >;
-  tts?: Pick<typeof offlineTtsBridge, "play" | "stop">;
+  asr?: OfflineActivityAsr;
+  tts?: OfflineActivityTts;
 }) {
-  const resolved = useMemo(() => getActivity(learner), [learner]);
+  const reduceMotion = useReducedMotion();
+  const resolved = useMemo(
+    () => getActivity(learner, requestedStage),
+    [learner, requestedStage],
+  );
   const initialIndex = resolved
     ? resolved.activity.items.findIndex(
         ({ key }) => !resolved.progress.completedItemKeys.includes(key),
@@ -92,11 +127,42 @@ export function OfflineJourneyActivity({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [finishedTitle, setFinishedTitle] = useState<string | null>(null);
   const [lastTranscript, setLastTranscript] = useState<string | null>(null);
+  const [hasCapture, setHasCapture] = useState(false);
+  const [hasPlayed, setHasPlayed] = useState(false);
+  const [claraSpeaking, setClaraSpeaking] = useState(false);
+  const activeItem = resolved?.activity.items[itemIndex] ?? null;
+  const activeItemKey = activeItem?.key;
+  const activeTtsKey = activeItem?.ttsKey;
+
+  useEffect(() => {
+    if (!activeItemKey || !activeTtsKey) return;
+    let active = true;
+    setErrorMessage(null);
+    setClaraSpeaking(true);
+    void tts
+      .play(activeTtsKey, learner.setup.speechLanguage)
+      .catch((error: unknown) => {
+        if (!active) return;
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Clara's prompt could not play.",
+        );
+      })
+      .finally(() => {
+        if (active) setClaraSpeaking(false);
+      });
+    return () => {
+      active = false;
+      void tts.stop().catch(() => undefined);
+    };
+  }, [activeItemKey, activeTtsKey, learner.setup.speechLanguage, tts]);
 
   useEffect(
     () => () => {
       void tts.stop().catch(() => undefined);
       void asr.cancelRecording().catch(() => undefined);
+      void asr.clearRecording().catch(() => undefined);
     },
     [asr, tts],
   );
@@ -111,50 +177,75 @@ export function OfflineJourneyActivity({
         "Recording stopped when ReaDirect moved to the background. Please try again.",
       );
     };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [asr, runnerState, tts]);
 
+  const effectiveClaraSelection: ClaraSelection = claraSelection ?? {
+    mode: learner.setup.clara.mode === "dynamic" ? "dynamic" : "static",
+    displayName: learner.setup.clara.mode === "dynamic" ? "Dynamic" : "Static",
+    reason:
+      learner.setup.clara.mode === "dynamic" ? "supported" : "memory_limit",
+    dynamicLocked: learner.setup.clara.mode !== "dynamic",
+    requiresAcknowledgement: true,
+    acknowledgementLabel: "I understand",
+  };
+  const clara = (
+    <OfflineClaraStage
+      useMainUi
+      savedMode={learner.setup.clara.mode}
+      selection={effectiveClaraSelection}
+      speaking={claraSpeaking}
+    />
+  );
+
   if (!resolved || finishedTitle) {
     return (
-      <main className="offline-activity offline-activity--complete">
-        <section className="offline-activity__complete-card">
-          <p className="offline-dashboard__eyebrow">Milestone saved</p>
-          <h1>{finishedTitle ?? "Reading Journey complete"}</h1>
-          <p>Your progress and achievement are stored on this device.</p>
-          <button className="offline-button" type="button" onClick={onExit}>
-            Return to dashboard
-          </button>
-        </section>
-      </main>
+      <LearnerActivityShell
+        className="offline-main-activity"
+        eyebrow="Milestone reached"
+        title={finishedTitle ?? "Reading Journey complete"}
+        itemPanelClassName="assessment-item-panel--result"
+        itemContent={
+          <LearnerActivityResult
+            ariaLabel="Saved offline activity result"
+            segments={[
+              {
+                key: "saved",
+                label: "Progress",
+                value: "Saved",
+                status: "On this device",
+              },
+            ]}
+            level="Your progress and achievement are ready offline."
+          />
+        }
+        primaryActionKey="return-journey"
+        primaryAction={
+          <BigButton
+            variant="primary-vertical"
+            leadingIcon={<AssessmentDockActionIcon kind="next" />}
+            onClick={onExit}
+          >
+            Return to Journey
+          </BigButton>
+        }
+        claraEmotion="happy"
+        claraSpeaking={false}
+        claraSpeechLevel={0}
+        onClaraReadyChange={() => undefined}
+        reduceMotion={Boolean(reduceMotion)}
+        onHome={onExit}
+        homeLabel="Back to Reading Journey"
+        claraContent={clara}
+      />
     );
   }
 
   const { activity, stage } = resolved;
   const item = activity.items[itemIndex];
   const answered = feedback !== null;
-  const progressPercent = Math.round(
-    ((itemIndex + (answered ? 1 : 0)) / activity.items.length) * 100,
-  );
-
-  const playPrompt = async () => {
-    if (runnerState !== "ready") return;
-    setErrorMessage(null);
-    setRunnerState("processing");
-    try {
-      await tts.play(item.ttsKey);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Clara's prompt could not play.",
-      );
-    } finally {
-      setRunnerState("ready");
-    }
-  };
 
   const saveAnswer = async (
     value: string | null,
@@ -224,7 +315,9 @@ export function OfflineJourneyActivity({
         });
         onLearnerChange(updated);
         setFinishedTitle(`${activity.title} complete`);
-        void tts.play(activity.completionTtsKey).catch(() => undefined);
+        void tts
+          .play(activity.completionTtsKey, learner.setup.speechLanguage)
+          .catch(() => undefined);
       } else {
         setFeedback(
           outcome === "correct"
@@ -248,7 +341,13 @@ export function OfflineJourneyActivity({
     setErrorMessage(null);
     try {
       await tts.stop();
-      await asr.startRecording(item.long ? 60_000 : 30_000);
+      setClaraSpeaking(false);
+      await asr.clearRecording();
+      await asr.startRecording(item.long ? 60_000 : 30_000, {
+        expectedTranscript: item.expected,
+      });
+      setHasCapture(false);
+      setHasPlayed(false);
       setRunnerState("recording");
     } catch (error) {
       setErrorMessage(
@@ -257,11 +356,64 @@ export function OfflineJourneyActivity({
     }
   };
 
-  const stopAndCheck = async () => {
+  const stopRecording = async () => {
     if (item.kind !== "speech" || runnerState !== "recording") return;
     setRunnerState("processing");
     try {
-      const result: OfflineAsrTranscription = await asr.stopAndTranscribe();
+      await asr.stopRecording();
+      setHasCapture(true);
+      setHasPlayed(false);
+      setRunnerState("recorded");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Recording could not stop.",
+      );
+      setRunnerState("ready");
+    }
+  };
+
+  const playRecording = async () => {
+    if (item.kind !== "speech" || runnerState !== "recorded" || !hasCapture)
+      return;
+    setErrorMessage(null);
+    setRunnerState("playing");
+    try {
+      await asr.playRecording();
+      setHasPlayed(true);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Your recording could not play. Try recording again.",
+      );
+    } finally {
+      setRunnerState("recorded");
+    }
+  };
+
+  const retryRecording = async () => {
+    if (item.kind !== "speech" || answered) return;
+    await asr.clearRecording().catch(() => undefined);
+    setHasCapture(false);
+    setHasPlayed(false);
+    setLastTranscript(null);
+    setErrorMessage(null);
+    setRunnerState("ready");
+  };
+
+  const submitSpeech = async () => {
+    if (
+      item.kind !== "speech" ||
+      runnerState !== "recorded" ||
+      !hasCapture ||
+      !hasPlayed ||
+      answered
+    )
+      return;
+    setErrorMessage(null);
+    setRunnerState("checking");
+    try {
+      const result: OfflineAsrTranscription = await asr.transcribeRecording();
       const score = scoreOfflineSpeech(
         result.transcript,
         item.expected,
@@ -276,75 +428,133 @@ export function OfflineJourneyActivity({
       setErrorMessage(
         error instanceof Error ? error.message : "Speech could not be checked.",
       );
-      setRunnerState("ready");
+      setRunnerState("recorded");
     }
   };
 
   const nextItem = () => {
+    void asr.clearRecording().catch(() => undefined);
     setItemIndex((current) => current + 1);
     setSelectedChoice(null);
     setFeedback(null);
     setLastTranscript(null);
     setErrorMessage(null);
+    setHasCapture(false);
+    setHasPlayed(false);
+    setRunnerState("ready");
   };
 
+  const primaryAction = answered ? (
+    <BigButton
+      variant="primary-vertical"
+      leadingIcon={<AssessmentDockActionIcon kind="next" />}
+      onClick={nextItem}
+    >
+      Next
+    </BigButton>
+  ) : item.kind === "choice" ? (
+    <BigButton
+      variant={
+        selectedChoice && runnerState === "ready"
+          ? "primary-vertical"
+          : "unavailable-vertical"
+      }
+      leadingIcon={<AssessmentDockActionIcon kind="submit" />}
+      disabled={!selectedChoice || runnerState !== "ready"}
+      busy={runnerState === "saving"}
+      onClick={() =>
+        void saveAnswer(
+          selectedChoice,
+          selectedChoice === item.correctChoice ? "correct" : "needs_support",
+        )
+      }
+    >
+      Submit
+    </BigButton>
+  ) : (
+    <BigButton
+      variant={
+        runnerState === "recorded" && hasCapture && hasPlayed
+          ? "primary-vertical"
+          : "unavailable-vertical"
+      }
+      leadingIcon={<AssessmentDockActionIcon kind="submit" />}
+      disabled={
+        runnerState !== "recorded" || !hasCapture || !hasPlayed || answered
+      }
+      busy={runnerState === "checking" || runnerState === "saving"}
+      busyLabel={runnerState === "checking" ? "Checking" : "Saving"}
+      onClick={() => void submitSpeech()}
+    >
+      Submit
+    </BigButton>
+  );
+
+  const isLongSpeech = item.kind === "speech" && item.long;
+  const displayClass = isLongSpeech
+    ? "assessment-passage offline-main-activity__passage"
+    : "assessment-item__prompt offline-main-activity__display";
+
   return (
-    <main className="offline-activity" data-screen="journey-activity">
-      <header className="offline-activity__header">
-        <button type="button" onClick={onExit} aria-label="Back to dashboard">
-          ←
-        </button>
-        <div>
-          <p>{item.phase}</p>
-          <h1>{activity.title}</h1>
+    <LearnerActivityShell
+      className={`offline-main-activity ${item.kind === "speech" ? "offline-main-activity--speech" : "offline-main-activity--choice"} ${isLongSpeech ? "lesson-five-page" : ""}`}
+      eyebrow={item.phase}
+      title={activity.title}
+      headerAside={
+        <LessonProgressRail
+          current={itemIndex + 1}
+          total={activity.items.length}
+        />
+      }
+      itemContent={
+        <div
+          className="assessment-item offline-main-activity__item"
+          data-stage={item.kind === "choice" ? "task-2a" : "task-2b"}
+          data-response-state={answered ? "committed" : "active"}
+        >
+          <p className="offline-main-activity__prompt">{item.prompt}</p>
+          {isLongSpeech ? (
+            <article className={displayClass}>
+              <div className="assessment-passage__heading">
+                <span>{item.phase}</span>
+                <strong>Read aloud</strong>
+              </div>
+              <p>{item.display}</p>
+            </article>
+          ) : (
+            <div className={displayClass}>
+              <strong>{item.display}</strong>
+            </div>
+          )}
+          {lastTranscript ? (
+            <p className="offline-main-activity__transcript">
+              You said: “{lastTranscript}”
+            </p>
+          ) : null}
+          {feedback ? (
+            <p className="offline-main-activity__feedback" role="status">
+              {feedback}
+            </p>
+          ) : null}
+          {errorMessage && item.kind === "choice" ? (
+            <p className="offline-main-activity__error" role="alert">
+              {errorMessage}
+            </p>
+          ) : null}
         </div>
-        <strong>
-          {itemIndex + 1}/{activity.items.length}
-        </strong>
-      </header>
-
-      <div
-        className="offline-activity__progress"
-        role="progressbar"
-        aria-label={`${activity.title} progress`}
-        aria-valuenow={progressPercent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <span style={{ width: `${progressPercent}%` }} />
-      </div>
-
-      <section
-        className="offline-activity__card"
-        aria-labelledby="activity-prompt"
-      >
-        <button
-          className="offline-activity__listen"
-          type="button"
-          disabled={runnerState !== "ready" || answered}
-          onClick={() => void playPrompt()}
-        >
-          Listen to Clara
-        </button>
-        <p id="activity-prompt">{item.prompt}</p>
-        <strong
-          className={
-            item.kind === "speech" && item.long
-              ? "offline-activity__passage"
-              : undefined
-          }
-        >
-          {item.display}
-        </strong>
-
-        {item.kind === "choice" ? (
-          <div className="offline-activity__choices">
+      }
+      recorderAriaLabel={
+        item.kind === "choice" ? "Answer choices" : "Voice recorder"
+      }
+      recorderContent={
+        item.kind === "choice" ? (
+          <div className="assessment-rhyme__choices">
             {item.choices.map((choice) => (
               <button
                 key={choice.key}
                 type="button"
-                disabled={answered || runnerState !== "ready"}
-                aria-pressed={selectedChoice === choice.key}
+                data-selected={selectedChoice === choice.key || undefined}
+                disabled={answered || runnerState !== "ready" || claraSpeaking}
                 onClick={() => setSelectedChoice(choice.key)}
               >
                 {choice.label}
@@ -352,72 +562,74 @@ export function OfflineJourneyActivity({
             ))}
           </div>
         ) : (
-          <div className="offline-activity__speech">
-            <button
-              className="offline-activity__record"
-              type="button"
-              data-recording={runnerState === "recording" || undefined}
-              aria-pressed={runnerState === "recording"}
-              disabled={
-                answered || !["ready", "recording"].includes(runnerState)
-              }
-              onClick={() =>
-                runnerState === "recording"
-                  ? void stopAndCheck()
+          <AssessmentRecorderView
+            state={
+              runnerState === "recording"
+                ? "recording"
+                : runnerState === "playing"
+                  ? "playing"
+                  : runnerState === "recorded" ||
+                      runnerState === "checking" ||
+                      runnerState === "saving"
+                    ? "recorded"
+                    : runnerState === "processing"
+                      ? "processing"
+                      : "idle"
+            }
+            unavailable={
+              answered ||
+              runnerState === "checking" ||
+              runnerState === "saving" ||
+              runnerState === "processing" ||
+              claraSpeaking
+            }
+            committed={answered}
+            hasCapture={hasCapture}
+            hasPlayed={hasPlayed}
+            error={errorMessage ?? ""}
+            recordLabel="Record answer"
+            stopLabel="Stop"
+            onControl={() =>
+              runnerState === "recording"
+                ? void stopRecording()
+                : runnerState === "recorded"
+                  ? void playRecording()
                   : void startRecording()
-              }
-            >
-              {runnerState === "recording" ? "Stop and check" : "Record answer"}
-            </button>
-            {lastTranscript ? <p>You said: “{lastTranscript}”</p> : null}
-          </div>
-        )}
-
-        {feedback ? (
-          <p className="offline-activity__feedback" role="status">
-            {feedback}
-          </p>
-        ) : null}
-        {errorMessage ? (
-          <p className="offline-activity__error" role="alert">
-            {errorMessage}
-          </p>
-        ) : null}
-
-        <div className="offline-activity__actions">
-          {answered ? (
-            <button className="offline-button" type="button" onClick={nextItem}>
-              Next
-            </button>
-          ) : item.kind === "choice" ? (
-            <button
-              className="offline-button"
-              type="button"
-              disabled={!selectedChoice || runnerState !== "ready"}
-              onClick={() =>
-                void saveAnswer(
-                  selectedChoice,
-                  selectedChoice === item.correctChoice
-                    ? "correct"
-                    : "needs_support",
-                )
-              }
-            >
-              Submit answer
-            </button>
-          ) : null}
-          {!answered ? (
-            <button
-              className="offline-activity__skip-item"
-              type="button"
-              disabled={runnerState !== "ready"}
-              onClick={() => void saveAnswer(null, "skipped")}
-            >
-              Skip this item
-            </button>
-          ) : null}
-        </div>
-      </section>
-    </main>
+            }
+            onRetry={() => void retryRecording()}
+          />
+        )
+      }
+      primaryActionKey={answered ? "next" : "submit"}
+      primaryAction={primaryAction}
+      secondaryAction={
+        !answered ? (
+          <BigButton
+            variant="skip-vertical"
+            disabled={
+              !["ready", "recorded"].includes(runnerState) ||
+              runnerState === "playing" ||
+              claraSpeaking
+            }
+            busy={runnerState === "saving"}
+            busyLabel="Skipping"
+            onClick={() => {
+              void asr.clearRecording().catch(() => undefined);
+              void saveAnswer(null, "skipped");
+            }}
+          >
+            Skip
+          </BigButton>
+        ) : undefined
+      }
+      claraEmotion={feedback?.startsWith("Correct") ? "happy" : "default"}
+      claraSpeaking={claraSpeaking}
+      claraSpeechLevel={0}
+      onClaraReadyChange={() => undefined}
+      reduceMotion={Boolean(reduceMotion)}
+      onHome={onExit}
+      homeLabel="Back to Reading Journey"
+      claraContent={clara}
+    />
   );
 }

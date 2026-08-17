@@ -1,58 +1,48 @@
 import { useMemo, useState } from "react";
 
+import { BigButton } from "../../components/ui/BigButton";
+import { Surface } from "../../components/ui/Surface";
+import { ReadingJourneyAchievementIcon } from "../../features/achievements/ReadingJourneyAchievementIcon";
 import { readingJourneyAchievements } from "../../features/achievements/readingJourneyAchievements";
-import {
-  getOfflineJourneyStage,
-  type OfflineLearnerState,
-} from "../storage/offlineLearnerState";
+import "../../features/learner-dashboard/learner-dashboard.css";
 
-const LESSON_NAMES = [
-  "Letters",
-  "Words",
-  "Phrases",
-  "Sentences",
-  "Short Passage",
-  "Comprehension",
-] as const;
+import type { OfflineLearnerState } from "../storage/offlineLearnerState";
 
-type ActivityStatus = OfflineLearnerState["journey"]["diagnostic"]["status"];
-
-const statusLabels: Record<ActivityStatus, string> = {
-  locked: "Locked",
-  available: "Ready",
-  in_progress: "Continue",
-  completed: "Complete",
-};
-
-function JourneyIcon({ status }: { status: ActivityStatus }) {
+function LearningIcon() {
   return (
-    <span className="offline-dashboard__journey-icon" aria-hidden="true">
-      {status === "completed" ? "✓" : status === "locked" ? "•" : "→"}
-    </span>
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M7 10c7-1 12 1 17 5v25c-5-4-10-6-17-5V10Z" />
+      <path d="M41 10c-7-1-12 1-17 5v25c5-4 10-6 17-5V10Z" />
+      <path d="M12 17c3 0 5 .6 8 2M12 23c3 0 5 .6 8 2M36 17c-3 0-5 .6-8 2M36 23c-3 0-5 .6-8 2" />
+    </svg>
+  );
+}
+
+function TrophyIcon() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M15 8h18v8c0 8-4 13-9 13s-9-5-9-13V8Z" />
+      <path d="M15 12H8v3c0 6 4 9 9 9M33 12h7v3c0 6-4 9-9 9M24 29v7M17 40h14M20 36h8" />
+    </svg>
   );
 }
 
 export function OfflineDashboard({
   learner,
   onOpenJourney,
-  onSkipDiagnostic,
   onResetProgress,
 }: {
   learner: OfflineLearnerState;
   onOpenJourney?: () => void;
-  onSkipDiagnostic?: () => Promise<void>;
   onResetProgress?: () => Promise<void>;
 }) {
   const [selectedAchievementKey, setSelectedAchievementKey] = useState<
     (typeof readingJourneyAchievements)[number]["key"]
-  >(readingJourneyAchievements[0].key);
-  const [confirmingSkip, setConfirmingSkip] = useState(false);
-  const [skipPending, setSkipPending] = useState(false);
-  const [skipError, setSkipError] = useState<string | null>(null);
+  >("reading.ready_reader");
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [resetPending, setResetPending] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
-  const earned = useMemo(
+  const earnedAchievements = useMemo(
     () => new Set(learner.journey.achievements.map(({ key }) => key)),
     [learner.journey.achievements],
   );
@@ -60,213 +50,173 @@ export function OfflineDashboard({
     readingJourneyAchievements.find(
       ({ key }) => key === selectedAchievementKey,
     ) ?? readingJourneyAchievements[0];
-  const nextStage = getOfflineJourneyStage(learner);
-  const completedLessons = learner.journey.lessons.filter(
+  const selectedAchievementIsEarned = earnedAchievements.has(
+    selectedAchievement.key,
+  );
+  const completedLessonCount = learner.journey.lessons.filter(
     ({ status }) => status === "completed",
   ).length;
+  const journeyComplete =
+    learner.journey.finalAssessment.status === "completed";
   const hasJourneyProgress =
     learner.journey.diagnostic.status !== "available" ||
     learner.journey.lessons.some(({ status }) => status !== "locked") ||
     learner.journey.finalAssessment.status !== "locked" ||
     learner.journey.achievements.length > 0;
-  const milestones = [
-    {
-      key: "diagnostic",
-      label: "Diagnostic Assessment",
-      status: learner.journey.diagnostic.status,
-    },
-    ...learner.journey.lessons.map((lesson) => ({
-      key: `lesson-${lesson.order}`,
-      label: `Lesson ${lesson.order}: ${LESSON_NAMES[lesson.order - 1]}`,
-      status: lesson.status,
-    })),
-    {
-      key: "final-assessment",
-      label: "Final Assessment",
-      status: learner.journey.finalAssessment.status,
-    },
-  ];
 
   return (
     <main
-      className="offline-dashboard"
-      aria-label="Offline learner dashboard"
+      className="learner-dashboard learner-flow-page"
+      aria-label="Learner dashboard"
       data-screen="dashboard"
+      tabIndex={-1}
     >
-      <div className="offline-dashboard__shell">
-        <header className="offline-dashboard__header">
-          <div>
-            <p className="offline-dashboard__eyebrow">Your reading path</p>
-            <h1>Welcome, {learner.profile.displayName}!</h1>
-          </div>
-          <div className="offline-dashboard__summary" aria-label="Progress">
-            <strong>{completedLessons}/6</strong>
-            <span>lessons complete</span>
-          </div>
-        </header>
-
-        <section
-          className="offline-dashboard__journey-card"
-          aria-labelledby="offline-journey-title"
+      <div className="learner-dashboard__shell">
+        <Surface
+          className="learner-dashboard__header-surface"
+          kind="panel"
+          padding="normal"
         >
-          <div className="offline-dashboard__section-heading">
+          <header
+            className="learner-dashboard__header"
+            aria-label="Learner summary"
+          >
             <div>
-              <p className="offline-dashboard__eyebrow">Continue offline</p>
-              <h2 id="offline-journey-title">Your Reading Journey</h2>
+              <p className="learner-dashboard__eyebrow">Your reading path</p>
+              <h1>Welcome, {learner.profile.displayName}!</h1>
             </div>
-            {onOpenJourney ? (
-              <button
-                className="offline-button offline-dashboard__continue"
-                type="button"
-                disabled={nextStage === "complete"}
-                onClick={onOpenJourney}
+            <div className="learner-dashboard__header-actions">
+              <div
+                className="learner-dashboard__identity"
+                aria-label="Journey status"
               >
-                {nextStage === "complete" ? "Journey complete" : "Continue"}
-              </button>
-            ) : null}
-          </div>
-
-          <ol className="offline-dashboard__journey-list">
-            {milestones.map((milestone, index) => (
-              <li
-                key={milestone.key}
-                data-status={milestone.status}
-                data-current={milestone.key === nextStage || undefined}
-              >
-                <JourneyIcon status={milestone.status} />
-                <div>
-                  <span>Step {index + 1}</span>
-                  <strong>{milestone.label}</strong>
-                </div>
-                <span className="offline-dashboard__status">
-                  {statusLabels[milestone.status]}
+                <span>
+                  {journeyComplete ? "Journey complete" : "Reading in progress"}
                 </span>
-              </li>
-            ))}
-          </ol>
-
-          {nextStage === "diagnostic" && onSkipDiagnostic ? (
-            <aside className="offline-dashboard__diagnostic-skip">
-              <div>
-                <strong>Need to begin lessons now?</strong>
-                <p>
-                  You can skip the Diagnostic Assessment and unlock Lesson 1.
-                  Your diagnostic score will be recorded as skipped.
-                </p>
+                <strong>{completedLessonCount} of 6</strong>
               </div>
-              {confirmingSkip ? (
-                <div
-                  className="offline-dashboard__skip-confirm"
-                  role="group"
-                  aria-label="Confirm skipping diagnostic"
-                >
-                  <button
-                    className="offline-dashboard__skip-cancel"
-                    type="button"
-                    disabled={skipPending}
-                    onClick={() => setConfirmingSkip(false)}
-                  >
-                    Keep Diagnostic
-                  </button>
-                  <button
-                    className="offline-dashboard__skip-diagnostic"
-                    type="button"
-                    disabled={skipPending}
-                    onClick={() => {
-                      setSkipPending(true);
-                      setSkipError(null);
-                      void onSkipDiagnostic()
-                        .catch((error: unknown) =>
-                          setSkipError(
-                            error instanceof Error
-                              ? error.message
-                              : "The Diagnostic could not be skipped.",
-                          ),
-                        )
-                        .finally(() => setSkipPending(false));
-                    }}
-                  >
-                    {skipPending ? "Saving…" : "Yes, skip Diagnostic"}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className="offline-dashboard__skip-diagnostic"
-                  type="button"
-                  onClick={() => setConfirmingSkip(true)}
-                >
-                  Skip Diagnostic
-                </button>
-              )}
-              {skipError ? <p role="alert">{skipError}</p> : null}
-            </aside>
-          ) : null}
-        </section>
-
-        <section
-          className="offline-dashboard__achievements"
-          aria-labelledby="offline-achievements-title"
-        >
-          <div className="offline-dashboard__section-heading">
-            <div>
-              <p className="offline-dashboard__eyebrow">Your collection</p>
-              <h2 id="offline-achievements-title">Achievements</h2>
             </div>
-            <strong className="offline-dashboard__achievement-count">
-              {earned.size}/{readingJourneyAchievements.length}
-            </strong>
+          </header>
+        </Surface>
+
+        <Surface
+          className="learner-dashboard__primary-card learner-dashboard__entrance"
+          kind="frame"
+          padding="roomy"
+        >
+          <div className="learner-dashboard__primary-symbol">
+            <LearningIcon />
           </div>
-
-          <ul
-            className="offline-dashboard__achievement-grid"
-            aria-label="Reading Journey achievements"
+          <div className="learner-dashboard__primary-copy">
+            <p className="learner-dashboard__next-label">
+              Your Reading Journey
+            </p>
+            <h2>
+              {journeyComplete
+                ? "Your Reading Journey is complete."
+                : "Choose your next reading activity."}
+            </h2>
+            <p>
+              {journeyComplete
+                ? "You completed all eight reading milestones. You can still review your journey."
+                : completedLessonCount > 0
+                  ? `${completedLessonCount} of 6 lessons complete. Choose any available activity.`
+                  : "Start with the Diagnostic Assessment, then choose any available lesson."}
+            </p>
+          </div>
+          <BigButton
+            className="learner-dashboard__primary-action"
+            aria-label="Open Reading Journey"
+            variant="primary"
+            onClick={onOpenJourney}
           >
-            {readingJourneyAchievements.map((achievement) => {
-              const isEarned = earned.has(achievement.key);
-              return (
-                <li key={achievement.key} data-earned={isEarned || undefined}>
-                  <button
-                    type="button"
-                    aria-label={`View ${achievement.name}: ${isEarned ? "Earned" : "Locked"}`}
-                    aria-pressed={selectedAchievement.key === achievement.key}
-                    onClick={() => setSelectedAchievementKey(achievement.key)}
-                  >
-                    <img src={achievement.iconPath} alt="" draggable="false" />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+            Open Journey
+          </BigButton>
+        </Surface>
 
-          <div
-            className="offline-dashboard__achievement-detail"
-            data-earned={earned.has(selectedAchievement.key) || undefined}
-            aria-live="polite"
+        <div className="learner-dashboard__quick-grid offline-dashboard__quick-grid">
+          <Surface
+            className="learner-dashboard__utility-card learner-dashboard__achievement-card learner-dashboard__entrance"
+            kind="panel"
+            padding="normal"
           >
-            <div>
-              <strong>{selectedAchievement.name}</strong>
-              <span>
-                {earned.has(selectedAchievement.key) ? "Earned" : "Locked"}
+            <div className="learner-dashboard__utility-heading">
+              <span className="learner-dashboard__utility-icon">
+                <TrophyIcon />
+              </span>
+              <div>
+                <p className="learner-dashboard__eyebrow">Your collection</p>
+                <h2>Achievements</h2>
+              </div>
+              <span className="learner-dashboard__achievement-count">
+                {earnedAchievements.size}/{readingJourneyAchievements.length}
               </span>
             </div>
-            <p>{selectedAchievement.criteria}</p>
-          </div>
-        </section>
+
+            <div className="learner-dashboard__achievement-case">
+              <ul
+                className="learner-dashboard__achievement-preview"
+                aria-label="Reading Journey achievements"
+              >
+                {readingJourneyAchievements.map((achievement) => {
+                  const isEarned = earnedAchievements.has(achievement.key);
+                  const isSelected =
+                    selectedAchievement.key === achievement.key;
+                  return (
+                    <li
+                      key={achievement.key}
+                      data-earned={isEarned || undefined}
+                      data-selected={isSelected || undefined}
+                      aria-label={`${achievement.name}: ${achievement.criteria}. ${isEarned ? "Earned" : "Locked"}`}
+                    >
+                      <button
+                        type="button"
+                        aria-label={`View ${achievement.name} achievement`}
+                        aria-pressed={isSelected}
+                        onClick={() =>
+                          setSelectedAchievementKey(achievement.key)
+                        }
+                      >
+                        <ReadingJourneyAchievementIcon
+                          achievement={achievement}
+                          className="learner-dashboard__achievement-icon"
+                        />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div
+                className="learner-dashboard__achievement-detail"
+                data-earned={selectedAchievementIsEarned || undefined}
+                aria-live="polite"
+              >
+                <div>
+                  <strong>{selectedAchievement.name}</strong>
+                  <span>
+                    {selectedAchievementIsEarned ? "Earned" : "Locked"}
+                  </span>
+                </div>
+                <p>{selectedAchievement.criteria}</p>
+              </div>
+            </div>
+          </Surface>
+        </div>
 
         {onResetProgress ? (
-          <section
-            className="offline-dashboard__reset"
-            aria-labelledby="offline-reset-title"
+          <Surface
+            className="learner-dashboard__utility-card learner-dashboard__entrance offline-dashboard__reset-card"
+            kind="panel"
+            padding="normal"
           >
             <div>
-              <p className="offline-dashboard__eyebrow">On this device</p>
+              <p className="learner-dashboard__eyebrow">On this device</p>
               <h2 id="offline-reset-title">Reset progress</h2>
               <p>
-                Start the Reading Journey again. This permanently removes your
-                answers, scores, lesson checkpoints, and achievements.
+                Start the Reading Journey again. This removes your answers,
+                scores, lesson checkpoints, and achievements from this device.
               </p>
             </div>
-
             {confirmingReset ? (
               <div
                 className="offline-dashboard__reset-confirm"
@@ -274,13 +224,13 @@ export function OfflineDashboard({
                 aria-label="Confirm resetting progress"
               >
                 <p>
-                  Your reader name and device setup will stay saved. Journey
-                  progress cannot be recovered after the reset.
+                  Your device setup stays saved. Journey progress cannot be
+                  recovered.
                 </p>
                 <div>
-                  <button
-                    className="offline-dashboard__reset-cancel"
-                    type="button"
+                  <BigButton
+                    variant="secondary"
+                    size="regular"
                     disabled={resetPending}
                     onClick={() => {
                       setConfirmingReset(false);
@@ -288,11 +238,11 @@ export function OfflineDashboard({
                     }}
                   >
                     Keep my progress
-                  </button>
-                  <button
-                    className="offline-dashboard__reset-confirm-button"
-                    type="button"
-                    disabled={resetPending}
+                  </BigButton>
+                  <BigButton
+                    size="regular"
+                    busy={resetPending}
+                    busyLabel="Resetting"
                     onClick={() => {
                       setResetPending(true);
                       setResetError(null);
@@ -308,22 +258,22 @@ export function OfflineDashboard({
                         .finally(() => setResetPending(false));
                     }}
                   >
-                    {resetPending ? "Resetting…" : "Yes, reset progress"}
-                  </button>
+                    Yes, reset progress
+                  </BigButton>
                 </div>
               </div>
             ) : (
-              <button
-                className="offline-dashboard__reset-open"
-                type="button"
+              <BigButton
+                variant="secondary"
+                size="regular"
                 disabled={!hasJourneyProgress}
                 onClick={() => setConfirmingReset(true)}
               >
-                {hasJourneyProgress ? "Reset progress" : "No progress to reset"}
-              </button>
+                Reset progress
+              </BigButton>
             )}
             {resetError ? <p role="alert">{resetError}</p> : null}
-          </section>
+          </Surface>
         ) : null}
       </div>
     </main>

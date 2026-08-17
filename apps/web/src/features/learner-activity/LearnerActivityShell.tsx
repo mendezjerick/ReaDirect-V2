@@ -32,6 +32,9 @@ interface LearnerActivityShellProps {
   claraSpeechLevel: number;
   onClaraReadyChange: (ready: boolean) => void;
   reduceMotion: boolean;
+  onHome?: () => void;
+  homeLabel?: string;
+  claraContent?: ReactNode;
 }
 
 export function LearnerActivityShell({
@@ -55,6 +58,9 @@ export function LearnerActivityShell({
   claraSpeechLevel,
   onClaraReadyChange,
   reduceMotion,
+  onHome,
+  homeLabel,
+  claraContent,
 }: LearnerActivityShellProps) {
   return (
     <main
@@ -66,7 +72,7 @@ export function LearnerActivityShell({
       <PointerTrail />
       <VectorCursor />
       <header className="assessment-header">
-        <LearnerActivityHomeButton />
+        <LearnerActivityHomeButton onHome={onHome} label={homeLabel} />
         <div className="assessment-header__copy">
           <p>{eyebrow}</p>
           <h1>{title}</h1>
@@ -95,16 +101,18 @@ export function LearnerActivityShell({
 
         <footer className="assessment-action-dock">
           <div className="assessment-clara">
-            <ClaraStage
-              emotion={claraEmotion}
-              behavior={claraBehavior}
-              cue={claraCue}
-              speaking={claraSpeaking}
-              speechLevel={claraSpeechLevel}
-              onLoadStateChange={(state) =>
-                onClaraReadyChange(state === "ready")
-              }
-            />
+            {claraContent ?? (
+              <ClaraStage
+                emotion={claraEmotion}
+                behavior={claraBehavior}
+                cue={claraCue}
+                speaking={claraSpeaking}
+                speechLevel={claraSpeechLevel}
+                onLoadStateChange={(state) =>
+                  onClaraReadyChange(state === "ready")
+                }
+              />
+            )}
           </div>
 
           <div

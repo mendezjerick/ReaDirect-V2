@@ -1,7 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import { ThemeProvider } from "../features/theme/ThemeProvider";
 import { OfflineApkApp } from "./OfflineApkApp";
+import "../styles/index.css";
 import "./offline-apk.css";
 
 const rootElement = document.getElementById("root");
@@ -12,6 +14,8 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <OfflineApkApp />
+    <ThemeProvider>
+      <OfflineApkApp />
+    </ThemeProvider>
   </StrictMode>,
 );

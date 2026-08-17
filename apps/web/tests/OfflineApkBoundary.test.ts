@@ -10,6 +10,7 @@ type OfflineApkBoundary = {
   entry: string;
   network_policy: string;
   forbidden_module_fragments: string[];
+  forbidden_bundle_tokens: string[];
   forbidden_route_families: string[];
   required_properties: Record<string, boolean>;
 };
@@ -25,6 +26,9 @@ describe("offline APK product boundary", () => {
     expect(resolveAppTarget(undefined)).toBe("web");
     expect(resolveAppTarget("web")).toBe("web");
     expect(resolveAppTarget("offline-apk")).toBe("offline-apk");
+    expect(resolveAppTarget(undefined, "offline-apk-simulator")).toBe(
+      "offline-apk",
+    );
     expect(() => resolveAppTarget("mobile-ish")).toThrow(
       "Unsupported ReaDirect application target",
     );
@@ -37,6 +41,9 @@ describe("offline APK product boundary", () => {
     expect(boundary.entry).toBe("src/apk/main.tsx");
     expect(boundary.network_policy).toBe("native_local_only");
     expect(boundary.forbidden_module_fragments).toContain("/src/main.tsx");
+    expect(boundary.forbidden_bundle_tokens).toEqual(
+      expect.arrayContaining(["APK Simulator", "readirect.offline.simulator"]),
+    );
     expect(boundary.forbidden_route_families).toEqual(
       expect.arrayContaining([
         "/learner/login",

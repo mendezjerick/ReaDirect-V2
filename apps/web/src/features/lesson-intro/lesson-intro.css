@@ -456,25 +456,14 @@
   stroke-width: 2.4;
 }
 
-.reading-journey-menu__skip {
-  justify-self: center;
-  padding: 0.55rem 1rem;
-  border: 0;
-  border-bottom: 0.12rem solid currentColor;
-  color: var(--color-text-secondary);
-  background: transparent;
-  cursor: pointer;
-  font-size: var(--font-support);
+.reading-journey-menu__skip.big-button {
+  min-width: min(100%, 14rem);
 }
 
-.reading-journey-menu__skip:hover,
-.reading-journey-menu__skip:focus-visible {
-  color: var(--color-action-primary);
-}
-
-.reading-journey-menu__skip:focus-visible {
-  outline: 0.2rem solid var(--color-focus);
-  outline-offset: 0.3rem;
+.reading-journey-menu__footer {
+  display: flex;
+  justify-content: center;
+  padding-block: 0.5rem 1rem;
 }
 
 .reading-journey-menu__sync {

@@ -4,11 +4,11 @@
 
 | Artifact                    |       Bytes | SHA-256                                                            | Distribution            |
 | --------------------------- | ----------: | ------------------------------------------------------------------ | ----------------------- |
-| `ReaDirect-Offline-1.0.apk` | 797,130,695 | `BADDE5F4D6DCD872F9A6EB04935391D761DE900EAA0E73947009F89C7B9A959E` | Direct website download |
-| `ReaDirect-Offline-1.0.aab` | 741,897,712 | `4B214058CF31E5C48192F6276129E3509C41FAF5A7B3B67B28E8834B759E0734` | Google Play upload      |
+| `ReaDirect-Offline-1.4.apk` | 830,532,386 | `8BC3BCC043CB1F8372845EAA835D0A695B2E8B24842770D139BB9DA3E54A2E17` | Direct website download |
+| `ReaDirect-Offline-1.4.aab` | 775,145,372 | `6C9B8F1CB624A3FF2604BB0B48D47A93609241AB7B842699DA04A22BF4C33CF4` | Google Play upload      |
 
 The files and matching `SHA256SUMS.txt` are generated under
-`output/releases/`. `ReaDirect-Offline-1.0-local-testing.apks` is a Bundletool
+`output/releases/`. `ReaDirect-Offline-1.4-local-testing.apks` is a Bundletool
 test archive and must not be distributed to learners.
 
 ## Signing identity and custody
@@ -60,12 +60,26 @@ This command:
 - Direct APK contains Low, Medium, and High ASR models at their pinned sizes.
 - Play base module contains no ASR model; its install-time pack contains all
   three pinned models.
-- Both formats contain 293 Ogg TTS cues totaling 9,887,949 bytes and no WAVs.
+- Both formats contain 586 English/Filipino Ogg TTS cues totaling 22,654,046
+  bytes and no WAVs.
 - Production native libraries: `arm64-v8a` and `armeabi-v7a`.
 - Manifest: microphone permission only, apart from AndroidX's app-scoped
   dynamic-receiver permission; no Internet, network-state, or Wi-Fi permission.
-- TypeScript typecheck, 59 offline tests, Java compilation, Android JVM tests,
+- TypeScript typecheck, 324 web tests, Java compilation, Android JVM tests,
   both production native builds, Android lint, R8, and resource shrinking: pass.
+- Dynamic Clara readiness remains stable across the intro's parent rerender;
+  the Live2D renderer no longer tears down and restarts after reporting ready.
+- After the Diagnostic is completed or skipped, all six lessons are selectable.
+  Each lesson stores independent item checkpoints and an interrupted lesson is
+  resumable from the Journey page.
+- Version 1.4 is installed as **ReaDirect Offline** (`com.readirect.offline`,
+  `versionCode` 5) while retaining the existing signing and upgrade identity.
+  It reuses main's responsive intro, dashboard, Journey, assessment,
+  lesson, recorder, theme, and language-control presentation. APK-only code
+  supplies local data and removes login, games, Learn with Clara, and online
+  actions.
+- All three theme backgrounds, all main learner fonts, the Journey book icon,
+  and themed Static Clara stills are integrity-pinned and packaged locally.
 
 ## Installed offline smoke test
 
@@ -76,7 +90,7 @@ Test Device it passed:
 - streamed APK installation and cold launch;
 - real initialization to 100%;
 - Low ASR and Static Clara independent acknowledgements;
-- intro and link transition to the lesson-only dashboard;
+- intro and link transition to the main learner dashboard;
 - Wi-Fi disabled plus airplane-mode setting enabled;
 - force-stop, cold relaunch, and restored dashboard state;
 - zero crash-buffer entries during both cold launches.

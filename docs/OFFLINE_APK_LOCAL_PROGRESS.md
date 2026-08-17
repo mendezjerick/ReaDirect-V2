@@ -14,8 +14,8 @@ Android stores the serialized state in private `SharedPreferences` through the
 3. copies the current record to a last-known-good backup; and
 4. synchronously commits the new state and revision.
 
-The current learner-state schema is version 2. Version 1 records are migrated
-locally before validation and atomically rewritten as version 2; no network or
+The current learner-state schema is version 4. Version 1-3 records are migrated
+locally before validation and atomically rewritten as version 4; no network or
 account is needed for migration.
 
 The TypeScript repository serializes in-process updates and retries a stale
@@ -29,12 +29,14 @@ cross-device recovery in the offline product.
 
 The dashboard reset is narrower than clearing Android app data. It atomically
 replaces only the journey record, preserving the reader profile, ASR and Clara
-selections, onboarding acknowledgement, and completed intro.
+selections, Clara's English/Filipino speech language, onboarding
+acknowledgement, and completed intro.
 
 ## Persisted data
 
 - local profile ID, display name, and timestamps;
-- onboarding/intro completion and selected ASR/Clara capability fields;
+- onboarding/intro completion, selected ASR/Clara capability fields, and
+  Clara's offline speech language;
 - diagnostic and final-assessment checkpoints, compact responses, and scores;
 - ordered checkpoints and completion for Lessons 1–6;
 - the eight Reading Journey achievement unlocks and seen state.
@@ -45,9 +47,11 @@ buffers are never written into learner progress storage.
 ## Journey invariants
 
 - the diagnostic starts available;
-- a confirmed diagnostic skip records a zero score and unlocks Lesson 1;
+- a confirmed diagnostic skip records a zero score and unlocks all six
+  lessons;
 - all lessons remain locked until the diagnostic is complete;
-- only the next required lesson can be available or in progress;
+- all six lessons become available after the diagnostic is completed or
+  skipped, and each lesson keeps independent in-progress checkpoints;
 - the final assessment unlocks only after Lesson 6;
 - achievements must exactly match completed journey activities;
 - assessment scores cannot exceed their maximums.

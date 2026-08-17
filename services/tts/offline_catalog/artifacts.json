@@ -1,9 +1,11 @@
 {
   "schemaVersion": 1,
   "catalogId": "clara-sh-offline-apk-v1",
-  "language": "en-PH",
+  "language": "en",
   "voice": "Ma'am Clara (SH)",
-  "excludedFeatures": ["learn-with-clara"],
+  "excludedFeatures": [
+    "learn-with-clara"
+  ],
   "assetCount": 293,
   "totalBytes": 110881372,
   "totalDurationMs": 1154880,

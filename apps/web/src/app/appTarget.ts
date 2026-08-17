@@ -1,6 +1,12 @@
 export type AppTarget = "web" | "offline-apk";
 
-export function resolveAppTarget(value: unknown): AppTarget {
+export function resolveAppTarget(value: unknown, mode?: string): AppTarget {
+  if (
+    (value === undefined || value === "") &&
+    (mode === "offline-apk" || mode === "offline-apk-simulator")
+  ) {
+    return "offline-apk";
+  }
   if (value === undefined || value === "" || value === "web") {
     return "web";
   }
@@ -13,6 +19,6 @@ export function resolveAppTarget(value: unknown): AppTarget {
 }
 
 export const APP_TARGET = resolveAppTarget(
-  import.meta.env.VITE_APP_TARGET ??
-    (import.meta.env.MODE === "offline-apk" ? "offline-apk" : undefined),
+  import.meta.env.VITE_APP_TARGET,
+  import.meta.env.MODE,
 );

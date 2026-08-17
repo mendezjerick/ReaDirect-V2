@@ -11,48 +11,36 @@ import {
 const now = "2026-08-17T01:00:00.000Z";
 
 describe("offline dashboard", () => {
-  it("shows only the persisted journey and its connected achievements", () => {
+  it("reuses the learner dashboard with only journey and achievements", () => {
     const learner = createInitialOfflineLearnerState({
       id: "5bc9dfb4-8163-4b59-aeab-f510fc2793e3",
       now,
     });
     render(<OfflineDashboard learner={learner} />);
 
+    expect(screen.getByText("Your Reading Journey")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Your Reading Journey" }),
+      screen.getByRole("button", { name: "Open Reading Journey" }),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/^Step \d$/)).toHaveLength(8);
-    expect(screen.getByText("Diagnostic Assessment")).toBeInTheDocument();
-    expect(screen.getByText("Lesson 6: Comprehension")).toBeInTheDocument();
-    expect(screen.getByText("Final Assessment")).toBeInTheDocument();
     expect(screen.getByText("0/8")).toBeInTheDocument();
     expect(screen.queryByText(/Games/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Learn with/i)).not.toBeInTheDocument();
   });
 
-  it("makes skipping the Diagnostic clear and requires confirmation", async () => {
+  it("opens the separate Journey screen from the primary dashboard action", () => {
     const learner = createInitialOfflineLearnerState({
       id: "5bc9dfb4-8163-4b59-aeab-f510fc2793e3",
       now,
     });
-    const onSkipDiagnostic = vi.fn().mockResolvedValue(undefined);
+    const onOpenJourney = vi.fn();
     render(
-      <OfflineDashboard
-        learner={learner}
-        onSkipDiagnostic={onSkipDiagnostic}
-      />,
+      <OfflineDashboard learner={learner} onOpenJourney={onOpenJourney} />,
     );
-
-    fireEvent.click(screen.getByRole("button", { name: "Skip Diagnostic" }));
-    expect(onSkipDiagnostic).not.toHaveBeenCalled();
-    expect(
-      screen.getByRole("group", { name: "Confirm skipping diagnostic" }),
-    ).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Yes, skip Diagnostic" }),
+      screen.getByRole("button", { name: "Open Reading Journey" }),
     );
-    expect(onSkipDiagnostic).toHaveBeenCalledOnce();
+    expect(onOpenJourney).toHaveBeenCalledOnce();
   });
 
   it("reflects completed milestones and earned achievement details", () => {
@@ -73,11 +61,11 @@ describe("offline dashboard", () => {
     );
     render(<OfflineDashboard learner={learner} />);
 
-    expect(screen.getByText("1/6")).toBeInTheDocument();
+    expect(screen.getByText("1 of 6")).toBeInTheDocument();
     expect(screen.getByText("2/8")).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("button", {
-        name: "View Letter Leader: Earned",
+        name: "View Letter Leader achievement",
       }),
     );
     expect(screen.getByText("Complete Lesson 1: Letters")).toBeInTheDocument();

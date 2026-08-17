@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "source": "assets/backgrounds/T1desktop.png",
+      "output": "assets/backgrounds/T1desktop.png",
+      "bytes": 1027825,
+      "sha256": "b0e7788e6ef4cca06399499b452ca6f451b868faa657efde235ab8b291f84f97"
+    },
+    {
+      "source": "assets/backgrounds/T1mobile.png",
+      "output": "assets/backgrounds/T1mobile.png",
+      "bytes": 1474766,
+      "sha256": "740b6b45c6cd85f1aac1f80e740f387a98a415982334157246c26b96b0c1f29e"
+    },
+    {
+      "source": "assets/backgrounds/T2desktop.jpg",
+      "output": "assets/backgrounds/T2desktop.jpg",
+      "bytes": 463787,
+      "sha256": "71118d12a3cd0537dff90da4691954910352aacf68bf8eef0dfb94efba9f0238"
+    },
+    {
+      "source": "assets/backgrounds/T2mobile.jpg",
+      "output": "assets/backgrounds/T2mobile.jpg",
+      "bytes": 512153,
+      "sha256": "9d251afdcd97e127f094b6e65e9650474ee73cdc5043c469bfff2e7951e5627f"
+    },
+    {
+      "source": "assets/backgrounds/T3desktop.png",
+      "output": "assets/backgrounds/T3desktop.png",
+      "bytes": 3208821,
+      "sha256": "50efcd6fda6ee3cbd654936d74a6954932607eb80c34020ddce2946e7ba21e3b"
+    },
+    {
+      "source": "assets/backgrounds/T3mobile.png",
+      "output": "assets/backgrounds/T3mobile.png",
+      "bytes": 13295996,
+      "sha256": "e23be7f6e057408cfadc3e3802bb3b8eff6518c55e4fd3cae2ba94e40f36654a"
+    },
+    {
+      "source": "assets/fonts/fredoka-variable.woff2",
+      "output": "assets/fonts/fredoka-variable.woff2",
+      "bytes": 29732,
+      "sha256": "99d6c78e043710d4f83ed90716779798b7b04eb690f73e0ad0e8f32d1f0e98c2"
+    },
+    {
+      "source": "assets/fonts/lexend-variable.woff2",
+      "output": "assets/fonts/lexend-variable.woff2",
+      "bytes": 39680,
+      "sha256": "b7e7538f59bff1812841d7627f8e49e70fe86438f9f7b397a028c0d05301c874"
+    },
+    {
+      "source": "assets/fonts/pixelify-sans-variable.woff2",
+      "output": "assets/fonts/pixelify-sans-variable.woff2",
+      "bytes": 12016,
+      "sha256": "4a5633a0c9c1b73abd133a56d3716c2d8df2ed03cb987346f72194aeb224f382"
+    },
+    {
+      "source": "assets/fonts/jersey-20-regular.woff2",
+      "output": "assets/fonts/jersey-20-regular.woff2",
+      "bytes": 19268,
+      "sha256": "222e2b84bc00b0e31ec5354f17853e3478ee808a3d117ae59a9b9997e45f77da"
+    },
+    {
+      "source": "assets/icons/book.png",
+      "output": "assets/icons/book.png",
+      "bytes": 621,
+      "sha256": "cbda5c3bcdd815f13ea036cb64d88d6312f4c67d66a0ea3e65840c353a90c0de"
+    },
+    {
+      "source": "assets/live2d/clara/stills/clara-t2.png",
+      "output": "assets/live2d/clara/stills/clara-t2.png",
+      "bytes": 160991,
+      "sha256": "4e749ae5bd38063f090a8399958c76a35c3885d66906c2a6d02524101a1025f8"
+    },
+    {
+      "source": "assets/live2d/clara/stills/clara-t3.png",
+      "output": "assets/live2d/clara/stills/clara-t3.png",
+      "bytes": 162293,
+      "sha256": "a3c40be5ef013d1702dc3a89af9a5e4c6f1e6fbc8afb3904396803d0436c234f"
+    }
+  ]
+}
