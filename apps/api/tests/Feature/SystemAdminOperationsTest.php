@@ -117,7 +117,7 @@ final class SystemAdminOperationsTest extends TestCase
         $this->getJson('/api/staff/system-admin/operations/games-and-players')->assertForbidden();
     }
 
-    public function test_system_administrator_can_represent_all_three_canonical_games_without_activating_alpha_or_two(): void
+    public function test_system_administrator_can_represent_all_three_canonical_games_with_alpha_active_and_two_inactive(): void
     {
         (new GameCatalogSeeder)->run();
         $this->authenticateStaff($this->systemAdministrator());
@@ -125,11 +125,11 @@ final class SystemAdminOperationsTest extends TestCase
         $response = $this->getJson('/api/staff/system-admin/operations/games-and-players')
             ->assertOk()
             ->assertJsonPath('summary.catalog_games', 3)
-            ->assertJsonPath('summary.active_games', 1);
+            ->assertJsonPath('summary.active_games', 2);
 
         $games = collect($response->json('games'))->keyBy('game_key');
 
-        $this->assertSame(false, $games[GameCatalog::GAME_ALPHA_KEY]['is_active']);
+        $this->assertSame(true, $games[GameCatalog::GAME_ALPHA_KEY]['is_active']);
         $this->assertSame(true, $games[GameCatalog::GAME_ONE_KEY]['is_active']);
         $this->assertSame(false, $games[GameCatalog::GAME_TWO_KEY]['is_active']);
     }

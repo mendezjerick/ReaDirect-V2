@@ -17,8 +17,8 @@ final class GameCatalogSeeder extends Seeder
                 'engine' => 'pixi',
                 'contract_version' => 1,
                 'current_ruleset_version' => 'game-alpha-score-v1',
-                'has_meaningful_progression' => false,
-                'new_is_active' => false,
+                'has_meaningful_progression' => true,
+                'new_is_active' => true,
             ],
             [
                 'game_key' => GameCatalog::GAME_ONE_KEY,

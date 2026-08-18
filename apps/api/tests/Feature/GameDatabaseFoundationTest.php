@@ -68,8 +68,8 @@ final class GameDatabaseFoundationTest extends TestCase
             'engine' => 'pixi',
             'contract_version' => 1,
             'current_ruleset_version' => 'game-alpha-score-v1',
-            'has_meaningful_progression' => false,
-            'is_active' => false,
+            'has_meaningful_progression' => true,
+            'is_active' => true,
         ]);
         $this->assertDatabaseHas('game_catalog', [
             'game_key' => GameCatalog::GAME_TWO_KEY,

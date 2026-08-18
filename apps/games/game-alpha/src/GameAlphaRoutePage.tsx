@@ -1,17 +1,81 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import type { GameSnapshot } from "./game/types";
 import { GameAlphaCanvas } from "./components/GameAlphaCanvas";
 import { GameAudio } from "./game/audio/GameAudio";
+import {
+  createInitialGameAlphaProgress,
+  gameAlphaStatesEqual,
+  hydrateGameAlphaSave,
+  mergeGameAlphaRun,
+  type HydratedGameAlphaProgress,
+} from "./game/persistence/gameAlphaSaveContract";
+import { persistGameAlphaRun } from "./game/persistence/gameAlphaSaveCoordinator";
+import type { GameAlphaHostAdapter } from "./host/GameAlphaHostAdapter";
 import "./styles/game-alpha.css";
 
-type Screen = "menu" | "play" | "instructions";
+const previewHost: GameAlphaHostAdapter = {
+  profile: null,
+  async load() {
+    return null;
+  },
+  async save(request) {
+    return {
+      checkpointKey: request.checkpointKey,
+      saveSchemaVersion: request.saveSchemaVersion,
+      state: request.state,
+      revision: request.expectedRevision + 1,
+      savedAt: new Date().toISOString(),
+    };
+  },
+  async newGame() {},
+};
 
-export function GameAlphaRoutePage() {
+type Screen = "menu" | "play" | "instructions";
+type LoadState =
+  | { status: "loading" }
+  | { status: "ready"; progress: HydratedGameAlphaProgress }
+  | { status: "error"; message: string };
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+export function GameAlphaRoutePage({
+  host = previewHost,
+}: {
+  host?: GameAlphaHostAdapter;
+}) {
   const navigate = useNavigate();
   const [screen, setScreen] = useState<Screen>("menu");
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
+  const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const menuAudioRef = useRef<GameAudio | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    setLoadState({ status: "loading" });
+    void host
+      .load()
+      .then((save) => {
+        if (active)
+          setLoadState({
+            status: "ready",
+            progress: hydrateGameAlphaSave(save),
+          });
+      })
+      .catch(() => {
+        if (active)
+          setLoadState({
+            status: "error",
+            message:
+              "Alphabet Defender progress could not be loaded. Try again.",
+          });
+      });
+    return () => {
+      active = false;
+    };
+  }, [host, retryKey]);
 
   useEffect(() => {
     const menuAudio = new GameAudio();
@@ -31,12 +95,105 @@ export function GameAlphaRoutePage() {
     void menuAudioRef.current?.play("menu-select");
     setScreen(nextScreen);
   };
-
   const backToLobby = () => {
     void menuAudioRef.current?.resume();
     void menuAudioRef.current?.play("menu-cancel");
     navigate("/learner/games");
   };
+  const progress =
+    loadState.status === "ready"
+      ? loadState.progress
+      : createInitialGameAlphaProgress();
+  const profileLabel = host.profile?.publicHandle ?? "Learner";
+  const saveMessage = useMemo(() => {
+    if (saveStatus === "saving") return "Saving completed run…";
+    if (saveStatus === "saved") return "Progress saved.";
+    if (saveStatus === "error")
+      return "Run complete locally, but progress could not be saved.";
+    return null;
+  }, [saveStatus]);
+
+  const handleRunComplete = (snapshot: GameSnapshot) => {
+    if (loadState.status !== "ready") return;
+    const current = loadState.progress;
+    const nextState = mergeGameAlphaRun(current.state, {
+      score: snapshot.score,
+      highestStageReached: snapshot.stage,
+    });
+    setLoadState({
+      status: "ready",
+      progress: { ...current, state: nextState },
+    });
+    if (gameAlphaStatesEqual(current.state, nextState)) return;
+    setSaveStatus("saving");
+    void persistGameAlphaRun(host, current, {
+      score: snapshot.score,
+      highestStageReached: snapshot.stage,
+    })
+      .then((saved) => {
+        setLoadState({ status: "ready", progress: saved });
+        setSaveStatus("saved");
+      })
+      .catch(() => setSaveStatus("error"));
+  };
+
+  const resetProgress = () => {
+    if (loadState.status !== "ready") return;
+    if (
+      !window.confirm(
+        "Reset Alphabet Defender progress? Your saved personal best will be cleared. Your game name and other games will not be affected.",
+      )
+    )
+      return;
+    setSaveStatus("saving");
+    void host
+      .newGame(loadState.progress.revision)
+      .then(() => {
+        setLoadState({
+          status: "ready",
+          progress: createInitialGameAlphaProgress(),
+        });
+        setSaveStatus("saved");
+      })
+      .catch(() => setSaveStatus("error"));
+  };
+
+  if (loadState.status === "loading")
+    return (
+      <main
+        className="game-route game-alpha learner-flow-page"
+        aria-label="Alphabet Defender"
+      >
+        <section className="game-alpha__stage">
+          <div className="game-alpha__panel" role="status">
+            <p>Loading your Alphabet Defender progress…</p>
+          </div>
+        </section>
+      </main>
+    );
+  if (loadState.status === "error")
+    return (
+      <main
+        className="game-route game-alpha learner-flow-page"
+        aria-label="Alphabet Defender"
+      >
+        <section className="game-alpha__stage">
+          <div className="game-alpha__panel" role="alert">
+            <p>{loadState.message}</p>
+            <button type="button" onClick={() => setRetryKey((key) => key + 1)}>
+              Retry
+            </button>
+            <button
+              className="game-alpha__text-button"
+              type="button"
+              onClick={backToLobby}
+            >
+              Back to Lobby
+            </button>
+          </div>
+        </section>
+      </main>
+    );
 
   return (
     <main
@@ -48,12 +205,21 @@ export function GameAlphaRoutePage() {
       <section className={`game-alpha__stage game-alpha__stage--${screen}`}>
         {screen === "menu" && (
           <div className="game-alpha__panel">
-            <p className="game-alpha__eyebrow">Game Alpha</p>
+            <p className="game-alpha__eyebrow">Game Alpha · {profileLabel}</p>
             <h1>Alphabet Defender</h1>
             <p className="game-alpha__summary">
               Break the hostile formation, rescue captured fighters, and protect
               the one alphabet ally hidden in every wave.
             </p>
+            <p className="game-alpha__summary">
+              Personal best: {progress.state.personalBestScore.toLocaleString()}{" "}
+              · Highest stage: {progress.state.highestStageReached}
+            </p>
+            {saveMessage && (
+              <p role={saveStatus === "error" ? "alert" : "status"}>
+                {saveMessage}
+              </p>
+            )}
             <div className="game-alpha__actions">
               <button type="button" onClick={() => openScreen("play")}>
                 Play
@@ -74,6 +240,13 @@ export function GameAlphaRoutePage() {
                 Sound: {soundEnabled ? "On" : "Off"}
               </button>
               <button
+                className="game-alpha__secondary"
+                type="button"
+                onClick={resetProgress}
+              >
+                Reset Progress
+              </button>
+              <button
                 className="game-alpha__text-button"
                 type="button"
                 onClick={backToLobby}
@@ -83,7 +256,6 @@ export function GameAlphaRoutePage() {
             </div>
           </div>
         )}
-
         {screen === "instructions" && (
           <div className="game-alpha__panel">
             <p className="game-alpha__eyebrow">Instructions</p>
@@ -109,11 +281,12 @@ export function GameAlphaRoutePage() {
             </button>
           </div>
         )}
-
         {screen === "play" && (
           <GameAlphaCanvas
+            initialHighScore={progress.state.personalBestScore}
             soundEnabled={soundEnabled}
             onSoundEnabledChange={setSoundEnabled}
+            onRunComplete={handleRunComplete}
             onExit={() => openScreen("menu")}
           />
         )}
