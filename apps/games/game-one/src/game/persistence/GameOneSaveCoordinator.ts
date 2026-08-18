@@ -1,6 +1,6 @@
 import type {
   GameOneHostAdapter,
-  GameOneSaveRequest
+  GameOneSaveRequest,
 } from "../../host/GameOneHostAdapter";
 
 type PendingSave = Omit<GameOneSaveRequest, "expectedRevision">;
@@ -16,7 +16,7 @@ export class GameOneSaveCoordinator {
     private readonly host: GameOneHostAdapter,
     initialRevision: number,
     private readonly onError: (error: Error) => void,
-    private readonly debounceMilliseconds = 600
+    private readonly debounceMilliseconds = 600,
   ) {
     this.revision = initialRevision;
   }
@@ -44,15 +44,33 @@ export class GameOneSaveCoordinator {
       .then(async () => {
         const saved = await this.host.save({
           ...pending,
-          expectedRevision: this.revision
+          expectedRevision: this.revision,
         });
         this.revision = saved.revision;
       })
-      .catch((reason: unknown) => {
+      .catch(async (reason: unknown) => {
+        // A request can time out after the server committed it. Re-read once
+        // before reporting a failure so an identical server state is treated
+        // as acknowledged rather than duplicated or overwritten.
+        try {
+          const remote = await this.host.load();
+          if (
+            remote &&
+            remote.checkpointKey === pending.checkpointKey &&
+            remote.saveSchemaVersion === pending.saveSchemaVersion &&
+            JSON.stringify(remote.state) === JSON.stringify(pending.state)
+          ) {
+            this.revision = remote.revision;
+            return;
+          }
+        } catch {
+          // Preserve the original save error when reconciliation is unavailable.
+        }
         this.failed = true;
-        const error = reason instanceof Error
-          ? reason
-          : new Error("Game One progress could not be saved.");
+        const error =
+          reason instanceof Error
+            ? reason
+            : new Error("Game One progress could not be saved.");
         this.onError(error);
         throw error;
       });
@@ -68,14 +86,15 @@ export class GameOneSaveCoordinator {
     this.pending = null;
     await this.writeChain;
     try {
-      await this.host.reset(this.revision);
+      await this.host.newGame(this.revision);
       this.revision = 0;
       this.failed = false;
     } catch (reason: unknown) {
       this.failed = true;
-      const error = reason instanceof Error
-        ? reason
-        : new Error("Game One progress could not be reset.");
+      const error =
+        reason instanceof Error
+          ? reason
+          : new Error("Game One progress could not be reset.");
       this.onError(error);
       throw error;
     }

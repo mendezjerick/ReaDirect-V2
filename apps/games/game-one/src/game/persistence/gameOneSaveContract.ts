@@ -1,30 +1,36 @@
 import type { QuestionRound } from "../questions/questionRound";
 import {
   createStoredMissionProgress,
-  restoreMissionProgress
+  restoreMissionProgress,
 } from "../mission/missionPersistence";
 import {
   createInitialExplorationProgress,
   restoreExplorationProgress,
-  type ExplorationProgress
+  type ExplorationProgress,
 } from "../world/explorationPersistence";
 import {
   createStoredTutorialProgress,
   restoreTutorialProgress,
-  type TutorialState
+  type TutorialState,
 } from "../tutorial/tutorialState";
-import { CONTENT_VERSION_ID, type GameLanguage } from "../localization/language";
+import {
+  CONTENT_VERSION_ID,
+  type GameLanguage,
+} from "../localization/language";
 import type { GameOneRemoteSave } from "../../host/GameOneHostAdapter";
-import { createInitialMissionState, type MissionState } from "../mission/missionState";
+import {
+  createInitialMissionState,
+  type MissionState,
+} from "../mission/missionState";
 import {
   DEFAULT_PLAYABLE_CHARACTER_ID,
   isPlayableCharacterId,
-  type PlayableCharacterId
+  type PlayableCharacterId,
 } from "../player/playableCharacters";
 import {
   createInitialShopTaskState,
   restoreShopTaskState,
-  type ShopTaskState
+  type ShopTaskState,
 } from "../shop/shopTask";
 
 export const GAME_ONE_SAVE_SCHEMA_VERSION = 1;
@@ -40,7 +46,7 @@ export type HydratedGameOneProgress = {
 
 export function createInitialGameOneProgress(
   rounds: readonly QuestionRound[],
-  language: GameLanguage
+  language: GameLanguage,
 ): HydratedGameOneProgress {
   return {
     mission: createInitialMissionState(rounds, language),
@@ -48,26 +54,32 @@ export function createInitialGameOneProgress(
     tutorial: restoreTutorialProgress(null),
     characterId: DEFAULT_PLAYABLE_CHARACTER_ID,
     shopTask: createInitialShopTaskState(),
-    revision: 0
+    revision: 0,
   };
 }
 
 export function hydrateGameOneProgress(
   save: GameOneRemoteSave | null,
   rounds: readonly QuestionRound[],
-  language: GameLanguage
+  language: GameLanguage,
 ): HydratedGameOneProgress {
   if (save === null) return createInitialGameOneProgress(rounds, language);
   if (save.saveSchemaVersion !== GAME_ONE_SAVE_SCHEMA_VERSION) {
     throw new Error("This Game One save uses an unsupported schema version.");
   }
-  if (!save.state || typeof save.state !== "object" || Array.isArray(save.state)) {
+  if (
+    !save.state ||
+    typeof save.state !== "object" ||
+    Array.isArray(save.state)
+  ) {
     throw new Error("The Game One save state is invalid.");
   }
 
   const state = save.state as Record<string, unknown>;
   if (state.contentVersionId !== CONTENT_VERSION_ID) {
-    throw new Error("This Game One save belongs to a different content version.");
+    throw new Error(
+      "This Game One save belongs to a different content version.",
+    );
   }
 
   const mission = restoreMissionProgress(state.mission, rounds);
@@ -84,7 +96,7 @@ export function hydrateGameOneProgress(
       ? state.characterId
       : DEFAULT_PLAYABLE_CHARACTER_ID,
     shopTask: restoreShopTaskState(state.shopTask),
-    revision: save.revision
+    revision: save.revision,
   };
 }
 
@@ -93,7 +105,7 @@ export function createGameOneSaveState(
   exploration: ExplorationProgress,
   tutorial: TutorialState,
   characterId: PlayableCharacterId,
-  shopTask: ShopTaskState
+  shopTask: ShopTaskState,
 ): Record<string, unknown> {
   return {
     contentVersionId: CONTENT_VERSION_ID,
@@ -101,7 +113,7 @@ export function createGameOneSaveState(
     exploration,
     tutorial: createStoredTutorialProgress(tutorial),
     characterId,
-    shopTask
+    shopTask,
   };
 }
 

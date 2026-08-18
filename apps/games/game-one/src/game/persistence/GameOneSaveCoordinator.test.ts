@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type {
   GameOneHostAdapter,
-  GameOneSaveRequest
+  GameOneSaveRequest,
 } from "../../host/GameOneHostAdapter";
 import { GameOneSaveCoordinator } from "./GameOneSaveCoordinator";
 
@@ -18,7 +18,12 @@ describe("GameOneSaveCoordinator", () => {
       requests.push(request);
       return remoteSave(request.expectedRevision + 1, request.state);
     });
-    const coordinator = new GameOneSaveCoordinator(host, 3, () => undefined, 50);
+    const coordinator = new GameOneSaveCoordinator(
+      host,
+      3,
+      () => undefined,
+      50,
+    );
 
     coordinator.schedule(pendingSave({ step: 1 }));
     coordinator.schedule(pendingSave({ step: 2 }));
@@ -30,8 +35,14 @@ describe("GameOneSaveCoordinator", () => {
     await coordinator.flush();
 
     expect(requests).toHaveLength(2);
-    expect(requests[0]).toMatchObject({ expectedRevision: 3, state: { step: 2 } });
-    expect(requests[1]).toMatchObject({ expectedRevision: 4, state: { step: 3 } });
+    expect(requests[0]).toMatchObject({
+      expectedRevision: 3,
+      state: { step: 2 },
+    });
+    expect(requests[1]).toMatchObject({
+      expectedRevision: 4,
+      state: { step: 3 },
+    });
     expect(coordinator.getRevision()).toBe(5);
   });
 
@@ -44,7 +55,7 @@ describe("GameOneSaveCoordinator", () => {
       hostAdapter(save),
       2,
       onError,
-      10
+      10,
     );
 
     coordinator.schedule(pendingSave({ step: 1 }));
@@ -57,12 +68,31 @@ describe("GameOneSaveCoordinator", () => {
     expect(onError).toHaveBeenCalledOnce();
   });
 
+  it("reconciles a timed-out write when the server already has the same state", async () => {
+    vi.useFakeTimers();
+    const pending = pendingSave({ step: 1 });
+    const host = hostAdapter(
+      vi.fn().mockRejectedValue(new Error("request timed out")),
+    );
+    host.load = vi.fn(async () => remoteSave(4, pending.state));
+    const onError = vi.fn();
+    const coordinator = new GameOneSaveCoordinator(host, 3, onError, 10);
+
+    coordinator.schedule(pending);
+    await vi.advanceTimersByTimeAsync(10);
+    await coordinator.flush();
+
+    expect(host.load).toHaveBeenCalledOnce();
+    expect(coordinator.getRevision()).toBe(4);
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it("resets only through the host using the latest revision", async () => {
     const reset = vi.fn().mockResolvedValue(undefined);
     const coordinator = new GameOneSaveCoordinator(
-      { ...hostAdapter(), reset },
+      { ...hostAdapter(), newGame: reset },
       7,
-      () => undefined
+      () => undefined,
     );
 
     await coordinator.reset();
@@ -76,12 +106,12 @@ describe("GameOneSaveCoordinator", () => {
     const coordinator = new GameOneSaveCoordinator(
       {
         ...hostAdapter(),
-        reset: vi.fn().mockRejectedValue(
-          new Error("Game One progress changed elsewhere.")
-        )
+        newGame: vi
+          .fn()
+          .mockRejectedValue(new Error("Game One progress changed elsewhere.")),
       },
       9,
-      onError
+      onError,
     );
 
     await expect(coordinator.reset()).rejects.toThrow(/changed elsewhere/i);
@@ -94,7 +124,7 @@ function pendingSave(state: Record<string, unknown>) {
   return {
     checkpointKey: "mission-1",
     saveSchemaVersion: 1,
-    state
+    state,
   };
 }
 
@@ -104,17 +134,18 @@ function remoteSave(revision: number, state: unknown) {
     saveSchemaVersion: 1,
     state,
     revision,
-    savedAt: "2026-07-26T08:00:00Z"
+    savedAt: "2026-07-26T08:00:00Z",
   };
 }
 
 function hostAdapter(
   save: GameOneHostAdapter["save"] = async (request) =>
-    remoteSave(request.expectedRevision + 1, request.state)
+    remoteSave(request.expectedRevision + 1, request.state),
 ): GameOneHostAdapter {
   return {
     load: async () => null,
     save,
-    reset: async () => undefined
+    newGame: async () => undefined,
+    profile: null,
   };
 }

@@ -90,7 +90,7 @@ describe("createGameOneHostAdapter", () => {
         expectedRevision: 3,
       }),
     ).resolves.toMatchObject({ revision: 4, checkpointKey: "mission-2" });
-    await host.reset(4);
+    await host.newGame(4);
 
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
       checkpoint_key: "mission-2",

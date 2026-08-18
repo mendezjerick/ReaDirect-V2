@@ -4,6 +4,7 @@ import { apiFetchWithNormalTimeout as fetch } from "../../lib/apiUrl";
 
 import type {
   GameOneHostAdapter,
+  GameOneGameProfile,
   GameOneRemoteSave,
   GameOneSaveRequest,
 } from "@readirect/game-one";
@@ -28,8 +29,10 @@ const GAME_ONE_NEW_GAME_URL =
 
 export function createGameOneHostAdapter({
   token,
+  profile = null,
 }: {
   token: string;
+  profile?: GameOneGameProfile | null;
 }): GameOneHostAdapter {
   const headers: HeadersInit = {
     Accept: "application/json",
@@ -40,6 +43,7 @@ export function createGameOneHostAdapter({
   const requestSave = () => fetch(GAME_ONE_SAVE_URL, { headers });
 
   return {
+    profile,
     async load() {
       return parseSaveResponse(await requestSave());
     },
@@ -64,7 +68,7 @@ export function createGameOneHostAdapter({
       return save;
     },
 
-    async reset(expectedRevision: number) {
+    async newGame(expectedRevision: number) {
       const response = await fetch(GAME_ONE_NEW_GAME_URL, {
         method: "POST",
         headers,

@@ -8,6 +8,7 @@ export function createGameOnePreviewHostAdapter(): GameOneHostAdapter {
   let currentSave: GameOneRemoteSave | null = null;
 
   return {
+    profile: null,
     async load() {
       return currentSave;
     },
@@ -25,7 +26,7 @@ export function createGameOnePreviewHostAdapter(): GameOneHostAdapter {
       return currentSave;
     },
 
-    async reset(expectedRevision: number) {
+    async newGame(expectedRevision: number) {
       assertCurrentRevision(expectedRevision, currentSave);
       currentSave = null;
     },

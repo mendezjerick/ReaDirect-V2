@@ -14,7 +14,15 @@ export type GameOneSaveRequest = {
 };
 
 export interface GameOneHostAdapter {
+  readonly profile: GameOneGameProfile | null;
   load(): Promise<GameOneRemoteSave | null>;
   save(request: GameOneSaveRequest): Promise<GameOneRemoteSave>;
-  reset(expectedRevision: number): Promise<void>;
+  newGame(expectedRevision: number): Promise<void>;
 }
+export type GameOneGameProfile = {
+  audience: "learner";
+  username: string;
+  discriminator: string;
+  publicHandle: string;
+  isActive: boolean;
+};
