@@ -12,9 +12,15 @@ export function GameTwoHostPage() {
   const session = loadLearnerSession();
   const { profile } = useGameLobbySkeleton();
   const token = session?.token ?? null;
+  const previewMode = session?.learner.account_purpose === "portal_system";
   const host = useMemo<GameTwoHostAdapter | null>(
-    () => (token ? createGameTwoHostAdapter({ token, profile }) : null),
-    [profile, token],
+    () =>
+      previewMode
+        ? null
+        : token
+          ? createGameTwoHostAdapter({ token, profile })
+          : null,
+    [previewMode, profile, token],
   );
 
   if (!session) {
@@ -26,6 +32,7 @@ export function GameTwoHostPage() {
       />
     );
   }
+  if (previewMode) return <GameTwoRoutePage />;
   if (!host) return <Navigate to="/learner/games" replace />;
   return <GameTwoRoutePage host={host} />;
 }

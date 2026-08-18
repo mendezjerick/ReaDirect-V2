@@ -15,9 +15,15 @@ export function GameAlphaHostPage() {
   const session = loadLearnerSession();
   const { profile } = useGameLobbySkeleton();
   const token = session?.token ?? null;
+  const previewMode = session?.learner.account_purpose === "portal_system";
   const host = useMemo<GameAlphaHostAdapter | null>(
-    () => (token ? createGameAlphaHostAdapter({ token, profile }) : null),
-    [profile, token],
+    () =>
+      previewMode
+        ? null
+        : token
+          ? createGameAlphaHostAdapter({ token, profile })
+          : null,
+    [previewMode, profile, token],
   );
   if (!session)
     return (
@@ -27,6 +33,7 @@ export function GameAlphaHostPage() {
         state={{ from: location.pathname }}
       />
     );
+  if (previewMode) return <GameAlphaRoutePage />;
   if (!host) return <Navigate to="/learner/games" replace />;
   return <GameAlphaRoutePage host={host} />;
 }

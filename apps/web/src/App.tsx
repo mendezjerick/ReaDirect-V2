@@ -455,7 +455,13 @@ function RootPage() {
 }
 
 function LearnerGamesRoute() {
-  return <GameLobbyPage guestUnavailable={!loadLearnerSession()} />;
+  const session = loadLearnerSession();
+  return (
+    <GameLobbyPage
+      guestUnavailable={!session}
+      previewMode={session?.learner.account_purpose === "portal_system"}
+    />
+  );
 }
 
 export function App() {
@@ -546,7 +552,12 @@ export function App() {
               <Route
                 path="/learner/games/game-alpha"
                 element={
-                  <RequireSkeletonGameProfile>
+                  <RequireSkeletonGameProfile
+                    bypass={
+                      loadLearnerSession()?.learner.account_purpose ===
+                      "portal_system"
+                    }
+                  >
                     <GameAlphaHostPage />
                   </RequireSkeletonGameProfile>
                 }
@@ -575,7 +586,12 @@ export function App() {
               <Route
                 path="/learner/games/game-two"
                 element={
-                  <RequireSkeletonGameProfile>
+                  <RequireSkeletonGameProfile
+                    bypass={
+                      loadLearnerSession()?.learner.account_purpose ===
+                      "portal_system"
+                    }
+                  >
                     <GameTwoHostPage />
                   </RequireSkeletonGameProfile>
                 }

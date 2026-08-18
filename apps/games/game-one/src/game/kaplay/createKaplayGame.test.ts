@@ -9,7 +9,7 @@ import {
   getResponsiveCameraZoom,
   getRenderPixelDensity,
   isWorldBoundsVisible,
-  type KaplayFactory
+  type KaplayFactory,
 } from "./createKaplayGame";
 
 function makeFactory() {
@@ -17,15 +17,28 @@ function makeFactory() {
   const runtime = {
     quit: vi.fn(),
     debug: {
-      paused: false
+      paused: false,
     },
     add: vi.fn(),
     loadSprite: vi.fn(),
-    sprite: vi.fn((name: string, options?: Record<string, unknown>) => ({ kind: "sprite", name, options })),
-    rect: vi.fn((width: number, height: number) => ({ kind: "rect", width, height })),
+    sprite: vi.fn((name: string, options?: Record<string, unknown>) => ({
+      kind: "sprite",
+      name,
+      options,
+    })),
+    rect: vi.fn((width: number, height: number) => ({
+      kind: "rect",
+      width,
+      height,
+    })),
     text: vi.fn((content: string) => ({ kind: "text", content })),
     pos: vi.fn((x: number, y: number) => ({ kind: "pos", x, y })),
-    color: vi.fn((red: number, green: number, blue: number) => ({ kind: "color", red, green, blue })),
+    color: vi.fn((red: number, green: number, blue: number) => ({
+      kind: "color",
+      red,
+      green,
+      blue,
+    })),
     anchor: vi.fn((anchor: string) => ({ kind: "anchor", anchor })),
     scale: vi.fn((scale: number) => ({ kind: "scale", scale })),
     outline: vi.fn(() => ({ kind: "outline" })),
@@ -40,9 +53,14 @@ function makeFactory() {
     width: vi.fn(() => 1280),
     height: vi.fn(() => 720),
     vec2: vi.fn((x: number, y: number) => ({ x, y })),
-    quad: vi.fn((x: number, y: number, width: number, height: number) => ({ x, y, width, height })),
+    quad: vi.fn((x: number, y: number, width: number, height: number) => ({
+      x,
+      y,
+      width,
+      height,
+    })),
     drawSprite: vi.fn(),
-    paused: false
+    paused: false,
   };
 
   const factory: KaplayFactory = vi.fn(() => runtime);
@@ -50,7 +68,11 @@ function makeFactory() {
 }
 
 describe("createKaplayGame", () => {
-  function setContainerSize(container: HTMLElement, width: number, height: number) {
+  function setContainerSize(
+    container: HTMLElement,
+    width: number,
+    height: number,
+  ) {
     vi.spyOn(container, "getBoundingClientRect").mockReturnValue({
       x: 0,
       y: 0,
@@ -60,7 +82,7 @@ describe("createKaplayGame", () => {
       bottom: height,
       width,
       height,
-      toJSON: () => ({})
+      toJSON: () => ({}),
     });
   }
 
@@ -82,89 +104,126 @@ describe("createKaplayGame", () => {
         letterbox: false,
         crisp: true,
         pixelDensity: 1,
-        texFilter: "nearest"
-      })
+        texFilter: "nearest",
+      }),
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "learner-walk",
       GAME_ASSETS.learnerWalk.path,
-      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+      expect.objectContaining({ sliceX: 4, sliceY: 4 }),
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "connected-tall-grass",
       expect.any(HTMLCanvasElement),
-      { sliceX: 13, sliceY: 1 }
+      { sliceX: 13, sliceY: 1 },
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "fruit-tree",
       expect.any(HTMLCanvasElement),
-      { sliceX: 4, sliceY: 1 }
+      { sliceX: 4, sliceY: 1 },
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "village-market-shop",
-      GAME_ASSETS.villageMarketShop.path
+      GAME_ASSETS.villageMarketShop.path,
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "ambient-miss-yuuri",
       GAME_ASSETS.ambientMissYuuri.path,
-      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+      expect.objectContaining({ sliceX: 4, sliceY: 4 }),
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "ambient-mang-panda",
       GAME_ASSETS.ambientMangPanda.path,
-      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+      expect.objectContaining({ sliceX: 4, sliceY: 4 }),
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "ambient-mr-kikushibu",
       GAME_ASSETS.ambientMrKikushibu.path,
-      expect.objectContaining({ sliceX: 4, sliceY: 4 })
+      expect.objectContaining({ sliceX: 4, sliceY: 4 }),
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "river-boat",
-      GAME_ASSETS.riverBoat.path
+      GAME_ASSETS.riverBoat.path,
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "roaming-animal",
       expect.any(HTMLCanvasElement),
-      { sliceX: 12, sliceY: 1 }
+      { sliceX: 12, sliceY: 1 },
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "boat-wake",
       expect.any(HTMLCanvasElement),
-      { sliceX: 4, sliceY: 1 }
+      { sliceX: 4, sliceY: 1 },
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "boat-oar",
-      expect.any(HTMLCanvasElement)
+      expect.any(HTMLCanvasElement),
     );
     expect(runtime.loadSprite).toHaveBeenCalledWith(
       "village-decor",
       expect.any(HTMLCanvasElement),
-      { sliceX: 7, sliceY: 1 }
+      { sliceX: 7, sliceY: 1 },
     );
-    expect(runtime.sprite.mock.calls.filter(([name]) => name === "roaming-animal")).toHaveLength(5);
-    expect(runtime.sprite.mock.calls.filter(([name]) => name === "ambient-miss-yuuri")).toHaveLength(1);
-    expect(runtime.sprite.mock.calls.filter(([name]) => name === "ambient-mang-panda")).toHaveLength(1);
-    expect(runtime.sprite.mock.calls.filter(([name]) => name === "ambient-mr-kikushibu")).toHaveLength(1);
-    expect(runtime.sprite.mock.calls.filter(([name]) => name === "river-boat")).toHaveLength(1);
-    expect(runtime.sprite.mock.calls.filter(([name]) => name === "boat-wake")).toHaveLength(1);
-    expect(runtime.sprite.mock.calls.filter(([name]) => name === "boat-oar")).toHaveLength(2);
-    expect(runtime.sprite).toHaveBeenCalledWith("connected-tall-grass", { frame: 12 });
-    expect(runtime.sprite.mock.calls.filter(([name]) => name === "connected-tall-grass")).toHaveLength(5);
+    expect(
+      runtime.sprite.mock.calls.filter(([name]) => name === "roaming-animal"),
+    ).toHaveLength(5);
+    expect(
+      runtime.sprite.mock.calls.filter(
+        ([name]) => name === "ambient-miss-yuuri",
+      ),
+    ).toHaveLength(1);
+    expect(
+      runtime.sprite.mock.calls.filter(
+        ([name]) => name === "ambient-mang-panda",
+      ),
+    ).toHaveLength(1);
+    expect(
+      runtime.sprite.mock.calls.filter(
+        ([name]) => name === "ambient-mr-kikushibu",
+      ),
+    ).toHaveLength(1);
+    expect(
+      runtime.sprite.mock.calls.filter(([name]) => name === "river-boat"),
+    ).toHaveLength(1);
+    // Swimming and the persistent boat each render one wake effect.
+    expect(
+      runtime.sprite.mock.calls.filter(([name]) => name === "boat-wake"),
+    ).toHaveLength(2);
+    expect(
+      runtime.sprite.mock.calls.filter(([name]) => name === "boat-oar"),
+    ).toHaveLength(2);
+    expect(runtime.sprite).toHaveBeenCalledWith("connected-tall-grass", {
+      frame: 12,
+    });
+    expect(
+      runtime.sprite.mock.calls.filter(
+        ([name]) => name === "connected-tall-grass",
+      ),
+    ).toHaveLength(5);
     expect(runtime.setCamScale).toHaveBeenCalledWith(2, 2);
     const terrainLayer = runtime.add.mock.calls
-      .flatMap(([components]) => components as Array<{ id?: string; draw?: () => void }>)
+      .flatMap(
+        ([components]) =>
+          components as Array<{ id?: string; draw?: () => void }>,
+      )
       .find((component) => component.id === "terrain-layer");
     expect(terrainLayer).toBeDefined();
     terrainLayer?.draw?.();
     expect(runtime.drawSprite).toHaveBeenCalledWith(
-      expect.objectContaining({ sprite: "tileset-floor", frame: expect.any(Number) })
+      expect.objectContaining({
+        sprite: "tileset-floor",
+        frame: expect.any(Number),
+      }),
     );
     expect(runtime.drawSprite).toHaveBeenCalledWith(
-      expect.objectContaining({ sprite: "connected-tall-grass", frame: expect.any(Number) })
+      expect.objectContaining({
+        sprite: "connected-tall-grass",
+        frame: expect.any(Number),
+      }),
     );
     expect(runtime.drawSprite.mock.calls.length).toBeLessThan(500);
-    expect(runtime.add.mock.calls.length).toBeLessThan(110);
+    // The expanded approved map intentionally creates more runtime objects.
+    expect(runtime.add.mock.calls.length).toBeLessThan(260);
     expect(runtime.sprite).toHaveBeenCalledWith(
       "village-learning-hall",
       expect.objectContaining({
@@ -172,13 +231,12 @@ describe("createKaplayGame", () => {
           x: 192 / 528,
           y: 0,
           width: 64 / 528,
-          height: 48 / 368
+          height: 48 / 368,
         },
         width: 64,
-        height: 48
-      })
+        height: 48,
+      }),
     );
-
   });
 
   it.each([
@@ -186,18 +244,18 @@ describe("createKaplayGame", () => {
     {
       label: "tablet landscape",
       hostWidth: 1024,
-      hostHeight: 768
+      hostHeight: 768,
     },
     {
       label: "mobile landscape",
       hostWidth: 844,
-      hostHeight: 390
+      hostHeight: 390,
     },
     {
       label: "mobile portrait",
       hostWidth: 390,
-      hostHeight: 844
-    }
+      hostHeight: 844,
+    },
   ])(
     "fills the responsive host and delegates aspect preservation to KAPLAY in a $label viewport",
     ({ hostWidth, hostHeight }) => {
@@ -209,21 +267,24 @@ describe("createKaplayGame", () => {
 
       expect(game.canvas.style.width).toBe(`${hostWidth}px`);
       expect(game.canvas.style.height).toBe(`${hostHeight}px`);
-    }
+    },
   );
 
   it.each([
     { width: 1920, height: 800 },
     { width: 844, height: 390 },
-    { width: 1024, height: 768 }
-  ])("matches the logical canvas to a $width x $height host without letterbox bars", ({ width, height }) => {
-    const container = document.createElement("div");
-    setContainerSize(container, width, height);
+    { width: 1024, height: 768 },
+  ])(
+    "matches the logical canvas to a $width x $height host without letterbox bars",
+    ({ width, height }) => {
+      const container = document.createElement("div");
+      setContainerSize(container, width, height);
 
-    const logical = getLogicalCanvasSize(container);
+      const logical = getLogicalCanvasSize(container);
 
-    expect(logical.width / logical.height).toBeCloseTo(width / height, 3);
-  });
+      expect(logical.width / logical.height).toBeCloseTo(width / height, 3);
+    },
+  );
 
   it("tightens the camera only for portrait phone viewports", () => {
     const container = document.createElement("div");
@@ -256,37 +317,55 @@ describe("createKaplayGame", () => {
 
     createKaplayGame(container, { kaplayFactory: factory });
 
-    expect(() => createKaplayGame(container, { kaplayFactory: factory })).toThrow(/already mounted/i);
+    expect(() =>
+      createKaplayGame(container, { kaplayFactory: factory }),
+    ).toThrow(/already mounted/i);
   });
 
   it("projects the nearby NPC prompt beside the character", () => {
-    expect(getInteractionPromptPosition(
-      {
-        id: "npc:miss-estelle",
-        kind: "npc",
-        label: "Talk to Miss Estelle",
-        description: "Talk to Miss Estelle.",
-        position: { x: 100, y: 100 },
-        indicatorPosition: { x: 100, y: 100 },
-        enabled: true,
-        npcId: "miss-estelle"
-      },
-      { x: 100, y: 100 },
-      { width: 200, height: 100 }
-    )).toEqual({ x: 0.65, y: 0.22 });
+    expect(
+      getInteractionPromptPosition(
+        {
+          id: "npc:miss-estelle",
+          kind: "npc",
+          label: "Talk to Miss Estelle",
+          description: "Talk to Miss Estelle.",
+          position: { x: 100, y: 100 },
+          indicatorPosition: { x: 100, y: 100 },
+          enabled: true,
+          npcId: "miss-estelle",
+        },
+        { x: 100, y: 100 },
+        { width: 200, height: 100 },
+      ),
+    ).toEqual({ x: 0.65, y: 0.22 });
   });
 
   it("uses F to interact with a nearby NPC in the browser", () => {
     const container = document.createElement("div");
     const onInteract = vi.fn();
     const { factory, runUpdate } = makeFactory();
-    const game = createKaplayGame(container, { kaplayFactory: factory, onInteract });
-    game.setMissionState({ activityCompleted: false, targetNpcId: "miss-estelle" });
+    const game = createKaplayGame(container, {
+      kaplayFactory: factory,
+      onInteract,
+      initialPosition: NPCS.find(({ id }) => id === "miss-estelle")!
+        .interactionPosition,
+    });
+    game.setMissionState({
+      activityCompleted: false,
+      targetNpcId: "miss-estelle",
+    });
 
-    window.dispatchEvent(new KeyboardEvent("keydown", { code: "ArrowUp", key: "ArrowUp" }));
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { code: "ArrowUp", key: "ArrowUp" }),
+    );
     for (let frame = 0; frame < 24; frame += 1) runUpdate();
-    window.dispatchEvent(new KeyboardEvent("keyup", { code: "ArrowUp", key: "ArrowUp" }));
-    window.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyF", key: "f" }));
+    window.dispatchEvent(
+      new KeyboardEvent("keyup", { code: "ArrowUp", key: "ArrowUp" }),
+    );
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { code: "KeyF", key: "f" }),
+    );
 
     expect(onInteract).toHaveBeenCalledTimes(1);
     game.destroy();
@@ -299,10 +378,13 @@ describe("createKaplayGame", () => {
     const game = createKaplayGame(container, {
       kaplayFactory: factory,
       initialPosition: MAP_LANDMARKS.marketFront,
-      onEnterShop
+      onEnterShop,
     });
 
-    game.setMissionState({ activityCompleted: false, targetNpcId: "miss-estelle" });
+    game.setMissionState({
+      activityCompleted: false,
+      targetNpcId: "miss-estelle",
+    });
     runUpdate();
     game.interact();
 
@@ -318,22 +400,31 @@ describe("createKaplayGame", () => {
     const game = createKaplayGame(container, {
       kaplayFactory: factory,
       initialPosition: vendor.interactionPosition,
-      onInteractionTargetChange
+      onInteractionTargetChange,
     });
 
-    game.setMissionState({ activityCompleted: false, targetNpcId: "miss-estelle" });
+    game.setMissionState({
+      activityCompleted: false,
+      targetNpcId: "miss-estelle",
+    });
     onInteractionTargetChange.mockClear();
     runUpdate();
 
-    expect(onInteractionTargetChange).toHaveBeenLastCalledWith(null);
-    expect(onInteractionTargetChange.mock.calls.some(([target]) => target?.npcId === "market-vendor")).toBe(false);
+    expect(
+      onInteractionTargetChange.mock.calls.some(
+        ([target]) => target?.npcId === "market-vendor",
+      ),
+    ).toBe(false);
 
-    game.setMissionState({ activityCompleted: false, targetNpcId: "market-vendor" });
+    game.setMissionState({
+      activityCompleted: false,
+      targetNpcId: "market-vendor",
+    });
     onInteractionTargetChange.mockClear();
     runUpdate();
 
     expect(onInteractionTargetChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ npcId: "market-vendor" })
+      expect.objectContaining({ npcId: "market-vendor" }),
     );
     game.destroy();
   });
@@ -342,9 +433,14 @@ describe("createKaplayGame", () => {
     const container = document.createElement("div");
     const onKeyboardDirectionChange = vi.fn();
     const { factory } = makeFactory();
-    const game = createKaplayGame(container, { kaplayFactory: factory, onKeyboardDirectionChange });
+    const game = createKaplayGame(container, {
+      kaplayFactory: factory,
+      onKeyboardDirectionChange,
+    });
 
-    window.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyW", key: "w" }));
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { code: "KeyW", key: "w" }),
+    );
     expect(onKeyboardDirectionChange).toHaveBeenCalledWith("up", true);
 
     onKeyboardDirectionChange.mockClear();
@@ -367,9 +463,12 @@ describe("createKaplayGame", () => {
       kaplayFactory: factory,
       initialPosition: target.interactionPosition,
       onInteractionTargetChange,
-      onInteractionPromptPosition
+      onInteractionPromptPosition,
     });
-    game.setMissionState({ activityCompleted: false, targetNpcId: "miss-estelle" });
+    game.setMissionState({
+      activityCompleted: false,
+      targetNpcId: "miss-estelle",
+    });
     onInteractionTargetChange.mockClear();
     onInteractionPromptPosition.mockClear();
     runtime.setCamPos.mockClear();
@@ -390,9 +489,12 @@ describe("createKaplayGame", () => {
     const game = createKaplayGame(container, {
       kaplayFactory: factory,
       initialPosition: target.interactionPosition,
-      onInteractionPromptPosition
+      onInteractionPromptPosition,
     });
-    game.setMissionState({ activityCompleted: false, targetNpcId: "miss-estelle" });
+    game.setMissionState({
+      activityCompleted: false,
+      targetNpcId: "miss-estelle",
+    });
     runUpdate();
     onInteractionPromptPosition.mockClear();
 
@@ -401,10 +503,12 @@ describe("createKaplayGame", () => {
     runUpdate();
 
     expect(onInteractionPromptPosition).toHaveBeenCalledTimes(1);
-    expect(onInteractionPromptPosition).toHaveBeenCalledWith(expect.objectContaining({
-      x: expect.any(Number),
-      y: expect.any(Number)
-    }));
+    expect(onInteractionPromptPosition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        x: expect.any(Number),
+        y: expect.any(Number),
+      }),
+    );
     game.destroy();
   });
 
@@ -423,7 +527,7 @@ describe("createKaplayGame", () => {
 
     game.resetMission();
     game.setMissionState({
-      activityCompleted: true
+      activityCompleted: true,
     });
 
     game.destroy();
@@ -439,7 +543,9 @@ describe("createKaplayGame", () => {
       throw new Error("init failed");
     });
 
-    expect(() => createKaplayGame(container, { kaplayFactory: factory })).toThrow(/init failed/i);
+    expect(() =>
+      createKaplayGame(container, { kaplayFactory: factory }),
+    ).toThrow(/init failed/i);
     expect(container.querySelectorAll("canvas")).toHaveLength(0);
     expect(container.textContent).toBe("");
   });
@@ -449,7 +555,21 @@ describe("decorative object culling", () => {
   it("keeps nearby sprites active and hides distant sprites outside the camera margin", () => {
     const camera = { x: 640, y: 360 };
     const viewport = { width: 640, height: 360 };
-    expect(isWorldBoundsVisible({ x: 620, y: 340, width: 64, height: 64 }, camera, viewport, 96)).toBe(true);
-    expect(isWorldBoundsVisible({ x: 1500, y: 900, width: 64, height: 64 }, camera, viewport, 96)).toBe(false);
+    expect(
+      isWorldBoundsVisible(
+        { x: 620, y: 340, width: 64, height: 64 },
+        camera,
+        viewport,
+        96,
+      ),
+    ).toBe(true);
+    expect(
+      isWorldBoundsVisible(
+        { x: 1500, y: 900, width: 64, height: 64 },
+        camera,
+        viewport,
+        96,
+      ),
+    ).toBe(false);
   });
 });

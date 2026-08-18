@@ -120,6 +120,11 @@ type WelcomePhase = "visible" | "leaving" | "hidden";
 
 export function GameRoutePage({ host }: { host: GameOneHostAdapter }) {
   const [retryKey, setRetryKey] = useState(0);
+  const loadRequestRef = useRef<{
+    host: GameOneHostAdapter;
+    retryKey: number;
+    promise: Promise<GameOneRemoteSave | null>;
+  } | null>(null);
   const [loadState, setLoadState] = useState<
     | { status: "loading" }
     | { status: "ready"; save: GameOneRemoteSave | null }
@@ -129,8 +134,14 @@ export function GameRoutePage({ host }: { host: GameOneHostAdapter }) {
   useEffect(() => {
     let cancelled = false;
     setLoadState({ status: "loading" });
-    host
-      .load()
+    const cachedRequest = loadRequestRef.current;
+    const request =
+      cachedRequest?.host === host && cachedRequest.retryKey === retryKey
+        ? cachedRequest.promise
+        : host.load();
+    loadRequestRef.current = { host, retryKey, promise: request };
+
+    request
       .then((save) => {
         if (!cancelled) setLoadState({ status: "ready", save });
       })

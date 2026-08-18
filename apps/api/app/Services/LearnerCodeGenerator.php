@@ -31,7 +31,10 @@ final class LearnerCodeGenerator
 
             $code = $this->format($value);
             $value++;
-        } while (in_array($code, self::RESERVED_CODES, true));
+        } while (
+            in_array($code, self::RESERVED_CODES, true)
+            || DB::table('learners')->where('learner_code', $code)->exists()
+        );
 
         DB::table('learner_code_counters')
             ->where('id', 1)

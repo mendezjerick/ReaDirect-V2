@@ -35,6 +35,37 @@ function renderLobby(profileClient: {
 }
 
 describe("authoritative Games Lobby profile", () => {
+  it("opens portal previews without requesting a persistent game profile", async () => {
+    const client = {
+      loadGameProfile: vi.fn(async () => {
+        throw new Error("preview mode must not call the profile API");
+      }),
+      createGameProfile: vi.fn(),
+    };
+
+    render(
+      <MemoryRouter initialEntries={["/learner/games"]}>
+        <GameLobbySkeletonProvider profileClient={client}>
+          <Routes>
+            <Route
+              path="/learner/games"
+              element={<GameLobbyPage previewMode />}
+            />
+          </Routes>
+        </GameLobbySkeletonProvider>
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Ready to play?" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Game preview mode")).toHaveTextContent(
+      "Progress is not saved",
+    );
+    expect(client.loadGameProfile).not.toHaveBeenCalled();
+    expect(client.createGameProfile).not.toHaveBeenCalled();
+  });
+
   it("loads and displays the server-issued handle", async () => {
     const client = {
       loadGameProfile: vi.fn(async () => serverProfile),

@@ -18,6 +18,11 @@ type GameKey = GameSlot["key"];
 
 export interface GameLobbyPageProps {
   guestUnavailable?: boolean;
+  /**
+   * Portal learners can explore the games without a persistent game profile.
+   * Preview mode deliberately keeps all progress in the current page session.
+   */
+  previewMode?: boolean;
 }
 
 const gameSlots = registeredGames;
@@ -44,6 +49,7 @@ function GameSymbol({ gameKey }: { gameKey: GameKey }) {
 
 export function GameLobbyPage({
   guestUnavailable = false,
+  previewMode = false,
 }: GameLobbyPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -67,18 +73,20 @@ export function GameLobbyPage({
   const launchingGame = gameSlots.find((game) => game.key === launchingGameKey);
 
   useEffect(() => {
-    if (!guestUnavailable && status === "idle") void loadProfile();
-  }, [guestUnavailable, loadProfile, status]);
+    if (!guestUnavailable && !previewMode && status === "idle") {
+      void loadProfile();
+    }
+  }, [guestUnavailable, loadProfile, previewMode, status]);
 
   if (guestUnavailable) {
     return <GuestUnavailableState />;
   }
 
-  if (status === "idle" || status === "loading") {
+  if (!previewMode && (status === "idle" || status === "loading")) {
     return <ProfileLoadingState />;
   }
 
-  if (profileError) {
+  if (!previewMode && profileError) {
     if (
       profileError instanceof GameProfileRequestError &&
       profileError.status === 401
@@ -107,13 +115,6 @@ export function GameLobbyPage({
     );
   }
 
-  const launchGame = (game: GameSlot) => {
-    if (launchingGameKey) return;
-
-    setLaunchingGameKey(game.key);
-    startRouteTransition(() => navigate(game.route));
-  };
-
   const submitUsername = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalized = username.trim();
@@ -132,6 +133,8 @@ export function GameLobbyPage({
       }
     });
   };
+
+  const showGames = previewMode || Boolean(profile);
 
   return (
     <main
@@ -158,7 +161,7 @@ export function GameLobbyPage({
           </button>
         </header>
 
-        {!profile ? (
+        {!showGames ? (
           <section
             className="game-lobby__username-card"
             aria-labelledby="game-username-title"
@@ -211,10 +214,14 @@ export function GameLobbyPage({
           <>
             <section
               className="game-lobby__profile"
-              aria-label="Current game profile"
+              aria-label={
+                previewMode ? "Game preview mode" : "Current game profile"
+              }
             >
-              <span>Your game username</span>
-              <strong>{profile.publicHandle}</strong>
+              <span>{previewMode ? "Preview mode" : "Your game username"}</span>
+              <strong>
+                {previewMode ? "Progress is not saved" : profile?.publicHandle}
+              </strong>
             </section>
 
             <section
@@ -259,7 +266,11 @@ export function GameLobbyPage({
                       aria-label={game.accessibleName}
                       aria-busy={launchingGameKey === game.key || undefined}
                       disabled={Boolean(launchingGame)}
-                      onClick={() => launchGame(game)}
+                      onClick={() => {
+                        if (launchingGameKey) return;
+                        setLaunchingGameKey(game.key);
+                        startRouteTransition(() => navigate(game.route));
+                      }}
                     >
                       {launchingGameKey === game.key
                         ? "Loading..."

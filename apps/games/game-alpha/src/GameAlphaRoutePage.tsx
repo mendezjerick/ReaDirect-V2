@@ -205,54 +205,86 @@ export function GameAlphaRoutePage({
       <section className={`game-alpha__stage game-alpha__stage--${screen}`}>
         {screen === "menu" && (
           <div className="game-alpha__panel">
-            <p className="game-alpha__eyebrow">Game Alpha · {profileLabel}</p>
-            <h1>Alphabet Defender</h1>
-            <p className="game-alpha__summary">
-              Break the hostile formation, rescue captured fighters, and protect
-              the one alphabet ally hidden in every wave.
-            </p>
-            <p className="game-alpha__summary">
-              Personal best: {progress.state.personalBestScore.toLocaleString()}{" "}
-              · Highest stage: {progress.state.highestStageReached}
-            </p>
+            <header className="game-alpha__menu-header">
+              <p className="game-alpha__eyebrow">Game Alpha · Mission 01</p>
+              <span className="game-alpha__profile-pill">{profileLabel}</span>
+            </header>
+
+            <div className="game-alpha__hero">
+              <div className="game-alpha__hero-mark" aria-hidden="true">
+                AD
+              </div>
+              <div>
+                <h1>Alphabet Defender</h1>
+                <p className="game-alpha__summary">
+                  Protect the letter ally. Break the hostile formation.
+                </p>
+              </div>
+            </div>
+
+            <div className="game-alpha__stats" aria-label="Mission progress">
+              <div className="game-alpha__stat">
+                <span>Personal best</span>
+                <strong>
+                  {progress.state.personalBestScore.toLocaleString()}
+                </strong>
+              </div>
+              <div className="game-alpha__stat">
+                <span>Highest stage</span>
+                <strong>{progress.state.highestStageReached}</strong>
+              </div>
+            </div>
+
             {saveMessage && (
-              <p role={saveStatus === "error" ? "alert" : "status"}>
+              <p
+                className="game-alpha__save-status"
+                role={saveStatus === "error" ? "alert" : "status"}
+              >
                 {saveMessage}
               </p>
             )}
             <div className="game-alpha__actions">
-              <button type="button" onClick={() => openScreen("play")}>
-                Play
-              </button>
               <button
-                className="game-alpha__secondary"
+                className="game-alpha__primary-action"
                 type="button"
-                onClick={() => openScreen("instructions")}
+                onClick={() => openScreen("play")}
               >
-                How to Play
+                <span>Start mission</span>
+                <span aria-hidden="true">→</span>
               </button>
-              <button
-                className="game-alpha__secondary"
-                type="button"
-                aria-pressed={soundEnabled}
-                onClick={() => setSoundEnabled((enabled) => !enabled)}
-              >
-                Sound: {soundEnabled ? "On" : "Off"}
-              </button>
-              <button
-                className="game-alpha__secondary"
-                type="button"
-                onClick={resetProgress}
-              >
-                Reset Progress
-              </button>
-              <button
-                className="game-alpha__text-button"
-                type="button"
-                onClick={backToLobby}
-              >
-                Back to Lobby
-              </button>
+              <div className="game-alpha__utility-actions">
+                <button
+                  className="game-alpha__secondary"
+                  type="button"
+                  onClick={() => openScreen("instructions")}
+                >
+                  How to play
+                </button>
+                <button
+                  className="game-alpha__secondary"
+                  type="button"
+                  aria-pressed={soundEnabled}
+                  onClick={() => setSoundEnabled((enabled) => !enabled)}
+                >
+                  Sound {soundEnabled ? "on" : "off"}
+                </button>
+              </div>
+              <div className="game-alpha__menu-footer">
+                <button
+                  className="game-alpha__text-button"
+                  type="button"
+                  onClick={resetProgress}
+                >
+                  Reset progress
+                </button>
+                <button
+                  className="game-alpha__text-button"
+                  type="button"
+                  onClick={backToLobby}
+                >
+                  Back to lobby
+                </button>
+              </div>
             </div>
           </div>
         )}
