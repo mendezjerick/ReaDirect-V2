@@ -22,6 +22,25 @@
   width: 100%;
 }
 
+.game-two__asset-loading,
+.game-two__asset-error {
+  display: grid;
+  min-height: 100svh;
+  place-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: #111;
+  color: #fff;
+  font:
+    700 0.9rem/1.4 Lexend,
+    sans-serif;
+  text-align: center;
+}
+
+.game-two__asset-error button {
+  min-height: 2.75rem;
+}
+
 .game-two__lobby-link {
   position: fixed;
   top: max(0.75rem, env(safe-area-inset-top));
@@ -31,8 +50,53 @@
   border: 2px solid #fff;
   background: rgba(17, 17, 17, 0.85);
   color: #fff;
-  font: 700 0.7rem/1.2 Lexend, sans-serif;
+  font:
+    700 0.7rem/1.2 Lexend,
+    sans-serif;
   cursor: pointer;
+}
+
+.game-two__save-status,
+.game-two__save-warning {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: max(0.75rem, env(safe-area-inset-right));
+  z-index: 320;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: min(28rem, calc(100vw - 1.5rem));
+  padding: 0.55rem 0.75rem;
+  border: 2px solid #fff;
+  background: rgba(17, 17, 17, 0.92);
+  color: #fff;
+  font:
+    700 0.7rem/1.3 Lexend,
+    sans-serif;
+}
+
+.game-two__save-warning {
+  color: #ffd166;
+}
+
+.game-two__save-warning button,
+.game-two__reset-link {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.55rem;
+  border: 2px solid #fff;
+  background: #9c27b0;
+  color: #fff;
+  font:
+    700 0.65rem/1.2 Lexend,
+    sans-serif;
+}
+
+.game-two__reset-link {
+  position: fixed;
+  right: max(0.75rem, env(safe-area-inset-right));
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  z-index: 320;
+  background: rgba(17, 17, 17, 0.85);
 }
 
 .game-two__stage {

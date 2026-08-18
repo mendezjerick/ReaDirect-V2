@@ -38,7 +38,7 @@ final class GameCatalogSeeder extends Seeder
                 'contract_version' => 1,
                 'current_ruleset_version' => 'v1',
                 'has_meaningful_progression' => true,
-                'new_is_active' => false,
+                'new_is_active' => true,
             ],
         ];
 

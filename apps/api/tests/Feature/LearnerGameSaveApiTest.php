@@ -461,6 +461,50 @@ final class LearnerGameSaveApiTest extends TestCase
         }
     }
 
+    public function test_ottertale_reset_is_target_only_and_revision_controlled(): void
+    {
+        $this->seedGameCatalog();
+        $learner = $this->createLearner('GT011');
+        $headers = $this->authenticate($learner, 'ottertale-reset-token');
+        $this->createProfileThroughApi($headers, 'Otter11');
+
+        $otterUrl = '/api/learners/games/ottertale/save';
+        $alphaUrl = '/api/learners/games/game-alpha/save';
+        $otterPayload = [
+            'checkpoint_key' => 'stage-1-complete',
+            'save_schema_version' => 1,
+            'state' => [
+                'rulesetVersion' => 'v1',
+                'completedStageIds' => [1],
+                'bestScoresByStage' => ['1' => 24],
+            ],
+            'expected_revision' => 0,
+        ];
+
+        $this->withHeaders($headers)->putJson($otterUrl, $otterPayload)->assertOk();
+        $this->withHeaders($headers)->putJson($alphaUrl, [
+            'checkpoint_key' => 'run-complete',
+            'save_schema_version' => 1,
+            'state' => [
+                'rulesetVersion' => 'game-alpha-score-v1',
+                'personalBestScore' => 12,
+                'highestStageReached' => 1,
+            ],
+            'expected_revision' => 0,
+        ])->assertOk();
+
+        $this->withHeaders($headers)
+            ->postJson('/api/learners/games/ottertale/new-game', ['expected_revision' => 1])
+            ->assertOk()
+            ->assertJsonPath('save', null);
+
+        $this->withHeaders($headers)->getJson($otterUrl)->assertOk()->assertJsonPath('save', null);
+        $this->withHeaders($headers)
+            ->getJson($alphaUrl)
+            ->assertOk()
+            ->assertJsonPath('save.state.personalBestScore', 12);
+    }
+
     private function activateGameOne(): GameCatalog
     {
         $this->seedGameCatalog();

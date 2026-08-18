@@ -79,7 +79,7 @@ final class GameDatabaseFoundationTest extends TestCase
             'contract_version' => 1,
             'current_ruleset_version' => 'v1',
             'has_meaningful_progression' => true,
-            'is_active' => false,
+            'is_active' => true,
         ]);
 
         $game = GameCatalog::query()->where('game_key', GameCatalog::GAME_ONE_KEY)->sole();

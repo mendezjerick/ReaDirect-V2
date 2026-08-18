@@ -144,9 +144,9 @@ const GameZeroRoutePage = lazy(() =>
   })),
 );
 
-const GameTwoRoutePage = lazy(() =>
-  import("@readirect/game-two").then((module) => ({
-    default: module.GameTwoRoutePage,
+const GameTwoHostPage = lazy(() =>
+  import("./features/games/GameTwoHostPage").then((module) => ({
+    default: module.GameTwoHostPage,
   })),
 );
 
@@ -576,7 +576,7 @@ export function App() {
                 path="/learner/games/game-two"
                 element={
                   <RequireSkeletonGameProfile>
-                    <GameTwoRoutePage />
+                    <GameTwoHostPage />
                   </RequireSkeletonGameProfile>
                 }
               />
