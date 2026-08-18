@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Rules\GameUsername;
 use App\Models\GameProfile;
 use App\Services\LearnerGameProfileService;
 use App\Services\LearnerSessionResolver;
@@ -29,7 +30,7 @@ final class LearnerGameProfileController extends Controller
     {
         $session = $this->sessions->resolve($request);
         $validated = $request->validate([
-            'username' => ['required', 'string', 'regex:/\A[A-Za-z0-9]{3,10}\z/'],
+            'username' => ['required', 'string', new GameUsername()],
         ]);
         $result = $this->profiles->create($session, $validated['username']);
 

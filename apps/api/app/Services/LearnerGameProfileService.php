@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\GameProfile;
 use App\Models\Learner;
+use App\Rules\GameUsername;
 use App\Models\LearnerSession;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,7 @@ final class LearnerGameProfileService
     public function create(LearnerSession $session, string $username): array
     {
         $this->assertPersistentPlayer($session);
-        $normalizedUsername = strtolower($username);
+        $normalizedUsername = GameUsername::normalize($username);
 
         for ($attempt = 1; $attempt <= self::CREATE_ATTEMPTS; $attempt++) {
             try {

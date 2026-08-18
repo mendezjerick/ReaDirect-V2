@@ -13,9 +13,13 @@ import { RequireStaffRole } from "./components/staff/RequireStaffRole";
 import { HomePage } from "./features/home/HomePage";
 import { IntroPage } from "./features/intro/IntroPage";
 import { LearnerExperienceProvider } from "./features/learner-auth/LearnerExperienceProvider";
-import { loadLearnerSession } from "./features/learner-auth/learnerApi";
+import {
+  learnerSessionChangedEvent,
+  loadLearnerSession,
+} from "./features/learner-auth/learnerApi";
 import { NativeLearnerEntryPage } from "./features/offline-practice/NativeLearnerEntryPage";
 import { NativeConnectivityBanner } from "./features/connectivity/NativeConnectivityBanner";
+import { learnerGameProfileClient } from "./features/games/gameProfileApi";
 
 const LearnerDashboardPage = lazy(() =>
   import("./features/learner-dashboard/LearnerDashboardPage").then(
@@ -457,7 +461,10 @@ function LearnerGamesRoute() {
 export function App() {
   return (
     <RouteTransitionProvider>
-      <GameLobbySkeletonProvider>
+      <GameLobbySkeletonProvider
+        profileClient={learnerGameProfileClient}
+        sessionChangeEvent={learnerSessionChangedEvent}
+      >
         <LearnerExperienceProvider>
           <NativeConnectivityBanner />
           <Suspense fallback={<RouteLoading />}>
@@ -547,7 +554,12 @@ export function App() {
               <Route
                 path="/learner/games/game-one"
                 element={
-                  <RequireSkeletonGameProfile>
+                  <RequireSkeletonGameProfile
+                    bypass={
+                      loadLearnerSession()?.learner.account_purpose ===
+                      "portal_system"
+                    }
+                  >
                     <GameOneHostPage />
                   </RequireSkeletonGameProfile>
                 }

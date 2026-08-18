@@ -13,9 +13,20 @@ afterEach(() => {
 });
 
 function renderGuestRoute(initialEntries = ["/home", "/learner/games"]) {
+  const profileClient = {
+    loadGameProfile: vi.fn(async () => null),
+    createGameProfile: vi.fn(async (username: string) => ({
+      audience: "learner" as const,
+      username,
+      discriminator: "0001",
+      publicHandle: `${username}#0001`,
+      isActive: true,
+    })),
+  };
+
   return render(
     <MemoryRouter initialEntries={initialEntries} initialIndex={1}>
-      <GameLobbySkeletonProvider>
+      <GameLobbySkeletonProvider profileClient={profileClient}>
         <Routes>
           <Route
             path="/learner/games"

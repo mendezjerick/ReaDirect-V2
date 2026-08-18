@@ -1,11 +1,7 @@
 import { useMemo } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
-import {
-  GameOneRoutePage,
-  type GameOneHostAdapter,
-} from "@readirect/game-one";
-import { useGameLobbySkeleton } from "@readirect/game-lobby";
+import { GameOneRoutePage, type GameOneHostAdapter } from "@readirect/game-one";
 
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { createGameOneHostAdapter } from "./gameOneHostAdapter";
@@ -13,21 +9,14 @@ import { createGameOnePreviewHostAdapter } from "./gameOnePreviewHostAdapter";
 
 export function GameOneHostPage() {
   const location = useLocation();
-  const { profile } = useGameLobbySkeleton();
   const session = loadLearnerSession();
   const token = session?.token ?? null;
-  const requestedUsername = profile?.username ?? null;
-  const previewMode =
-    session?.learner.account_purpose === "portal_system";
+  const previewMode = session?.learner.account_purpose === "portal_system";
   const host = useMemo<GameOneHostAdapter | null>(() => {
-    if (!requestedUsername) return null;
     if (previewMode) return createGameOnePreviewHostAdapter();
     if (!token) return null;
-    return createGameOneHostAdapter({
-      token,
-      requestedUsername,
-    });
-  }, [previewMode, requestedUsername, token]);
+    return createGameOneHostAdapter({ token });
+  }, [previewMode, token]);
 
   if (!session) {
     return (

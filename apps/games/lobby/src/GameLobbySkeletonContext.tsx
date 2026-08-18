@@ -1,83 +1,282 @@
 import {
   createContext,
+  useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type PropsWithChildren,
 } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
-interface SkeletonGameProfile {
+export interface GameProfile {
+  audience: "learner";
   username: string;
   discriminator: string;
   publicHandle: string;
+  isActive: boolean;
 }
 
-interface GameLobbySkeletonContextValue {
-  profile: SkeletonGameProfile | null;
-  createProfile(username: string): SkeletonGameProfile;
+export interface GameProfileClient {
+  loadGameProfile(): Promise<GameProfile | null>;
+  createGameProfile(username: string): Promise<GameProfile>;
 }
 
-const GameLobbySkeletonContext =
-  createContext<GameLobbySkeletonContextValue | null>(null);
+export type GameProfileStatus =
+  "idle" | "loading" | "ready" | "creating" | "error";
 
-function createDiscriminator() {
-  return String(Math.floor(Math.random() * 10_000)).padStart(4, "0");
+export class GameProfileRequestError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "GameProfileRequestError";
+    this.status = status;
+  }
 }
 
-export function GameLobbySkeletonProvider({ children }: PropsWithChildren) {
-  const [profile, setProfile] = useState<SkeletonGameProfile | null>(null);
+interface GameLobbyProfileContextValue {
+  profile: GameProfile | null;
+  status: GameProfileStatus;
+  error: Error | null;
+  loadProfile(): Promise<GameProfile | null>;
+  createProfile(username: string): Promise<GameProfile | null>;
+  retry(): void;
+}
 
-  const value = useMemo<GameLobbySkeletonContextValue>(
+interface GameLobbyProfileProviderProps extends PropsWithChildren {
+  profileClient: GameProfileClient;
+  sessionChangeEvent?: string;
+}
+
+const GameLobbyProfileContext =
+  createContext<GameLobbyProfileContextValue | null>(null);
+
+export function GameLobbySkeletonProvider({
+  children,
+  profileClient,
+  sessionChangeEvent = "readirect:learner-session-changed",
+}: GameLobbyProfileProviderProps) {
+  const [profile, setProfile] = useState<GameProfile | null>(null);
+  const [status, setStatus] = useState<GameProfileStatus>("idle");
+  const [error, setError] = useState<Error | null>(null);
+  const pendingLoad = useRef<Promise<GameProfile | null> | null>(null);
+  const sessionGeneration = useRef(0);
+
+  const loadProfile = useCallback(() => {
+    if (pendingLoad.current) return pendingLoad.current;
+
+    const generation = sessionGeneration.current;
+    setStatus("loading");
+    setError(null);
+    const request = profileClient
+      .loadGameProfile()
+      .then((nextProfile) => {
+        if (generation !== sessionGeneration.current) return null;
+        setProfile(nextProfile);
+        setStatus("ready");
+        return nextProfile;
+      })
+      .catch((requestError: unknown) => {
+        if (generation !== sessionGeneration.current) return null;
+        const normalizedError =
+          requestError instanceof Error
+            ? requestError
+            : new Error("We couldn't load your game profile right now.");
+        setProfile(null);
+        setStatus("error");
+        setError(normalizedError);
+        return null;
+      })
+      .finally(() => {
+        if (pendingLoad.current === request) pendingLoad.current = null;
+      });
+
+    pendingLoad.current = request;
+    return request;
+  }, [profileClient]);
+
+  const createProfile = useCallback(
+    async (username: string): Promise<GameProfile | null> => {
+      setStatus("creating");
+      setError(null);
+      const generation = sessionGeneration.current;
+
+      try {
+        const nextProfile = await profileClient.createGameProfile(username);
+        if (generation !== sessionGeneration.current) return null;
+        setProfile(nextProfile);
+        setStatus("ready");
+        return nextProfile;
+      } catch (requestError: unknown) {
+        if (
+          requestError instanceof GameProfileRequestError &&
+          requestError.status === 409
+        ) {
+          try {
+            const concurrentProfile = await profileClient.loadGameProfile();
+            if (generation !== sessionGeneration.current) return null;
+            if (concurrentProfile !== null) {
+              setProfile(concurrentProfile);
+              setStatus("ready");
+              return concurrentProfile;
+            }
+          } catch {
+            // Preserve the original conflict below. A failed refetch must not
+            // become an implicit profile-null state.
+          }
+        }
+
+        if (generation !== sessionGeneration.current) return null;
+
+        const normalizedError =
+          requestError instanceof Error
+            ? requestError
+            : new Error("We couldn't create your game profile right now.");
+        setProfile(null);
+        setStatus("error");
+        setError(normalizedError);
+        return null;
+      }
+    },
+    [profileClient],
+  );
+
+  const resetProfile = useCallback(() => {
+    sessionGeneration.current += 1;
+    pendingLoad.current = null;
+    setProfile(null);
+    setStatus("idle");
+    setError(null);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener(sessionChangeEvent, resetProfile);
+    return () => window.removeEventListener(sessionChangeEvent, resetProfile);
+  }, [resetProfile, sessionChangeEvent]);
+
+  const retry = useCallback(() => {
+    void loadProfile();
+  }, [loadProfile]);
+
+  const value = useMemo<GameLobbyProfileContextValue>(
     () => ({
       profile,
-      createProfile(username) {
-        const discriminator = createDiscriminator();
-        const nextProfile = {
-          username,
-          discriminator,
-          publicHandle: username + "#" + discriminator,
-        };
-
-        setProfile(nextProfile);
-        return nextProfile;
-      },
+      status,
+      error,
+      loadProfile,
+      createProfile,
+      retry,
     }),
-    [profile],
+    [createProfile, error, loadProfile, profile, retry, status],
   );
 
   return (
-    <GameLobbySkeletonContext.Provider value={value}>
+    <GameLobbyProfileContext.Provider value={value}>
       {children}
-    </GameLobbySkeletonContext.Provider>
+    </GameLobbyProfileContext.Provider>
   );
 }
 
 export function useGameLobbySkeleton() {
-  const context = useContext(GameLobbySkeletonContext);
+  const context = useContext(GameLobbyProfileContext);
 
   if (!context) {
     throw new Error(
-      "Game lobby skeleton components require GameLobbySkeletonProvider.",
+      "Game lobby profile components require GameLobbySkeletonProvider.",
     );
   }
 
   return context;
 }
 
-export function RequireSkeletonGameProfile({ children }: PropsWithChildren) {
-  const { profile } = useGameLobbySkeleton();
+const requestedGameRoutes = new Set([
+  "/learner/games/game-alpha",
+  "/learner/games/game-one",
+  "/learner/games/game-two",
+]);
+
+export function isSafeRequestedGameRoute(
+  route: string | undefined,
+): route is
+  | "/learner/games/game-alpha"
+  | "/learner/games/game-one"
+  | "/learner/games/game-two" {
+  return route !== undefined && requestedGameRoutes.has(route);
+}
+
+export function RequireSkeletonGameProfile({
+  children,
+  bypass = false,
+}: PropsWithChildren<{ bypass?: boolean }>) {
+  const { profile, status, error, loadProfile, retry } = useGameLobbySkeleton();
   const location = useLocation();
 
+  useEffect(() => {
+    if (!bypass && status === "idle") void loadProfile();
+  }, [bypass, loadProfile, status]);
+
+  if (bypass) return children;
+
+  if (status === "idle" || status === "loading" || status === "creating") {
+    return <GameProfileLoadingState />;
+  }
+
+  if (error) {
+    if (error instanceof GameProfileRequestError && error.status === 401) {
+      return (
+        <Navigate
+          to="/learner/login"
+          replace
+          state={{ from: location.pathname }}
+        />
+      );
+    }
+
+    return <GameProfileErrorState retry={retry} />;
+  }
+
   if (!profile) {
+    const requestedGame = isSafeRequestedGameRoute(location.pathname)
+      ? location.pathname
+      : undefined;
+
     return (
       <Navigate
         to="/learner/games"
         replace
-        state={{ requestedGame: location.pathname }}
+        state={requestedGame ? { requestedGame } : undefined}
       />
     );
   }
 
   return children;
+}
+
+function GameProfileLoadingState() {
+  return (
+    <main className="game-lobby learner-flow-page" aria-busy="true">
+      <section
+        className="game-lobby__profile-state"
+        role="status"
+        aria-live="polite"
+      >
+        Loading game profile...
+      </section>
+    </main>
+  );
+}
+
+function GameProfileErrorState({ retry }: { retry: () => void }) {
+  return (
+    <main className="game-lobby learner-flow-page">
+      <section className="game-lobby__profile-state" role="alert">
+        <p>We couldn't load your game profile right now.</p>
+        <button type="button" onClick={retry}>
+          Retry
+        </button>
+      </section>
+    </main>
+  );
 }

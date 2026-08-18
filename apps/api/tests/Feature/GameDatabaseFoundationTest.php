@@ -45,12 +45,12 @@ final class GameDatabaseFoundationTest extends TestCase
         ]));
     }
 
-    public function test_game_one_catalog_seed_is_idempotent_active_and_does_not_revert_deactivation(): void
+    public function test_game_catalog_seed_is_idempotent_and_preserves_activation_choices(): void
     {
         $this->seedGameCatalog();
         $this->seedGameCatalog();
 
-        $this->assertDatabaseCount('game_catalog', 1);
+        $this->assertDatabaseCount('game_catalog', 3);
         $this->assertDatabaseHas('game_catalog', [
             'game_key' => GameCatalog::GAME_ONE_KEY,
             'display_title' => 'Chronicles of the Lost Kingdom',
@@ -61,8 +61,28 @@ final class GameDatabaseFoundationTest extends TestCase
             'has_meaningful_progression' => true,
             'is_active' => true,
         ]);
+        $this->assertDatabaseHas('game_catalog', [
+            'game_key' => GameCatalog::GAME_ALPHA_KEY,
+            'display_title' => 'Alphabet Defender',
+            'slot' => GameCatalog::GAME_ALPHA_SLOT,
+            'engine' => 'pixi',
+            'contract_version' => 1,
+            'current_ruleset_version' => 'game-alpha-score-v1',
+            'has_meaningful_progression' => false,
+            'is_active' => false,
+        ]);
+        $this->assertDatabaseHas('game_catalog', [
+            'game_key' => GameCatalog::GAME_TWO_KEY,
+            'display_title' => 'OtterTale',
+            'slot' => GameCatalog::GAME_TWO_SLOT,
+            'engine' => 'pixi',
+            'contract_version' => 1,
+            'current_ruleset_version' => 'v1',
+            'has_meaningful_progression' => true,
+            'is_active' => false,
+        ]);
 
-        $game = GameCatalog::query()->sole();
+        $game = GameCatalog::query()->where('game_key', GameCatalog::GAME_ONE_KEY)->sole();
         $game->forceFill(['is_active' => false])->save();
 
         $this->seedGameCatalog();
@@ -100,16 +120,7 @@ final class GameDatabaseFoundationTest extends TestCase
         $this->seedGameCatalog();
 
         $gameOne = GameCatalog::query()->where('game_key', GameCatalog::GAME_ONE_KEY)->sole();
-        $gameTwo = GameCatalog::query()->create([
-            'game_key' => 'game-two-placeholder',
-            'display_title' => 'Game Two Placeholder',
-            'slot' => 'game-two',
-            'engine' => 'pixi',
-            'contract_version' => 1,
-            'current_ruleset_version' => 'v1',
-            'has_meaningful_progression' => true,
-            'is_active' => false,
-        ]);
+        $gameTwo = GameCatalog::query()->where('game_key', GameCatalog::GAME_TWO_KEY)->sole();
         $profile = $this->createProfile(
             $this->createLearner('GA004'),
             'Reader9',
@@ -161,7 +172,7 @@ final class GameDatabaseFoundationTest extends TestCase
         $profile = $this->createProfile($learner, 'Reader5', 'reader5', '0005');
         $save = GameSave::query()->create([
             'game_profile_id' => $profile->id,
-            'game_id' => GameCatalog::query()->sole()->id,
+            'game_id' => GameCatalog::query()->where('game_key', GameCatalog::GAME_ONE_KEY)->sole()->id,
             'checkpoint_key' => 'autosave',
             'save_schema_version' => 1,
             'state' => ['mission_index' => 0],
@@ -173,7 +184,7 @@ final class GameDatabaseFoundationTest extends TestCase
 
         $this->assertDatabaseMissing('game_profiles', ['id' => $profile->id]);
         $this->assertDatabaseMissing('game_saves', ['id' => $save->id]);
-        $this->assertDatabaseCount('game_catalog', 1);
+        $this->assertDatabaseCount('game_catalog', 3);
     }
 
     private function createLearner(string $learnerCode): Learner

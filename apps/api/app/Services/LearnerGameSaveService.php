@@ -31,6 +31,7 @@ final class LearnerGameSaveService
 
     public function __construct(
         private readonly LearnerGameProfileService $profiles,
+        private readonly LearnerGameSavePayloadValidator $payloads,
     ) {}
 
     public function load(LearnerSession $session, string $gameKey): ?GameSave
@@ -55,10 +56,11 @@ final class LearnerGameSaveService
         array $state,
         int $expectedRevision,
     ): GameSave {
-        $this->assertNoIdentityData($state);
-        $this->assertStateSize($state);
         $game = $this->activeGame($gameKey);
         $profile = $this->profiles->active($session);
+        $this->assertNoIdentityData($state);
+        $this->assertStateSize($state);
+        $this->payloads->validate($game, $saveSchemaVersion, $state);
 
         try {
             return DB::transaction(function () use (

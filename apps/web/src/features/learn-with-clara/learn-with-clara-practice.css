@@ -470,23 +470,26 @@
   }
 
   .clara-practice__teacher {
-    grid-template-columns: minmax(5.5rem, 0.55fr) minmax(0, 1fr);
-    grid-template-rows: 1fr;
-    min-height: 8rem;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    min-height: 0;
   }
 
   .clara-practice__clara {
-    border-right: 2px solid var(--color-border-warm);
+    min-height: clamp(12rem, 55vw, 16rem);
+    border-right: 0;
+    border-bottom: 2px solid var(--color-border-warm);
   }
 
   .clara-practice__clara .clara-stage {
-    width: min(100%, 8.5rem);
+    width: min(100%, 15rem);
   }
 
   .clara-practice__coach {
     align-content: center;
     border-top: 0;
     padding: 0 0.65rem;
+    text-align: center;
   }
 }
 

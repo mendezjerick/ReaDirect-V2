@@ -1,61 +1,26 @@
-import { useState, useTransition, type FormEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useGameLobbySkeleton } from "./GameLobbySkeletonContext";
-import readscapeThumbnail from "./assets/thumbnails/readscape.jpg";
-import spaceLetterThumbnail from "./assets/thumbnails/space-letter.png";
-import ottertaleThumbnail from "./assets/thumbnails/ottertale.png";
+import {
+  GameProfileRequestError,
+  isSafeRequestedGameRoute,
+  useGameLobbySkeleton,
+} from "./GameLobbySkeletonContext";
+import { registeredGames, type RegisteredGame } from "./registry";
 import "./styles/lobby.css";
 
 interface LobbyLocationState {
   requestedGame?: string;
 }
 
-type GameKey = "game-alpha" | "game-one" | "game-two";
-
-interface GameSlot {
-  key: GameKey;
-  title: string;
-  description: string;
-  label: string;
-  route: string;
-  accessibleName: string;
-  thumbnail?: string;
-}
+type GameSlot = RegisteredGame;
+type GameKey = GameSlot["key"];
 
 export interface GameLobbyPageProps {
   guestUnavailable?: boolean;
 }
 
-const gameSlots: readonly GameSlot[] = [
-  {
-    key: "game-alpha",
-    title: "Space Letter",
-    description: "Defend the alphabet in a fast pixel-space battle.",
-    label: "Arcade",
-    route: "/learner/games/game-alpha",
-    accessibleName: "Open Space Letter",
-    thumbnail: spaceLetterThumbnail,
-  },
-  {
-    key: "game-one",
-    title: "Readscape",
-    description: "Spot the letters and keep your streak going.",
-    label: "Letters",
-    route: "/learner/games/game-one",
-    accessibleName: "Open Readscape",
-    thumbnail: readscapeThumbnail,
-  },
-  {
-    key: "game-two",
-    title: "Ottertale",
-    description: "Follow the river and practice simple words.",
-    label: "Words",
-    route: "/learner/games/game-two",
-    accessibleName: "Open Ottertale",
-    thumbnail: ottertaleThumbnail,
-  },
-] as const;
+const gameSlots = registeredGames;
 
 function GameSymbol({ gameKey }: { gameKey: GameKey }) {
   return gameKey === "game-alpha" ? (
@@ -63,7 +28,7 @@ function GameSymbol({ gameKey }: { gameKey: GameKey }) {
       <path d="M20 17h24v6h6v18h-6v6H20v-6h-6V23h6v-6Z" />
       <path d="M24 27h6v6h-6zM34 27h6v6h-6zM26 39h12M29 11h6v6" />
     </svg>
-  ) : gameKey === "game-one" ? (
+  ) : gameKey === "chronicles-of-the-lost-kingdom" ? (
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <path d="M13 48V16h18c8 0 14 5 14 13s-6 13-14 13H22" />
       <path d="M22 24h9c3 0 5 2 5 5s-2 5-5 5h-9M49 14v10M44 19h10" />
@@ -82,7 +47,14 @@ export function GameLobbyPage({
 }: GameLobbyPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, createProfile } = useGameLobbySkeleton();
+  const {
+    profile,
+    status,
+    error: profileError,
+    loadProfile,
+    createProfile,
+    retry,
+  } = useGameLobbySkeleton();
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [launchingGameKey, setLaunchingGameKey] = useState<GameKey | null>(
@@ -94,8 +66,45 @@ export function GameLobbyPage({
     ?.requestedGame;
   const launchingGame = gameSlots.find((game) => game.key === launchingGameKey);
 
+  useEffect(() => {
+    if (!guestUnavailable && status === "idle") void loadProfile();
+  }, [guestUnavailable, loadProfile, status]);
+
   if (guestUnavailable) {
     return <GuestUnavailableState />;
+  }
+
+  if (status === "idle" || status === "loading") {
+    return <ProfileLoadingState />;
+  }
+
+  if (profileError) {
+    if (
+      profileError instanceof GameProfileRequestError &&
+      profileError.status === 401
+    ) {
+      return (
+        <ProfileErrorState
+          message="Your learner session expired. Sign in again to open Games."
+          actionLabel="Go to Learner Login"
+          onAction={() => navigate("/learner/login")}
+        />
+      );
+    }
+
+    return (
+      <ProfileErrorState
+        message={
+          status === "error" &&
+          profileError instanceof GameProfileRequestError &&
+          profileError.status === 422
+            ? profileError.message
+            : "We couldn't load your game profile right now."
+        }
+        actionLabel="Retry"
+        onAction={retry}
+      />
+    );
   }
 
   const launchGame = (game: GameSlot) => {
@@ -115,11 +124,13 @@ export function GameLobbyPage({
     }
 
     setError("");
-    createProfile(normalized);
+    void createProfile(normalized).then((createdProfile) => {
+      if (!createdProfile) return;
 
-    if (requestedGame) {
-      navigate(requestedGame, { replace: true });
-    }
+      if (isSafeRequestedGameRoute(requestedGame)) {
+        navigate(requestedGame, { replace: true, state: undefined });
+      }
+    });
   };
 
   return (
@@ -161,7 +172,11 @@ export function GameLobbyPage({
               <p>Choose a short name to use while you play.</p>
             </div>
 
-            <form onSubmit={submitUsername} noValidate>
+            <form
+              onSubmit={submitUsername}
+              noValidate
+              aria-busy={status === "creating"}
+            >
               <label htmlFor="game-username">Game username</label>
               <input
                 id="game-username"
@@ -183,8 +198,12 @@ export function GameLobbyPage({
               >
                 {error}
               </span>
-              <button className="game-lobby__primary-button" type="submit">
-                Enter the Lobby
+              <button
+                className="game-lobby__primary-button"
+                type="submit"
+                disabled={status === "creating"}
+              >
+                {status === "creating" ? "Creating..." : "Enter the Lobby"}
               </button>
             </form>
           </section>
@@ -348,6 +367,54 @@ function GuestUnavailableState() {
               Back
             </button>
           </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function ProfileLoadingState() {
+  return (
+    <main
+      className="game-lobby learner-flow-page"
+      aria-busy="true"
+      data-route-focus
+      tabIndex={-1}
+    >
+      <div className="game-lobby__shell">
+        <section
+          className="game-lobby__profile-state"
+          role="status"
+          aria-live="polite"
+        >
+          Loading game profile...
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function ProfileErrorState({
+  message,
+  actionLabel,
+  onAction,
+}: {
+  message: string;
+  actionLabel: string;
+  onAction: () => void;
+}) {
+  return (
+    <main
+      className="game-lobby learner-flow-page"
+      data-route-focus
+      tabIndex={-1}
+    >
+      <div className="game-lobby__shell">
+        <section className="game-lobby__profile-state" role="alert">
+          <p>{message}</p>
+          <button type="button" onClick={onAction}>
+            {actionLabel}
+          </button>
         </section>
       </div>
     </main>
