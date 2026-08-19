@@ -14,7 +14,7 @@ export function OrientationNotice({
   language,
   portrait,
   onContinue,
-  onExit
+  onExit,
 }: OrientationNoticeProps) {
   const [dismissed, setDismissed] = useState(false);
 
@@ -52,7 +52,7 @@ export function OrientationNotice({
           className="orientation-notice__secondary"
           onClick={onExit}
         >
-          {filipino ? "Lumabas" : "Exit"}
+          {filipino ? "Umalis sa Laro" : "Leave Game"}
         </button>
         <button
           type="button"

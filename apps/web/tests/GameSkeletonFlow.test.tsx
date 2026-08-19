@@ -101,6 +101,17 @@ const fetchMock = vi.fn(
   },
 );
 
+const profileClient = {
+  loadGameProfile: vi.fn(async () => null),
+  createGameProfile: vi.fn(async (username: string) => ({
+    audience: "learner" as const,
+    username,
+    discriminator: "0042",
+    publicHandle: `${username}#0042`,
+    isActive: true,
+  })),
+};
+
 beforeEach(() => {
   window.sessionStorage.setItem(
     "readirect.learner-session",
@@ -111,13 +122,15 @@ beforeEach(() => {
     JSON.stringify({ version: 1, language: "en" }),
   );
   fetchMock.mockClear();
+  profileClient.loadGameProfile.mockClear();
+  profileClient.createGameProfile.mockClear();
   vi.stubGlobal("fetch", fetchMock);
 });
 
 function renderGameRoutes(initialRoute = "/learner/games") {
   return render(
     <MemoryRouter initialEntries={[initialRoute]}>
-      <GameLobbySkeletonProvider>
+      <GameLobbySkeletonProvider profileClient={profileClient}>
         <Routes>
           <Route path="/learner/games" element={<GameLobbyPage />} />
           <Route
@@ -162,17 +175,20 @@ function renderGameRoutes(initialRoute = "/learner/games") {
   );
 }
 
-function createUsername(username = "Reader7") {
-  fireEvent.change(screen.getByLabelText("Game username"), {
+async function createUsername(username = "Reader7") {
+  fireEvent.change(await screen.findByLabelText("Game username"), {
     target: { value: username },
   });
   fireEvent.click(screen.getByRole("button", { name: "Enter the Lobby" }));
+  await waitFor(() =>
+    expect(profileClient.createGameProfile).toHaveBeenCalled(),
+  );
 }
 
 describe("authenticated game lobby route flow", () => {
   it("lists Space Letter first in the approved order and opens its route", async () => {
     renderGameRoutes();
-    createUsername();
+    await createUsername();
 
     const gameButtons = await screen.findAllByRole("button", {
       name: /^Open/,
@@ -198,7 +214,7 @@ describe("authenticated game lobby route flow", () => {
       await screen.findByRole("heading", { name: "Pick a game name" }),
     ).toBeInTheDocument();
 
-    createUsername();
+    await createUsername();
 
     expect(
       await screen.findByRole("heading", {
@@ -219,12 +235,15 @@ describe("authenticated game lobby route flow", () => {
     renderGameRoutes();
 
     expect(screen.getByRole("main")).toHaveClass("learner-flow-page");
-    createUsername("No spaces");
+    fireEvent.change(await screen.findByLabelText("Game username"), {
+      target: { value: "No spaces" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Enter the Lobby" }));
     expect(
       screen.getByText("Use 3 to 10 letters and numbers only."),
     ).toBeInTheDocument();
 
-    createUsername();
+    await createUsername();
     expect(await screen.findByText(/^Reader7#\d{4}$/)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Open Space Letter" }),
@@ -284,7 +303,7 @@ describe("authenticated game lobby route flow", () => {
     );
     renderGameRoutes("/learner/games/game-one");
 
-    createUsername();
+    await createUsername();
 
     expect(
       await screen.findByRole("heading", {
@@ -306,7 +325,7 @@ describe("authenticated game lobby route flow", () => {
 
     render(
       <MemoryRouter initialEntries={["/learner/games"]}>
-        <GameLobbySkeletonProvider>
+        <GameLobbySkeletonProvider profileClient={profileClient}>
           <Suspense fallback={<div>Route fallback</div>}>
             <Routes>
               <Route path="/learner/games" element={<GameLobbyPage />} />
@@ -320,7 +339,7 @@ describe("authenticated game lobby route flow", () => {
       </MemoryRouter>,
     );
 
-    createUsername();
+    await createUsername();
 
     expect(
       screen.getByRole("img", { name: "Space Letter preview" }),

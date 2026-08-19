@@ -4,6 +4,7 @@ import {
   createGameAlphaRuntime,
   type GameAlphaRuntime,
 } from "../game/pixi/createGameAlphaRuntime";
+import type { GameSnapshot } from "../game/types";
 
 const GAME_STARTUP_TIMEOUT_MS = 12_000;
 
@@ -11,12 +12,16 @@ interface GameAlphaCanvasProps {
   soundEnabled: boolean;
   onSoundEnabledChange(enabled: boolean): void;
   onExit(): void;
+  onRunComplete(snapshot: GameSnapshot): void;
+  initialHighScore: number;
 }
 
 export function GameAlphaCanvas({
   soundEnabled,
   onSoundEnabledChange,
   onExit,
+  onRunComplete,
+  initialHighScore,
 }: GameAlphaCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<GameAlphaRuntime | null>(null);
@@ -43,8 +48,12 @@ export function GameAlphaCanvas({
       host,
       signal: abortController.signal,
       soundEnabled,
-      onGameOver: () => {
-        if (active) setGameOver(true);
+      highScore: initialHighScore,
+      onGameOver: (snapshot) => {
+        if (active) {
+          setGameOver(true);
+          onRunComplete(snapshot);
+        }
       },
     })
       .then(async (createdRuntime) => {

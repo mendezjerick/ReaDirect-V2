@@ -21,11 +21,9 @@ describe("createGameOnePreviewHostAdapter", () => {
     });
     await expect(host.load()).resolves.toMatchObject({ revision: 1 });
 
-    await host.reset(1);
+    await host.newGame(1);
     await expect(host.load()).resolves.toBeNull();
-    await expect(
-      createGameOnePreviewHostAdapter().load(),
-    ).resolves.toBeNull();
+    await expect(createGameOnePreviewHostAdapter().load()).resolves.toBeNull();
   });
 
   it("retains revision conflict protection without using a database", async () => {

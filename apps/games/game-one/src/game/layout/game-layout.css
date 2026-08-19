@@ -4,15 +4,6 @@
  * playfield and coordinates the React HUD around it.
  */
 
-html:has(.game-route),
-body:has(.game-route),
-#root:has(.game-route) {
-  min-width: 0;
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-}
-
 .game-route {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
@@ -54,7 +45,7 @@ body:has(.game-route),
   max-height: 100%;
 }
 
-.game-topbar {
+.game-route .game-topbar {
   position: absolute;
   z-index: 50;
   inset: 0 0 auto;
@@ -63,36 +54,39 @@ body:has(.game-route),
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: clamp(0.35rem, 1vw, 1rem);
-  padding:
-    max(var(--hud-edge-gap), var(--safe-top))
-    max(var(--hud-edge-gap), var(--safe-right))
-    1rem
+  padding: max(var(--hud-edge-gap), var(--safe-top))
+    max(var(--hud-edge-gap), var(--safe-right)) 1rem
     max(var(--hud-edge-gap), var(--safe-left));
-  background: linear-gradient(to bottom, rgb(8 21 16 / 92%), rgb(8 21 16 / 42%), transparent);
+  background: linear-gradient(
+    to bottom,
+    rgb(8 21 16 / 92%),
+    rgb(8 21 16 / 42%),
+    transparent
+  );
   pointer-events: none;
 }
 
-.game-topbar--controls-only {
+.game-route .game-topbar--controls-only {
   grid-template-columns: 1fr;
 }
 
-.game-topbar--controls-only .game-system-controls {
+.game-route .game-topbar--controls-only .game-system-controls {
   grid-column: 1;
   justify-self: end;
 }
 
-.game-brand {
+.game-route .game-brand {
   min-width: 0;
   text-shadow: 2px 2px 0 rgb(0 0 0 / 52%);
 }
 
-.game-phase-label,
-.game-title {
+.game-route .game-phase-label,
+.game-route .game-title {
   margin: 0;
   letter-spacing: 0;
 }
 
-.game-phase-label {
+.game-route .game-phase-label {
   overflow-wrap: anywhere;
   color: #facc15;
   font-size: clamp(0.68rem, 1.4vmin, 0.9rem);
@@ -101,7 +95,7 @@ body:has(.game-route),
   text-transform: uppercase;
 }
 
-.game-title {
+.game-route .game-title {
   margin-top: 0.2rem;
   overflow-wrap: anywhere;
   font-size: clamp(1rem, 2.7vmin, 1.75rem);
@@ -109,11 +103,11 @@ body:has(.game-route),
   line-height: 1.05;
 }
 
-.game-title-short {
+.game-route .game-title-short {
   display: none;
 }
 
-.game-system-controls {
+.game-route .game-system-controls {
   display: flex;
   min-width: 0;
   flex-wrap: nowrap;
@@ -122,7 +116,7 @@ body:has(.game-route),
   pointer-events: auto;
 }
 
-.game-system-button {
+.game-route .game-system-button {
   min-width: var(--hud-control-size);
   min-height: var(--hud-control-size);
   border: 2px solid #fffdf2;
@@ -137,26 +131,26 @@ body:has(.game-route),
   white-space: nowrap;
 }
 
-.game-system-button--primary {
+.game-route .game-system-button--primary {
   border-color: #facc15;
   color: #13251d;
   background: #fffdf2;
 }
 
-.game-system-button:disabled {
+.game-route .game-system-button:disabled {
   cursor: not-allowed;
   filter: grayscale(0.75);
   opacity: 0.58;
 }
 
 /* Compact command bar: each control has a recognizable token before its label. */
-.game-system-controls {
+.game-route .game-system-controls {
   align-items: stretch;
   gap: clamp(0.35rem, 0.75vw, 0.7rem);
 }
 
-.game-system-button,
-.game-character-button {
+.game-route .game-system-button,
+.game-route .game-character-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -165,21 +159,23 @@ body:has(.game-route),
   border: 2px solid #fff7db;
   border-radius: 0.4rem;
   background: linear-gradient(180deg, rgb(23 65 47 / 96%), rgb(8 27 19 / 96%));
-  box-shadow: 0 4px 0 #071712, inset 0 0 0 2px rgb(108 176 132 / 28%);
+  box-shadow:
+    0 4px 0 #071712,
+    inset 0 0 0 2px rgb(108 176 132 / 28%);
   font-size: clamp(0.78rem, 1.65vmin, 1rem);
   letter-spacing: 0;
   text-shadow: 1px 1px 0 #071712;
 }
 
-.game-character-button {
+.game-route .game-character-button {
   padding-inline: clamp(0.65rem, 1vw, 0.95rem);
 }
 
-.game-character-button::before {
+.game-route .game-character-button::before {
   display: none;
 }
 
-.game-command-icon {
+.game-route .game-command-icon {
   display: inline-grid;
   width: 1.35rem;
   height: 1.35rem;
@@ -195,7 +191,7 @@ body:has(.game-route),
   text-shadow: none;
 }
 
-.game-command-icon--character {
+.game-route .game-command-icon--character {
   width: 0.8rem;
   height: 0.8rem;
   border: 2px solid #fff7db;
@@ -203,91 +199,98 @@ body:has(.game-route),
   box-shadow: 0 0 0 2px #0a2117;
 }
 
-.game-command-icon--language {
+.game-route .game-command-icon--language {
   font-size: 0.68rem;
 }
 
-.game-command-icon--sound {
+.game-route .game-command-icon--sound {
   width: 1.65rem;
   border-radius: 0.2rem;
   font-size: 0.5rem;
 }
 
-.game-command-icon--pause {
+.game-route .game-command-icon--pause {
   border-radius: 0.2rem;
   font-size: 0.75rem;
 }
 
-.game-command-icon--exit {
+.game-route .game-command-icon--exit {
   color: #ffd66e;
   font-size: 0.75rem;
 }
 
-.game-system-button--primary {
+.game-route .game-system-button--primary {
   border-color: #facc15;
   background: linear-gradient(180deg, #fffdf2, #f1e7ba);
-  box-shadow: 0 4px 0 #9b7514, inset 0 0 0 2px #fff;
+  box-shadow:
+    0 4px 0 #9b7514,
+    inset 0 0 0 2px #fff;
   color: #13251d;
   text-shadow: none;
 }
 
-.game-system-button--primary .game-command-icon {
+.game-route .game-system-button--primary .game-command-icon {
   border-color: #9b7514;
   background: #facc15;
   color: #13251d;
 }
 
-.game-system-button:hover:not(:disabled),
-.game-character-button:hover:not(:disabled) {
+.game-route .game-system-button:hover:not(:disabled),
+.game-route .game-character-button:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: brightness(1.08);
 }
 
-.game-system-button:focus-visible,
-.game-character-button:focus-visible {
+.game-route .game-system-button:focus-visible,
+.game-route .game-character-button:focus-visible {
   outline: 3px solid #facc15;
   outline-offset: 3px;
 }
 
-.navigation-hud {
-  top: calc(max(var(--hud-edge-gap), var(--safe-top)) + var(--hud-header-height));
+.game-route .navigation-hud {
+  top: calc(
+    max(var(--hud-edge-gap), var(--safe-top)) + var(--hud-header-height)
+  );
   left: max(var(--hud-edge-gap), var(--safe-left));
   width: var(--hud-objective-width);
-  max-width: calc(100% - max(var(--hud-edge-gap), var(--safe-left)) - max(var(--hud-edge-gap), var(--safe-right)));
+  max-width: calc(
+    100% - max(var(--hud-edge-gap), var(--safe-left)) -
+      max(var(--hud-edge-gap), var(--safe-right))
+  );
 }
 
-.navigation-hud .navigation-mission-panel {
+.game-route .navigation-hud .navigation-mission-panel {
   max-height: min(12rem, calc(100cqh - var(--hud-header-height) - 1rem));
   overflow: auto;
   overscroll-behavior: contain;
 }
 
-.navigation-objective {
+.game-route .navigation-objective {
   overflow-wrap: anywhere;
 }
 
-.navigation-collapse,
-.game-system-button,
-.mission-action-button,
-.movement-direction-button,
-.movement-control-settings-button {
+.game-route .navigation-collapse,
+.game-route .game-system-button,
+.game-route .mission-action-button,
+.game-route .movement-direction-button,
+.game-route .movement-control-settings-button {
   min-width: 2.75rem;
   min-height: 2.75rem;
 }
 
-.minimap-shell {
+.game-route .minimap-shell {
   width: clamp(6.5rem, 18vmin, 10.5rem);
   height: clamp(6.5rem, 18vmin, 10.5rem);
   max-width: 42vw;
   max-height: 42vw;
 }
 
-.movement-controls {
+.game-route .movement-controls {
   bottom: max(var(--hud-edge-gap), var(--safe-bottom));
   left: max(var(--hud-edge-gap), var(--safe-left));
 }
 
-.movement-settings-icon {
+.game-route .movement-settings-icon {
   position: relative;
   display: block;
   width: 1.35rem;
@@ -301,7 +304,7 @@ body:has(.game-route),
     0.62rem 0 0 -0.45rem currentColor;
 }
 
-.movement-settings-icon::after {
+.game-route .movement-settings-icon::after {
   position: absolute;
   inset: 50% auto auto 50%;
   width: 0.28rem;
@@ -312,68 +315,70 @@ body:has(.game-route),
   transform: translate(-50%, -50%);
 }
 
-.movement-direction-icon {
+.game-route .movement-direction-icon {
   display: block;
   width: 0;
   height: 0;
   border: 0.55rem solid transparent;
 }
 
-.movement-direction-icon--up {
+.game-route .movement-direction-icon--up {
   border-top: 0;
   border-bottom: 0.8rem solid currentColor;
 }
 
-.movement-direction-icon--down {
+.game-route .movement-direction-icon--down {
   border-top: 0.8rem solid currentColor;
   border-bottom: 0;
 }
 
-.movement-direction-icon--left {
+.game-route .movement-direction-icon--left {
   border-right: 0.8rem solid currentColor;
   border-left: 0;
 }
 
-.movement-direction-icon--right {
+.game-route .movement-direction-icon--right {
   border-right: 0;
   border-left: 0.8rem solid currentColor;
 }
 
-.movement-control-menu {
+.game-route .movement-control-menu {
   width: min(11rem, calc(100vw - 1rem));
   max-height: min(16rem, calc(100dvh - 1rem));
   overflow: auto;
 }
 
-.mission-actions {
+.game-route .mission-actions {
   right: max(var(--hud-edge-gap), var(--safe-right));
   bottom: max(var(--hud-edge-gap), var(--safe-bottom));
   width: clamp(5.75rem, 13vw, 7.5rem);
 }
 
-.contextual-interact-button {
+.game-route .contextual-interact-button {
   max-width: min(18rem, calc(100% - var(--hud-edge-gap) - var(--hud-edge-gap)));
   overflow-wrap: anywhere;
 }
 
-.fishing-nearby-prompt {
+.game-route .fishing-nearby-prompt {
   max-width: min(22rem, calc(100% - var(--hud-edge-gap) - var(--hud-edge-gap)));
 }
 
-.fishing-prompt-copy small {
+.game-route .fishing-prompt-copy small {
   white-space: normal;
 }
 
-.region-banner {
+.game-route .region-banner {
   position: absolute;
-  top: calc(max(var(--hud-edge-gap), var(--safe-top)) + var(--hud-header-height));
+  top: calc(
+    max(var(--hud-edge-gap), var(--safe-top)) + var(--hud-header-height)
+  );
 }
 
-.tutorial-narrator {
+.game-route .tutorial-narrator {
   position: fixed;
 }
 
-.game-status-overlay {
+.game-route .game-status-overlay {
   position: absolute;
   z-index: 20;
   inset: 0;
@@ -381,28 +386,27 @@ body:has(.game-route),
   place-items: center;
   overflow: auto;
   background: rgb(8 21 16 / 88%);
-  padding:
-    max(var(--dialog-block-gap), var(--safe-top))
+  padding: max(var(--dialog-block-gap), var(--safe-top))
     max(var(--dialog-inline-gap), var(--safe-right))
     max(var(--dialog-block-gap), var(--safe-bottom))
     max(var(--dialog-inline-gap), var(--safe-left));
   text-align: center;
 }
 
-.game-status-panel {
+.game-route .game-status-panel {
   width: min(32rem, 100%);
   max-height: calc(100dvh - var(--dialog-block-gap) - var(--dialog-block-gap));
   overflow: auto;
   overscroll-behavior: contain;
 }
 
-.game-status-panel h2 {
+.game-route .game-status-panel h2 {
   margin: 0;
   font-size: clamp(1.4rem, 5vmin, 2rem);
   line-height: 1.1;
 }
 
-.game-status-panel > p {
+.game-route .game-status-panel > p {
   margin: 0.65rem 0 0;
   color: #dcefe5;
   font-size: clamp(0.95rem, 2.5vmin, 1.15rem);
@@ -410,12 +414,12 @@ body:has(.game-route),
 }
 
 /* Pause is a deliberate menu, not a row of controls floating above the world. */
-.game-status-overlay--pause {
+.game-route .game-status-overlay--pause {
   background: rgb(4 15 10 / 74%);
   backdrop-filter: blur(2px);
 }
 
-.game-status-panel--pause {
+.game-route .game-status-panel--pause {
   width: min(31rem, 100%);
   max-height: calc(100dvh - 2rem);
   border: 4px solid #facc15;
@@ -423,10 +427,13 @@ body:has(.game-route),
   background: #fff8df;
   padding: clamp(1rem, 3vmin, 1.45rem);
   color: #13251d;
-  box-shadow: 0 6px 0 #176b4d, 0 12px 0 #071712, 0 20px 42px rgb(0 0 0 / 46%);
+  box-shadow:
+    0 6px 0 #176b4d,
+    0 12px 0 #071712,
+    0 20px 42px rgb(0 0 0 / 46%);
 }
 
-.game-status-panel__eyebrow {
+.game-route .game-status-panel__eyebrow {
   margin: 0;
   color: #176b4d;
   font-size: 0.78rem;
@@ -434,7 +441,7 @@ body:has(.game-route),
   letter-spacing: 0.04em;
 }
 
-.game-status-panel--pause h2 {
+.game-route .game-status-panel--pause h2 {
   margin-top: 0.3rem;
   color: #13251d;
   font-size: clamp(2rem, 6vmin, 2.8rem);
@@ -442,21 +449,21 @@ body:has(.game-route),
   letter-spacing: 0;
 }
 
-.game-status-panel--pause > p:not(.game-status-panel__eyebrow) {
+.game-route .game-status-panel--pause > p:not(.game-status-panel__eyebrow) {
   max-width: 25rem;
   margin: 0.55rem auto 0;
   color: #315343;
   font-size: clamp(1rem, 2.7vmin, 1.15rem);
 }
 
-.pause-panel__actions {
+.game-route .pause-panel__actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.65rem;
   margin-top: 1.2rem;
 }
 
-.pause-panel__actions button {
+.game-route .pause-panel__actions button {
   min-height: 3rem;
   border: 3px solid #176b4d;
   border-radius: 0.35rem;
@@ -468,77 +475,76 @@ body:has(.game-route),
   box-shadow: 0 3px 0 #0b4934;
 }
 
-.pause-panel__resume {
+.game-route .pause-panel__resume {
   grid-column: 1 / -1;
   border-color: #9b7514 !important;
   background: #facc15;
   box-shadow: 0 3px 0 #9b7514 !important;
 }
 
-.pause-panel__resume:disabled {
+.game-route .pause-panel__resume:disabled {
   cursor: not-allowed;
   background: #b7bd9a;
   color: #586359;
   filter: grayscale(0.55);
 }
 
-.pause-panel__utility {
+.game-route .pause-panel__utility {
   background: #e9f3df;
 }
 
-.pause-panel__exit {
+.game-route .pause-panel__exit {
   grid-column: 1 / -1;
   background: #fff;
 }
 
-.pause-panel__actions button:hover:not(:disabled) {
+.game-route .pause-panel__actions button:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: brightness(1.04);
 }
 
-.pause-panel__actions button:focus-visible {
+.game-route .pause-panel__actions button:focus-visible {
   outline: 4px solid #3b82f6;
   outline-offset: 3px;
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
-  .game-status-panel--pause {
+  .game-route .game-status-panel--pause {
     width: min(34rem, 100%);
     padding: 0.85rem;
   }
 
-  .game-status-panel--pause h2 {
+  .game-route .game-status-panel--pause h2 {
     font-size: 1.8rem;
   }
 
-  .pause-panel__actions {
+  .game-route .pause-panel__actions {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     margin-top: 0.8rem;
   }
 
-  .pause-panel__resume,
-  .pause-panel__exit {
+  .game-route .pause-panel__resume,
+  .game-route .pause-panel__exit {
     grid-column: auto;
   }
 
-  .pause-panel__actions button {
+  .game-route .pause-panel__actions button {
     min-height: 2.65rem;
     font-size: 0.78rem;
   }
 }
 
-.mission-overlay,
-.map-overlay,
-.audio-settings-layer,
-.fishing-overlay,
-.language-selection-layer,
-.tutorial-confirm-layer,
-.game-modal-layer {
+.game-route .mission-overlay,
+.game-route .map-overlay,
+.game-route .audio-settings-layer,
+.game-route .fishing-overlay,
+.game-route .language-selection-layer,
+.game-route .tutorial-confirm-layer,
+.game-route .game-modal-layer {
   box-sizing: border-box;
   max-width: 100vw;
   max-height: 100dvh;
-  padding:
-    max(var(--dialog-block-gap), var(--safe-top))
+  padding: max(var(--dialog-block-gap), var(--safe-top))
     max(var(--dialog-inline-gap), var(--safe-right))
     max(var(--dialog-block-gap), var(--safe-bottom))
     max(var(--dialog-inline-gap), var(--safe-left));
@@ -546,105 +552,107 @@ body:has(.game-route),
   overscroll-behavior: contain;
 }
 
-.mission-overlay:not(:has(.dialogue-panel)) {
+.game-route .mission-overlay:not(:has(.dialogue-panel)) {
   align-items: center;
 }
 
-:is(
-  .dialogue-panel,
-  .help-panel,
-  .completion-panel,
-  .story-panel,
-  .question-panel,
-  .heart-recovery-panel,
-  .expanded-map-panel,
-  .audio-settings-panel,
-  .fishing-panel,
-  .language-selection-panel,
-  .tutorial-confirm,
-  .game-modal-panel
-) {
+.game-route
+  :is(
+    .dialogue-panel,
+    .help-panel,
+    .completion-panel,
+    .story-panel,
+    .question-panel,
+    .heart-recovery-panel,
+    .expanded-map-panel,
+    .audio-settings-panel,
+    .fishing-panel,
+    .language-selection-panel,
+    .tutorial-confirm,
+    .game-modal-panel
+  ) {
   max-width: min(100%, 56rem);
   max-height: calc(
-    100dvh - var(--dialog-block-gap) - var(--dialog-block-gap) - var(--safe-top) - var(--safe-bottom)
+    100dvh - var(--dialog-block-gap) - var(--dialog-block-gap) -
+      var(--safe-top) - var(--safe-bottom)
   );
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
 
-.story-panel,
-.help-panel,
-.completion-panel {
+.game-route .story-panel,
+.game-route .help-panel,
+.game-route .completion-panel {
   width: min(44rem, 100%);
 }
 
-.question-panel {
+.game-route .question-panel {
   width: min(54rem, 100%);
 }
 
-.dialogue-panel {
+.game-route .dialogue-panel {
   width: min(56rem, 100%);
 }
 
-.question-scroll,
-.story-copy {
+.game-route .question-scroll,
+.game-route .story-copy {
   overscroll-behavior: contain;
 }
 
-.reading-actions,
-.question-footer,
-.help-guide-actions,
-.audio-settings-footer,
-.language-selection-actions,
-.expanded-map-actions {
+.game-route .reading-actions,
+.game-route .question-footer,
+.game-route .help-guide-actions,
+.game-route .audio-settings-footer,
+.game-route .language-selection-actions,
+.game-route .expanded-map-actions {
   position: sticky;
   z-index: 2;
   bottom: 0;
 }
 
-.reading-actions {
+.game-route .reading-actions {
   padding-block: 0.45rem;
   background: var(--container-paper);
 }
 
-.question-footer {
+.game-route .question-footer {
   scrollbar-gutter: auto;
 }
 
-.audio-settings-header,
-.expanded-map-panel > header,
-.fishing-header {
+.game-route .audio-settings-header,
+.game-route .expanded-map-panel > header,
+.game-route .fishing-header {
   position: sticky;
   z-index: 3;
   top: 0;
 }
 
-.expanded-map-panel > header,
-.fishing-header {
+.game-route .expanded-map-panel > header,
+.game-route .fishing-header {
   background: var(--container-paper);
 }
 
-.answer-choice,
-.question-footer button,
-.reading-actions button,
-.completion-actions button,
-.help-guide-actions button,
-.expanded-map-actions button,
-.fishing-panel button,
-.language-selection-panel button,
-.tutorial-tools button,
-.tutorial-confirm button,
-.game-modal-panel button {
+.game-route .answer-choice,
+.game-route .question-footer button,
+.game-route .reading-actions button,
+.game-route .completion-actions button,
+.game-route .help-guide-actions button,
+.game-route .expanded-map-actions button,
+.game-route .fishing-panel button,
+.game-route .language-selection-panel button,
+.game-route .tutorial-tools button,
+.game-route .tutorial-confirm button,
+.game-route .game-modal-panel button {
   min-height: 2.75rem;
   overflow-wrap: anywhere;
 }
 
-.answer-choice {
+.game-route .answer-choice {
   height: auto;
 }
 
-.orientation-notice {
+.game-route .orientation-notice {
   position: absolute;
   z-index: 105;
   inset: auto max(0.65rem, var(--safe-right)) max(0.65rem, var(--safe-bottom))
@@ -657,10 +665,12 @@ body:has(.game-route),
   background: rgb(8 33 25 / 97%);
   padding: 0.75rem;
   color: white;
-  box-shadow: 0 5px 0 #071712, 0 9px 18px rgb(0 0 0 / 36%);
+  box-shadow:
+    0 5px 0 #071712,
+    0 9px 18px rgb(0 0 0 / 36%);
 }
 
-.orientation-notice__screen {
+.game-route .orientation-notice__screen {
   display: grid;
   width: 3.25rem;
   height: 2.1rem;
@@ -670,36 +680,36 @@ body:has(.game-route),
   background: #13251d;
 }
 
-.orientation-notice__screen span {
+.game-route .orientation-notice__screen span {
   width: 1.45rem;
   height: 0.75rem;
   background: #facc15;
 }
 
-.orientation-notice__copy {
+.game-route .orientation-notice__copy {
   min-width: 0;
 }
 
-.orientation-notice__copy p,
-.orientation-notice__copy h2,
-.orientation-notice__copy span {
+.game-route .orientation-notice__copy p,
+.game-route .orientation-notice__copy h2,
+.game-route .orientation-notice__copy span {
   margin: 0;
 }
 
-.orientation-notice__copy p {
+.game-route .orientation-notice__copy p {
   color: #facc15;
   font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
 }
 
-.orientation-notice__copy h2 {
+.game-route .orientation-notice__copy h2 {
   margin-top: 0.15rem;
   font-size: clamp(1rem, 5vw, 1.3rem);
   line-height: 1.1;
 }
 
-.orientation-notice__copy span {
+.game-route .orientation-notice__copy span {
   display: block;
   margin-top: 0.2rem;
   color: #dcefe5;
@@ -707,14 +717,14 @@ body:has(.game-route),
   line-height: 1.25;
 }
 
-.orientation-notice__actions {
+.game-route .orientation-notice__actions {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
 }
 
-.orientation-notice__actions button {
+.game-route .orientation-notice__actions button {
   min-height: 2.75rem;
   border: 2px solid #fffdf2;
   border-radius: 3px;
@@ -722,12 +732,12 @@ body:has(.game-route),
   font-weight: 850;
 }
 
-.orientation-notice__primary {
+.game-route .orientation-notice__primary {
   color: #13251d;
   background: #facc15;
 }
 
-.orientation-notice__secondary {
+.game-route .orientation-notice__secondary {
   color: white;
   background: #173f35;
 }
@@ -738,79 +748,79 @@ body:has(.game-route),
     height: 100%;
   }
 
-  .orientation-notice {
+  .game-route .orientation-notice {
     display: grid;
   }
 
-  .game-topbar {
+  .game-route .game-topbar {
     grid-template-columns: 1fr;
   }
 
-  .game-system-controls {
+  .game-route .game-system-controls {
     grid-row: 1;
     justify-self: end;
   }
 
-  .game-brand {
+  .game-route .game-brand {
     grid-row: 2;
   }
 
-  .navigation-hud {
+  .game-route .navigation-hud {
     top: calc(max(var(--hud-edge-gap), var(--safe-top)) + 7.2rem);
   }
 
-  .game-title-full {
+  .game-route .game-title-full {
     display: none;
   }
 
-  .game-title-short {
+  .game-route .game-title-short {
     display: inline;
   }
 }
 
 @media (max-width: 700px) {
-  .game-title-full {
+  .game-route .game-title-full {
     display: none;
   }
 
-  .game-title-short {
+  .game-route .game-title-short {
     display: inline;
   }
 
-  .game-system-button {
+  .game-route .game-system-button {
     padding-inline: 0.45rem;
   }
 
-  .navigation-hud {
+  .game-route .navigation-hud {
     width: min(18rem, calc(100% - var(--hud-edge-gap) - var(--hud-edge-gap)));
   }
 
-  .dialogue-panel {
+  .game-route .dialogue-panel {
     grid-template-columns: 3.25rem minmax(0, 1fr);
   }
 
-  .dialogue-actions {
+  .game-route .dialogue-actions {
     grid-column: 1 / -1;
     display: grid;
     width: 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .answer-grid {
+  .game-route .answer-grid {
     grid-template-columns: 1fr;
   }
 
-  .help-guide-grid,
-  .help-controls-strip {
+  .game-route .help-guide-grid,
+  .game-route .help-controls-strip {
     grid-template-columns: 1fr;
   }
 
-  .help-strategy-section {
+  .game-route .help-strategy-section {
     border-top: 3px solid #13251d;
     border-left: 0;
   }
 
-  .help-guide-actions {
+  .game-route .help-guide-actions {
     grid-template-columns: 1fr;
   }
 }
@@ -821,80 +831,80 @@ body:has(.game-route),
     --hud-control-size: 2.75rem;
   }
 
-  .game-phase-label {
+  .game-route .game-phase-label {
     max-width: 9rem;
   }
 
-  .game-system-controls {
+  .game-route .game-system-controls {
     gap: 0.25rem;
   }
 
-  .game-system-button {
+  .game-route .game-system-button {
     min-width: 2.75rem;
     max-width: 4.4rem;
     font-size: 0.72rem;
     white-space: normal;
   }
 
-  .game-language-label-full {
+  .game-route .game-language-label-full {
     display: none;
   }
 
-  .game-language-label-short {
+  .game-route .game-language-label-short {
     display: inline;
   }
 
-  .navigation-hud {
+  .game-route .navigation-hud {
     width: calc(100% - var(--hud-edge-gap) - var(--hud-edge-gap));
   }
 
-  .navigation-hud .navigation-mission-panel {
+  .game-route .navigation-hud .navigation-mission-panel {
     grid-template-columns: minmax(0, 1fr) auto auto;
   }
 
-  .navigation-objective {
+  .game-route .navigation-objective {
     font-size: 0.82rem;
   }
 
-  .minimap-shell {
+  .game-route .minimap-shell {
     width: 6rem;
     height: 6rem;
   }
 
-  .mission-actions {
+  .game-route .mission-actions {
     width: 5.5rem;
   }
 
-  .fishing-nearby-prompt {
+  .game-route .fishing-nearby-prompt {
     min-width: 0;
     width: calc(100% - 1rem);
   }
 
-  .reading-actions,
-  .question-footer,
-  .completion-actions,
-  .language-selection-actions,
-  .tutorial-tools,
-  .tutorial-confirm > div {
+  .game-route .reading-actions,
+  .game-route .question-footer,
+  .game-route .completion-actions,
+  .game-route .language-selection-actions,
+  .game-route .tutorial-tools,
+  .game-route .tutorial-confirm > div {
     display: grid;
     grid-template-columns: 1fr;
   }
 
-  .reading-actions button,
-  .question-footer button,
-  .completion-actions button,
-  .language-selection-actions button,
-  .tutorial-tools button,
-  .tutorial-confirm button {
+  .game-route .reading-actions button,
+  .game-route .question-footer button,
+  .game-route .completion-actions button,
+  .game-route .language-selection-actions button,
+  .game-route .tutorial-tools button,
+  .game-route .tutorial-confirm button {
     width: 100%;
     margin: 0;
   }
 
-  .question-status-strip {
+  .game-route .question-status-strip {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .tutorial-narrator {
+  .game-route .tutorial-narrator {
     width: calc(100vw - 1rem);
     max-height: calc(100dvh - 1rem);
   }
@@ -909,57 +919,57 @@ body:has(.game-route),
     --dialog-inline-gap: 0.5rem;
   }
 
-  .game-topbar {
-    padding:
-      max(var(--hud-edge-gap), var(--safe-top))
-      max(var(--hud-edge-gap), var(--safe-right))
-      0.55rem
+  .game-route .game-topbar {
+    padding: max(var(--hud-edge-gap), var(--safe-top))
+      max(var(--hud-edge-gap), var(--safe-right)) 0.55rem
       max(var(--hud-edge-gap), var(--safe-left));
   }
 
-  .game-phase-label {
+  .game-route .game-phase-label {
     font-size: 0.62rem;
   }
 
-  .game-title {
+  .game-route .game-title {
     font-size: 0.95rem;
   }
 
-  .game-title-full {
+  .game-route .game-title-full {
     display: none;
   }
 
-  .game-title-short {
+  .game-route .game-title-short {
     display: inline;
   }
 
-  .game-system-controls {
+  .game-route .game-system-controls {
     gap: 0.3rem;
   }
 
-  .game-system-button {
+  .game-route .game-system-button {
     min-width: 2.75rem;
     min-height: 2.75rem;
     padding-inline: 0.45rem;
     font-size: 0.75rem;
   }
 
-  .navigation-hud {
-    top: calc(max(var(--hud-edge-gap), var(--safe-top)) + var(--hud-header-height));
+  .game-route .navigation-hud {
+    top: calc(
+      max(var(--hud-edge-gap), var(--safe-top)) + var(--hud-header-height)
+    );
     width: min(17rem, calc(100% - 13rem));
     min-width: 13rem;
   }
 
-  .navigation-hud .navigation-mission-panel {
+  .game-route .navigation-hud .navigation-mission-panel {
     max-height: 7.4rem;
   }
 
-  .navigation-objective {
+  .game-route .navigation-objective {
     font-size: 0.8rem;
     line-height: 1.18;
   }
 
-  .navigation-hud .minimap-shell {
+  .game-route .navigation-hud .minimap-shell {
     position: relative;
     inset: auto;
     width: 5.5rem;
@@ -967,65 +977,65 @@ body:has(.game-route),
     margin: 0.4rem 0 0 auto;
   }
 
-  .movement-controls {
+  .game-route .movement-controls {
     width: 9rem;
     height: 9rem;
   }
 
-  .movement-dpad {
+  .game-route .movement-dpad {
     grid-template-columns: repeat(3, 2.75rem);
     grid-template-rows: repeat(3, 2.75rem);
     gap: 0.375rem;
   }
 
-  .movement-direction-button,
-  .movement-dpad-center,
-  .movement-control-settings-button {
+  .game-route .movement-direction-button,
+  .game-route .movement-dpad-center,
+  .game-route .movement-control-settings-button {
     min-width: 2.75rem;
     min-height: 2.75rem;
   }
 
-  .movement-control-settings-button {
+  .game-route .movement-control-settings-button {
     right: auto;
     bottom: 0;
     left: calc(100% + 0.4rem);
   }
 
-  .virtual-joystick {
+  .game-route .virtual-joystick {
     width: 7.2rem;
     height: 7.2rem;
     margin: 0.15rem;
   }
 
-  .virtual-joystick-thumb {
+  .game-route .virtual-joystick-thumb {
     top: calc(50% - 1.2rem);
     left: calc(50% - 1.2rem);
     width: 2.4rem;
     height: 2.4rem;
   }
 
-  .mission-actions {
+  .game-route .mission-actions {
     width: 5.5rem;
   }
 
-  .mission-action-button {
+  .game-route .mission-action-button {
     min-height: 2.75rem;
     padding: 0.35rem 0.45rem;
     font-size: 0.78rem;
   }
 
-  .dialogue-panel {
+  .game-route .dialogue-panel {
     grid-template-columns: 3rem minmax(0, 1fr);
     gap: 0.55rem;
     max-height: calc(100dvh - 0.7rem);
   }
 
-  .dialogue-speaker {
+  .game-route .dialogue-speaker {
     width: 3rem;
     height: 3rem;
   }
 
-  .dialogue-actions {
+  .game-route .dialogue-actions {
     grid-column: 1 / -1;
     display: grid;
     width: 100%;
@@ -1033,128 +1043,129 @@ body:has(.game-route),
     gap: 0.35rem;
   }
 
-  .dialogue-actions button {
+  .game-route .dialogue-actions button {
     min-height: 2.5rem;
     padding: 0.35rem 0.45rem;
     font-size: 0.78rem;
   }
 
-  :is(
-    .help-panel,
-    .completion-panel,
-    .story-panel,
-    .question-panel,
-    .heart-recovery-panel,
-    .expanded-map-panel,
-    .audio-settings-panel,
-    .fishing-panel,
-    .language-selection-panel,
-    .tutorial-confirm,
-    .game-modal-panel
-  ) {
+  .game-route
+    :is(
+      .help-panel,
+      .completion-panel,
+      .story-panel,
+      .question-panel,
+      .heart-recovery-panel,
+      .expanded-map-panel,
+      .audio-settings-panel,
+      .fishing-panel,
+      .language-selection-panel,
+      .tutorial-confirm,
+      .game-modal-panel
+    ) {
     max-height: calc(100dvh - 0.7rem);
   }
 
-  .story-panel,
-  .completion-panel,
-  .heart-recovery-panel {
+  .game-route .story-panel,
+  .game-route .completion-panel,
+  .game-route .heart-recovery-panel {
     padding: 0.65rem;
   }
 
-  .story-copy {
+  .game-route .story-copy {
     max-height: 44dvh;
     overflow: auto;
   }
 
-  .question-panel.pixel-reading-panel {
+  .game-route .question-panel.pixel-reading-panel {
     max-height: calc(100dvh - 0.7rem);
   }
 
-  .tutorial-narrator:not(.is-ready) {
+  .game-route .tutorial-narrator:not(.is-ready) {
     width: min(38rem, calc(100vw - 1rem));
     max-height: min(10rem, calc(100dvh - 1rem));
   }
 
-  .tutorial-narrator.is-side {
+  .game-route .tutorial-narrator.is-side {
     max-width: min(19rem, calc(100vw - 1rem));
   }
 
-  .tutorial-tools {
+  .game-route .tutorial-tools {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .tutorial-copy {
+  .game-route .tutorial-copy {
     min-height: 0;
     font-size: 0.9rem;
     line-height: 1.3;
   }
 
-  .orientation-notice {
+  .game-route .orientation-notice {
     display: none;
   }
 }
 
 @media (orientation: landscape) and (max-height: 360px) {
-  .game-phase-label {
+  .game-route .game-phase-label {
     display: none;
   }
 
-  .game-title {
+  .game-route .game-title {
     margin-top: 0;
   }
 
-  .navigation-hud {
+  .game-route .navigation-hud {
     width: min(15rem, calc(100% - 12rem));
     min-width: 11.5rem;
   }
 
-  .navigation-hud .navigation-mission-panel {
+  .game-route .navigation-hud .navigation-mission-panel {
     max-height: 5.8rem;
     padding: 0.35rem 0.45rem;
   }
 
-  .navigation-trail-guide {
+  .game-route .navigation-trail-guide {
     display: none;
   }
 
-  .navigation-hud .minimap-shell {
+  .game-route .navigation-hud .minimap-shell {
     width: 4.5rem;
     height: 4.5rem;
   }
 
-  .minimap-title,
-  .minimap-open-label {
+  .game-route .minimap-title,
+  .game-route .minimap-open-label {
     font-size: 0.55rem;
   }
 
-  .movement-controls {
+  .game-route .movement-controls {
     width: 9rem;
     height: 9rem;
   }
 
-  .movement-dpad {
+  .game-route .movement-dpad {
     grid-template-columns: repeat(3, 2.75rem);
     grid-template-rows: repeat(3, 2.75rem);
     gap: 0.375rem;
   }
 
-  .movement-direction-button,
-  .movement-dpad-center,
-  .movement-control-settings-button {
+  .game-route .movement-direction-button,
+  .game-route .movement-dpad-center,
+  .game-route .movement-control-settings-button {
     min-width: 2.75rem;
     min-height: 2.75rem;
   }
 
-  .virtual-joystick {
+  .game-route .virtual-joystick {
     width: 6.5rem;
     height: 6.5rem;
   }
 
-  .mission-actions {
+  .game-route .mission-actions {
     width: 4.75rem;
   }
 
-  .mission-action-button {
+  .game-route .mission-action-button {
     min-width: 2.75rem;
     min-height: 2.75rem;
     padding-inline: 0.25rem;
@@ -1162,12 +1173,12 @@ body:has(.game-route),
 }
 
 /* Keep the map stack in the upper-left corner when the in-game title is hidden. */
-.game-topbar--controls-only + .game-route__canvas-layer,
-.game-topbar--controls-only ~ .game-route__canvas-layer {
+.game-route .game-topbar--controls-only + .game-route__canvas-layer,
+.game-route .game-topbar--controls-only ~ .game-route__canvas-layer {
   min-width: 0;
 }
 
-.navigation-hud {
+.game-route .navigation-hud {
   top: max(0.75rem, var(--safe-top));
   left: max(0.5rem, var(--safe-left));
   display: flex;
@@ -1178,7 +1189,7 @@ body:has(.game-route),
   gap: 0.5rem;
 }
 
-.navigation-hud .minimap-shell {
+.game-route .navigation-hud .minimap-shell {
   position: relative;
   inset: auto;
   width: clamp(9rem, 18vmin, 10.5rem);
@@ -1186,53 +1197,53 @@ body:has(.game-route),
   margin: 0;
 }
 
-.navigation-hud .navigation-mission-panel {
+.game-route .navigation-hud .navigation-mission-panel {
   width: 100%;
   max-height: none;
   overflow: visible;
 }
 
 @media (max-width: 520px) {
-  .game-system-controls {
+  .game-route .game-system-controls {
     gap: 0.25rem;
   }
 
-  .game-system-button,
-  .game-character-button {
+  .game-route .game-system-button,
+  .game-route .game-character-button {
     gap: 0.25rem;
     min-height: 2.7rem;
     padding-inline: 0.45rem;
   }
 
-  .game-command-icon {
+  .game-route .game-command-icon {
     width: 1.1rem;
     height: 1.1rem;
     font-size: 0.5rem;
   }
 
-  .game-command-icon--sound {
+  .game-route .game-command-icon--sound {
     width: 1.35rem;
     font-size: 0.42rem;
   }
 
-  .navigation-hud {
+  .game-route .navigation-hud {
     top: max(0.5rem, var(--safe-top));
     width: min(10rem, calc(100vw - 1rem));
   }
 
-  .navigation-hud .minimap-shell {
+  .game-route .navigation-hud .minimap-shell {
     width: 7.5rem;
     height: 7.5rem;
   }
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
-  .navigation-hud {
+  .game-route .navigation-hud {
     top: max(0.35rem, var(--safe-top));
     width: min(10rem, calc(100vw - 1rem));
   }
 
-  .navigation-hud .minimap-shell {
+  .game-route .navigation-hud .minimap-shell {
     width: 6.75rem;
     height: 6.75rem;
   }
@@ -1240,26 +1251,26 @@ body:has(.game-route),
 
 /* Compact screens need a clear lane between the mission card and the movement dock. */
 @media (max-width: 700px) {
-  .navigation-hud {
+  .game-route .navigation-hud {
     width: min(19rem, calc(100vw - 1rem));
     max-height: calc(100dvh - 9rem);
   }
 
-  .navigation-hud .navigation-mission-panel {
+  .game-route .navigation-hud .navigation-mission-panel {
     max-height: min(11rem, calc(100dvh - 12rem));
     overflow: auto;
   }
 
-  .navigation-hud .navigation-objective {
+  .game-route .navigation-hud .navigation-objective {
     font-size: 1rem;
     line-height: 1.35;
   }
 
-  .navigation-hud .navigation-mission-progress {
+  .game-route .navigation-hud .navigation-mission-progress {
     padding-right: 3.35rem;
   }
 
-  .movement-control-settings-button {
+  .game-route .movement-control-settings-button {
     right: auto;
     bottom: 0;
     left: -3.5rem;
@@ -1267,17 +1278,17 @@ body:has(.game-route),
 }
 
 @media (orientation: landscape) and (max-height: 500px) and (max-width: 900px) {
-  .navigation-hud {
+  .game-route .navigation-hud {
     width: min(18rem, calc(100vw - 1rem));
   }
 
-  .navigation-hud .navigation-mission-panel {
+  .game-route .navigation-hud .navigation-mission-panel {
     max-height: calc(100dvh - 9rem);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .orientation-notice,
+  .game-route .orientation-notice,
   .game-route__stage {
     scroll-behavior: auto;
   }
@@ -1292,11 +1303,8 @@ body:has(.game-route),
  */
 @media (max-width: 700px) {
   .game-route .game-topbar {
-    padding:
-      max(0.45rem, var(--safe-top))
-      max(0.45rem, var(--safe-right))
-      0.45rem
-      max(0.45rem, var(--safe-left));
+    padding: max(0.45rem, var(--safe-top)) max(0.45rem, var(--safe-right))
+      0.45rem max(0.45rem, var(--safe-left));
   }
 
   .game-route .game-system-controls {
@@ -1451,7 +1459,9 @@ body:has(.game-route),
     grid-column: auto;
     border-width: 2px;
     outline-width: 2px;
-    box-shadow: 0 0 0 2px #d09b32, 3px 3px 0 #0a1c15;
+    box-shadow:
+      0 0 0 2px #d09b32,
+      3px 3px 0 #0a1c15;
     font-size: clamp(0.54rem, 1.8vw, 0.66rem);
   }
 
@@ -1460,10 +1470,7 @@ body:has(.game-route),
   }
 
   .game-route .orientation-notice {
-    inset:
-      auto
-      max(0.45rem, var(--safe-right))
-      max(0.45rem, var(--safe-bottom))
+    inset: auto max(0.45rem, var(--safe-right)) max(0.45rem, var(--safe-bottom))
       max(0.45rem, var(--safe-left));
     grid-template-columns: 2.35rem minmax(0, 1fr);
     gap: 0.3rem 0.45rem;
@@ -1596,7 +1603,9 @@ body:has(.game-route),
     grid-column: auto;
     border-width: 2px;
     outline-width: 2px;
-    box-shadow: 0 0 0 2px #d09b32, 3px 3px 0 #0a1c15;
+    box-shadow:
+      0 0 0 2px #d09b32,
+      3px 3px 0 #0a1c15;
     font-size: clamp(0.52rem, 1.8vw, 0.64rem);
   }
 
@@ -1663,11 +1672,8 @@ body:has(.game-route),
   }
 
   .game-route .game-topbar {
-    padding:
-      max(0.65rem, var(--safe-top))
-      max(0.65rem, var(--safe-right))
-      0.7rem
-      max(0.65rem, var(--safe-left));
+    padding: max(0.65rem, var(--safe-top)) max(0.65rem, var(--safe-right))
+      0.7rem max(0.65rem, var(--safe-left));
   }
 
   .game-route .game-topbar--controls-only .game-system-controls {
@@ -1816,11 +1822,8 @@ body:has(.game-route),
    readable/touchable sizes. The HUD lanes stay on opposite sides of the map. */
 @media (orientation: landscape) and (max-height: 600px) and (max-width: 915px) {
   .game-route .game-topbar {
-    padding:
-      max(0.45rem, var(--safe-top))
-      max(0.55rem, var(--safe-right))
-      0.45rem
-      max(0.55rem, var(--safe-left));
+    padding: max(0.45rem, var(--safe-top)) max(0.55rem, var(--safe-right))
+      0.45rem max(0.55rem, var(--safe-left));
   }
 
   .game-route .game-topbar--controls-only .game-system-controls {
@@ -1930,11 +1933,17 @@ body:has(.game-route),
     grid-column: span 2;
   }
 
-  .game-route .game-topbar--controls-only .game-system-controls > :nth-child(4) {
+  .game-route
+    .game-topbar--controls-only
+    .game-system-controls
+    > :nth-child(4) {
     grid-column: 2 / span 2;
   }
 
-  .game-route .game-topbar--controls-only .game-system-controls > :nth-child(5) {
+  .game-route
+    .game-topbar--controls-only
+    .game-system-controls
+    > :nth-child(5) {
     grid-column: 4 / span 2;
   }
 

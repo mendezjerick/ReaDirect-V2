@@ -13,9 +13,13 @@ import { RequireStaffRole } from "./components/staff/RequireStaffRole";
 import { HomePage } from "./features/home/HomePage";
 import { IntroPage } from "./features/intro/IntroPage";
 import { LearnerExperienceProvider } from "./features/learner-auth/LearnerExperienceProvider";
-import { loadLearnerSession } from "./features/learner-auth/learnerApi";
+import {
+  learnerSessionChangedEvent,
+  loadLearnerSession,
+} from "./features/learner-auth/learnerApi";
 import { NativeLearnerEntryPage } from "./features/offline-practice/NativeLearnerEntryPage";
 import { NativeConnectivityBanner } from "./features/connectivity/NativeConnectivityBanner";
+import { learnerGameProfileClient } from "./features/games/gameProfileApi";
 
 const LearnerDashboardPage = lazy(() =>
   import("./features/learner-dashboard/LearnerDashboardPage").then(
@@ -128,9 +132,9 @@ const GameOneHostPage = lazy(() =>
   })),
 );
 
-const GameAlphaRoutePage = lazy(() =>
-  import("@readirect/game-alpha").then((module) => ({
-    default: module.GameAlphaRoutePage,
+const GameAlphaHostPage = lazy(() =>
+  import("./features/games/GameAlphaHostPage").then((module) => ({
+    default: module.GameAlphaHostPage,
   })),
 );
 
@@ -140,9 +144,9 @@ const GameZeroRoutePage = lazy(() =>
   })),
 );
 
-const GameTwoRoutePage = lazy(() =>
-  import("@readirect/game-two").then((module) => ({
-    default: module.GameTwoRoutePage,
+const GameTwoHostPage = lazy(() =>
+  import("./features/games/GameTwoHostPage").then((module) => ({
+    default: module.GameTwoHostPage,
   })),
 );
 
@@ -451,13 +455,22 @@ function RootPage() {
 }
 
 function LearnerGamesRoute() {
-  return <GameLobbyPage guestUnavailable={!loadLearnerSession()} />;
+  const session = loadLearnerSession();
+  return (
+    <GameLobbyPage
+      guestUnavailable={!session}
+      previewMode={session?.learner.account_purpose === "portal_system"}
+    />
+  );
 }
 
 export function App() {
   return (
     <RouteTransitionProvider>
-      <GameLobbySkeletonProvider>
+      <GameLobbySkeletonProvider
+        profileClient={learnerGameProfileClient}
+        sessionChangeEvent={learnerSessionChangedEvent}
+      >
         <LearnerExperienceProvider>
           <NativeConnectivityBanner />
           <Suspense fallback={<RouteLoading />}>
@@ -539,15 +552,25 @@ export function App() {
               <Route
                 path="/learner/games/game-alpha"
                 element={
-                  <RequireSkeletonGameProfile>
-                    <GameAlphaRoutePage />
+                  <RequireSkeletonGameProfile
+                    bypass={
+                      loadLearnerSession()?.learner.account_purpose ===
+                      "portal_system"
+                    }
+                  >
+                    <GameAlphaHostPage />
                   </RequireSkeletonGameProfile>
                 }
               />
               <Route
                 path="/learner/games/game-one"
                 element={
-                  <RequireSkeletonGameProfile>
+                  <RequireSkeletonGameProfile
+                    bypass={
+                      loadLearnerSession()?.learner.account_purpose ===
+                      "portal_system"
+                    }
+                  >
                     <GameOneHostPage />
                   </RequireSkeletonGameProfile>
                 }
@@ -563,8 +586,13 @@ export function App() {
               <Route
                 path="/learner/games/game-two"
                 element={
-                  <RequireSkeletonGameProfile>
-                    <GameTwoRoutePage />
+                  <RequireSkeletonGameProfile
+                    bypass={
+                      loadLearnerSession()?.learner.account_purpose ===
+                      "portal_system"
+                    }
+                  >
+                    <GameTwoHostPage />
                   </RequireSkeletonGameProfile>
                 }
               />

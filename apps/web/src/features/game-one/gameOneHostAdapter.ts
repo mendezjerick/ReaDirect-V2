@@ -4,21 +4,10 @@ import { apiFetchWithNormalTimeout as fetch } from "../../lib/apiUrl";
 
 import type {
   GameOneHostAdapter,
+  GameOneGameProfile,
   GameOneRemoteSave,
   GameOneSaveRequest,
 } from "@readirect/game-one";
-
-const gameProfileSchema = z.object({
-  audience: z.literal("learner"),
-  username: z.string(),
-  discriminator: z.string().regex(/^\d{4}$/),
-  public_handle: z.string(),
-  is_active: z.boolean(),
-});
-
-const gameProfileResponseSchema = z.object({
-  profile: gameProfileSchema.nullable(),
-});
 
 const remoteSaveSchema = z.object({
   checkpoint_key: z.string(),
@@ -40,10 +29,10 @@ const GAME_ONE_NEW_GAME_URL =
 
 export function createGameOneHostAdapter({
   token,
-  requestedUsername,
+  profile = null,
 }: {
   token: string;
-  requestedUsername: string;
+  profile?: GameOneGameProfile | null;
 }): GameOneHostAdapter {
   const headers: HeadersInit = {
     Accept: "application/json",
@@ -54,15 +43,9 @@ export function createGameOneHostAdapter({
   const requestSave = () => fetch(GAME_ONE_SAVE_URL, { headers });
 
   return {
+    profile,
     async load() {
-      let response = await requestSave();
-
-      if (response.status === 409) {
-        await ensureGameProfile(headers, requestedUsername);
-        response = await requestSave();
-      }
-
-      return parseSaveResponse(response);
+      return parseSaveResponse(await requestSave());
     },
 
     async save(request: GameOneSaveRequest) {
@@ -85,7 +68,7 @@ export function createGameOneHostAdapter({
       return save;
     },
 
-    async reset(expectedRevision: number) {
+    async newGame(expectedRevision: number) {
       const response = await fetch(GAME_ONE_NEW_GAME_URL, {
         method: "POST",
         headers,
@@ -99,34 +82,6 @@ export function createGameOneHostAdapter({
       saveResponseSchema.parse(await response.json());
     },
   };
-}
-
-async function ensureGameProfile(
-  headers: HeadersInit,
-  requestedUsername: string,
-): Promise<void> {
-  const currentResponse = await fetch("/api/learners/games/profile", {
-    headers,
-  });
-
-  if (!currentResponse.ok) {
-    throw new Error(await responseError(currentResponse));
-  }
-
-  const current = gameProfileResponseSchema.parse(await currentResponse.json());
-  if (current.profile !== null) return;
-
-  const createResponse = await fetch("/api/learners/games/profile", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ username: requestedUsername }),
-  });
-
-  if (!createResponse.ok) {
-    throw new Error(await responseError(createResponse));
-  }
-
-  gameProfileResponseSchema.parse(await createResponse.json());
 }
 
 async function parseSaveResponse(

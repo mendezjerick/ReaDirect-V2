@@ -8,10 +8,7 @@ import {
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  GameOneRoutePage,
-  type GameOneHostAdapter,
-} from "@readirect/game-one";
+import { GameOneRoutePage, type GameOneHostAdapter } from "@readirect/game-one";
 
 const kaplayController = vi.hoisted(() => ({
   pause: vi.fn(),
@@ -26,15 +23,12 @@ const kaplayController = vi.hoisted(() => ({
   destroy: vi.fn(),
 }));
 
-vi.mock(
-  "../../games/game-one/src/game/kaplay/createKaplayGame",
-  () => ({
-    createKaplayGame: () => ({
-      canvas: document.createElement("canvas"),
-      ...kaplayController,
-    }),
+vi.mock("../../games/game-one/src/game/kaplay/createKaplayGame", () => ({
+  createKaplayGame: () => ({
+    canvas: document.createElement("canvas"),
+    ...kaplayController,
   }),
-);
+}));
 
 beforeEach(() => {
   window.localStorage.setItem(
@@ -49,19 +43,18 @@ beforeEach(() => {
 
 describe("Game One route boundary", () => {
   it("flushes learner progress and tears down the runtime before returning to the lobby", async () => {
-    const save = vi.fn<GameOneHostAdapter["save"]>(
-      async (request) => ({
-        checkpointKey: request.checkpointKey,
-        saveSchemaVersion: request.saveSchemaVersion,
-        state: request.state,
-        revision: request.expectedRevision + 1,
-        savedAt: "2026-07-26T12:00:00+00:00",
-      }),
-    );
+    const save = vi.fn<GameOneHostAdapter["save"]>(async (request) => ({
+      checkpointKey: request.checkpointKey,
+      saveSchemaVersion: request.saveSchemaVersion,
+      state: request.state,
+      revision: request.expectedRevision + 1,
+      savedAt: "2026-07-26T12:00:00+00:00",
+    }));
     const host: GameOneHostAdapter = {
       load: vi.fn(async () => null),
       save,
-      reset: vi.fn(async () => undefined),
+      newGame: vi.fn(async () => undefined),
+      profile: null,
     };
 
     render(

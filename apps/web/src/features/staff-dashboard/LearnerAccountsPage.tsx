@@ -537,12 +537,14 @@ export function LearnerAccountsPage() {
             ) : null}
 
             {learnersQuery.data && learnersQuery.data.length > 0 ? (
-              <StaffDataTable
-                accessibleLabel="Learner directory"
-                columns={learnerColumns}
-                rows={learnersQuery.data}
-                rowKey={(learner) => learner.id}
-              />
+              <div className="staff-learner-directory">
+                <StaffDataTable
+                  accessibleLabel="Learner directory"
+                  columns={learnerColumns}
+                  rows={learnersQuery.data}
+                  rowKey={(learner) => learner.id}
+                />
+              </div>
             ) : null}
           </StaffCard>
         </StaffContentGrid>

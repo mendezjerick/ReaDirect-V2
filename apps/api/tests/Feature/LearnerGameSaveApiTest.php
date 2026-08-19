@@ -96,7 +96,17 @@ final class LearnerGameSaveApiTest extends TestCase
             ])->assertUnprocessable();
         }
 
-        $this->assertDatabaseCount('game_profiles', 0);
+        foreach (['admin', 'TEACHER', 'system', 'readirect', 'Clara'] as $username) {
+            $this->withHeaders($headers)->postJson('/api/learners/games/profile', [
+                'username' => $username,
+            ])->assertUnprocessable();
+        }
+
+        $this->withHeaders($headers)->postJson('/api/learners/games/profile', [
+            'username' => 'clara123',
+        ])->assertCreated();
+
+        $this->assertDatabaseCount('game_profiles', 1);
     }
 
     public function test_preview_sessions_cannot_create_persistent_game_data(): void
@@ -173,7 +183,7 @@ final class LearnerGameSaveApiTest extends TestCase
         $created->assertOk()
             ->assertJsonPath('save.checkpoint_key', 'mission-1')
             ->assertJsonPath('save.save_schema_version', 1)
-            ->assertJsonPath('save.state.mission_index', 0)
+            ->assertJsonPath('save.state.mission.missionIndex', 0)
             ->assertJsonPath('save.revision', 1);
 
         $profile = GameProfile::query()->where('learner_id', $learner->id)->sole();
@@ -194,14 +204,11 @@ final class LearnerGameSaveApiTest extends TestCase
 
         $this->withHeaders($headers)
             ->putJson('/api/learners/games/chronicles-of-the-lost-kingdom/save', [
-                ...$this->savePayload(),
-                'checkpoint_key' => 'mission-2',
-                'state' => ['mission_index' => 1],
-                'expected_revision' => 1,
+                ...$this->savePayload(1, 1, 'mission-2'),
             ])
             ->assertOk()
             ->assertJsonPath('save.revision', 2)
-            ->assertJsonPath('save.state.mission_index', 1);
+            ->assertJsonPath('save.state.mission.missionIndex', 1);
 
         $this->withHeaders($headers)
             ->getJson('/api/learners/games/chronicles-of-the-lost-kingdom/save')
@@ -222,8 +229,7 @@ final class LearnerGameSaveApiTest extends TestCase
 
         $this->withHeaders($firstHeaders)
             ->putJson('/api/learners/games/chronicles-of-the-lost-kingdom/save', [
-                ...$this->savePayload(),
-                'state' => ['mission_index' => 2],
+                ...$this->savePayload(2),
             ])
             ->assertOk();
 
@@ -234,21 +240,20 @@ final class LearnerGameSaveApiTest extends TestCase
 
         $this->withHeaders($secondHeaders)
             ->putJson('/api/learners/games/chronicles-of-the-lost-kingdom/save', [
-                ...$this->savePayload(),
-                'state' => ['mission_index' => 0],
+                ...$this->savePayload(0),
             ])
             ->assertOk();
 
         $this->assertDatabaseCount('game_saves', 2);
         $this->assertSame(
-            ['mission_index' => 2],
+            $this->gameOneState(2),
             GameSave::query()
                 ->where('game_profile_id', $firstLearner->gameProfile->id)
                 ->sole()
                 ->state,
         );
         $this->assertSame(
-            ['mission_index' => 0],
+            $this->gameOneState(0),
             GameSave::query()
                 ->where('game_profile_id', $secondLearner->gameProfile->id)
                 ->sole()
@@ -266,9 +271,7 @@ final class LearnerGameSaveApiTest extends TestCase
 
         $this->withHeaders($firstSession)
             ->putJson('/api/learners/games/chronicles-of-the-lost-kingdom/save', [
-                ...$this->savePayload(),
-                'checkpoint_key' => 'mission-3',
-                'state' => ['mission_index' => 2],
+                ...$this->savePayload(2, 0, 'mission-3'),
             ])
             ->assertOk()
             ->assertJsonPath('save.revision', 1);
@@ -277,7 +280,7 @@ final class LearnerGameSaveApiTest extends TestCase
             ->getJson('/api/learners/games/chronicles-of-the-lost-kingdom/save')
             ->assertOk()
             ->assertJsonPath('save.checkpoint_key', 'mission-3')
-            ->assertJsonPath('save.state.mission_index', 2)
+            ->assertJsonPath('save.state.mission.missionIndex', 2)
             ->assertJsonPath('save.revision', 1);
 
         $this->assertDatabaseCount('game_profiles', 1);
@@ -287,16 +290,8 @@ final class LearnerGameSaveApiTest extends TestCase
     public function test_new_game_removes_only_the_current_games_save(): void
     {
         $gameOne = $this->activateGameOne();
-        $gameTwo = GameCatalog::query()->create([
-            'game_key' => 'game-two-placeholder',
-            'display_title' => 'Game Two Placeholder',
-            'slot' => 'game-two',
-            'engine' => 'pixi',
-            'contract_version' => 1,
-            'current_ruleset_version' => 'v1',
-            'has_meaningful_progression' => true,
-            'is_active' => true,
-        ]);
+        $gameTwo = GameCatalog::query()->where('game_key', GameCatalog::GAME_TWO_KEY)->sole();
+        $gameTwo->forceFill(['is_active' => true])->save();
         $learner = $this->createLearner('GS006');
         $headers = $this->authenticate($learner, 'new-game-token');
         $this->createProfileThroughApi($headers, 'Reset6');
@@ -306,9 +301,7 @@ final class LearnerGameSaveApiTest extends TestCase
             ->assertOk();
         $this->withHeaders($headers)
             ->putJson("/api/learners/games/{$gameTwo->game_key}/save", [
-                ...$this->savePayload(),
-                'checkpoint_key' => 'word-trail',
-                'state' => ['word_index' => 3],
+                ...$this->gameTwoPayload(),
             ])
             ->assertOk();
 
@@ -349,7 +342,9 @@ final class LearnerGameSaveApiTest extends TestCase
         $this->withHeaders($headers)->putJson($url, [
             ...$this->savePayload(),
             'state' => [
-                'progress' => [
+                ...$this->savePayload()['state'],
+                'mission' => [
+                    ...$this->savePayload()['state']['mission'],
                     'learner_id' => 123,
                 ],
             ],
@@ -357,11 +352,157 @@ final class LearnerGameSaveApiTest extends TestCase
             ->assertJsonValidationErrors('state');
         $this->withHeaders($headers)->putJson($url, [
             ...$this->savePayload(),
-            'state' => ['payload' => str_repeat('x', 262_144)],
+            'state' => [
+                ...$this->savePayload()['state'],
+                'padding' => str_repeat('x', 262_144),
+            ],
         ])->assertUnprocessable()
             ->assertJsonValidationErrors('state');
 
         $this->assertDatabaseCount('game_saves', 0);
+    }
+
+    public function test_game_alpha_v1_save_contract_rejects_invalid_payloads(): void
+    {
+        $this->seedGameCatalog();
+        $alpha = GameCatalog::query()->where('game_key', GameCatalog::GAME_ALPHA_KEY)->sole();
+        $alpha->forceFill(['is_active' => true])->save();
+        $headers = $this->authenticate($this->createLearner('GA010'), 'alpha-contract-token');
+        $this->createProfileThroughApi($headers, 'Alpha10');
+        $url = "/api/learners/games/{$alpha->game_key}/save";
+
+        $this->withHeaders($headers)->putJson($url, [
+            'checkpoint_key' => 'run-complete',
+            'save_schema_version' => 1,
+            'state' => [
+                'rulesetVersion' => 'game-alpha-score-v1',
+                'personalBestScore' => 1200,
+                'highestStageReached' => 2,
+            ],
+            'expected_revision' => 0,
+        ])->assertOk();
+
+        foreach ([
+            ['personalBestScore' => -1],
+            ['personalBestScore' => '1200'],
+            ['highestStageReached' => 0],
+            ['rulesetVersion' => 'v2'],
+            ['unknown' => true],
+        ] as $change) {
+            $state = [
+                'rulesetVersion' => 'game-alpha-score-v1',
+                'personalBestScore' => 1200,
+                'highestStageReached' => 2,
+                ...$change,
+            ];
+
+            $this->withHeaders($headers)->putJson($url, [
+                'checkpoint_key' => 'run-complete',
+                'save_schema_version' => 1,
+                'state' => $state,
+                'expected_revision' => 1,
+            ])->assertUnprocessable();
+        }
+    }
+
+    public function test_game_one_v1_contract_rejects_unknown_envelope_fields_but_accepts_existing_shape(): void
+    {
+        $this->activateGameOne();
+        $headers = $this->authenticate($this->createLearner('GO010'), 'game-one-contract-token');
+        $this->createProfileThroughApi($headers, 'One10');
+        $url = '/api/learners/games/chronicles-of-the-lost-kingdom/save';
+
+        $this->withHeaders($headers)->putJson($url, $this->savePayload())->assertOk();
+
+        $invalid = $this->savePayload();
+        $invalid['state']['extra'] = true;
+        $this->withHeaders($headers)->putJson($url, $invalid)->assertUnprocessable();
+
+        $invalid = $this->savePayload();
+        $invalid['state']['characterId'] = 'unknown-character';
+        $this->withHeaders($headers)->putJson($url, $invalid)->assertUnprocessable();
+
+        $invalid = $this->savePayload();
+        $invalid['state']['mission']['missionIndex'] = 99;
+        $this->withHeaders($headers)->putJson($url, $invalid)->assertUnprocessable();
+    }
+
+    public function test_ottertale_v1_save_contract_requires_completed_known_stages(): void
+    {
+        $this->seedGameCatalog();
+        $game = GameCatalog::query()->where('game_key', GameCatalog::GAME_TWO_KEY)->sole();
+        $game->forceFill(['is_active' => true])->save();
+        $headers = $this->authenticate($this->createLearner('GT010'), 'ottertale-contract-token');
+        $this->createProfileThroughApi($headers, 'Otter10');
+        $url = "/api/learners/games/{$game->game_key}/save";
+
+        $this->withHeaders($headers)->putJson($url, $this->gameTwoPayload())->assertOk();
+
+        foreach ([
+            ['rulesetVersion' => 'v2'],
+            ['completedStageIds' => [99]],
+            ['completedStageIds' => [1], 'bestScoresByStage' => ['2' => 20]],
+            ['completedStageIds' => [1, 1]],
+            ['completedStageIds' => [1], 'bestScoresByStage' => ['1' => -1]],
+        ] as $change) {
+            $state = [
+                'rulesetVersion' => 'v1',
+                'completedStageIds' => [1],
+                'bestScoresByStage' => ['1' => 12],
+                ...$change,
+            ];
+
+            $this->withHeaders($headers)->putJson($url, [
+                'checkpoint_key' => 'stage-1-complete',
+                'save_schema_version' => 1,
+                'state' => $state,
+                'expected_revision' => 1,
+            ])->assertUnprocessable();
+        }
+    }
+
+    public function test_ottertale_reset_is_target_only_and_revision_controlled(): void
+    {
+        $this->seedGameCatalog();
+        $learner = $this->createLearner('GT011');
+        $headers = $this->authenticate($learner, 'ottertale-reset-token');
+        $this->createProfileThroughApi($headers, 'Otter11');
+
+        $otterUrl = '/api/learners/games/ottertale/save';
+        $alphaUrl = '/api/learners/games/game-alpha/save';
+        $otterPayload = [
+            'checkpoint_key' => 'stage-1-complete',
+            'save_schema_version' => 1,
+            'state' => [
+                'rulesetVersion' => 'v1',
+                'completedStageIds' => [1],
+                'bestScoresByStage' => ['1' => 24],
+            ],
+            'expected_revision' => 0,
+        ];
+
+        $this->withHeaders($headers)->putJson($otterUrl, $otterPayload)->assertOk();
+        $this->withHeaders($headers)->putJson($alphaUrl, [
+            'checkpoint_key' => 'run-complete',
+            'save_schema_version' => 1,
+            'state' => [
+                'rulesetVersion' => 'game-alpha-score-v1',
+                'personalBestScore' => 12,
+                'highestStageReached' => 1,
+            ],
+            'expected_revision' => 0,
+        ])->assertOk();
+
+        $this->withHeaders($headers)
+            ->postJson('/api/learners/games/ottertale/new-game', ['expected_revision' => 1])
+            ->assertOk()
+            ->assertJsonPath('save', null);
+
+        $this->withHeaders($headers)->getJson($otterUrl)->assertOk()->assertJsonPath('save', null);
+        $this->withHeaders($headers)
+            ->getJson($alphaUrl)
+            ->assertOk()
+            ->assertJsonPath('save.state.personalBestScore', 12);
     }
 
     private function activateGameOne(): GameCatalog
@@ -427,12 +568,84 @@ final class LearnerGameSaveApiTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private function savePayload(): array
+    private function savePayload(
+        int $missionIndex = 0,
+        int $expectedRevision = 0,
+        string $checkpointKey = 'mission-1',
+    ): array
     {
         return [
-            'checkpoint_key' => 'mission-1',
+            'checkpoint_key' => $checkpointKey,
             'save_schema_version' => 1,
-            'state' => ['mission_index' => 0],
+            'state' => $this->gameOneState($missionIndex),
+            'expected_revision' => $expectedRevision,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function gameOneState(int $missionIndex = 0): array
+    {
+        return [
+            'contentVersionId' => 'bilingual-v1',
+            'mission' => [
+                'language' => 'en',
+                'missionId' => 'plaza-welcome',
+                'missionIndex' => $missionIndex,
+                'stage' => 'approachStoryCharacter',
+                'rounds' => [],
+                'readingPageIndex' => 0,
+                'actionAttempts' => 0,
+                'currentQuestionIndex' => 0,
+                'completedQuestionIds' => [],
+                'savedQuestionIds' => [],
+                'completedMissionIds' => [],
+                'readingHeartsRemaining' => 3,
+                'helpRequestCount' => 0,
+                'comprehensionRestartCount' => 0,
+                'attemptsByQuestion' => [],
+                'incorrectSubmissionsByQuestion' => [],
+                'activityCompleted' => false,
+            ],
+            'exploration' => [
+                'version' => 1,
+                'safePosition' => ['x' => 96, 'y' => 96],
+                'discoveredFishingSpotIds' => [],
+                'completedInteractionIds' => [],
+                'fishingParticipation' => 0,
+                'fishingAttempts' => 0,
+                'caughtResultIds' => [],
+            ],
+            'tutorial' => [
+                'active' => true,
+                'step' => 'missionPanel',
+                'completedSteps' => [],
+                'skipConfirmationOpen' => false,
+                'finished' => false,
+            ],
+            'characterId' => 'yato',
+            'shopTask' => [
+                'stage' => 'not-started',
+                'hintUsed' => false,
+                'inspectedIds' => [],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function gameTwoPayload(): array
+    {
+        return [
+            'checkpoint_key' => 'stage-1-complete',
+            'save_schema_version' => 1,
+            'state' => [
+                'rulesetVersion' => 'v1',
+                'completedStageIds' => [1],
+                'bestScoresByStage' => ['1' => 12],
+            ],
             'expected_revision' => 0,
         ];
     }

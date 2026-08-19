@@ -11,6 +11,7 @@ use App\Models\Learner;
 use App\Models\School;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
+use Database\Seeders\GameCatalogSeeder;
 use Tests\TestCase;
 
 final class SystemAdminOperationsTest extends TestCase
@@ -114,6 +115,23 @@ final class SystemAdminOperationsTest extends TestCase
 
         $this->getJson('/api/staff/system-admin/operations/audit-logs')->assertForbidden();
         $this->getJson('/api/staff/system-admin/operations/games-and-players')->assertForbidden();
+    }
+
+    public function test_system_administrator_can_represent_all_three_canonical_games_as_active(): void
+    {
+        (new GameCatalogSeeder)->run();
+        $this->authenticateStaff($this->systemAdministrator());
+
+        $response = $this->getJson('/api/staff/system-admin/operations/games-and-players')
+            ->assertOk()
+            ->assertJsonPath('summary.catalog_games', 3)
+            ->assertJsonPath('summary.active_games', 3);
+
+        $games = collect($response->json('games'))->keyBy('game_key');
+
+        $this->assertSame(true, $games[GameCatalog::GAME_ALPHA_KEY]['is_active']);
+        $this->assertSame(true, $games[GameCatalog::GAME_ONE_KEY]['is_active']);
+        $this->assertSame(true, $games[GameCatalog::GAME_TWO_KEY]['is_active']);
     }
 
     private function systemAdministrator(): StaffUser

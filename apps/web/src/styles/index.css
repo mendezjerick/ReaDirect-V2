@@ -2113,6 +2113,17 @@ textarea.staff-field__control {
   display: grid;
 }
 
+.staff-learner-directory {
+  min-width: 0;
+}
+
+/* Keep the teacher directory inside its card when the workspace is split. */
+.staff-learner-directory .staff-data-table {
+  min-width: 0;
+  --staff-data-table-template: minmax(0, 1.35fr) minmax(0, 0.65fr)
+    minmax(0, 0.9fr) minmax(0, 0.75fr) minmax(0, 1.1fr) !important;
+}
+
 .staff-data-table__header {
   display: none;
 }

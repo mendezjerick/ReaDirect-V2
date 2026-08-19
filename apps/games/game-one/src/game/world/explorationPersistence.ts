@@ -1,4 +1,8 @@
-import { FISHING_SPOTS, type FishingResultId, type FishingSpotId } from "../fishing/fishingSystem";
+import {
+  FISHING_SPOTS,
+  type FishingResultId,
+  type FishingSpotId,
+} from "../fishing/fishingSystem";
 import { PROTOTYPE_MAP } from "../map/prototypeMap";
 import { canOccupy, type Point } from "../physics/collision";
 import { PLAYER_CONFIG } from "../player/playerMovement";
@@ -27,35 +31,60 @@ export function createInitialExplorationProgress(): ExplorationProgress {
     completedInteractionIds: [],
     fishingParticipation: 0,
     fishingAttempts: 0,
-    caughtResultIds: []
+    caughtResultIds: [],
   };
 }
 
-export function loadExplorationProgress(storage: Storage = window.localStorage): ExplorationProgress {
+export function restoreExplorationProgress(
+  value: unknown,
+): ExplorationProgress | null {
+  const fallback = createInitialExplorationProgress();
+  if (!value || typeof value !== "object") return null;
+  const stored = value as Partial<ExplorationProgress>;
+  if (stored.version !== 1 || !isSafeExplorationPosition(stored.safePosition))
+    return null;
+  const knownSpotIds = new Set(FISHING_SPOTS.map(({ id }) => id));
+  return {
+    ...fallback,
+    ...stored,
+    safePosition: { ...stored.safePosition },
+    currentRegionId: getWorldRegionAtPoint(stored.safePosition).id,
+    discoveredFishingSpotIds: (stored.discoveredFishingSpotIds ?? []).filter(
+      (id): id is FishingSpotId => knownSpotIds.has(id as FishingSpotId),
+    ),
+    completedInteractionIds: uniqueStrings(stored.completedInteractionIds),
+    fishingParticipation: Math.max(
+      0,
+      Math.floor(stored.fishingParticipation ?? 0),
+    ),
+    fishingAttempts: Math.max(0, Math.floor(stored.fishingAttempts ?? 0)),
+    caughtResultIds: (stored.caughtResultIds ?? []).filter(
+      (id): id is FishingResultId =>
+        id === "message-bottle" || id === "silver-fish",
+    ),
+  };
+}
+
+export function loadExplorationProgress(
+  storage: Storage = window.localStorage,
+): ExplorationProgress {
   const fallback = createInitialExplorationProgress();
   try {
     const raw = storage.getItem(EXPLORATION_PROGRESS_KEY);
     if (!raw) return fallback;
     const stored = JSON.parse(raw) as Partial<ExplorationProgress>;
-    if (stored.version !== 1 || !isSafeExplorationPosition(stored.safePosition)) return fallback;
-    const knownSpotIds = new Set(FISHING_SPOTS.map(({ id }) => id));
-    return {
-      ...fallback,
-      ...stored,
-      safePosition: { ...stored.safePosition },
-      currentRegionId: getWorldRegionAtPoint(stored.safePosition).id,
-      discoveredFishingSpotIds: (stored.discoveredFishingSpotIds ?? []).filter((id): id is FishingSpotId => knownSpotIds.has(id as FishingSpotId)),
-      completedInteractionIds: uniqueStrings(stored.completedInteractionIds),
-      fishingParticipation: Math.max(0, Math.floor(stored.fishingParticipation ?? 0)),
-      fishingAttempts: Math.max(0, Math.floor(stored.fishingAttempts ?? 0)),
-      caughtResultIds: (stored.caughtResultIds ?? []).filter((id): id is FishingResultId => id === "message-bottle" || id === "silver-fish")
-    };
+    if (stored.version !== 1 || !isSafeExplorationPosition(stored.safePosition))
+      return fallback;
+    return restoreExplorationProgress(stored) ?? fallback;
   } catch {
     return fallback;
   }
 }
 
-export function saveExplorationProgress(progress: ExplorationProgress, storage: Storage = window.localStorage) {
+export function saveExplorationProgress(
+  progress: ExplorationProgress,
+  storage: Storage = window.localStorage,
+) {
   try {
     storage.setItem(EXPLORATION_PROGRESS_KEY, JSON.stringify(progress));
   } catch {
@@ -63,7 +92,9 @@ export function saveExplorationProgress(progress: ExplorationProgress, storage: 
   }
 }
 
-export function clearExplorationProgress(storage: Storage = window.localStorage) {
+export function clearExplorationProgress(
+  storage: Storage = window.localStorage,
+) {
   try {
     storage.removeItem(EXPLORATION_PROGRESS_KEY);
   } catch {
@@ -71,17 +102,31 @@ export function clearExplorationProgress(storage: Storage = window.localStorage)
   }
 }
 
-export function isSafeExplorationPosition(position: unknown): position is Point {
+export function isSafeExplorationPosition(
+  position: unknown,
+): position is Point {
   if (!position || typeof position !== "object") return false;
   const point = position as Partial<Point>;
   if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return false;
   const collision = [
     ...PROTOTYPE_MAP.collision,
-    ...STATIONARY_NPCS.map((npc) => ({ id: `npc-${npc.id}-safe-position`, ...npc.collisionBase }))
+    ...STATIONARY_NPCS.map((npc) => ({
+      id: `npc-${npc.id}-safe-position`,
+      ...npc.collisionBase,
+    })),
   ];
-  return canOccupy(point as Point, PLAYER_CONFIG.radius, { ...PROTOTYPE_MAP, collision });
+  return canOccupy(point as Point, PLAYER_CONFIG.radius, {
+    ...PROTOTYPE_MAP,
+    collision,
+  });
 }
 
 function uniqueStrings(values: unknown) {
-  return Array.isArray(values) ? [...new Set(values.filter((value): value is string => typeof value === "string"))] : [];
+  return Array.isArray(values)
+    ? [
+        ...new Set(
+          values.filter((value): value is string => typeof value === "string"),
+        ),
+      ]
+    : [];
 }

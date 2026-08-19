@@ -8,12 +8,11 @@ afterEach(() => {
 
 describe("createGameOneHostAdapter", () => {
   it("does not create a profile while Game One is inactive", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      jsonResponse({ message: "Game not found." }, 404)
-    );
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(jsonResponse({ message: "Game not found." }, 404));
     const host = createGameOneHostAdapter({
       token: "learner-token",
-      requestedUsername: "Reader7",
     });
 
     await expect(host.load()).rejects.toThrow(/not active yet/i);
@@ -28,73 +27,70 @@ describe("createGameOneHostAdapter", () => {
     );
   });
 
-  it("creates a missing learner profile and then loads only that learner's save", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch")
+  it("does not create a learner profile when the save is unavailable", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        jsonResponse(
+          {
+            message: "Create a game profile before saving game progress.",
+          },
+          409,
+        ),
+      )
       .mockResolvedValueOnce(
         jsonResponse({
-          message: "Create a game profile before saving game progress.",
-        }, 409),
-      )
-      .mockResolvedValueOnce(jsonResponse({ profile: null }))
-      .mockResolvedValueOnce(jsonResponse({
-        profile: {
-          audience: "learner",
-          username: "Reader7",
-          discriminator: "0042",
-          public_handle: "Reader7#0042",
-          is_active: true,
-        },
-      }, 201))
-      .mockResolvedValueOnce(jsonResponse({
-        game_key: "chronicles-of-the-lost-kingdom",
-        save: null,
-      }));
+          game_key: "chronicles-of-the-lost-kingdom",
+          save: null,
+        }),
+      );
     const host = createGameOneHostAdapter({
       token: "learner-token",
-      requestedUsername: "Reader7",
     });
 
-    await expect(host.load()).resolves.toBeNull();
+    await expect(host.load()).rejects.toThrow(/changed elsewhere/);
 
-    expect(fetchMock).toHaveBeenCalledTimes(4);
-    const createCall = fetchMock.mock.calls[2];
-    expect(createCall[0]).toBe("/api/learners/games/profile");
-    expect(JSON.parse(String(createCall[1]?.body))).toEqual({
-      username: "Reader7",
-    });
-    expect(String(createCall[1]?.body)).not.toMatch(
-      /learner_id|learner_code|discriminator|token/i,
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      "/api/learners/games/profile",
+      expect.anything(),
     );
   });
 
   it("maps save and reset requests to revision-controlled API payloads", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch")
-      .mockResolvedValueOnce(jsonResponse({
-        game_key: "chronicles-of-the-lost-kingdom",
-        save: {
-          checkpoint_key: "mission-2",
-          save_schema_version: 1,
-          state: { mission: 2 },
-          revision: 4,
-          saved_at: "2026-07-26T08:00:00Z",
-        },
-      }))
-      .mockResolvedValueOnce(jsonResponse({
-        game_key: "chronicles-of-the-lost-kingdom",
-        save: null,
-      }));
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        jsonResponse({
+          game_key: "chronicles-of-the-lost-kingdom",
+          save: {
+            checkpoint_key: "mission-2",
+            save_schema_version: 1,
+            state: { mission: 2 },
+            revision: 4,
+            saved_at: "2026-07-26T08:00:00Z",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          game_key: "chronicles-of-the-lost-kingdom",
+          save: null,
+        }),
+      );
     const host = createGameOneHostAdapter({
       token: "learner-token",
-      requestedUsername: "Reader7",
     });
 
-    await expect(host.save({
-      checkpointKey: "mission-2",
-      saveSchemaVersion: 1,
-      state: { mission: 2 },
-      expectedRevision: 3,
-    })).resolves.toMatchObject({ revision: 4, checkpointKey: "mission-2" });
-    await host.reset(4);
+    await expect(
+      host.save({
+        checkpointKey: "mission-2",
+        saveSchemaVersion: 1,
+        state: { mission: 2 },
+        expectedRevision: 3,
+      }),
+    ).resolves.toMatchObject({ revision: 4, checkpointKey: "mission-2" });
+    await host.newGame(4);
 
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
       checkpoint_key: "mission-2",
@@ -109,14 +105,15 @@ describe("createGameOneHostAdapter", () => {
 
   it("does not expose raw server failures in the game interface", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      jsonResponse({
-        message:
-          "SQLSTATE[42P01]: relation game_catalog does not exist",
-      }, 500),
+      jsonResponse(
+        {
+          message: "SQLSTATE[42P01]: relation game_catalog does not exist",
+        },
+        500,
+      ),
     );
     const host = createGameOneHostAdapter({
       token: "learner-token",
-      requestedUsername: "Reader7",
     });
 
     await expect(host.load()).rejects.toThrow(

@@ -7,9 +7,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class GameCatalog extends Model
 {
+    public const GAME_ALPHA_KEY = 'game-alpha';
+
+    public const GAME_ALPHA_SLOT = 'game-alpha';
+
     public const GAME_ONE_KEY = 'chronicles-of-the-lost-kingdom';
 
     public const GAME_ONE_SLOT = 'game-one';
+
+    public const GAME_TWO_KEY = 'ottertale';
+
+    public const GAME_TWO_SLOT = 'game-two';
 
     protected $table = 'game_catalog';
 

@@ -135,3 +135,4 @@ apps/web/public/assets/live2d/core/
 .DS_Store
 Thumbs.db
 apps/api/database/database.sqlite
+database.sqlite

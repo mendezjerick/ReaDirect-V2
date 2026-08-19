@@ -11,7 +11,7 @@ export const TUTORIAL_STEPS = [
   "choice",
   "continueQuestions",
   "answerLater",
-  "ready"
+  "ready",
 ] as const;
 
 export type TutorialStep = (typeof TUTORIAL_STEPS)[number];
@@ -32,7 +32,47 @@ export type TutorialEvent =
   | { type: "REOPEN"; step?: TutorialStep }
   | { type: "FINISH" };
 
-export function createInitialTutorialState(storage: Storage = window.localStorage): TutorialState {
+export function createStoredTutorialProgress(state: TutorialState) {
+  return { finished: state.finished, completedSteps: state.completedSteps };
+}
+
+export function restoreTutorialProgress(value: unknown): TutorialState {
+  if (!value || typeof value !== "object") {
+    return {
+      active: true,
+      step: "missionPanel",
+      completedSteps: [],
+      skipConfirmationOpen: false,
+      finished: false,
+    };
+  }
+  const saved = value as { finished?: unknown; completedSteps?: unknown };
+  const completedSteps = Array.isArray(saved.completedSteps)
+    ? saved.completedSteps.filter((step): step is TutorialStep =>
+        TUTORIAL_STEPS.includes(step as TutorialStep),
+      )
+    : [];
+  if (saved.finished) {
+    return {
+      active: false,
+      step: "ready",
+      completedSteps,
+      skipConfirmationOpen: false,
+      finished: true,
+    };
+  }
+  return {
+    active: true,
+    step: "missionPanel",
+    completedSteps,
+    skipConfirmationOpen: false,
+    finished: false,
+  };
+}
+
+export function createInitialTutorialState(
+  storage: Storage = window.localStorage,
+): TutorialState {
   const saved = readTutorialProgress(storage);
   if (saved?.finished) {
     return {
@@ -40,7 +80,7 @@ export function createInitialTutorialState(storage: Storage = window.localStorag
       step: "ready",
       completedSteps: saved.completedSteps,
       skipConfirmationOpen: false,
-      finished: true
+      finished: true,
     };
   }
   return {
@@ -48,11 +88,14 @@ export function createInitialTutorialState(storage: Storage = window.localStorag
     step: "missionPanel",
     completedSteps: saved?.completedSteps ?? [],
     skipConfirmationOpen: false,
-    finished: false
+    finished: false,
   };
 }
 
-export function tutorialReducer(state: TutorialState, event: TutorialEvent): TutorialState {
+export function tutorialReducer(
+  state: TutorialState,
+  event: TutorialEvent,
+): TutorialState {
   switch (event.type) {
     case "COMPLETE_STEP": {
       if (!state.active || state.step !== event.step) return state;
@@ -61,29 +104,59 @@ export function tutorialReducer(state: TutorialState, event: TutorialEvent): Tut
       const next = TUTORIAL_STEPS[index + 1];
       return next
         ? { ...state, step: next, completedSteps, skipConfirmationOpen: false }
-        : { ...state, active: false, completedSteps, finished: true, skipConfirmationOpen: false };
+        : {
+            ...state,
+            active: false,
+            completedSteps,
+            finished: true,
+            skipConfirmationOpen: false,
+          };
     }
     case "REQUEST_SKIP":
       return state.active ? { ...state, skipConfirmationOpen: true } : state;
     case "KEEP_LEARNING":
-      return state.skipConfirmationOpen ? { ...state, skipConfirmationOpen: false } : state;
+      return state.skipConfirmationOpen
+        ? { ...state, skipConfirmationOpen: false }
+        : state;
     case "CONFIRM_SKIP":
       return state.skipConfirmationOpen
-        ? { ...state, active: false, finished: true, skipConfirmationOpen: false }
+        ? {
+            ...state,
+            active: false,
+            finished: true,
+            skipConfirmationOpen: false,
+          }
         : state;
     case "REOPEN":
-      return { ...state, active: true, step: event.step ?? "movement", skipConfirmationOpen: false };
+      return {
+        ...state,
+        active: true,
+        step: event.step ?? "movement",
+        skipConfirmationOpen: false,
+      };
     case "FINISH":
       return state.step === "ready"
-        ? { ...state, active: false, finished: true, completedSteps: addUnique(state.completedSteps, "ready") }
+        ? {
+            ...state,
+            active: false,
+            finished: true,
+            completedSteps: addUnique(state.completedSteps, "ready"),
+          }
         : state;
   }
 }
 
-export function saveTutorialProgress(state: TutorialState, storage: Storage = window.localStorage) {
+export function saveTutorialProgress(
+  state: TutorialState,
+  storage: Storage = window.localStorage,
+) {
   storage.setItem(
     TUTORIAL_PROGRESS_KEY,
-    JSON.stringify({ version: 2, finished: state.finished, completedSteps: state.completedSteps })
+    JSON.stringify({
+      version: 2,
+      finished: state.finished,
+      completedSteps: state.completedSteps,
+    }),
   );
 }
 
@@ -91,20 +164,53 @@ export function clearTutorialProgress(storage: Storage = window.localStorage) {
   storage.removeItem(TUTORIAL_PROGRESS_KEY);
 }
 
-export function tutorialAllowsMissionEvent(step: TutorialStep, eventType: string) {
-  if (["ADVANCE_DIALOGUE", "COMPLETE_DIALOGUE", "SKIP_DIALOGUE", "CLOSE_DIALOGUE"].includes(eventType)) return true;
+export function tutorialAllowsMissionEvent(
+  step: TutorialStep,
+  eventType: string,
+) {
+  if (
+    [
+      "ADVANCE_DIALOGUE",
+      "COMPLETE_DIALOGUE",
+      "SKIP_DIALOGUE",
+      "CLOSE_DIALOGUE",
+    ].includes(eventType)
+  )
+    return true;
   switch (step) {
     case "missionPanel":
     case "directionArrow":
     case "navigationTrail":
     case "minimap":
-    case "movement": return false;
-    case "interaction": return eventType === "ACTIVATE_INTERACTION";
-    case "reading": return ["START_READING", "PREVIOUS_READING_PAGE", "NEXT_READING_PAGE", "FINISH_STORY"].includes(eventType);
-    case "choice": return ["SUBMIT_MISSION_ACTION", "CONTINUE_AFTER_ACTION", "START_QUESTIONS"].includes(eventType);
-    case "continueQuestions": return eventType === "CONTINUE_AFTER_ACTION";
-    case "answerLater": return ["START_QUESTIONS", "SELECT_ANSWER", "ANSWER_LATER", "CANCEL_ANSWER_LATER", "CONFIRM_ANSWER_LATER"].includes(eventType);
-    case "ready": return false;
+    case "movement":
+      return false;
+    case "interaction":
+      return eventType === "ACTIVATE_INTERACTION";
+    case "reading":
+      return [
+        "START_READING",
+        "PREVIOUS_READING_PAGE",
+        "NEXT_READING_PAGE",
+        "FINISH_STORY",
+      ].includes(eventType);
+    case "choice":
+      return [
+        "SUBMIT_MISSION_ACTION",
+        "CONTINUE_AFTER_ACTION",
+        "START_QUESTIONS",
+      ].includes(eventType);
+    case "continueQuestions":
+      return eventType === "CONTINUE_AFTER_ACTION";
+    case "answerLater":
+      return [
+        "START_QUESTIONS",
+        "SELECT_ANSWER",
+        "ANSWER_LATER",
+        "CANCEL_ANSWER_LATER",
+        "CONFIRM_ANSWER_LATER",
+      ].includes(eventType);
+    case "ready":
+      return false;
   }
 }
 
@@ -112,11 +218,18 @@ function readTutorialProgress(storage: Storage) {
   try {
     const raw = storage.getItem(TUTORIAL_PROGRESS_KEY);
     if (!raw) return null;
-    const value = JSON.parse(raw) as { version?: number; finished?: boolean; completedSteps?: TutorialStep[] };
-    if (value.version !== 2 || !Array.isArray(value.completedSteps)) return null;
+    const value = JSON.parse(raw) as {
+      version?: number;
+      finished?: boolean;
+      completedSteps?: TutorialStep[];
+    };
+    if (value.version !== 2 || !Array.isArray(value.completedSteps))
+      return null;
     return {
       finished: Boolean(value.finished),
-      completedSteps: value.completedSteps.filter((step): step is TutorialStep => TUTORIAL_STEPS.includes(step))
+      completedSteps: value.completedSteps.filter(
+        (step): step is TutorialStep => TUTORIAL_STEPS.includes(step),
+      ),
     };
   } catch {
     return null;

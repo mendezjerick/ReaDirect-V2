@@ -1,8 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
-import { RouteTransitionContext } from "../../components/transitions/routeTransitionContext";
 import { ThemeSelector } from "../theme/ThemeSelector";
 import { AboutReaDirectDialog } from "./AboutReaDirectDialog";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
@@ -45,7 +44,6 @@ function BookIcon() {
 
 export function HomePage() {
   const navigate = useNavigate();
-  const routeTransition = useContext(RouteTransitionContext);
   const learnerLoginCommit = useButtonCommit();
   const staffLoginCommit = useButtonCommit();
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -82,26 +80,12 @@ export function HomePage() {
   const secondaryLabel = identity ? "Switch account" : "Staff login";
 
   const openPrimaryAction = () => {
-    if (routeTransition) {
-      routeTransition.beginRouteTransition(destination);
-      return;
-    }
-
     learnerLoginCommit.commit(() => navigate(destination));
   };
 
   const openStaffLogin = () => {
-    if (routeTransition) {
-      routeTransition.beginRouteTransition("/staff/login");
-      return;
-    }
-
     staffLoginCommit.commit(() => navigate("/staff/login"));
   };
-
-  const isTransitioning =
-    routeTransition?.isTransitioning ??
-    (learnerLoginCommit.committing || staffLoginCommit.committing);
 
   return (
     <main
@@ -117,9 +101,7 @@ export function HomePage() {
         <BigButton
           className="home-page__read-button"
           leadingIcon={<BookIcon />}
-          committing={
-            routeTransition ? isTransitioning : learnerLoginCommit.committing
-          }
+          committing={learnerLoginCommit.committing}
           onClick={openPrimaryAction}
         >
           {primaryLabel}
@@ -129,9 +111,7 @@ export function HomePage() {
           className="home-page__staff-button"
           variant="secondary"
           size="regular"
-          committing={
-            routeTransition ? isTransitioning : staffLoginCommit.committing
-          }
+          committing={staffLoginCommit.committing}
           onClick={openStaffLogin}
         >
           {secondaryLabel}

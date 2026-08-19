@@ -19,28 +19,38 @@ export function isGameLanguage(value: unknown): value is GameLanguage {
 }
 
 export function languagePreferenceKey(profileScope = "anonymous") {
-  const safeScope = profileScope.replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 64) || "anonymous";
+  const safeScope =
+    profileScope.replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 64) || "anonymous";
   return `${LANGUAGE_PREFERENCE_KEY}:${safeScope}`;
 }
 
-export function loadLanguagePreference(storage: Storage = window.localStorage, profileScope = "anonymous") {
+export function loadLanguagePreference(
+  storage: Storage = window.localStorage,
+  profileScope = "anonymous",
+) {
   try {
     const raw = storage.getItem(languagePreferenceKey(profileScope));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<LanguagePreference>;
-    return parsed.version === 1 && isGameLanguage(parsed.language) ? parsed.language : null;
+    return parsed.version === 1 && isGameLanguage(parsed.language)
+      ? parsed.language
+      : null;
   } catch {
     return null;
   }
 }
 
-export function saveLanguagePreference(language: GameLanguage, storage: Storage = window.localStorage, profileScope = "anonymous") {
+export function saveLanguagePreference(
+  language: GameLanguage,
+  storage: Storage = window.localStorage,
+  profileScope = "anonymous",
+) {
   try {
     const value: LanguagePreference = {
       version: 1,
       language,
       minigameId: MINIGAME_ID,
-      contentVersion: CONTENT_VERSION_ID
+      contentVersion: CONTENT_VERSION_ID,
     };
     storage.setItem(languagePreferenceKey(profileScope), JSON.stringify(value));
   } catch {
@@ -65,7 +75,7 @@ export const UI_COPY = {
     startError: "The game could not start",
     startErrorHelp: "Please try again or return to the temporary dashboard.",
     retry: "Retry",
-    exitDashboard: "Exit to Dashboard",
+    exitDashboard: "Exit to Lobby",
     returnDashboard: "Return to Dashboard",
     sound: "Sound",
     pause: "Pause",
@@ -78,7 +88,8 @@ export const UI_COPY = {
     help: "Help",
     interact: "Interact",
     exitTitle: "Exit the minigame?",
-    exitDescription: "Your current mission and saved questions will be here when you return.",
+    exitDescription:
+      "Your current mission and saved questions will be here when you return.",
     keepPlaying: "Keep Playing",
     currentObjective: "Current mission objective",
     mission: "Mission",
@@ -138,7 +149,8 @@ export const UI_COPY = {
     returnQuestions: "Return to Questions",
     activityComplete: "Story challenge complete",
     completedQuestions: "You found every story clue!",
-    completedQuestionsHelp: "Your answers are saved. See what changed in the village.",
+    completedQuestionsHelp:
+      "Your answers are saved. See what changed in the village.",
     readingHearts: "Reading hearts",
     heartsRemaining: "hearts remaining",
     heartLost: "One reading heart was used.",
@@ -165,22 +177,22 @@ export const UI_COPY = {
     helpExploreSteps: [
       "Open the map.",
       "Follow the dots.",
-      "Stand near the person. Press Interact."
+      "Stand near the person. Press Interact.",
     ],
     helpReadSteps: [
       "Read the title.",
       "Look for names and places.",
-      "Remember the details before you continue."
+      "Remember the details before you continue.",
     ],
     helpActionSteps: [
       "Read the hint.",
       "Check each choice.",
-      "Pick the choice from the story."
+      "Pick the choice from the story.",
     ],
     helpQuestionSteps: [
       "Read the question.",
       "Find the answer in the story.",
-      "Pick one answer."
+      "Pick one answer.",
     ],
     missionComplete: "complete",
     journeyResult: "Journey result",
@@ -189,7 +201,8 @@ export const UI_COPY = {
     openCommunity: "Open Community Activity",
     communityReady: "Community Activity Ready",
     journeyOpen: "The Reading Journey Is Open",
-    completionText: "You prepared the central plaza, market, old bridge, and forest route. Every stop is ready.",
+    completionText:
+      "You prepared the central plaza, market, old bridge, and forest route. Every stop is ready.",
     missionsCompleted: "Missions completed",
     skillsUsed: "Reading skills used",
     replayJourney: "Replay Journey",
@@ -201,7 +214,8 @@ export const UI_COPY = {
     startAdventure: "Start Adventure",
     skipTutorialTitle: "Skip the tutorial?",
     keepLearning: "Keep Learning",
-    noRecording: "No approved narration recording is available for this language.",
+    noRecording:
+      "No approved narration recording is available for this language.",
     gameHost: "game host",
     guidedTutorial: "Guided tutorial",
     movementControls: "Movement controls",
@@ -213,7 +227,7 @@ export const UI_COPY = {
     moveUp: "Move up",
     moveDown: "Move down",
     moveLeft: "Move left",
-    moveRight: "Move right"
+    moveRight: "Move right",
   },
   fil: {
     gameTitle: "Mga Salaysay ng Nawawalang Kaharian",
@@ -231,7 +245,7 @@ export const UI_COPY = {
     startError: "Hindi nagsimula ang laro",
     startErrorHelp: "Subukan muli o bumalik sa pansamantalang dashboard.",
     retry: "Subukan Muli",
-    exitDashboard: "Bumalik sa Dashboard",
+    exitDashboard: "Bumalik sa Lobby",
     returnDashboard: "Bumalik sa Dashboard",
     sound: "Tunog",
     pause: "I-pause",
@@ -244,7 +258,8 @@ export const UI_COPY = {
     help: "Tulong",
     interact: "Kausapin",
     exitTitle: "Lumabas sa minigame?",
-    exitDescription: "Nandito pa rin ang kasalukuyan mong misyon at mga nakalaang tanong pagbalik mo.",
+    exitDescription:
+      "Nandito pa rin ang kasalukuyan mong misyon at mga nakalaang tanong pagbalik mo.",
     keepPlaying: "Magpatuloy sa Paglalaro",
     currentObjective: "Kasalukuyang layunin ng misyon",
     mission: "Misyon",
@@ -300,11 +315,13 @@ export const UI_COPY = {
     saveLater: "Ilaan para Mamaya",
     questionsToAnswer: "Mga Tanong na Sasagutin",
     returnTo: "Bumalik sa",
-    savedQuestionHelp: "Narito ang inilaan mong tanong. Gamitin ang iyong natandaan.",
+    savedQuestionHelp:
+      "Narito ang inilaan mong tanong. Gamitin ang iyong natandaan.",
     returnQuestions: "Bumalik sa mga Tanong",
     activityComplete: "Tapos ang hamon sa kuwento",
     completedQuestions: "Nahanap mo ang lahat ng clue sa kuwento!",
-    completedQuestionsHelp: "Naitala ang mga sagot. Tingnan ang nagbago sa nayon.",
+    completedQuestionsHelp:
+      "Naitala ang mga sagot. Tingnan ang nagbago sa nayon.",
     readingHearts: "Mga puso sa pagbasa",
     heartsRemaining: "natitirang puso",
     heartLost: "Nagamit ang isang puso sa pagbasa.",
@@ -315,7 +332,8 @@ export const UI_COPY = {
     questionsSaved: "Mga tanong na inilaan para mamaya",
     placeSaved: "Naitala ang iyong kinalalagyan",
     answerSavedNowHelp: "Sagutin ngayon, o bumalik mamaya.",
-    answerRemainingHelp: "Gusto mo bang sagutin ang mga ito ngayon o magpatuloy mamaya?",
+    answerRemainingHelp:
+      "Gusto mo bang sagutin ang mga ito ngayon o magpatuloy mamaya?",
     answerNow: "Sagutin Ngayon",
     continueLater: "Magpatuloy Mamaya",
     readingSupport: "Tulong sa pagbasa",
@@ -331,22 +349,22 @@ export const UI_COPY = {
     helpExploreSteps: [
       "Buksan ang mapa.",
       "Sundan ang mga tuldok.",
-      "Lumapit sa tauhan. Pindutin ang Interact."
+      "Lumapit sa tauhan. Pindutin ang Interact.",
     ],
     helpReadSteps: [
       "Basahin ang pamagat.",
       "Hanapin ang mga pangalan at lugar.",
-      "Tandaan ang mga detalye bago magpatuloy."
+      "Tandaan ang mga detalye bago magpatuloy.",
     ],
     helpActionSteps: [
       "Basahin ang pahiwatig.",
       "Tingnan ang bawat sagot.",
-      "Piliin ang sagot mula sa kuwento."
+      "Piliin ang sagot mula sa kuwento.",
     ],
     helpQuestionSteps: [
       "Basahin ang tanong.",
       "Hanapin ang sagot sa kuwento.",
-      "Pumili ng isang sagot."
+      "Pumili ng isang sagot.",
     ],
     missionComplete: "tapos na",
     journeyResult: "Resulta ng paglalakbay",
@@ -355,7 +373,8 @@ export const UI_COPY = {
     openCommunity: "Buksan ang Gawain ng Komunidad",
     communityReady: "Handa na ang Gawain ng Komunidad",
     journeyOpen: "Bukas na ang Paglalakbay sa Pagbasa",
-    completionText: "Inihanda mo ang liwasan, palengke, lumang tulay, at daan sa gubat. Handa na ang bawat hintuan.",
+    completionText:
+      "Inihanda mo ang liwasan, palengke, lumang tulay, at daan sa gubat. Handa na ang bawat hintuan.",
     missionsCompleted: "Mga natapos na misyon",
     skillsUsed: "Mga kasanayan sa pagbasa",
     replayJourney: "Ulitin ang Paglalakbay",
@@ -379,8 +398,8 @@ export const UI_COPY = {
     moveUp: "Gumalaw pataas",
     moveDown: "Gumalaw pababa",
     moveLeft: "Gumalaw pakaliwa",
-    moveRight: "Gumalaw pakanan"
-  }
+    moveRight: "Gumalaw pakanan",
+  },
 } as const;
 
 export function getUiCopy(language: GameLanguage) {

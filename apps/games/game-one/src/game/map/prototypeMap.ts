@@ -1,20 +1,27 @@
 import type { Rectangle } from "../physics/collision";
-import { getFruitTreeFrame, type FruitTreeKind } from "../assets/generatedOrchardAssets";
+import {
+  getFruitTreeFrame,
+  type FruitTreeKind,
+} from "../assets/generatedOrchardAssets";
 import { VILLAGE_DECOR_FRAME } from "../assets/generatedVillageDecorAssets";
 
 export const TILE_SIZE = 32;
 
-export type TileKind = "grass" | "path" | "plaza" | "market" | "forest" | "water" | "bridge";
+export type TileKind =
+  "grass" | "path" | "plaza" | "market" | "forest" | "water" | "bridge";
 export type FootstepSurface = "grass" | "land" | "stone" | "wood" | "water";
 
-export const TERRAIN_DEFINITIONS: Record<TileKind, { id: TileKind; walkable: boolean; footstep: FootstepSurface }> = {
+export const TERRAIN_DEFINITIONS: Record<
+  TileKind,
+  { id: TileKind; walkable: boolean; footstep: FootstepSurface }
+> = {
   grass: { id: "grass", walkable: true, footstep: "grass" },
   path: { id: "path", walkable: true, footstep: "land" },
   plaza: { id: "plaza", walkable: true, footstep: "stone" },
   market: { id: "market", walkable: true, footstep: "stone" },
   forest: { id: "forest", walkable: true, footstep: "land" },
   water: { id: "water", walkable: false, footstep: "water" },
-  bridge: { id: "bridge", walkable: true, footstep: "wood" }
+  bridge: { id: "bridge", walkable: true, footstep: "wood" },
 };
 
 export type MapAreaKey =
@@ -153,7 +160,7 @@ const PATH_REGIONS: readonly TileRegion[] = [
   { x: 18, y: 44, width: 4, height: 12 },
   { x: 34, y: 41, width: 12, height: 4 },
   { x: 36, y: 44, width: 3, height: 12 },
-  { x: 35, y: 55, width: 11, height: 3 }
+  { x: 35, y: 55, width: 11, height: 3 },
 ];
 
 const MAIN_RIVER_REGIONS: readonly TileRegion[] = [
@@ -167,11 +174,16 @@ const MAIN_RIVER_REGIONS: readonly TileRegion[] = [
   // Small inlets keep the shoreline from reading as one rigid rectangle.
   { x: 15, y: 6, width: 4, height: 1 },
   { x: 38, y: 6, width: 5, height: 1 },
-  { x: 12, y: 12, width: 3, height: 1 }
+  { x: 12, y: 12, width: 3, height: 1 },
 ];
 
 // The west horizontal channel is the learner's safe swimming area. The east channel remains boat-only.
-export const SWIMMABLE_RIVER_REGION: TileRegion = { x: 1, y: 7, width: 28, height: 5 };
+export const SWIMMABLE_RIVER_REGION: TileRegion = {
+  x: 1,
+  y: 7,
+  width: 28,
+  height: 5,
+};
 
 const BRIDGE_REGION: TileRegion = { x: 29, y: 7, width: 4, height: 5 };
 const NATURE_FRAME = {
@@ -183,12 +195,15 @@ const NATURE_FRAME = {
   doubleSunflower: 265,
   redFlower: 267,
   whiteFlower: 270,
-  smallStone: 292
+  smallStone: 292,
 } as const;
 
 export const MAP_LANDMARKS = {
   spawn: tileCenter(27, 25),
-  missEstelle: tileCenter(27, 21),
+  // Keep the guide beside (rather than inside) the animated fountain basin.
+  // The fountain collision occupies the central tiles, so this east-side
+  // plaza position preserves a reachable approach for the opening mission.
+  missEstelle: tileCenter(31, 21),
   marketFront: tileCenter(16, 20),
   // River-side east-homes meeting point, beside Lolo's delivery yard.
   loloCorner: tileCenter(46, 17),
@@ -202,30 +217,30 @@ export const MAP_LANDMARKS = {
   eastRiverbank: tileCenter(57, 24),
   southRiverbend: tileCenter(46, 36),
   southRiverCove: tileCenter(46, 48),
-  eastRiverChannel: tileCenter(54, 52)
+  eastRiverChannel: tileCenter(54, 52),
 } as const;
 
 export const MAP_DECORATION_LANDMARKS = {
   villageGuideSign: {
     position: tileCenter(30, 19),
-    indicatorPosition: tileCenter(30, 18)
+    indicatorPosition: tileCenter(30, 18),
   },
   learningHallNotice: {
     position: tileCenter(24, 16),
-    indicatorPosition: tileCenter(24, 15)
+    indicatorPosition: tileCenter(24, 15),
   },
   farmGateSign: {
     position: tileCenter(34, 26),
-    indicatorPosition: tileCenter(34, 25)
+    indicatorPosition: tileCenter(34, 25),
   },
   readingShrine: {
     position: tileCenter(55, 18),
-    indicatorPosition: tileCenter(55, 16)
+    indicatorPosition: tileCenter(55, 16),
   },
   shrineBoatWarningSign: {
     position: tileCenter(58, 17),
-    indicatorPosition: tileCenter(58, 16)
-  }
+    indicatorPosition: tileCenter(58, 16),
+  },
 } as const;
 
 const staticCollision = [
@@ -238,7 +253,7 @@ const staticCollision = [
   ...communityGardenFenceCollision(),
   // Keep the whole fountain basin solid. The player starts immediately south
   // of this footprint, so the opening position remains usable.
-  rectTiles("central-plaza-fountain-basin", 25.1, 21.55, 4.85, 3.15)
+  rectTiles("central-plaza-fountain-basin", 25.1, 21.55, 4.85, 3.15),
 ] satisfies Rectangle[];
 
 const visualObjects = [
@@ -257,10 +272,30 @@ const visualObjects = [
   house("learning-hall", "village-learning-hall", 20, 12),
   wideTree("hall-tree-line", 15, 11),
   villageDecor("learning-hall-notice", 24, 15, VILLAGE_DECOR_FRAME.sign, true),
-  villageDecor("learning-hall-lantern-left", 19, 15, VILLAGE_DECOR_FRAME.lantern),
-  villageDecor("learning-hall-lantern-right", 23, 15, VILLAGE_DECOR_FRAME.lantern),
-  villageDecor("learning-hall-planter-left", 18, 16, VILLAGE_DECOR_FRAME.whitePlanter),
-  villageDecor("learning-hall-planter-right", 24, 16, VILLAGE_DECOR_FRAME.redPlanter),
+  villageDecor(
+    "learning-hall-lantern-left",
+    19,
+    15,
+    VILLAGE_DECOR_FRAME.lantern,
+  ),
+  villageDecor(
+    "learning-hall-lantern-right",
+    23,
+    15,
+    VILLAGE_DECOR_FRAME.lantern,
+  ),
+  villageDecor(
+    "learning-hall-planter-left",
+    18,
+    16,
+    VILLAGE_DECOR_FRAME.whitePlanter,
+  ),
+  villageDecor(
+    "learning-hall-planter-right",
+    24,
+    16,
+    VILLAGE_DECOR_FRAME.redPlanter,
+  ),
 
   // The story plaza is open in the middle and framed by useful street furniture.
   villageDecor("village-guide-sign", 30, 18, VILLAGE_DECOR_FRAME.sign, true),
@@ -273,7 +308,12 @@ const visualObjects = [
   suppliedHouse("market-shop", "supplied-purple-shop", 14, 16, 5, 3),
   villageDecor("market-shop-sign", 13, 18, VILLAGE_DECOR_FRAME.sign),
   villageDecor("market-produce-left", 13, 19, VILLAGE_DECOR_FRAME.produceCrate),
-  villageDecor("market-produce-right", 18, 19, VILLAGE_DECOR_FRAME.produceCrate),
+  villageDecor(
+    "market-produce-right",
+    18,
+    19,
+    VILLAGE_DECOR_FRAME.produceCrate,
+  ),
   villageDecor("market-bench", 18, 21, VILLAGE_DECOR_FRAME.bench),
   natureDecor("market-red-flower", 12, 21, NATURE_FRAME.redFlower),
   natureDecor("market-white-flower", 19, 21, NATURE_FRAME.whiteFlower),
@@ -285,119 +325,237 @@ const visualObjects = [
     x: 1.35,
     y: 1.65,
     width: 0.45,
-    height: 0.55
+    height: 0.55,
   }),
-  loloProp("to-lolo-ambo-sign", "lolo-to-lolo-ambo-sign", 36.4, 17.3, 3.45, 2.35, {
-    x: 1.48,
-    y: 1.65,
-    width: 0.45,
-    height: 0.55
-  }),
+  loloProp(
+    "to-lolo-ambo-sign",
+    "lolo-to-lolo-ambo-sign",
+    36.4,
+    17.3,
+    3.45,
+    2.35,
+    {
+      x: 1.48,
+      y: 1.65,
+      width: 0.45,
+      height: 0.55,
+    },
+  ),
   loloProp("lolo-delivery-cart", "lolo-supply-cart", 39.2, 18.35, 3.05, 2.55, {
     x: 0.25,
     y: 1.8,
     width: 2.55,
-    height: 0.55
+    height: 0.55,
   }),
-  loloProp("lolo-delivery-produce", "lolo-produce-crate", 42.55, 19.35, 2.15, 1.8, {
-    x: 0.2,
-    y: 1.2,
-    width: 1.75,
-    height: 0.45
-  }),
-  loloProp("lolo-delivery-sacks", "lolo-supply-sacks", 39.2, 21.05, 2.45, 1.75, {
-    x: 0.25,
-    y: 1.1,
-    width: 2,
-    height: 0.45
-  }),
+  loloProp(
+    "lolo-delivery-produce",
+    "lolo-produce-crate",
+    42.55,
+    19.35,
+    2.15,
+    1.8,
+    {
+      x: 0.2,
+      y: 1.2,
+      width: 1.75,
+      height: 0.45,
+    },
+  ),
+  loloProp(
+    "lolo-delivery-sacks",
+    "lolo-supply-sacks",
+    39.2,
+    21.05,
+    2.45,
+    1.75,
+    {
+      x: 0.25,
+      y: 1.1,
+      width: 2,
+      height: 0.45,
+    },
+  ),
   loloProp("lolo-delivery-map-box", "lolo-map-crate", 42.65, 21.15, 1.8, 1.85, {
     x: 0.2,
     y: 1.15,
     width: 1.4,
-    height: 0.45
+    height: 0.45,
   }),
-  loloProp("deliver-supplies-notice", "lolo-deliver-supplies-sign", 36.5, 21.4, 3.2, 1.7, {
-    x: 0.4,
-    y: 1.05,
-    width: 2.65,
-    height: 0.45
-  }),
+  loloProp(
+    "deliver-supplies-notice",
+    "lolo-deliver-supplies-sign",
+    36.5,
+    21.4,
+    3.2,
+    1.7,
+    {
+      x: 0.4,
+      y: 1.05,
+      width: 2.65,
+      height: 0.45,
+    },
+  ),
   // The lower-left field is a fenced, child-friendly playground.
-  playgroundProp("playground-top-fence-west", "playground-fence-long", 6.2, 33.1, 3.6, 1.2, {
-    x: 0.1,
-    y: 0.72,
-    width: 3.4,
-    height: 0.45
-  }),
-  playgroundProp("playground-top-fence-east", "playground-fence-long", 10, 33.1, 3.6, 1.2, {
-    x: 0.1,
-    y: 0.72,
-    width: 3.4,
-    height: 0.45
-  }),
+  playgroundProp(
+    "playground-top-fence-west",
+    "playground-fence-long",
+    6.2,
+    33.1,
+    3.6,
+    1.2,
+    {
+      x: 0.1,
+      y: 0.72,
+      width: 3.4,
+      height: 0.45,
+    },
+  ),
+  playgroundProp(
+    "playground-top-fence-east",
+    "playground-fence-long",
+    10,
+    33.1,
+    3.6,
+    1.2,
+    {
+      x: 0.1,
+      y: 0.72,
+      width: 3.4,
+      height: 0.45,
+    },
+  ),
   playgroundProp("playground-swings", "playground-swings", 6.1, 33.8, 3.3, 3, {
     x: 0.25,
     y: 2.35,
     width: 2.8,
-    height: 0.45
+    height: 0.45,
   }),
-  playgroundProp("playground-slide", "playground-slide-tower", 9.5, 33.6, 3.2, 3.35, {
-    x: 1.25,
-    y: 2.6,
-    width: 1.35,
-    height: 0.55
-  }),
-  playgroundProp("playground-sand-table", "playground-sand-table", 5.3, 37.3, 2.25, 1.65, {
-    x: 0.2,
-    y: 1.15,
-    width: 1.8,
-    height: 0.35
-  }),
+  playgroundProp(
+    "playground-slide",
+    "playground-slide-tower",
+    9.5,
+    33.6,
+    3.2,
+    3.35,
+    {
+      x: 1.25,
+      y: 2.6,
+      width: 1.35,
+      height: 0.55,
+    },
+  ),
+  playgroundProp(
+    "playground-sand-table",
+    "playground-sand-table",
+    5.3,
+    37.3,
+    2.25,
+    1.65,
+    {
+      x: 0.2,
+      y: 1.15,
+      width: 1.8,
+      height: 0.35,
+    },
+  ),
   playgroundProp("playground-seesaw", "playground-seesaw", 7.5, 38, 4.1, 1.6, {
     x: 0.65,
     y: 1.05,
     width: 2.75,
-    height: 0.4
+    height: 0.4,
   }),
-  playgroundProp("playground-climber", "playground-climber", 11.4, 38, 2.05, 2.3, {
-    x: 0.1,
-    y: 1.85,
-    width: 1.8,
-    height: 0.35
-  }),
+  playgroundProp(
+    "playground-climber",
+    "playground-climber",
+    11.4,
+    38,
+    2.05,
+    2.3,
+    {
+      x: 0.1,
+      y: 1.85,
+      width: 1.8,
+      height: 0.35,
+    },
+  ),
   playgroundProp("playground-bench", "playground-bench", 9.2, 40.9, 2.45, 1.2, {
     x: 0.15,
     y: 0.82,
     width: 2.1,
-    height: 0.28
+    height: 0.28,
   }),
-  playgroundProp("playground-bottom-fence", "playground-fence-long", 6.5, 42, 3.5, 1.1, {
-    x: 0.1,
-    y: 0.66,
-    width: 3.3,
-    height: 0.36
-  }),
-  playgroundProp("playground-signboard", "playground-signboard", 4.6, 38.8, 1.6, 1.7, {
-    x: 0.22,
-    y: 1.12,
-    width: 1.15,
-    height: 0.35
-  }),
-  playgroundProp("playground-bush-west", "playground-bush", 4.6, 34.6, 1.5, 1.5, {
-    x: 0.18,
-    y: 1.05,
-    width: 1.15,
-    height: 0.35
-  }),
-  playgroundProp("playground-bush-east", "playground-flower-bush", 13.2, 39.8, 1.6, 1.55, {
-    x: 0.18,
-    y: 1.05,
-    width: 1.2,
-    height: 0.35
-  }),
-  playgroundDecoration("playground-flower-bed-north", "playground-flower-patch", 12.9, 34.2, 1.7, 0.9),
-  playgroundDecoration("playground-flower-bed-south", "playground-flower-patch", 6.2, 41.2, 1.7, 0.9),
+  playgroundProp(
+    "playground-bottom-fence",
+    "playground-fence-long",
+    6.5,
+    42,
+    3.5,
+    1.1,
+    {
+      x: 0.1,
+      y: 0.66,
+      width: 3.3,
+      height: 0.36,
+    },
+  ),
+  playgroundProp(
+    "playground-signboard",
+    "playground-signboard",
+    4.6,
+    38.8,
+    1.6,
+    1.7,
+    {
+      x: 0.22,
+      y: 1.12,
+      width: 1.15,
+      height: 0.35,
+    },
+  ),
+  playgroundProp(
+    "playground-bush-west",
+    "playground-bush",
+    4.6,
+    34.6,
+    1.5,
+    1.5,
+    {
+      x: 0.18,
+      y: 1.05,
+      width: 1.15,
+      height: 0.35,
+    },
+  ),
+  playgroundProp(
+    "playground-bush-east",
+    "playground-flower-bush",
+    13.2,
+    39.8,
+    1.6,
+    1.55,
+    {
+      x: 0.18,
+      y: 1.05,
+      width: 1.2,
+      height: 0.35,
+    },
+  ),
+  playgroundDecoration(
+    "playground-flower-bed-north",
+    "playground-flower-patch",
+    12.9,
+    34.2,
+    1.7,
+    0.9,
+  ),
+  playgroundDecoration(
+    "playground-flower-bed-south",
+    "playground-flower-patch",
+    6.2,
+    41.2,
+    1.7,
+    0.9,
+  ),
 
   // The southern lane transitions from village furniture into wilder growth.
   house("southwest-house", "village-learning-hall", 9, 26),
@@ -418,7 +576,13 @@ const visualObjects = [
 
   // The east bank is a quiet shrine garden with lamps and mixed flowers.
   readingShrine("east-riverbank-reading-shrine", 54, 15),
-  villageDecor("shrine-boat-warning-sign", 58, 16, VILLAGE_DECOR_FRAME.sign, true),
+  villageDecor(
+    "shrine-boat-warning-sign",
+    58,
+    16,
+    VILLAGE_DECOR_FRAME.sign,
+    true,
+  ),
   tree("east-riverbank-tree-north", 57, 13),
   wideTree("east-riverbank-tree-mid", 56, 21),
   tree("east-riverbank-tree-south", 58, 30),
@@ -438,50 +602,136 @@ const visualObjects = [
   tree("east-channel-lower-bank-tree", 52, 59),
 
   // Riverside Hamlet gives the lower-west field a lived-in neighborhood and a clear lane.
-  suppliedHouse("riverside-hamlet-green-manor", "supplied-green-manor", 4, 46, 4, 4),
-  suppliedHouse("riverside-hamlet-purple-shop", "supplied-purple-shop", 14, 46, 5, 3),
-  suppliedHouse("riverside-hamlet-straw-cottage", "supplied-straw-cottage", 4, 54, 3, 4),
+  suppliedHouse(
+    "riverside-hamlet-green-manor",
+    "supplied-green-manor",
+    4,
+    46,
+    4,
+    4,
+  ),
+  suppliedHouse(
+    "riverside-hamlet-purple-shop",
+    "supplied-purple-shop",
+    14,
+    46,
+    5,
+    3,
+  ),
+  suppliedHouse(
+    "riverside-hamlet-straw-cottage",
+    "supplied-straw-cottage",
+    4,
+    54,
+    3,
+    4,
+  ),
   wideTree("riverside-hamlet-north-canopy", 1, 39),
   tree("riverside-hamlet-east-tree", 22, 48),
   tree("riverside-hamlet-south-tree", 22, 55),
-  villageDecor("riverside-hamlet-welcome-sign", 10, 44, VILLAGE_DECOR_FRAME.sign, true),
+  villageDecor(
+    "riverside-hamlet-welcome-sign",
+    10,
+    44,
+    VILLAGE_DECOR_FRAME.sign,
+    true,
+  ),
   villageDecor("riverside-hamlet-bench", 15, 50, VILLAGE_DECOR_FRAME.bench),
   villageDecor("riverside-hamlet-lantern", 12, 45, VILLAGE_DECOR_FRAME.lantern),
-  villageDecor("riverside-hamlet-planter", 20, 46, VILLAGE_DECOR_FRAME.redPlanter),
-  villageDecor("riverside-hamlet-crate", 18, 52, VILLAGE_DECOR_FRAME.produceCrate),
+  villageDecor(
+    "riverside-hamlet-planter",
+    20,
+    46,
+    VILLAGE_DECOR_FRAME.redPlanter,
+  ),
+  villageDecor(
+    "riverside-hamlet-crate",
+    18,
+    52,
+    VILLAGE_DECOR_FRAME.produceCrate,
+  ),
   natureDecor("riverside-hamlet-sunflower", 8, 50, NATURE_FRAME.sunflower),
   natureDecor("riverside-hamlet-red-flower", 6, 52, NATURE_FRAME.redFlower),
-  natureDecor("riverside-hamlet-white-flower", 21, 51, NATURE_FRAME.whiteFlower),
+  natureDecor(
+    "riverside-hamlet-white-flower",
+    21,
+    51,
+    NATURE_FRAME.whiteFlower,
+  ),
 
   // A shared garden gives the new homes a useful, colorful meeting place.
-  suppliedHouse("community-garden-cottage", "supplied-straw-cottage", 20.5, 17, 3, 4),
+  suppliedHouse(
+    "community-garden-cottage",
+    "supplied-straw-cottage",
+    20.5,
+    17,
+    3,
+    4,
+  ),
   sprite("community-garden-fence", "garden-fence", 23, 43, 10, 8, false),
   villageDecor("community-garden-sign", 24, 44, VILLAGE_DECOR_FRAME.sign, true),
   villageDecor("community-garden-bench", 24, 49, VILLAGE_DECOR_FRAME.bench),
-  villageDecor("community-garden-planter-west", 26, 45, VILLAGE_DECOR_FRAME.whitePlanter),
-  villageDecor("community-garden-planter-east", 28, 45, VILLAGE_DECOR_FRAME.redPlanter),
-  villageDecor("community-garden-crate", 29, 48, VILLAGE_DECOR_FRAME.produceCrate),
+  villageDecor(
+    "community-garden-planter-west",
+    26,
+    45,
+    VILLAGE_DECOR_FRAME.whitePlanter,
+  ),
+  villageDecor(
+    "community-garden-planter-east",
+    28,
+    45,
+    VILLAGE_DECOR_FRAME.redPlanter,
+  ),
+  villageDecor(
+    "community-garden-crate",
+    29,
+    48,
+    VILLAGE_DECOR_FRAME.produceCrate,
+  ),
   villageDecor("community-garden-lantern", 30, 45, VILLAGE_DECOR_FRAME.lantern),
   natureDecor("community-garden-herbs-west", 26, 46, NATURE_FRAME.tallLeaves),
   natureDecor("community-garden-herbs-center", 27, 46, NATURE_FRAME.leafyBush),
   natureDecor("community-garden-herbs-east", 28, 46, NATURE_FRAME.tallLeaves),
   natureDecor("community-garden-sunflower", 25, 47, NATURE_FRAME.sunflower),
   natureDecor("community-garden-red-flower", 27, 48, NATURE_FRAME.redFlower),
-  natureDecor("community-garden-white-flower", 30, 47, NATURE_FRAME.whiteFlower),
+  natureDecor(
+    "community-garden-white-flower",
+    30,
+    47,
+    NATURE_FRAME.whiteFlower,
+  ),
   tree("community-garden-shade-tree", 31, 48),
 
   // Canal Hamlet turns the empty lower-east grass into a compact river-side neighborhood.
   suppliedHouse("canal-hamlet-red-barn", "supplied-red-barn", 34, 38, 3, 4),
-  suppliedHouse("canal-hamlet-tower-house", "supplied-tower-house", 41, 38, 3, 4),
+  suppliedHouse(
+    "canal-hamlet-tower-house",
+    "supplied-tower-house",
+    41,
+    38,
+    3,
+    4,
+  ),
   suppliedHouse("canal-hamlet-blue-house", "supplied-blue-house", 35, 52, 4, 4),
   tree("canal-hamlet-square-tree", 40, 42),
   wideTree("canal-hamlet-south-canopy", 42, 58),
   villageDecor("canal-hamlet-way-sign", 36, 44, VILLAGE_DECOR_FRAME.sign, true),
   villageDecor("canal-hamlet-bench", 41, 44, VILLAGE_DECOR_FRAME.bench),
   villageDecor("canal-hamlet-lantern", 39, 45, VILLAGE_DECOR_FRAME.lantern),
-  villageDecor("canal-hamlet-planter", 34, 45, VILLAGE_DECOR_FRAME.whitePlanter),
+  villageDecor(
+    "canal-hamlet-planter",
+    34,
+    45,
+    VILLAGE_DECOR_FRAME.whitePlanter,
+  ),
   villageDecor("canal-hamlet-crate", 41, 54, VILLAGE_DECOR_FRAME.produceCrate),
-  natureDecor("canal-hamlet-double-sunflower", 34, 50, NATURE_FRAME.doubleSunflower),
+  natureDecor(
+    "canal-hamlet-double-sunflower",
+    34,
+    50,
+    NATURE_FRAME.doubleSunflower,
+  ),
   natureDecor("canal-hamlet-red-flower", 45, 52, NATURE_FRAME.redFlower),
   natureDecor("canal-hamlet-white-flower", 39, 58, NATURE_FRAME.whiteFlower),
 
@@ -513,7 +763,7 @@ const visualObjects = [
   tree("border-east-c", 59, 35),
   wideTree("border-south-a", 2, 63),
   tree("border-south-b", 12, 63),
-  wideTree("border-south-c", 52, 63)
+  wideTree("border-south-c", 52, 63),
 ] satisfies VisualObject[];
 
 export const PROTOTYPE_MAP = {
@@ -539,19 +789,23 @@ export const PROTOTYPE_MAP = {
     area("south-river-cove", "South river cove", 43, 44, 12, 8),
     area("riverside-hamlet", "Riverside hamlet", 2, 39, 22, 21),
     area("canal-hamlet", "Canal hamlet", 33, 37, 14, 22),
-    area("tree-border", "Village tree border", 0, 0, WORLD_COLUMNS, WORLD_ROWS)
+    area("tree-border", "Village tree border", 0, 0, WORLD_COLUMNS, WORLD_ROWS),
   ],
   collision: [
     ...staticCollision,
-    ...visualObjects.flatMap((object) => (object.blocksMovement && object.hitbox ? [object.hitbox] : []))
+    ...visualObjects.flatMap((object) =>
+      object.blocksMovement && object.hitbox ? [object.hitbox] : [],
+    ),
   ] satisfies Rectangle[],
   isWalkablePoint,
-  visualObjects
+  visualObjects,
 } as const;
 
 export type PrototypeMap = typeof PROTOTYPE_MAP;
 
-export function getWorldSize(map: Pick<PrototypeMap, "columns" | "rows" | "tileSize"> = PROTOTYPE_MAP) {
+export function getWorldSize(
+  map: Pick<PrototypeMap, "columns" | "rows" | "tileSize"> = PROTOTYPE_MAP,
+) {
   return { width: map.columns * map.tileSize, height: map.rows * map.tileSize };
 }
 
@@ -573,10 +827,15 @@ export function getTerrainSprite(tileX: number, tileY: number): TerrainSprite {
     const bridgeRows = [
       [340, 341, 342, 343],
       [368, 369, 370, 371],
-      [396, 397, 398, 399]
+      [396, 397, 398, 399],
     ] as const;
     const localY = tileY - BRIDGE_REGION.y;
-    const row = localY === 0 ? bridgeRows[0] : localY === BRIDGE_REGION.height - 1 ? bridgeRows[2] : bridgeRows[1];
+    const row =
+      localY === 0
+        ? bridgeRows[0]
+        : localY === BRIDGE_REGION.height - 1
+          ? bridgeRows[2]
+          : bridgeRows[1];
     return { assetKey: "tileset-water", frame: row[tileX - BRIDGE_REGION.x] };
   }
   if (kind === "grass") {
@@ -590,23 +849,31 @@ export function getTerrainSprite(tileX: number, tileY: number): TerrainSprite {
 
 export const WATER_ANIMATION_PHASES = 4;
 
-export function getAnimatedWaterFrame(tileX: number, tileY: number, phase: number) {
+export function getAnimatedWaterFrame(
+  tileX: number,
+  tileY: number,
+  phase: number,
+) {
   if (getTileKind(tileX, tileY) !== "water") return null;
   const surrounded = [
     getTileKind(tileX, tileY - 1),
     getTileKind(tileX, tileY + 1),
     getTileKind(tileX - 1, tileY),
-    getTileKind(tileX + 1, tileY)
+    getTileKind(tileX + 1, tileY),
   ].every((kind) => kind === "water" || kind === "bridge");
   if (!surrounded) return null;
   const frames = [29, 39, 67, 123];
-  return frames[(Math.max(0, phase) + coordinateVariant(tileX, tileY, frames.length)) % frames.length];
+  return frames[
+    (Math.max(0, phase) + coordinateVariant(tileX, tileY, frames.length)) %
+      frames.length
+  ];
 }
 
 export function isWalkablePoint(point: { x: number; y: number }) {
   const tileX = Math.floor(point.x / TILE_SIZE);
   const tileY = Math.floor(point.y / TILE_SIZE);
-  if (tileX < 0 || tileY < 0 || tileX >= WORLD_COLUMNS || tileY >= WORLD_ROWS) return false;
+  if (tileX < 0 || tileY < 0 || tileX >= WORLD_COLUMNS || tileY >= WORLD_ROWS)
+    return false;
   return isWalkableTileKind(getTileKind(tileX, tileY));
 }
 
@@ -615,13 +882,20 @@ export function isWalkableTileKind(kind: TileKind) {
 }
 
 export function getTerrainAtPoint(point: { x: number; y: number }) {
-  const kind = getTileKind(Math.floor(point.x / TILE_SIZE), Math.floor(point.y / TILE_SIZE));
+  const kind = getTileKind(
+    Math.floor(point.x / TILE_SIZE),
+    Math.floor(point.y / TILE_SIZE),
+  );
   return TERRAIN_DEFINITIONS[kind];
 }
 
 export function getMapAreaAtPoint(point: { x: number; y: number }) {
-  return PROTOTYPE_MAP.areas.find((area) => area.key !== "tree-border" && pointInRectangle(point, area.bounds))
-    ?? PROTOTYPE_MAP.areas.find((area) => area.key === "tree-border")!;
+  return (
+    PROTOTYPE_MAP.areas.find(
+      (area) =>
+        area.key !== "tree-border" && pointInRectangle(point, area.bounds),
+    ) ?? PROTOTYPE_MAP.areas.find((area) => area.key === "tree-border")!
+  );
 }
 
 function isPlazaTile(tileX: number, tileY: number) {
@@ -631,11 +905,20 @@ function isPlazaTile(tileX: number, tileY: number) {
 }
 
 function isMarketTile(tileX: number, tileY: number) {
-  return tileX >= 11 && tileX <= 20 && tileY >= 16 && tileY <= 23 && isRouteTile(tileX, tileY);
+  return (
+    tileX >= 11 &&
+    tileX <= 20 &&
+    tileY >= 16 &&
+    tileY <= 23 &&
+    isRouteTile(tileX, tileY)
+  );
 }
 
 function isRouteTile(tileX: number, tileY: number) {
-  return isPlazaTile(tileX, tileY) || PATH_REGIONS.some((region) => containsRounded(region, tileX, tileY));
+  return (
+    isPlazaTile(tileX, tileY) ||
+    PATH_REGIONS.some((region) => containsRounded(region, tileX, tileY))
+  );
 }
 
 function isWaterTile(tileX: number, tileY: number) {
@@ -698,7 +981,12 @@ function coordinateVariant(tileX: number, tileY: number, count: number) {
 }
 
 function contains(region: TileRegion, tileX: number, tileY: number) {
-  return tileX >= region.x && tileX < region.x + region.width && tileY >= region.y && tileY < region.y + region.height;
+  return (
+    tileX >= region.x &&
+    tileX < region.x + region.width &&
+    tileY >= region.y &&
+    tileY < region.y + region.height
+  );
 }
 
 function containsRounded(region: TileRegion, tileX: number, tileY: number) {
@@ -706,25 +994,51 @@ function containsRounded(region: TileRegion, tileX: number, tileY: number) {
   const radius = Math.min(2.5, region.width / 2, region.height / 2);
   const centerX = tileX + 0.5;
   const centerY = tileY + 0.5;
-  const nearestX = Math.min(region.x + region.width - radius, Math.max(region.x + radius, centerX));
-  const nearestY = Math.min(region.y + region.height - radius, Math.max(region.y + radius, centerY));
+  const nearestX = Math.min(
+    region.x + region.width - radius,
+    Math.max(region.x + radius, centerX),
+  );
+  const nearestY = Math.min(
+    region.y + region.height - radius,
+    Math.max(region.y + radius, centerY),
+  );
   return Math.hypot(centerX - nearestX, centerY - nearestY) <= radius;
 }
 
-function pointInRectangle(point: { x: number; y: number }, rectangle: Rectangle) {
-  return point.x >= rectangle.x && point.x <= rectangle.x + rectangle.width && point.y >= rectangle.y && point.y <= rectangle.y + rectangle.height;
+function pointInRectangle(
+  point: { x: number; y: number },
+  rectangle: Rectangle,
+) {
+  return (
+    point.x >= rectangle.x &&
+    point.x <= rectangle.x + rectangle.width &&
+    point.y >= rectangle.y &&
+    point.y <= rectangle.y + rectangle.height
+  );
 }
 
-function area(key: MapAreaKey, label: string, x: number, y: number, width: number, height: number): MapArea {
+function area(
+  key: MapAreaKey,
+  label: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): MapArea {
   return { key, label, bounds: rectTiles(key, x, y, width, height) };
 }
 
-function house(id: string, assetKey: Extract<VisualAssetKey, `village-${string}`>, x: number, y: number) {
+function house(
+  id: string,
+  assetKey: Extract<VisualAssetKey, `village-${string}`>,
+  x: number,
+  y: number,
+) {
   return sprite(id, assetKey, x, y, 4, 3, true, undefined, {
     x: 0.3,
     y: 0.2,
     width: 3.4,
-    height: 2.6
+    height: 2.6,
   });
 }
 
@@ -734,13 +1048,13 @@ function suppliedHouse(
   x: number,
   y: number,
   width: number,
-  height: number
+  height: number,
 ) {
   return sprite(id, assetKey, x, y, width, height, true, undefined, {
     x: Math.max(0.2, width * 0.15),
     y: Math.max(0.25, height * 0.3),
     width: Math.max(0.8, width * 0.7),
-    height: Math.max(0.9, height * 0.65)
+    height: Math.max(0.9, height * 0.65),
   });
 }
 
@@ -749,17 +1063,22 @@ function tree(id: string, x: number, y: number) {
     x: 0.2,
     y: 0.25,
     width: 1.6,
-    height: 1.6
+    height: 1.6,
   });
 }
 
 export function isSwimmableRiverPoint(point: { x: number; y: number }) {
   const tileX = Math.floor(point.x / TILE_SIZE);
   const tileY = Math.floor(point.y / TILE_SIZE);
-  return contains(SWIMMABLE_RIVER_REGION, tileX, tileY) && isWaterTile(tileX, tileY);
+  return (
+    contains(SWIMMABLE_RIVER_REGION, tileX, tileY) && isWaterTile(tileX, tileY)
+  );
 }
 
-export function isSwimmableRiverPosition(point: { x: number; y: number }, radius = 12) {
+export function isSwimmableRiverPosition(
+  point: { x: number; y: number },
+  radius = 12,
+) {
   // Swimming effects extend below the player's collision circle, so reserve a small
   // visual shoreline margin as well as the physical player radius.
   const inset = Math.max(radius + 16, 0);
@@ -772,7 +1091,7 @@ export function isSwimmableRiverPosition(point: { x: number; y: number }, radius
     { x: point.x - inset, y: point.y - inset },
     { x: point.x + inset, y: point.y - inset },
     { x: point.x - inset, y: point.y + inset },
-    { x: point.x + inset, y: point.y + inset }
+    { x: point.x + inset, y: point.y + inset },
   ].every(isSwimmableRiverPoint);
 }
 
@@ -781,7 +1100,7 @@ function wideTree(id: string, x: number, y: number) {
     x: 0.25,
     y: 0.7,
     width: 3.5,
-    height: 0.85
+    height: 0.85,
   });
 }
 
@@ -790,7 +1109,7 @@ function fruitTree(id: string, kind: FruitTreeKind, x: number, y: number) {
     x: 0.65,
     y: 1.4,
     width: 0.7,
-    height: 0.5
+    height: 0.5,
   });
 }
 
@@ -799,7 +1118,7 @@ function readingShrine(id: string, x: number, y: number) {
     x: 0.45,
     y: 2.2,
     width: 2.1,
-    height: 0.55
+    height: 0.55,
   });
 }
 
@@ -812,13 +1131,13 @@ function villageDecor(
   x: number,
   y: number,
   frame: number,
-  blocksMovement = false
+  blocksMovement = false,
 ) {
   return sprite(id, "village-decor", x, y, 1, 1, blocksMovement, frame, {
     x: 0.2,
     y: 0.55,
     width: 0.6,
-    height: 0.35
+    height: 0.35,
   });
 }
 
@@ -829,7 +1148,7 @@ function loloProp(
   y: number,
   width: number,
   height: number,
-  hitbox: TileHitbox
+  hitbox: TileHitbox,
 ) {
   return sprite(id, assetKey, x, y, width, height, true, undefined, hitbox);
 }
@@ -841,7 +1160,7 @@ function playgroundProp(
   y: number,
   width: number,
   height: number,
-  hitbox: TileHitbox
+  hitbox: TileHitbox,
 ) {
   return sprite(id, assetKey, x, y, width, height, true, undefined, hitbox);
 }
@@ -852,12 +1171,18 @@ function playgroundDecoration(
   x: number,
   y: number,
   width: number,
-  height: number
+  height: number,
 ) {
   return sprite(id, assetKey, x, y, width, height, false);
 }
 
-function tileDecoration(id: string, assetKey: VisualAssetKey, x: number, y: number, frame: number) {
+function tileDecoration(
+  id: string,
+  assetKey: VisualAssetKey,
+  x: number,
+  y: number,
+  frame: number,
+) {
   return sprite(id, assetKey, x, y, 1, 1, false, frame);
 }
 
@@ -870,7 +1195,7 @@ function sprite(
   height: number,
   blocksMovement: boolean,
   frame?: number,
-  hitbox?: TileHitbox
+  hitbox?: TileHitbox,
 ): VisualObject {
   return {
     id,
@@ -883,13 +1208,31 @@ function sprite(
     blocksMovement,
     depthY: (y + height) * TILE_SIZE,
     hitbox: blocksMovement
-      ? rectTiles(`${id}-hitbox`, x + (hitbox?.x ?? 0), y + (hitbox?.y ?? 0), hitbox?.width ?? width, hitbox?.height ?? height)
-      : undefined
+      ? rectTiles(
+          `${id}-hitbox`,
+          x + (hitbox?.x ?? 0),
+          y + (hitbox?.y ?? 0),
+          hitbox?.width ?? width,
+          hitbox?.height ?? height,
+        )
+      : undefined,
   };
 }
 
-function rectTiles(id: string, x: number, y: number, width: number, height: number): Rectangle {
-  return { id, x: x * TILE_SIZE, y: y * TILE_SIZE, width: width * TILE_SIZE, height: height * TILE_SIZE };
+function rectTiles(
+  id: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): Rectangle {
+  return {
+    id,
+    x: x * TILE_SIZE,
+    y: y * TILE_SIZE,
+    width: width * TILE_SIZE,
+    height: height * TILE_SIZE,
+  };
 }
 
 function farmFenceCollision() {
@@ -897,11 +1240,13 @@ function farmFenceCollision() {
     rectTiles("farm-fence-top-left-hitbox", 33.2, 23.2, 0.6, 0.6),
     rectTiles("farm-fence-top-right-hitbox", 48.2, 23.2, 0.6, 0.6),
     rectTiles("farm-fence-bottom-left-hitbox", 33.2, 32.2, 0.6, 0.6),
-    rectTiles("farm-fence-bottom-right-hitbox", 48.2, 32.2, 0.6, 0.6)
+    rectTiles("farm-fence-bottom-right-hitbox", 48.2, 32.2, 0.6, 0.6),
   ];
   for (let x = 34; x <= 47; x += 1) {
     collision.push(rectTiles(`farm-fence-top-${x}-hitbox`, x, 23.25, 1, 0.5));
-    collision.push(rectTiles(`farm-fence-bottom-${x}-hitbox`, x, 32.25, 1, 0.5));
+    collision.push(
+      rectTiles(`farm-fence-bottom-${x}-hitbox`, x, 32.25, 1, 0.5),
+    );
   }
   for (let y = 24; y <= 31; y += 1) {
     collision.push(rectTiles(`farm-fence-right-${y}-hitbox`, 48.3, y, 0.4, 1));
@@ -915,12 +1260,27 @@ function farmFenceCollision() {
 function communityGardenFenceCollision() {
   const collision: Rectangle[] = [];
   for (let x = 24; x <= 31; x += 1) {
-    collision.push(rectTiles(`community-garden-fence-top-${x}-hitbox`, x, 43.15, 1, 0.45));
-    if (x < 26 || x > 28) collision.push(rectTiles(`community-garden-fence-bottom-${x}-hitbox`, x, 50.15, 1, 0.45));
+    collision.push(
+      rectTiles(`community-garden-fence-top-${x}-hitbox`, x, 43.15, 1, 0.45),
+    );
+    if (x < 26 || x > 28)
+      collision.push(
+        rectTiles(
+          `community-garden-fence-bottom-${x}-hitbox`,
+          x,
+          50.15,
+          1,
+          0.45,
+        ),
+      );
   }
   for (let y = 44; y <= 49; y += 1) {
-    collision.push(rectTiles(`community-garden-fence-left-${y}-hitbox`, 23.15, y, 0.45, 1));
-    collision.push(rectTiles(`community-garden-fence-right-${y}-hitbox`, 32.15, y, 0.45, 1));
+    collision.push(
+      rectTiles(`community-garden-fence-left-${y}-hitbox`, 23.15, y, 0.45, 1),
+    );
+    collision.push(
+      rectTiles(`community-garden-fence-right-${y}-hitbox`, 32.15, y, 0.45, 1),
+    );
   }
   return collision;
 }

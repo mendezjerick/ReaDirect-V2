@@ -78,6 +78,30 @@ final class TeacherLearnerTest extends TestCase
         ]);
     }
 
+    public function test_learner_code_generation_skips_existing_codes_when_the_counter_is_stale(): void
+    {
+        $teacher = $this->createTeacher();
+
+        Learner::query()->create([
+            'learner_code' => 'AA000',
+            'account_purpose' => Learner::PURPOSE_STANDARD,
+            'password' => 'existing-learner-pass',
+            'first_name' => 'Existing',
+            'middle_name' => 'Class',
+            'last_name' => 'Learner',
+            'school_id' => $teacher->school_id,
+            'teacher_id' => $teacher->id,
+            'grade_level' => $teacher->grade_level,
+            'section' => $teacher->section,
+            'is_active' => true,
+        ]);
+
+        $this->assertSame(
+            'AA001',
+            $this->createLearner($teacher, 'New')->json('learner.learner_code'),
+        );
+    }
+
     public function test_learner_codes_follow_the_required_global_sequence_boundaries(): void
     {
         $teacher = $this->createTeacher();
