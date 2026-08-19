@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 
 import {
@@ -20,6 +20,18 @@ import {
 import { NativeLearnerEntryPage } from "./features/offline-practice/NativeLearnerEntryPage";
 import { NativeConnectivityBanner } from "./features/connectivity/NativeConnectivityBanner";
 import { learnerGameProfileClient } from "./features/games/gameProfileApi";
+
+const BrowserLandingPage = lazy(() =>
+  import("./features/landing/BrowserLandingPage").then((module) => ({
+    default: module.BrowserLandingPage,
+  })),
+);
+
+const PublicDocsPage = lazy(() =>
+  import("./features/docs/PublicDocsPage").then((module) => ({
+    default: module.PublicDocsPage,
+  })),
+);
 
 const LearnerDashboardPage = lazy(() =>
   import("./features/learner-dashboard/LearnerDashboardPage").then(
@@ -447,10 +459,17 @@ function RouteLoading() {
 }
 
 function RootPage() {
+  const { search } = useLocation();
+  const opensTapEntry = new URLSearchParams(search).get("entry") === "tap";
+
+  if (opensTapEntry) {
+    return <IntroPage />;
+  }
+
   return Capacitor.isNativePlatform() ? (
     <NativeLearnerEntryPage />
   ) : (
-    <IntroPage />
+    <Navigate to="/landing" replace />
   );
 }
 
@@ -476,6 +495,9 @@ export function App() {
           <Suspense fallback={<RouteLoading />}>
             <Routes>
               <Route path="/" element={<RootPage />} />
+              <Route path="/landing" element={<BrowserLandingPage />} />
+              <Route path="/docs" element={<PublicDocsPage />} />
+              <Route path="/docs/:docSlug" element={<PublicDocsPage />} />
               <Route
                 path="/learner/modes"
                 element={<NativeLearnerEntryPage initialView="modes" />}
