@@ -139,6 +139,17 @@ final class LearnerAuthController extends Controller
         return $this->json($this->serializeSession($session, $session->learner));
     }
 
+    public function heartbeat(Request $request): JsonResponse
+    {
+        $session = $this->sessionResolver->resolve($request);
+        $session->forceFill(['last_seen_at' => now()])->save();
+
+        return $this->json([
+            'active' => true,
+            'expires_at' => $session->expires_at->toIso8601String(),
+        ]);
+    }
+
     public function destroy(Request $request): JsonResponse
     {
         $session = $this->sessionResolver->resolve($request);
