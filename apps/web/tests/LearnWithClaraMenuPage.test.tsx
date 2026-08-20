@@ -31,11 +31,15 @@ const learnerSession = {
   session: { expires_at: "2026-07-20T12:00:00+00:00" },
 };
 
-function renderMenu(authenticated = true) {
+function renderMenu(authenticated = true, speechLanguage: "en" | "fil-PH" = "en") {
   if (authenticated) {
     window.sessionStorage.setItem(
       "readirect.learner-session",
-      JSON.stringify({ ...learnerSession, token: "cookie-session" }),
+      JSON.stringify({
+        ...learnerSession,
+        token: "cookie-session",
+        learner: { ...learnerSession.learner, speech_language: speechLanguage },
+      }),
     );
   }
 
@@ -108,6 +112,20 @@ describe("LearnWithClaraMenuPage", () => {
 
     expect(claraAudioMocks.unlock).toHaveBeenCalledOnce();
     expect(screen.getByText("Words class route")).toBeInTheDocument();
+  });
+
+  it("shows Filipino Clara guidance when Filipino is selected", () => {
+    renderMenu(true, "fil-PH");
+
+    expect(
+      screen.getByRole("heading", { name: "Ano ang gusto nating sanayin?" }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: /^Mga salita/ })).toBeVisible();
+    expect(
+      screen.getByText(
+        "Pumili ng aralin para sa maikling klase kasama si Ma'am Clara.",
+      ),
+    ).toBeVisible();
   });
 
   it("opens the complete Letters class from the Letters choice", () => {

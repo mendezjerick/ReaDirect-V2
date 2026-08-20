@@ -12,6 +12,7 @@ import type {
 } from "../intro/live2d/ClaraPresentation";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { LearnWithClaraLetterParade } from "./LearnWithClaraLetterParade";
+import { claraLettersCopy, isFilipino } from "./learnWithClaraCopy";
 import {
   advanceLearnWithClaraLetters,
   restartLearnWithClaraLetters,
@@ -83,7 +84,11 @@ function LessonProgress({
   );
 }
 
-function WelcomeVisual() {
+function WelcomeVisual({
+  copy,
+}: {
+  copy: typeof claraLettersCopy.en | typeof claraLettersCopy.fil;
+}) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -99,8 +104,8 @@ function WelcomeVisual() {
         </motion.span>
       </div>
       <div>
-        <p>Today&apos;s story</p>
-        <h2 id="letters-class-title">The Little-Letter Parade</h2>
+        <p>{copy.welcomeLabel}</p>
+        <h2 id="letters-class-title">{copy.welcomeTitle}</h2>
       </div>
       <div className="letters-class__preview-letters" aria-label="A B C D E">
         {classLetters.map((letter, index) => (
@@ -118,10 +123,7 @@ function WelcomeVisual() {
           </motion.span>
         ))}
       </div>
-      <p>
-        A gust scattered the little letters. Help Ma&apos;am Clara bring every
-        partner back before the parade begins.
-      </p>
+      <p>{copy.welcomeDescription}</p>
     </div>
   );
 }
@@ -130,6 +132,9 @@ export function LearnWithClaraLettersPage() {
   const navigate = useNavigate();
   const actionCommit = useButtonCommit();
   const session = loadLearnerSession();
+  const copy = isFilipino(session?.learner.speech_language)
+    ? claraLettersCopy.fil
+    : claraLettersCopy.en;
   const [phase, setPhase] = useState<ViewPhase>("welcome");
   const [checkpointState, setCheckpointState] =
     useState<CheckpointState>("loading");
@@ -228,7 +233,9 @@ export function LearnWithClaraLettersPage() {
       setActionError(
         error instanceof Error
           ? error.message
-          : "Ma'am Clara could not save that story moment.",
+          : isFilipino(session?.learner.speech_language)
+            ? "Hindi mai-save ni Ma'am Clara ang sandaling iyon ng kuwento."
+            : "Ma'am Clara could not save that story moment.",
       );
     } finally {
       setActionPending(false);
@@ -273,7 +280,9 @@ export function LearnWithClaraLettersPage() {
       setActionError(
         error instanceof Error
           ? error.message
-          : "Ma'am Clara could not restart the parade.",
+          : isFilipino(session?.learner.speech_language)
+            ? "Hindi ma-restart ni Ma'am Clara ang parada."
+            : "Ma'am Clara could not restart the parade.",
       );
     } finally {
       setActionPending(false);
@@ -282,28 +291,28 @@ export function LearnWithClaraLettersPage() {
 
   const statusCopy = () => {
     if (phase === "welcome") {
-      return "Your letter story is ready.";
+      return copy.ready;
     }
 
     if (scene?.kind === "story") {
-      return "The little letters need your help.";
+      return copy.storyHelp;
     }
 
     if (scene?.kind === "find") {
       if (foundChoice) {
-        return `You found little ${lowercaseLetter}.`;
+        return copy.found(lowercaseLetter);
       }
       if (wrongChoice) {
-        return "That letter has another partner. Look again.";
+        return copy.wrong;
       }
-      return `Tap the little ${lowercaseLetter} that belongs with big ${activeLetter}.`;
+      return copy.find(lowercaseLetter, activeLetter);
     }
 
     if (scene?.kind === "teach") {
-      return `Your turn. Say ${activeLetter} out loud.`;
+      return copy.teach(activeLetter);
     }
 
-    return "Every letter found its partner. The parade is ready.";
+    return copy.complete;
   };
 
   return (
@@ -322,14 +331,14 @@ export function LearnWithClaraLettersPage() {
           <button
             className="letters-class__back"
             type="button"
-            aria-label="Back to Clara classes"
+            aria-label={copy.back}
             onClick={() => navigate("/learner/learn-with-clara")}
           >
             <BackIcon />
           </button>
           <div className="letters-class__header-copy">
-            <p>Learn with Ma&apos;am Clara</p>
-            <h1>Letter story</h1>
+            <p>{copy.heading}</p>
+            <h1>{copy.title}</h1>
           </div>
           <LessonProgress
             current={
@@ -370,7 +379,7 @@ export function LearnWithClaraLettersPage() {
                     size="regular"
                     onClick={retryCheckpoint}
                   >
-                    Try loading the story
+                    {copy.tryLoading}
                   </BigButton>
                 ) : (
                   <BigButton
@@ -384,10 +393,10 @@ export function LearnWithClaraLettersPage() {
                     onClick={() => actionCommit.commit(beginLesson)}
                   >
                     {lettersState?.status === "letters-complete"
-                      ? "See the Parade"
+                      ? copy.seeParade
                       : lettersState?.scene.key === "parade-opening"
-                        ? "Start Story"
-                        : "Continue Story"}
+                        ? copy.startStory
+                        : copy.continueStory}
                   </BigButton>
                 )
               ) : null}
@@ -398,11 +407,15 @@ export function LearnWithClaraLettersPage() {
                   className="letters-class__action"
                   size="regular"
                   busy={actionPending}
-                  busyLabel="Opening the first stop"
+                  busyLabel={
+                    isFilipino(session?.learner.speech_language)
+                      ? "Binubuksan ang unang hintuan"
+                      : "Opening the first stop"
+                  }
                   committing={actionCommit.committing}
                   onClick={() => actionCommit.commit(() => void advance())}
                 >
-                  Find the First Letter
+                  {copy.findFirst}
                 </BigButton>
               ) : null}
 
@@ -412,13 +425,17 @@ export function LearnWithClaraLettersPage() {
                   className="letters-class__action"
                   size="regular"
                   busy={actionPending}
-                  busyLabel="Moving the parade"
+                  busyLabel={
+                    isFilipino(session?.learner.speech_language)
+                      ? "Inuusad ang parada"
+                      : "Moving the parade"
+                  }
                   committing={actionCommit.committing}
                   onClick={() => actionCommit.commit(() => void advance())}
                 >
                   {scene.item_progress?.current === 5
-                    ? "Start the Parade"
-                    : "Next Stop"}
+                    ? copy.startParade
+                    : copy.nextStop}
                 </BigButton>
               ) : null}
 
@@ -431,13 +448,13 @@ export function LearnWithClaraLettersPage() {
                     busy={actionPending}
                     onClick={() => void restart()}
                   >
-                    Play Again
+                    {copy.playAgain}
                   </BigButton>
                   <BigButton
                     size="regular"
                     onClick={() => navigate("/learner/learn-with-clara")}
                   >
-                    Back to Classes
+                    {copy.backToClasses}
                   </BigButton>
                 </div>
               ) : null}
@@ -456,7 +473,7 @@ export function LearnWithClaraLettersPage() {
             padding="compact"
           >
             {phase === "welcome" || !scene ? (
-              <WelcomeVisual />
+              <WelcomeVisual copy={copy} />
             ) : (
               <LearnWithClaraLetterParade
                 scene={scene}

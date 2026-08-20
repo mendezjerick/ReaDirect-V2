@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Surface } from "../../components/ui/Surface";
 import { unlockClaraAudio } from "../clara-audio/claraSpeech";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
+import { claraMenuCopy, isFilipino } from "./learnWithClaraCopy";
 import "./learn-with-clara-menu.css";
 
 const claraTopics = [
@@ -93,6 +94,9 @@ function TopicIcon({ topic }: { topic: ClaraTopicKey }) {
 export function LearnWithClaraMenuPage() {
   const navigate = useNavigate();
   const session = loadLearnerSession();
+  const copy = isFilipino(session?.learner.speech_language)
+    ? claraMenuCopy.fil
+    : claraMenuCopy.en;
 
   useEffect(() => {
     if (!session?.token) {
@@ -133,33 +137,33 @@ export function LearnWithClaraMenuPage() {
           <button
             className="clara-menu__home"
             type="button"
-            aria-label="Back to dashboard"
+            aria-label={copy.backToDashboard}
             onClick={() => navigate("/learner/dashboard")}
           >
             <HomeIcon />
           </button>
           <div className="clara-menu__heading">
-            <p>Learn with Ma&apos;am Clara</p>
-            <h1 id="clara-menu-title">What should we practice?</h1>
+            <p>{copy.heading}</p>
+            <h1 id="clara-menu-title">{copy.title}</h1>
           </div>
           <span className="clara-menu__pick-badge" aria-hidden="true">
-            Pick one
+            {copy.pickOne}
           </span>
         </Surface>
 
         <Surface className="clara-menu__lessons" kind="panel" padding="compact">
           <div className="clara-menu__lesson-heading">
             <div>
-              <p className="clara-menu__eyebrow">Choose your lesson</p>
-              <h2>Pick a reading skill</h2>
+              <p className="clara-menu__eyebrow">{copy.chooseLesson}</p>
+              <h2>{copy.readingSkill}</h2>
             </div>
-            <span>5 choices</span>
+            <span>{copy.choices}</span>
           </div>
 
           <div
             className="clara-menu__topic-grid"
             role="group"
-            aria-label="Reading skills"
+            aria-label={copy.readingSkills}
           >
             {claraTopics.map((topic) => (
               <button
@@ -173,8 +177,8 @@ export function LearnWithClaraMenuPage() {
                   <TopicIcon topic={topic.key} />
                 </span>
                 <span className="clara-menu__topic-copy">
-                  <strong>{topic.label}</strong>
-                  <span>{topic.description}</span>
+                  <strong>{copy.topics[topic.key].label}</strong>
+                  <span>{copy.topics[topic.key].description}</span>
                 </span>
                 <span className="clara-menu__topic-arrow" aria-hidden="true">
                   →
@@ -184,7 +188,7 @@ export function LearnWithClaraMenuPage() {
           </div>
 
           <p className="clara-menu__status" aria-live="polite">
-            Choose a lesson for your short class with Ma&apos;am Clara.
+            {copy.status}
           </p>
         </Surface>
       </div>
