@@ -88,14 +88,14 @@ test("Learner entry stays focused and opens the saved learner dashboard", async 
   await page.getByLabel("Password").fill("ReadReady2026!");
   await page.getByRole("button", { name: "Let's go!" }).click();
 
-  const routeTransition = page.locator('[data-route-transition="link-start"]');
-  await expect(routeTransition).toBeVisible();
-  await expect(page).toHaveURL(/\/learner\/login$/);
+  await expect(page).toHaveURL(/\/learner\/dashboard$/);
+  await expect(
+    page.locator('[data-route-transition="link-start"]'),
+  ).toHaveCount(0);
 
   await expect(
     page.getByRole("heading", { name: "Welcome, Avery!" }),
   ).toBeVisible();
-  await expect(routeTransition).toBeHidden();
   await expect(page.getByText("AA001")).toBeVisible();
   const primaryActionFontSize = await page
     .getByRole("button", { name: "Open Reading Journey" })

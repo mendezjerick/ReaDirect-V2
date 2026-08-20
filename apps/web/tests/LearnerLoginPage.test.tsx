@@ -9,11 +9,7 @@ vi.mock("motion/react", async (importOriginal) => {
 });
 
 import { createAppQueryClient } from "../src/app/queryClient";
-import { LINK_START_ROUTE_SWAP_MS } from "../src/components/transitions/LinkStartTransition";
-import {
-  ROUTE_TRANSITION_PRESS_COMMIT_MS,
-  RouteTransitionProvider,
-} from "../src/components/transitions/RouteTransitionProvider";
+import { RouteTransitionProvider } from "../src/components/transitions/RouteTransitionProvider";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { NORMAL_API_TIMEOUT_MS } from "../src/lib/apiUrl";
 import { LearnerLoginPage } from "../src/features/learner-auth/LearnerLoginPage";
@@ -119,24 +115,10 @@ describe("LearnerLoginPage", () => {
       window.sessionStorage.getItem("readirect.learner-session"),
     ).toContain("KW000");
     expect(window.localStorage.getItem("readirect.learner-session")).toBeNull();
-    expect(
-      screen.queryByText("Learner dashboard route"),
-    ).not.toBeInTheDocument();
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(ROUTE_TRANSITION_PRESS_COMMIT_MS);
-    });
+    expect(screen.getByText("Learner dashboard route")).toBeVisible();
     expect(
       document.querySelector('[data-route-transition="link-start"]'),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText("Learner dashboard route"),
     ).not.toBeInTheDocument();
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(LINK_START_ROUTE_SWAP_MS);
-    });
-    expect(screen.getByText("Learner dashboard route")).toBeVisible();
   });
 
   it("stores a remembered learner session outside tab-only storage", async () => {
@@ -212,8 +194,6 @@ describe("LearnerLoginPage", () => {
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(BUTTON_PRESS_COMMIT_MS);
-      await vi.advanceTimersByTimeAsync(ROUTE_TRANSITION_PRESS_COMMIT_MS);
-      await vi.advanceTimersByTimeAsync(LINK_START_ROUTE_SWAP_MS);
     });
 
     expect(screen.getByText("Offline Practice route")).toBeVisible();
