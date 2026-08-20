@@ -77,7 +77,7 @@ describe("Game One route boundary", () => {
         name: /Chronicles of the Lost Kingdom/,
       }),
     ).toBeVisible();
-    expect(document.body.style.overflow).toBe("hidden");
+    await waitFor(() => expect(document.body.style.overflow).toBe("hidden"));
 
     fireEvent.click(
       await screen.findByRole("button", { name: "Skip Tutorial" }),
@@ -103,5 +103,5 @@ describe("Game One route boundary", () => {
     expect(save).toHaveBeenCalledTimes(1);
     expect(kaplayController.destroy).toHaveBeenCalledTimes(1);
     expect(document.body.style.overflow).toBe("auto");
-  });
+  }, 15_000);
 });

@@ -7,9 +7,17 @@ export default defineConfig({
     environment: "jsdom",
     exclude: ["tests/end-to-end/**", "node_modules/**", "dist/**"],
     setupFiles: "./tests/setup.ts",
+    // Component suites are intentionally integration-heavy and can exceed
+    // Vitest's 5s default on the repository's Windows CI/dev environment.
+    testTimeout: 15_000,
+    hookTimeout: 15_000,
+    maxWorkers: 2,
     server: {
       deps: {
-        inline: ["@pixi/react"],
+        // @pixi/react imports the React reconciler constants subpath without
+        // an extension; Vite must transform the package instead of letting
+        // Node's strict ESM resolver reject that import.
+        inline: ["@pixi/react", "react-reconciler"],
       },
     },
   },

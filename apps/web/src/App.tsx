@@ -582,7 +582,7 @@ export function App() {
                 path="/learner/games/game-alpha"
                 element={
                   <RequireSkeletonGameProfile
-                    bypass={
+                    bypass={() =>
                       loadLearnerSession()?.learner.account_purpose ===
                       "portal_system"
                     }
@@ -595,7 +595,7 @@ export function App() {
                 path="/learner/games/game-one"
                 element={
                   <RequireSkeletonGameProfile
-                    bypass={
+                    bypass={() =>
                       loadLearnerSession()?.learner.account_purpose ===
                       "portal_system"
                     }
@@ -616,7 +616,7 @@ export function App() {
                 path="/learner/games/game-two"
                 element={
                   <RequireSkeletonGameProfile
-                    bypass={
+                    bypass={() =>
                       loadLearnerSession()?.learner.account_purpose ===
                       "portal_system"
                     }

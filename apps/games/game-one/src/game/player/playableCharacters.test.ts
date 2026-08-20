@@ -16,7 +16,11 @@ import {
 describe("playable character selection", () => {
   it("defines a playable sprite asset and directional layout for each explorer", () => {
     expect(getPlayableCharacter("yato").assetKey).toBe("learnerWalk");
-    expect(getPlayableCharacter("blue-hair-explorer").name.en).toBe("Rimuru Tempest");
+    expect(getPlayableCharacter("yato").name.en).toBe("Nora");
+    expect(getPlayableCharacter("blue-hair-explorer").name.en).toBe("Tempura Necklace");
+    expect(getPlayableCharacter("iruma").name.en).toBe("Maru");
+    expect(getPlayableCharacter("luffy").name.en).toBe("Loafy");
+    expect(getPlayableCharacter("frieren").name.en).toBe("Freeto");
     expect(getPlayableCharacter("blue-hair-explorer").spriteLayout).toBe("row-walk-four-way");
     expect(getPlayableCharacter("blue-hair-explorer").spriteOffsetY).toBe(0);
     expect(getPlayableCharacter("blue-hair-explorer").boatSpriteOffsetY).toBe(0);
