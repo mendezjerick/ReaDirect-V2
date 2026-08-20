@@ -27,6 +27,8 @@ describe("CreditsLicensesPage", () => {
     ).toBeVisible();
     expect(screen.getByText(/Sound effects by SoundsbyDane/)).toBeVisible();
     expect(screen.getByText(/Shaila Patrice D. Avallenda/)).toBeVisible();
+    expect(screen.getByText("OtterTale (Game Two)")).toBeVisible();
+    expect(screen.getByText(/released under CC0 1.0/)).toBeVisible();
     expect(screen.getByRole("link", { name: "OpenAI Whisper" })).toHaveAttribute(
       "href",
       "https://github.com/openai/whisper",

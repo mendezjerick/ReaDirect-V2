@@ -63,7 +63,17 @@ export function CreditsLicensesPage() {
               </dd>
             </div>
             <div>
-              <dt>Word Rescue and OtterTale</dt>
+              <dt>OtterTale (Game Two)</dt>
+              <dd>
+                Repackaged, remixed, and original game assets released under
+                CC0 1.0. Credits: analogStudios_, RottingPixels, Brackeys,
+                Sofia Thirslund, Asbjørn Thirslund, and Jayvee Enaguas
+                (Pixel Operator). Attribution is preserved although not
+                required by the licence.
+              </dd>
+            </div>
+            <div>
+              <dt>Word Rescue</dt>
               <dd>
                 Final release provenance is under review. Assets without a
                 completed release record are not approved for Play Store

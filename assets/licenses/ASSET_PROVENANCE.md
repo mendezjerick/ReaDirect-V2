@@ -36,9 +36,19 @@ deployment records.
 - The currently named character-inspired Game One assets are scheduled to be
   replaced from `master` before release. Do not ship them from this branch until
   that replacement has been brought in and verified.
-- Game Two/OtterTale third-party sprite, music, and sound-effect provenance is
-  pending. Do not represent these assets as CC0 or ready for distribution until
-  their actual licences are supplied.
+- Game Two/OtterTale uses a CC0 1.0 asset pack that combines repackaged,
+  remixed, and original assets. Attribution is not required by CC0, but the
+  project credits the source pack's listed creators: sprite assets by
+  [analogStudios_](https://analogstudios.itch.io/) and
+  [RottingPixels](https://rottingpixels.itch.io/); the knight from
+  [Camelot](https://analogstudios.itch.io/camelot); slimes from
+  [DungeonSprites](https://analogstudios.itch.io/dungeonsprites); world tiles
+  and fruit from [Four Seasons Platformer Tileset](https://rottingpixels.itch.io/four-seasons-platformer-tileset-16x16free);
+  and platforms and coins from [Four Seasons Platformer Sprites](https://analogstudios.itch.io/four-seasons-platformer-sprites).
+  Music is credited to Brackeys and Sofia Thirslund; sounds to Brackeys and
+  Asbjørn Thirslund; and the included Pixel Operator font to Jayvee Enaguas
+  ([HarvettFox96](https://www.dafont.com/pixel-operator.font?l[]=10&l[]=1)).
+  See [the CC0 1.0 dedication](https://creativecommons.org/publicdomain/zero/1.0/).
 - Word Rescue vocabulary artwork provenance is pending final owner records.
   Its existing review status remains non-release-ready until then.
 
@@ -73,7 +83,7 @@ the private reference recordings to public application assets.
 
 ## Deferred and generated software notices
 
-The project still needs final provenance entries for Game Two/OtterTale and Word
-Rescue artwork. Third-party application dependency notices are separate from
-asset provenance and should be generated from the Node, Composer, and Python
-lockfiles as a software bill of materials before the Play Store release.
+The project still needs a final provenance entry for Word Rescue artwork.
+Third-party application dependency notices are separate from asset provenance
+and should be generated from the Node, Composer, and Python lockfiles as a
+software bill of materials before the Play Store release.
