@@ -38,9 +38,12 @@ function ReaderIcon() {
 export function LearnerLoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const requestedReturnTo = searchParams.get("returnTo");
   const returnTo =
-    searchParams.get("returnTo") === "/learner/offline"
-      ? "/learner/offline"
+    requestedReturnTo &&
+    requestedReturnTo.startsWith("/learner/") &&
+    requestedReturnTo !== "/learner/login"
+      ? requestedReturnTo
       : "/learner/dashboard";
   const { beginRouteTransition, isTransitioning } = useRouteTransition();
   const [showPassword, setShowPassword] = useState(false);

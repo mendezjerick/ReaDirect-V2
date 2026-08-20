@@ -155,6 +155,7 @@ Route::prefix('learners')->group(function (): void {
 
 Route::prefix('learners')->middleware('learner.auth')->group(function (): void {
     Route::get('/session', [LearnerAuthController::class, 'show']);
+    Route::post('/session/heartbeat', [LearnerAuthController::class, 'heartbeat']);
     Route::post('/logout', [LearnerAuthController::class, 'destroy']);
     Route::post('/assessments/diagnostic/skip', LearnerDiagnosticSkipController::class);
     Route::get('/experience/settings', [LearnerExperienceController::class, 'show']);

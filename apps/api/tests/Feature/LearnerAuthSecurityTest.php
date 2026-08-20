@@ -141,6 +141,22 @@ final class LearnerAuthSecurityTest extends TestCase
         $this->assertTrue($session->fresh()->last_seen_at->gt($lastSeen));
     }
 
+    public function test_active_session_heartbeat_refreshes_the_idle_lease(): void
+    {
+        $learner = $this->learner('LH001', 'correct-password');
+        $token = str_repeat('h', 64);
+        $lastSeen = now()->subMinutes(20);
+        $session = $this->sessionRecord($learner, $token, $lastSeen);
+
+        $this->withToken($token)
+            ->postJson('/api/learners/session/heartbeat')
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertJsonPath('active', true);
+
+        $this->assertTrue($session->fresh()->last_seen_at->gt($lastSeen));
+    }
+
     public function test_browser_sentinel_uses_the_httponly_cookie_session(): void
     {
         $learner = $this->learner('LC001', 'correct-password');

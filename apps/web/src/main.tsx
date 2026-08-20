@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
 import { AppProviders } from "./app/AppProviders";
 import { NativeAppLifecycleProvider } from "./app/NativeAppLifecycleProvider";
+import { LearnerSessionLifecycleProvider } from "./features/learner-auth/LearnerSessionLifecycleProvider";
 import {
   hydrateNativeSessions,
   isNativeSecureSessionAvailable,
@@ -76,9 +77,11 @@ void hydrateNativeSessions([
       <StrictMode>
         <AppProviders>
           <BrowserRouter>
-            <NativeAppLifecycleProvider>
-              <App />
-            </NativeAppLifecycleProvider>
+            <LearnerSessionLifecycleProvider>
+              <NativeAppLifecycleProvider>
+                <App />
+              </NativeAppLifecycleProvider>
+            </LearnerSessionLifecycleProvider>
           </BrowserRouter>
         </AppProviders>
       </StrictMode>,

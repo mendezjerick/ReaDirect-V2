@@ -343,6 +343,25 @@ export async function getLearnerSession(
   return learnerSessionSchema.parse(await response.json());
 }
 
+/** Keep an open browser tab's idle lease alive while the learner is present. */
+export async function heartbeatLearnerSession(token: string): Promise<void> {
+  const response = await fetch(apiUrl("/api/learners/session/heartbeat"), {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (response.status === 401) {
+    throw new LearnerSessionInvalidError();
+  }
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+}
+
 export async function skipDiagnostic(
   token: string,
 ): Promise<LearnerReadingPath> {
