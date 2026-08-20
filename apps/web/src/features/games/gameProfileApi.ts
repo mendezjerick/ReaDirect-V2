@@ -6,7 +6,11 @@ import {
   type GameProfile,
   type GameProfileClient,
 } from "@readirect/game-lobby";
-import { loadLearnerSession } from "../learner-auth/learnerApi";
+import {
+  loadLearnerSession,
+  restoreLearnerSession,
+  saveLearnerSession,
+} from "../learner-auth/learnerApi";
 
 const gameProfileSchema = z.object({
   audience: z.literal("learner"),
@@ -80,11 +84,48 @@ async function requestError(
   return new GameProfileRequestError(message, response.status);
 }
 
+/**
+ * Browser sessions use a non-secret sentinel in storage and the real identity
+ * in an HttpOnly cookie. A different tab can replace that cookie (for example
+ * when opening a page portal) while this tab still has the previous learner
+ * snapshot. Reconcile that authoritative cookie once before surfacing a
+ * profile failure so preview/standard mode and profile requests agree.
+ */
+async function reconcileBrowserSession(): Promise<boolean> {
+  const stored = loadLearnerSession();
+  if (stored?.token !== "cookie-session") return false;
+
+  const restored = await restoreLearnerSession();
+  if (!restored) return false;
+
+  await saveLearnerSession(restored);
+  return true;
+}
+
+async function loadProfileResponse(): Promise<Response> {
+  let response = await apiFetchWithNormalTimeout(apiUrl(GAME_PROFILE_URL), {
+    headers: headers(),
+  });
+
+  if (
+    !response.ok &&
+    (response.status === 401 || response.status === 403) &&
+    loadLearnerSession()?.token === "cookie-session"
+  ) {
+    const reconciled = await reconcileBrowserSession();
+    if (reconciled) {
+      response = await apiFetchWithNormalTimeout(apiUrl(GAME_PROFILE_URL), {
+        headers: headers(),
+      });
+    }
+  }
+
+  return response;
+}
+
 export const learnerGameProfileClient: GameProfileClient = {
   async loadGameProfile() {
-    const response = await apiFetchWithNormalTimeout(apiUrl(GAME_PROFILE_URL), {
-      headers: headers(),
-    });
+    const response = await loadProfileResponse();
     if (!response.ok) throw await requestError(response);
     return parseProfile(await response.json());
   },

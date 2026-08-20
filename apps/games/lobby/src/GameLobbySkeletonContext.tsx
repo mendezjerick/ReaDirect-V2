@@ -209,15 +209,27 @@ export function isSafeRequestedGameRoute(
 export function RequireSkeletonGameProfile({
   children,
   bypass = false,
-}: PropsWithChildren<{ bypass?: boolean }>) {
+  sessionChangeEvent = "readirect:learner-session-changed",
+}: PropsWithChildren<{
+  bypass?: boolean | (() => boolean);
+  sessionChangeEvent?: string;
+}>) {
   const { profile, status, error, loadProfile, retry } = useGameLobbySkeleton();
   const location = useLocation();
+  const [, refreshSessionState] = useState(0);
+  const shouldBypass = typeof bypass === "function" ? bypass() : bypass;
 
   useEffect(() => {
-    if (!bypass && status === "idle") void loadProfile();
-  }, [bypass, loadProfile, status]);
+    const refresh = () => refreshSessionState((current) => current + 1);
+    window.addEventListener(sessionChangeEvent, refresh);
+    return () => window.removeEventListener(sessionChangeEvent, refresh);
+  }, [refreshSessionState, sessionChangeEvent]);
 
-  if (bypass) return children;
+  useEffect(() => {
+    if (!shouldBypass && status === "idle") void loadProfile();
+  }, [loadProfile, shouldBypass, status]);
+
+  if (shouldBypass) return children;
 
   if (status === "idle" || status === "loading" || status === "creating") {
     return <GameProfileLoadingState />;

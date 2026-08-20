@@ -24,6 +24,18 @@ const session = {
   session: { expires_at: "2026-08-18T00:00:00+00:00" },
 };
 
+const restoredPortalSession = {
+  ...session,
+  learner: {
+    ...session.learner,
+    learner_code: "KW000",
+    full_name: "Kristen Rhine Wright",
+    first_name: "Kristen",
+    account_purpose: "portal_system" as const,
+    speech_language: "fil-PH" as const,
+  },
+};
+
 afterEach(() => {
   window.sessionStorage.clear();
   vi.restoreAllMocks();
@@ -112,5 +124,37 @@ describe("learner game profile API", () => {
     ).rejects.toMatchObject({
       status: 401,
     } satisfies Partial<GameProfileRequestError>);
+  });
+
+  it("reconciles a stale browser session before retrying preview profile access", async () => {
+    window.sessionStorage.setItem(
+      "readirect.learner-session",
+      JSON.stringify(session),
+    );
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        Response.json(
+          { message: "Persistent game data is unavailable in preview mode." },
+          { status: 403 },
+        ),
+      )
+      .mockResolvedValueOnce(Response.json(restoredPortalSession))
+      .mockResolvedValueOnce(Response.json({ profile: null }));
+
+    await expect(
+      learnerGameProfileClient.loadGameProfile(),
+    ).resolves.toBeNull();
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(
+      JSON.parse(window.sessionStorage.getItem("readirect.learner-session")!),
+    ).toMatchObject({
+      learner: {
+        learner_code: "KW000",
+        account_purpose: "portal_system",
+      },
+      token: "cookie-session",
+    });
   });
 });
