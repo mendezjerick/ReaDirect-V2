@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { useRouteTransition } from "../../components/transitions/routeTransitionContext";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { TextField } from "../../components/ui/TextField";
@@ -45,7 +44,6 @@ export function LearnerLoginPage() {
     requestedReturnTo !== "/learner/login"
       ? requestedReturnTo
       : "/learner/dashboard";
-  const { beginRouteTransition, isTransitioning } = useRouteTransition();
   const [showPassword, setShowPassword] = useState(false);
   const [restoring, setRestoring] = useState(() =>
     Boolean(
@@ -60,7 +58,9 @@ export function LearnerLoginPage() {
     mutationFn: loginLearner,
     onSuccess: async (session, credentials) => {
       await saveLearnerSession(session, { remember: credentials.remember_me });
-      beginRouteTransition(returnTo);
+      // Authentication pages should navigate directly. Link Start is reserved
+      // for the public entry flow and should not delay a successful sign-in.
+      navigate(returnTo, { replace: true });
     },
   });
 
@@ -110,7 +110,7 @@ export function LearnerLoginPage() {
     return () => {
       active = false;
     };
-  }, [beginRouteTransition, navigate, returnTo]);
+  }, [navigate, returnTo]);
   const {
     register,
     handleSubmit,
@@ -236,7 +236,7 @@ export function LearnerLoginPage() {
               <BigButton
                 className="learner-login-form__submit"
                 type="submit"
-                committing={loginCommit.committing || isTransitioning}
+                committing={loginCommit.committing}
                 busy={loginMutation.isPending}
                 busyLabel="Opening your reading path"
               >
