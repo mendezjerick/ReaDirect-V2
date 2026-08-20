@@ -5,10 +5,14 @@ import { BigButton } from "../../components/ui/BigButton";
 import { LearnerActivityHomeButton } from "../learner-activity/LearnerActivityHomeButton";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { ClaraStage } from "../intro/ClaraStage";
+import { claraPracticeCopy, isFilipino } from "./learnWithClaraCopy";
 import "./learn-with-clara-practice.css";
 
 type PracticeKey = "phrases" | "sentences" | "comprehension";
 type CheckState = "idle" | "incomplete" | "correct" | "incorrect";
+type ClaraPracticeCopy =
+  | typeof claraPracticeCopy.en
+  | typeof claraPracticeCopy.fil;
 
 interface OrderToken {
   id: string;
@@ -284,12 +288,14 @@ function OrderPractice({
   selected,
   checkState,
   onSelect,
+  copy,
 }: {
   item: OrderItem;
   kind: "phrases" | "sentences";
   selected: string[];
   checkState: CheckState;
   onSelect: (id: string) => void;
+  copy: ClaraPracticeCopy;
 }) {
   const selectedLabels = selected.map(
     (id) => item.tokens.find((token) => token.id === id)?.label ?? id,
@@ -320,8 +326,8 @@ function OrderPractice({
           ))
         ) : (
           <span className="clara-practice__answer-placeholder">
-            Tap words below to build your{" "}
-            {kind === "phrases" ? "phrase" : "sentence"}.
+          Tap words below to build your{" "}
+          {kind === "phrases" ? "phrase" : "sentence"}.
           </span>
         )}
       </div>
@@ -347,7 +353,7 @@ function OrderPractice({
       </div>
       {checkState === "incomplete" ? (
         <p className="clara-practice__feedback" role="status">
-          Choose every word first.
+          {copy.feedback.chooseWords}
         </p>
       ) : null}
       {checkState === "incorrect" ? (
@@ -355,7 +361,7 @@ function OrderPractice({
           className="clara-practice__feedback clara-practice__feedback--wrong"
           role="status"
         >
-          Almost! Tap a word in your answer to try again.
+          {copy.feedback.almost}
         </p>
       ) : null}
       {checkState === "correct" ? (
@@ -363,7 +369,7 @@ function OrderPractice({
           className="clara-practice__feedback clara-practice__feedback--correct"
           role="status"
         >
-          That is right! Clara is proud of your reading.
+          {copy.feedback.correctPhrase}
         </p>
       ) : null}
     </div>
@@ -375,11 +381,13 @@ function ComprehensionPractice({
   choice,
   checkState,
   onSelect,
+  copy,
 }: {
   item: ComprehensionItem;
   choice: string | null;
   checkState: CheckState;
   onSelect: (choice: string) => void;
+  copy: ClaraPracticeCopy;
 }) {
   return (
     <div className="clara-practice__comprehension">
@@ -421,7 +429,7 @@ function ComprehensionPractice({
       </div>
       {checkState === "incomplete" ? (
         <p className="clara-practice__feedback" role="status">
-          Choose one answer first.
+          {copy.feedback.chooseAnswer}
         </p>
       ) : null}
       {checkState === "incorrect" ? (
@@ -429,7 +437,7 @@ function ComprehensionPractice({
           className="clara-practice__feedback clara-practice__feedback--wrong"
           role="status"
         >
-          Good try. Look for the clue: {item.clue}
+          {copy.feedback.goodTry(item.clue)}
         </p>
       ) : null}
       {checkState === "correct" ? (
@@ -437,7 +445,7 @@ function ComprehensionPractice({
           className="clara-practice__feedback clara-practice__feedback--correct"
           role="status"
         >
-          Correct! You found the clue in the story.
+          {copy.feedback.correctComprehension}
         </p>
       ) : null}
     </div>
@@ -448,6 +456,9 @@ export function LearnWithClaraPracticePage() {
   const navigate = useNavigate();
   const { practiceKey } = useParams<{ practiceKey: string }>();
   const session = loadLearnerSession();
+  const copy = isFilipino(session?.learner.speech_language)
+    ? claraPracticeCopy.fil
+    : claraPracticeCopy.en;
   const [current, setCurrent] = useState(0);
   const [checkState, setCheckState] = useState<CheckState>("idle");
   const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
@@ -489,7 +500,7 @@ export function LearnWithClaraPracticePage() {
           <header className="clara-practice__header">
             <LearnerActivityHomeButton />
             <div>
-              <p>Learn with Ma&apos;am Clara</p>
+              <p>{copy.heading}</p>
               <h1>{meta.label}</h1>
             </div>
           </header>
@@ -500,18 +511,16 @@ export function LearnWithClaraPracticePage() {
             <span className="clara-practice__complete-icon">
               <Icon name="check" />
             </span>
-            <p>Practice complete</p>
-            <h2 id="clara-practice-complete-title">You did it!</h2>
-            <span>
-              Clara says: Every little step makes your reading stronger.
-            </span>
+            <p>{copy.complete}</p>
+            <h2 id="clara-practice-complete-title">{copy.completedTitle}</h2>
+            <span>{copy.completedMessage}</span>
             <BigButton
               variant="primary"
               size="regular"
               leadingIcon={<Icon name="arrow" />}
               onClick={() => navigate("/learner/learn-with-clara")}
             >
-              Back to practice menu
+              {copy.back}
             </BigButton>
           </section>
         </div>
@@ -574,7 +583,7 @@ export function LearnWithClaraPracticePage() {
         <header className="clara-practice__header">
           <LearnerActivityHomeButton />
           <div>
-            <p>Learn with Ma&apos;am Clara</p>
+            <p>{copy.heading}</p>
             <h1>{meta.label}</h1>
           </div>
           <ProgressDots current={current} total={meta.count} />
@@ -592,13 +601,14 @@ export function LearnWithClaraPracticePage() {
               <span className="clara-practice__icon-badge">
                 <Icon name={validKey === "comprehension" ? "book" : "hint"} />
               </span>
-              <p>Ma&apos;am Clara says: Take your time and try your best.</p>
+              <p>{copy.instruction}</p>
             </div>
             {validKey === "comprehension" ? (
               <ComprehensionPractice
                 item={item as ComprehensionItem}
                 choice={selectedChoice}
                 checkState={checkState}
+                copy={copy}
                 onSelect={(choice) => {
                   setSelectedChoice(choice);
                   setCheckState("idle");
@@ -611,6 +621,7 @@ export function LearnWithClaraPracticePage() {
                 kind={orderKind}
                 selected={selectedTokens}
                 checkState={checkState}
+                copy={copy}
                 onSelect={(id) => {
                   setSelectedTokens((values) =>
                     values.includes(id)
@@ -644,15 +655,15 @@ export function LearnWithClaraPracticePage() {
             <div className="clara-practice__coach">
               <strong>
                 {checkState === "correct"
-                  ? "Wonderful work!"
+                  ? copy.wonderful
                   : checkState === "incorrect"
-                    ? "Let's look again."
-                    : "You can do it!"}
+                    ? copy.again
+                    : copy.encouragement}
               </strong>
               <span>
                 {checkState === "incorrect"
-                  ? "Use the clue and try one more time."
-                  : "Tap an answer, then press Check."}
+                  ? copy.retryHint
+                  : copy.answerHint}
               </span>
             </div>
           </aside>
@@ -666,7 +677,7 @@ export function LearnWithClaraPracticePage() {
               leadingIcon={<Icon name="arrow" />}
               onClick={next}
             >
-              {current + 1 >= meta.count ? "Finish practice" : "Next"}
+              {current + 1 >= meta.count ? copy.finish : copy.next}
             </BigButton>
           ) : (
             <BigButton
@@ -676,7 +687,7 @@ export function LearnWithClaraPracticePage() {
               onClick={check}
               className="clara-practice__check"
             >
-              Check answer
+              {copy.check}
             </BigButton>
           )}
           {checkState === "incorrect" ? (
@@ -686,7 +697,7 @@ export function LearnWithClaraPracticePage() {
               leadingIcon={<Icon name="retry" />}
               onClick={resetItem}
             >
-              Retry
+              {copy.retry}
             </BigButton>
           ) : null}
         </footer>

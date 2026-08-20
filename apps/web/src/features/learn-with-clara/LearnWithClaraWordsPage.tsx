@@ -22,6 +22,7 @@ import {
   type WordRescueWord,
 } from "./wordRescueIcons";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
+import { claraWordsCopy, isFilipino } from "./learnWithClaraCopy";
 import "./learn-with-clara-letters.css";
 import "./learn-with-clara-words.css";
 
@@ -160,9 +161,11 @@ function StoryPreviewAsset({ word }: { word: StoryWord }) {
 function WordRescueBoard({
   moment,
   currentIndex,
+  copy,
 }: {
   moment: (typeof storyMoments)[number];
   currentIndex: number;
+  copy: typeof claraWordsCopy.en | typeof claraWordsCopy.fil;
 }) {
   return (
     <div className="word-rescue-board">
@@ -200,7 +203,7 @@ function WordRescueBoard({
           <WordRescueIcon word={moment.word} />
         </div>
         <div>
-          <p>Clara&apos;s rescue clue</p>
+          <p>{copy.rescueClue}</p>
           <p>{moment.story}</p>
         </div>
       </div>
@@ -215,6 +218,7 @@ function StoryVisual({
   wrongWord,
   lineState,
   onChoose,
+  copy,
 }: {
   moment: (typeof storyMoments)[number];
   currentIndex: number;
@@ -222,6 +226,7 @@ function StoryVisual({
   wrongWord: string;
   lineState: LineState;
   onChoose: (word: string) => void;
+  copy: typeof claraWordsCopy.en | typeof claraWordsCopy.fil;
 }) {
   return (
     <div className="word-story" aria-labelledby="word-story-scene-title">
@@ -233,7 +238,7 @@ function StoryVisual({
         <span>Stop {currentIndex + 1}</span>
       </div>
 
-      <WordRescueBoard moment={moment} currentIndex={currentIndex} />
+      <WordRescueBoard moment={moment} currentIndex={currentIndex} copy={copy} />
 
       <div
         className="word-story__choices"
@@ -259,8 +264,8 @@ function StoryVisual({
         {foundWord
           ? `You rescued ${foundWord}.`
           : wrongWord
-            ? "That word belongs somewhere else. Look at the story clue again."
-            : "Choose the word that belongs in this story moment."}
+            ? copy.wordWrong
+            : copy.chooseWord}
       </p>
     </div>
   );
@@ -334,6 +339,9 @@ export function LearnWithClaraWordsPage() {
   const navigate = useNavigate();
   const actionCommit = useButtonCommit();
   const session = loadLearnerSession();
+  const copy = isFilipino(session?.learner.speech_language)
+    ? claraWordsCopy.fil
+    : claraWordsCopy.en;
   const [phase, setPhase] = useState<ViewPhase>("welcome");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [foundWord, setFoundWord] = useState<StoryWord | "">("");
@@ -502,34 +510,34 @@ export function LearnWithClaraWordsPage() {
 
   const statusCopy = () => {
     if (phase === "welcome") {
-      return "Your word story is ready.";
+      return copy.ready;
     }
 
     if (phase === "completion") {
-      return "Every word found its place in the story.";
+      return copy.complete;
     }
 
     if (lineState === "preparing") {
-      return "Ma'am Clara is getting the next story moment ready.";
+      return copy.preparing;
     }
 
     if (lineState === "speaking") {
-      return "Listen to Ma'am Clara's story clue.";
+      return copy.speaking;
     }
 
     if (lineState === "error") {
-      return "That story sound needs another try.";
+      return copy.error;
     }
 
     if (foundWord) {
-      return `You rescued ${foundWord}. The story can continue.`;
+      return copy.rescued(foundWord);
     }
 
     if (wrongWord) {
-      return "Listen to the story clue and try another word.";
+      return copy.wrong;
     }
 
-    return "Listen to the story, then find the word that belongs.";
+    return copy.find;
   };
 
   return (
@@ -548,14 +556,14 @@ export function LearnWithClaraWordsPage() {
           <button
             className="letters-class__back"
             type="button"
-            aria-label="Back to Clara classes"
+            aria-label={copy.back}
             onClick={() => navigate("/learner/learn-with-clara")}
           >
             <BackIcon />
           </button>
           <div className="letters-class__header-copy">
-            <p>Learn with Ma&apos;am Clara</p>
-            <h1 id="words-story-title">Word story</h1>
+            <p>{copy.heading}</p>
+            <h1 id="words-story-title">{copy.title}</h1>
           </div>
           <TrailProgress
             current={phase === "welcome" ? 1 : currentIndex + 1}
@@ -651,6 +659,7 @@ export function LearnWithClaraWordsPage() {
                 foundWord={foundWord}
                 wrongWord={wrongWord}
                 lineState={lineState}
+                copy={copy}
                 onChoose={chooseWord}
               />
             ) : null}

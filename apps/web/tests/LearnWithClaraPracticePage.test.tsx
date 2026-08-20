@@ -29,10 +29,13 @@ const learnerSession = {
   session: { expires_at: "2026-07-20T12:00:00+00:00" },
 };
 
-function renderPractice(practiceKey: string) {
+function renderPractice(practiceKey: string, speechLanguage: "en" | "fil-PH" = "en") {
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify(learnerSession),
+    JSON.stringify({
+      ...learnerSession,
+      learner: { ...learnerSession.learner, speech_language: speechLanguage },
+    }),
   );
 
   return render(
@@ -81,5 +84,19 @@ describe("LearnWithClaraPracticePage", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent(/clue/i);
     expect(screen.getByRole("button", { name: "Retry" })).toBeVisible();
+  });
+
+  it("shows Filipino Clara guidance when Filipino is selected", () => {
+    renderPractice("phrases", "fil-PH");
+
+    expect(
+      screen.getByText(
+        "Sabi ni Ma'am Clara: Maglaan ng oras at gawin ang iyong makakaya.",
+      ),
+    ).toBeVisible();
+    expect(screen.getByText("Kaya mo iyan!")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Suriin ang sagot" }),
+    ).toBeVisible();
   });
 });

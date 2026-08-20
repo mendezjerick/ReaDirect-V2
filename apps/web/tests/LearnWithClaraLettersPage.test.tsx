@@ -138,10 +138,14 @@ const teachAState = paradeState({
   item_progress: { current: 1, total: 5 },
 });
 
-function renderPage() {
+function renderPage(speechLanguage: "en" | "fil-PH" = "en") {
   window.sessionStorage.setItem(
     "readirect.learner-session",
-    JSON.stringify({ ...learnerSession, token: "cookie-session" }),
+    JSON.stringify({
+      ...learnerSession,
+      token: "cookie-session",
+      learner: { ...learnerSession.learner, speech_language: speechLanguage },
+    }),
   );
 
   return render(
@@ -287,5 +291,17 @@ describe("LearnWithClaraLettersPage", () => {
     );
 
     expect(await screen.findByText("Clara classes")).toBeInTheDocument();
+  });
+
+  it("shows Filipino Clara guidance when Filipino is selected", async () => {
+    renderPage("fil-PH");
+
+    expect(await screen.findByText("Handa na ang kuwento ng mga letra.")).toBeVisible();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Simulan ang kuwento" }),
+    );
+    expect(
+      await screen.findByText("Kailangan ng maliliit na letra ang tulong mo."),
+    ).toBeVisible();
   });
 });
