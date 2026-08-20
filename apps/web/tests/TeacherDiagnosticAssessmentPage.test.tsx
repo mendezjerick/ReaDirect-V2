@@ -138,7 +138,7 @@ describe("TeacherDiagnosticAssessmentPage", () => {
     ];
     expect(requestUrl).toBe("/api/staff/teacher/3/assessments/diagnostic");
     expect(new Headers(requestInit.headers).get("Authorization")).toBe(
-      `Bearer ${"teacher-session-token".repeat(4)}`,
+      "Bearer cookie-session",
     );
 
     vi.useFakeTimers();

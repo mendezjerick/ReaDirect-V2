@@ -136,6 +136,8 @@ describe("LearnerAccountsPage", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/staff/teacher/3/learners",
       expect.objectContaining({
+        credentials: "include",
+        signal: expect.any(AbortSignal),
         method: "POST",
         body: JSON.stringify({
           first_name: "Dorothy",

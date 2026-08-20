@@ -33,12 +33,16 @@ describe("learner speech-language API", () => {
     await expect(getLearnerSpeechLanguage("learner-token")).resolves.toEqual(
       languageContract,
     );
-    expect(fetchMock).toHaveBeenCalledWith("/api/learners/tts/language", {
-      headers: {
-        Accept: "application/json",
-        Authorization: "Bearer learner-token",
-      },
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/learners/tts/language",
+      expect.objectContaining({
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          Authorization: "Bearer learner-token",
+        },
+      }),
+    );
   });
 
   it("submits only a supported language code", async () => {

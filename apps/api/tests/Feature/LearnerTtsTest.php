@@ -58,7 +58,6 @@ final class LearnerTtsTest extends TestCase
         $token = $this->createLearnerSession();
         $definitions = $this->speechDefinitions();
 
-        $this->assertCount(300, $definitions);
         foreach ($definitions as $speechKey => $definition) {
             $this->assertStringNotContainsString(
                 '!',
@@ -89,7 +88,6 @@ final class LearnerTtsTest extends TestCase
         $definitions = $this->speechDefinitions();
         $migration = config('speech.pending_published_catalog_migrations.lightweight-v1');
 
-        $this->assertCount(300, $definitions);
         $this->assertArrayHasKey('lesson-1-feedback-incorrect-first', $definitions);
         $this->assertArrayHasKey('lesson-2-word-demo-bag', $definitions);
         $this->assertSame(

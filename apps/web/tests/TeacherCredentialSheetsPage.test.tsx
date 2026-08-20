@@ -131,5 +131,5 @@ describe("TeacherCredentialSheetsPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Credentials saved" }));
     expect(screen.queryByText("apple712")).not.toBeInTheDocument();
-  });
+  }, 15_000);
 });

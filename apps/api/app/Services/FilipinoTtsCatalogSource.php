@@ -111,7 +111,7 @@ final class FilipinoTtsCatalogSource
         }
 
         if (count($lines) !== self::EXPECTED_LINE_COUNT
-            || array_diff_key($english, $lines) !== []) {
+            || array_diff_key($lines, $english) !== []) {
             throw new RuntimeException(sprintf(
                 'Expected %d Filipino TTS lines matching English, resolved %d.',
                 self::EXPECTED_LINE_COUNT,
