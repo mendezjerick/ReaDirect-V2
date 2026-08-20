@@ -64,6 +64,13 @@ final class LearnerLessonOneTest extends TestCase
             'attempt_kind' => 'independent',
             'academic_attempt_number' => 1,
             'audio_classification' => 'CLEAR_CORRECT',
+            'audio_path' => null,
+            'audio_sha256' => null,
+        ]);
+        $this->assertDatabaseHas('lesson_responses', [
+            'id' => LessonResponse::query()->value('id'),
+            'audio_path' => null,
+            'audio_sha256' => null,
         ]);
 
         $this->withToken($token)->post("/api/learners/lessons/lesson-1/{$start['run_id']}/advance")

@@ -513,7 +513,7 @@ export function AssessmentPartOnePage({
           assessment.run_id,
           audio,
           assessmentType,
-        ),
+        ).finally(() => recorder.discard()),
       );
     } else if (assessment.item) {
       void save(
@@ -523,7 +523,7 @@ export function AssessmentPartOnePage({
           assessment.item.item_key,
           audio,
           assessmentType,
-        ),
+        ).finally(() => recorder.discard()),
       );
     }
   };

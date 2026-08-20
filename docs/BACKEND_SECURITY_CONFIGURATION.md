@@ -1,7 +1,7 @@
 # Backend Security Configuration
 
 ReaDirect services bind to `127.0.0.1` by default. Keep the Laravel API,
-Reverb, ASR, TTS, PostgreSQL, recordings, and model runtimes on a private host
+Reverb, ASR, TTS, PostgreSQL, temporary speech processing, and model runtimes on a private host
 network. Only the approved HTTPS gateway or web proxy should accept public
 traffic.
 
@@ -174,5 +174,5 @@ Mu uses the cached `faster-whisper-base.en` checkpoint with `int8` compute, and
 VoxCPM2 honors `READIRECT_TTS_DEVICE=cpu`. GPU coordination is disabled for
 that launcher session so a CUDA-capable Python installation cannot silently
 switch the services back to GPU execution.
-Do not add API, Reverb, ASR, TTS, database, recording, model, or credential
+Do not add API, Reverb, ASR, TTS, database, temporary-audio, model, or credential
 ports to the tunnel configuration.

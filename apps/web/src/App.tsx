@@ -20,6 +20,10 @@ import {
 import { NativeLearnerEntryPage } from "./features/offline-practice/NativeLearnerEntryPage";
 import { NativeConnectivityBanner } from "./features/connectivity/NativeConnectivityBanner";
 import { learnerGameProfileClient } from "./features/games/gameProfileApi";
+import {
+  browserRootSurface,
+  isProductionWebAppHostname,
+} from "./deployment/productionDomains";
 
 const BrowserLandingPage = lazy(() =>
   import("./features/landing/BrowserLandingPage").then((module) => ({
@@ -442,14 +446,6 @@ const TeacherAnalyticsPage = lazy(() =>
   })),
 );
 
-const TeacherAudioReviewPage = lazy(() =>
-  import("./features/staff-dashboard/TeacherAudioReviewPage").then(
-    (module) => ({
-      default: module.TeacherAudioReviewPage,
-    }),
-  ),
-);
-
 function RouteLoading() {
   return (
     <main className="route-loading" aria-live="polite" aria-busy="true">
@@ -466,17 +462,27 @@ function RouteLoading() {
 
 function RootPage() {
   const { search } = useLocation();
-  const opensTapEntry = new URLSearchParams(search).get("entry") === "tap";
 
-  if (opensTapEntry) {
-    return <IntroPage />;
+  if (Capacitor.isNativePlatform()) {
+    return <NativeLearnerEntryPage />;
   }
 
-  return Capacitor.isNativePlatform() ? (
-    <NativeLearnerEntryPage />
+  return browserRootSurface(window.location.hostname, search) === "intro" ? (
+    <IntroPage />
   ) : (
     <Navigate to="/landing" replace />
   );
+}
+
+function LandingPage() {
+  if (
+    Capacitor.isNativePlatform() ||
+    isProductionWebAppHostname(window.location.hostname)
+  ) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <BrowserLandingPage />;
 }
 
 function LearnerGamesRoute() {
@@ -501,10 +507,13 @@ export function App() {
           <Suspense fallback={<RouteLoading />}>
             <Routes>
               <Route path="/" element={<RootPage />} />
-              <Route path="/landing" element={<BrowserLandingPage />} />
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/docs" element={<PublicDocsPage />} />
               <Route path="/docs/:docSlug" element={<PublicDocsPage />} />
-              <Route path="/credits-licenses" element={<CreditsLicensesPage />} />
+              <Route
+                path="/credits-licenses"
+                element={<CreditsLicensesPage />}
+              />
               <Route
                 path="/learner/modes"
                 element={<NativeLearnerEntryPage initialView="modes" />}
@@ -807,10 +816,6 @@ export function App() {
                 <Route
                   path="/staff/teacher/analytics"
                   element={<TeacherAnalyticsPage />}
-                />
-                <Route
-                  path="/staff/teacher/audio-review"
-                  element={<TeacherAudioReviewPage />}
                 />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />

@@ -181,7 +181,7 @@ const DOC_PAGES: Record<DocSlug, DocPage> = {
           "View the learners assigned to the teacher’s class and school scope.",
           "Follow Diagnostic, lesson, and Final Assessment completion where those records are available.",
           "Review class progress reports and instructional summaries.",
-          "Open learner details and, where current access permits, review recorded reading evidence through the audio-review workspace.",
+          "Open learner details and review progress, transcripts, scoring outcomes, and instructional evidence within the teacher's assigned scope.",
           "Create or manage learner accounts using the staff tools provided by the school.",
         ],
       },
@@ -198,7 +198,7 @@ const DOC_PAGES: Record<DocSlug, DocPage> = {
       {
         heading: "Use evidence with context",
         paragraphs: [
-          "ReaDirect is intended to support teacher judgment, not replace it. Progress indicators, assessment evidence, and recordings should be interpreted alongside classroom knowledge and the school’s approved reading practice.",
+          "ReaDirect is intended to support teacher judgment, not replace it. Progress indicators, transcripts, and assessment evidence should be interpreted alongside classroom knowledge and the school’s approved reading practice.",
         ],
       },
       {
@@ -436,7 +436,7 @@ const DOC_PAGES: Record<DocSlug, DocPage> = {
         bullets: [
           "Account and profile information needed to sign in and show the right workspace.",
           "Learning activity and progress needed to resume practice and support teacher or school views.",
-          "Selected speech recordings or recognition inputs where a reading activity requires them.",
+          "Speech input is uploaded only for immediate recognition and scoring, then discarded. ReaDirect keeps the resulting transcript, score, and instructional evidence, not the learner's voice recording.",
           "Game-specific progress for signed-in game modules where persistence is active.",
         ],
       },

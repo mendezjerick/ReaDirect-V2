@@ -43,7 +43,6 @@ use App\Http\Controllers\SystemAdminSpeechSandboxController;
 use App\Http\Controllers\SystemAdminSpeechSettingsController;
 use App\Http\Controllers\SystemAdminTeacherController;
 use App\Http\Controllers\TeacherAnalyticsController;
-use App\Http\Controllers\TeacherAudioReviewController;
 use App\Http\Controllers\TeacherDiagnosticAssessmentController;
 use App\Http\Controllers\TeacherFinalAssessmentController;
 use App\Http\Controllers\TeacherLearnerController;
@@ -128,13 +127,6 @@ Route::prefix('staff')->group(function (): void {
             Route::get('/{staffUser}/assessments/diagnostic', [TeacherDiagnosticAssessmentController::class, 'index']);
             Route::get('/{staffUser}/assessments/final', [TeacherFinalAssessmentController::class, 'index']);
             Route::get('/{staffUser}/analytics', [TeacherAnalyticsController::class, 'show']);
-            Route::get('/{staffUser}/audio-reviews', [TeacherAudioReviewController::class, 'index']);
-            Route::get('/{staffUser}/audio-reviews/{responseKind}/{responseId}/audio', [TeacherAudioReviewController::class, 'audio'])
-                ->whereIn('responseKind', ['assessment', 'lesson'])
-                ->whereNumber('responseId');
-            Route::post('/{staffUser}/audio-reviews/{responseKind}/{responseId}', [TeacherAudioReviewController::class, 'store'])
-                ->whereIn('responseKind', ['assessment', 'lesson'])
-                ->whereNumber('responseId');
             Route::get('/{staffUser}/reports', [TeacherReportController::class, 'show']);
             Route::get('/{staffUser}/learners', [TeacherLearnerController::class, 'index']);
             Route::post('/{staffUser}/learners/import', [TeacherLearnerController::class, 'import']);

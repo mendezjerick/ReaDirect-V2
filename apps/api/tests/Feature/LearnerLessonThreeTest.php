@@ -116,10 +116,18 @@ final class LearnerLessonThreeTest extends TestCase
                 'lesson-3-feedback-independent',
             );
 
+        $response = LessonResponse::query()->firstOrFail();
         $this->assertSame(
             strtoupper($expected).'.',
-            LessonResponse::query()->firstOrFail()->raw_transcript,
+            $response->raw_transcript,
         );
+        $this->assertNull($response->audio_path);
+        $this->assertNull($response->audio_sha256);
+        $this->assertDatabaseHas('lesson_item_attempts', [
+            'lesson_response_id' => $response->id,
+            'audio_path' => null,
+            'audio_sha256' => null,
+        ]);
         Http::assertSent(
             fn ($request): bool => str_ends_with(
                 $request->url(),

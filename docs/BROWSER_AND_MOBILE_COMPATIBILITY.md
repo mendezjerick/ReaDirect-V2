@@ -99,7 +99,7 @@ browser and Android:
 - Learn With Clara Letters listening checkpoints;
 - preferred speech language;
 - game profile and revision-controlled game saves; and
-- teacher-visible reports and audio-review source records.
+- teacher-visible reports, transcripts, scores, and instructional evidence.
 
 Refreshing the browser, recreating an Android activity, or signing in on
 another supported surface must not recreate completed academic work. The

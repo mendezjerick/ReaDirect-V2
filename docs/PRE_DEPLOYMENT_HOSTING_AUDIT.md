@@ -7,7 +7,7 @@ The repository is sufficiently understood to plan a deployment, but it is **not 
 The principal pre-deployment blockers are:
 
 - the ASR and TTS images require local model directories that `.dockerignore` excludes, with no image-build or startup model provisioning path;
-- Laravel stores reviewable learner recordings on a private local disk, while the configured filesystem disks are local-only and would be lost on an ephemeral host;
+- learner speech uploads must remain transient across the browser, Laravel request, and ASR scratch-file boundary; only derived transcripts, scores, and instructional evidence may persist;
 - the Laravel image starts `php artisan serve`, and no production process definitions exist for the API, Reverb, or the required broadcast queue worker;
 - the PostgreSQL schema, complete migration chain, backup/restore procedure, and production connection settings have not been rehearsed against a clean production-like PostgreSQL database;
 - a production frontend/API/realtime origin topology and its SPA routing, trusted-host, proxy, CORS, TLS, and health-check configuration have not been selected;
@@ -48,14 +48,14 @@ Browser games
 
 **CURRENTLY CONFIGURED:** local Windows processes plus a Cloudflare staging tunnel. Dockerfiles exist for Laravel, ASR, and TTS, but there is no provider resource definition tying them together.
 
-**TECHNICALLY RECOMMENDED:** a static frontend plus long-running container services, managed PostgreSQL, private inter-service networking, and durable private object/file storage. This is a recommendation, not a provider migration or deployment authorization.
+**TECHNICALLY RECOMMENDED:** a static frontend plus long-running container services, managed PostgreSQL, private inter-service networking, and release-bundled approved TTS catalog assets. Durable object storage is not required for learner speech in V1.
 
 # 4. Service Inventory
 
 | Service | Source/runtime | Build | Start/port | Health | State/storage | Process requirements | Serverless compatibility | Expected hostname |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Web SPA and browser games | `apps/web`, `apps/games`; Node 22+, React 19, Vite 8 | `corepack pnpm --filter @readirect/web build` | Static files from `apps/web/dist`; Vite 5174 is development only | Static `/` plus an external synthetic check | No server filesystem or DB; browser caches/preferences only | No long-running app process when statically hosted; no worker/scheduler | **Yes**, as static assets. Requires SPA fallback and API/realtime routing | Current staging: `staging.readirect.org`; production not selected |
-| Laravel API | `apps/api`; PHP 8.3, Laravel 13 | Dockerfile: Composer production install and authoritative autoload | Current image: `php artisan serve --host=0.0.0.0 --port=${PORT:-10000}` | `/up` | PostgreSQL required for production; durable private audio/TTS catalog; writable `bootstrap/cache` and `storage` | Long-running web process; queue worker and Reverb are separate; no scheduler found | **No** for the current application/image. Stateful uploads, large requests, long speech calls, queue/realtime, and PHP process model do not fit a simple function conversion | Public API hostname, not selected |
+| Laravel API | `apps/api`; PHP 8.3, Laravel 13 | Dockerfile: Composer production install and authoritative autoload | Current image: `php artisan serve --host=0.0.0.0 --port=${PORT:-10000}` | `/up` | PostgreSQL required for production; approved TTS catalog is release data; writable ephemeral `bootstrap/cache` and `storage` | Long-running web process; queue worker and Reverb are separate; no scheduler found | **No** for the current application/image. Large requests, long speech calls, queue/realtime, and PHP process model do not fit a simple function conversion | Public API hostname, not selected |
 | PostgreSQL | External managed service; config in `apps/api/config/database.php` | Provision schema, then Laravel migrations | Provider-managed 5432/private endpoint | Provider DB health plus an application DB readiness probe | Durable relational state, backups, SSL, constrained JSONB game saves | Long-running managed database | Not a function; external managed DB is compatible with serverless clients only with pooling | Private database hostname |
 | Queue worker | Laravel database queue | Same image as API | `php artisan queue:work database --queue=broadcasts ...` as evidenced by `start.ps1` | Process/liveness plus queue-depth/oldest-job metrics | Uses PostgreSQL `jobs`/`failed_jobs`; no local persistence | Long-running background worker; required for queued broadcasts | **No** | Private process, no public hostname |
 | Reverb | Laravel Reverb in `apps/api` | Same Composer artifact as API | `php artisan reverb:start --host=<bind> --port=<port>`; local 8080 | Existing API realtime-health service can inspect it, but no standalone public liveness route was found | No durable local files; relies on app key/secret and queue | Long-running WebSocket server | **No** | Public WSS endpoint through API/reverse proxy, or a dedicated realtime hostname |
@@ -162,7 +162,7 @@ Compatibility: Vercel serverless **NO**; Render private/web container **CONDITIO
 | Write | Classification | Production requirement |
 | --- | --- | --- |
 | PostgreSQL tables, including game saves, sessions, runs, reviews, jobs, and catalog metadata | **PERSISTENT** | Managed PostgreSQL with backups; never ephemeral SQLite |
-| `storage/app/private/assessment-audio` and `lesson-audio` | **PERSISTENT** | Private durable object storage or a backed-up persistent disk accessible by every API instance |
+| Learner assessment and lesson audio | **TRANSIENT ONLY** | Request/temp storage only; successful, failed, rejected, timed-out, and cancelled processing must leave no durable voice file |
 | Published TTS catalog under `storage/app/private/tts/catalog` | **PERSISTENT/RELEASE DATA** | The 601 tracked catalog files are copied into the API image, but any runtime publication must use durable shared storage and an intentional release workflow |
 | TTS staging/archive | **PERSISTENT OPERATIONAL DATA** if used | Durable private storage; do not depend on an instance filesystem |
 | Laravel framework cache/views/logs | **TEMPORARY/CACHE** | Writable ephemeral storage is acceptable; logs should go to stderr/external aggregation |
@@ -172,23 +172,13 @@ Compatibility: Vercel serverless **NO**; Render private/web container **CONDITIO
 | TTS model files | **CACHE/RECREATABLE BUT REQUIRED AT STARTUP** | Versioned image layer, startup fetch to durable volume, or immutable mounted artifact |
 | Frontend build assets | **IMMUTABLE RELEASE DATA** | Static host/CDN |
 
-The current filesystem configuration defines only local Laravel disks. `FILESYSTEM_DISK` does not redirect the explicitly named `local` and TTS disks. Supporting shared object storage therefore needs an explicit, separately authorized configuration/code change before horizontal scaling or ephemeral deployment.
+The current filesystem configuration defines local Laravel disks. Learner speech no longer depends on them. Shared object storage is needed only if a future release adds durable runtime publication, uploads, or other cross-instance file state.
 
 # 12. Audio/File Lifecycle Requirements
 
-The browser records speech and uploads it to Laravel with credentialed requests. Laravel forwards the temporary upload bytes to ASR, then hashes and writes successful assessment/lesson recordings to its private `local` disk. Database rows store the private relative path, hash, transcripts, decisions, and evidence. Assigned teachers retrieve recordings through an authenticated, ownership-scoped controller that returns a private/no-store file response.
+The browser records speech in memory and uploads it to Laravel with credentialed requests. Laravel forwards the request upload to ASR without copying it into application storage. ASR uses a bounded scratch file and deletes it after success, failure, rejection, timeout, or cancellation. The browser revokes its object URL and releases the Blob after each upload attempt. Database rows keep derived transcripts, decisions, scores, and instructional evidence only.
 
-Progress reset deletes referenced assessment and lesson files. No general retention period, orphan sweeper, legal retention policy, storage quota, or backup/restore test is defined. In several flows, the file is written before the database transaction; a later database failure can leave an orphan.
-
-Production therefore requires:
-
-- durable private storage, never a public bucket or CDN path;
-- encryption at rest and TLS in transit;
-- application-mediated or short-lived signed/private access;
-- database metadata and object lifecycle kept consistent;
-- an approved retention/deletion policy for children's voice recordings;
-- orphan detection, quota monitoring, backup/restore, and deletion auditing;
-- an explicit decision between single-instance persistent disk and shared object storage. Object storage is the scalable recommendation.
+The V1 policy is therefore zero durable learner-audio retention. A deployment does not need R2 or another object store for learner recordings. Production still requires TLS, bounded request/temp space, cleanup tests and monitoring, log redaction, and an explicit future review before any feature is allowed to retain voice data.
 
 # 13. Networking Topology
 
@@ -386,7 +376,7 @@ The smallest maintainable provider-neutral architecture is:
 1. static/CDN frontend;
 2. production Laravel container as the only public API;
 3. managed PostgreSQL in the API's region/private network;
-4. shared private object storage for learner recordings and runtime-managed TTS catalog files;
+4. approved TTS catalog audio bundled as immutable release data, with ephemeral scratch/cache space for request processing;
 5. a queue-worker process using the Laravel image;
 6. a Reverb process behind an authenticated public WSS route if realtime remains enabled;
 7. private ASR and TTS containers, each with explicit versioned model provisioning and one model-resident worker initially;
@@ -412,7 +402,6 @@ Configure exact frontend origins in CORS/Reverb, host-only secure cookies on the
 | Severity | Blocker | Required resolution |
 | --- | --- | --- |
 | **BLOCKER** | ASR/TTS Docker builds exclude required models and provide no fetch/mount procedure | Select immutable model versions and implement a secure image-layer, startup-fetch, or persistent-volume provisioning workflow; verify licenses, hashes, readiness, and rollback |
-| **BLOCKER** | Durable learner audio uses API-local disks that are ephemeral on typical platforms and inaccessible across instances | Configure durable private object storage or an explicitly accepted backed-up single-instance disk; test teacher access, reset deletion, backup/restore, and retention |
 | **BLOCKER** | Production API/process topology is undefined; current image uses `artisan serve`, with no deploy definitions for Reverb/worker | Select provider and production PHP server, define separately supervised API/worker/Reverb roles, ports, health paths, and restart behavior |
 | **BLOCKER** | Clean PostgreSQL migration and restore rehearsal is absent; named schema creation is external | Provision a disposable production-like PostgreSQL instance, create schema, run full migrations and targeted tests, test upgrade/backup/restore, and record rollback steps |
 | **BLOCKER** | Production public/private network, SPA rewrite, WSS route, CORS, trusted-host/proxy, and secret configuration is absent | Select the topology and verify HTTPS login/session restore, uploads, WSS, and private speech calls end to end |
@@ -421,7 +410,7 @@ Configure exact frontend origins in CORS/Reverb, host-only secure cookies on the
 # 29. Should-Fix Items
 
 - Assess and remove the tracked SQLite database from deployable/current/history scope as authorized; rotate affected credentials if real data is found.
-- Define children's voice-recording retention, deletion, encryption, access logging, orphan cleanup, and quota policies.
+- Verify the zero-retention learner-audio policy with browser, Laravel, ASR temp-file, log, and database cleanup tests.
 - Make ASR/TTS readiness return a failing HTTP status when not ready, or configure a provider-specific status-aware probe.
 - Add a dependency/container vulnerability scan and software bill of materials to CI; no deployment workflow currently exists.
 - Pin/document the production PostgreSQL major version and database pooling/connection budget.
@@ -429,7 +418,7 @@ Configure exact frontend origins in CORS/Reverb, host-only secure cookies on the
 - Replace the staging-oriented Reverb allowed-origin default with explicit environment configuration.
 - Verify SMTP delivery, sender identity, and rate limits without using development seed credentials.
 - Reconcile Laravel TTS 300-second and browser 90-second budgets after measurement.
-- Add durable-storage integration tests; current local-disk tests do not prove object/disk lifecycle.
+- Add deployment integration checks proving learner audio never reaches durable application or object storage.
 - Confirm licensing/distribution permission for game, Live2D, model, and voice-reference assets.
 
 # 30. Non-Blocking Warnings
@@ -446,14 +435,14 @@ Configure exact frontend origins in CORS/Reverb, host-only secure cookies on the
 
 1. Select the hosting provider(s), region, environment, release branch/commit, ownership, budget, and rollback authority.
 2. Provision disposable production-like PostgreSQL, create `DB_SCHEMA`, run the full migration chain, targeted tests, backup, and restore rehearsal.
-3. Choose and implement private durable audio/TTS storage; define retention, deletion, encryption, access, and backup policy.
+3. Package the approved TTS catalog with the API release and verify bounded ephemeral request/cache storage plus learner-audio cleanup.
 4. Define a production PHP server and separate API, queue, and Reverb process roles.
 5. Define versioned ASR/TTS model delivery; verify hashes/licenses, startup readiness, CPU/GPU policy, and cache/mount paths.
 6. Measure ASR/TTS startup, memory, CPU latency, queueing, concurrency, upload sizes, and end-to-end timeouts on the selected compute.
 7. Define frontend build root/output, SPA fallback, public API origin, WSS path, and immutable asset caching.
 8. Configure secret-manager values for API key, DB, speech tokens, Reverb, mail, and provider integrations; do not copy development values.
 9. Configure HTTPS, exact CORS/Reverb origins, trusted hosts/proxies, HSTS, secure cookie behavior, and private service DNS.
-10. Add provider health checks, process supervision, logs/metrics/alerts, DB and object-storage backups, and capacity alarms.
+10. Add provider health checks, process supervision, logs/metrics/alerts, database backups, and capacity alarms.
 11. Run dependency/container security scans and resolve blocking findings.
 12. Run the production build, focused/backend suites, clean PostgreSQL integration tests, and an authorized browser smoke suite in a preview environment.
 13. Review the final Git diff and ensure the tracked SQLite database, `.env` files, model caches, runtime files, logs, and credentials are excluded.
@@ -496,12 +485,12 @@ Use disposable authorized accounts and non-destructive fixtures unless a reset-s
 8. Guest: confirm no profile/save API write and no authenticated save inheritance.
 9. Cross-device/session: load one learner's committed save from a second authorized context; confirm ownership and optimistic revision behavior.
 10. Academic isolation: verify game writes do not change Diagnostic, lesson, Final, reading profile, CRLA, achievements, or progression.
-11. Speech: upload bounded test audio through Laravel, verify private ASR, persist/retrieve through an assigned teacher, and verify unauthorized access is denied.
+11. Speech: upload bounded test audio through Laravel, verify private ASR, confirm derived evidence persists, and confirm no browser, API, ASR-temp, or database audio artifact remains.
 12. TTS: verify published English/Filipino lines and one authorized runtime synthesis within the chosen timeout budget.
-13. Staff roles: System Admin overview/games, teacher ownership boundaries/audio review, school isolation, remembered-device enforcement, and logout.
+13. Staff roles: System Admin overview/games, teacher ownership boundaries and evidence views, school isolation, remembered-device enforcement, and logout.
 14. Realtime: trigger an authorized staff update and verify one queued broadcast reaches the correct channel without leakage.
 15. Failure recovery: stop/recover one private speech service, worker, and Reverb independently; verify bounded UI errors and session preservation.
-16. Confirm logs/metrics contain no credentials, bearer tokens, cookies, raw passwords, or public learner audio URLs.
+16. Confirm logs/metrics contain no credentials, bearer tokens, cookies, raw passwords, transcripts, or learner audio.
 
 # 35. Final Hosting Readiness Verdict
 

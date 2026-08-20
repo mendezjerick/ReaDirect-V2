@@ -66,7 +66,11 @@ final class LearnerLessonTwoTeachingTest extends TestCase
             'attempt_kind' => 'independent',
             'academic_attempt_number' => 1,
             'audio_classification' => 'CLEAR_CORRECT',
+            'audio_path' => null,
+            'audio_sha256' => null,
         ]);
+        $this->assertNull($response->audio_path);
+        $this->assertNull($response->audio_sha256);
         Http::assertSent(
             fn ($request): bool => str_ends_with(
                 $request->url(),

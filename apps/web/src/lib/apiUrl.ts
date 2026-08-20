@@ -1,3 +1,5 @@
+import { productionApiOriginForHostname } from "../deployment/productionDomains";
+
 const API_PATH_PREFIX = "/api";
 
 /** Ordinary JSON requests should never leave a page in a permanent loading state. */
@@ -46,7 +48,12 @@ export function resolveApiUrl(path: string, apiOrigin = ""): string {
 }
 
 export function apiUrl(path: string): string {
-  return resolveApiUrl(path, import.meta.env.VITE_API_ORIGIN ?? "");
+  const configuredOrigin = import.meta.env.VITE_API_ORIGIN ?? "";
+  const runtimeOrigin =
+    configuredOrigin ||
+    productionApiOriginForHostname(globalThis.location?.hostname ?? "");
+
+  return resolveApiUrl(path, runtimeOrigin);
 }
 
 export function apiFetch(

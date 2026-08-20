@@ -53,7 +53,6 @@ describe("staff realtime invalidation", () => {
         "learner-detail",
         "analytics",
         "reports",
-        "audio-reviews",
         "assessment-reviews",
         "overview",
       ]),
@@ -63,7 +62,6 @@ describe("staff realtime invalidation", () => {
       ["teacher-learner-detail", 27],
       ["teacher-analytics", 27],
       ["teacher-report", 27],
-      ["teacher-audio-reviews", 27],
       ["teacher-assessment-review"],
     ]);
   });

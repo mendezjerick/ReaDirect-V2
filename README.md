@@ -79,7 +79,7 @@ Stop the staging tunnel and its repository-owned local services with:
 
 The staging launcher exposes only the Vite web server through Cloudflare. The
 API remains behind Vite's `/api` proxy, while ASR, TTS, Reverb, PostgreSQL,
-recordings, models, and tunnel credentials remain private to the host. The full
+model files, temporary speech processing, and tunnel credentials remain private to the host. The full
 rules are defined by
 `READIRECT_REVAMP_DEVELOPMENT_AND_STAGING_LAUNCHER_STANDARD.md`.
 The PowerShell launcher pins speech services to CPU for this workstation:
@@ -107,5 +107,5 @@ tree and synchronizes the redistributable browser Core and WebGL shaders. The
 frontend automatically compiles the pinned Web Framework before development,
 type checking, testing, and production builds.
 
-Do not commit Cubism Core, private model files, learner recordings, or local
+Do not commit Cubism Core, private model files, temporary learner audio, or local
 virtual environments.

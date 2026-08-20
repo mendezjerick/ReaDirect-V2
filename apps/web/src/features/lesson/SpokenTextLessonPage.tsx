@@ -355,6 +355,7 @@ export function SpokenTextLessonPage({
           : "Your answer could not be checked.",
       );
     } finally {
+      recorder.discard();
       setBusy(false);
     }
   };

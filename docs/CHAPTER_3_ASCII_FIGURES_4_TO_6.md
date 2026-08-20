@@ -242,7 +242,7 @@ flowchart LR
     SECURITY["Staff sessions and<br/>audit logs"]
     SPEECH["Speech sandbox attempts,<br/>equivalence rules, and reviews"]
     GAME["Game profile and saves"]
-    PRIVATE["Private recordings,<br/>checksums, and generated audio"]
+    PRIVATE["Transient speech processing,<br/>derived evidence, and generated audio"]
     FILTER["Research eligibility and<br/>privacy filter"]
     DATASET["De-identified analysis dataset"]
 
@@ -351,7 +351,7 @@ Accuracy notes:
                  v                                v
  +------------------------------+  +--------------------------------------+
  | Published speech catalog     |  | Private application storage          |
- | fixed approved voice lines   |  | learner recordings and generated WAV |
+ | fixed approved voice lines   |  | temporary speech and generated WAV    |
  +---------------+--------------+  | served only through authorized APIs  |
                  |                 +------------------+-------------------+
                  +--------------------------+---------+
@@ -394,7 +394,7 @@ flowchart TB
     ASR["FastAPI ASR service<br/>audio quality + Mu/Whisper +<br/>Mu-backed letter resolution"]
     TTS["FastAPI TTS service<br/>VoxCPM2 synthesis"]
     PUBLISHED["Published speech catalog"]
-    PRIVATE["Private application storage<br/>recordings and generated audio"]
+    PRIVATE["Private application storage<br/>approved and generated TTS audio"]
 
     SYSADMIN --> ROUTES
     SCHOOLADMIN --> ROUTES
@@ -490,7 +490,7 @@ flowchart LR
         ASR["FastAPI ASR<br/>127.0.0.1:8001"]
         TTS["FastAPI TTS<br/>127.0.0.1:8002"]
         DB[("PostgreSQL")]
-        STORAGE["Private recordings,<br/>models, caches, and credentials"]
+        STORAGE["Models, caches, approved audio,<br/>and credentials"]
 
         VITE -->|"/api reverse proxy"| LARAVEL
         LARAVEL -->|"private service call"| ASR
@@ -513,7 +513,7 @@ flowchart LR
 **Figure 5C. Development and Staging Trust Boundary.** The approved staging
 topology exposes only the Vite web server through Cloudflare. Browser API calls
 use Vite's `/api` proxy to reach Laravel. ASR, TTS, PostgreSQL, learner
-recordings, model files, caches, and credentials remain private to the host.
+speech scratch files, model files, caches, and credentials remain private to the host.
 
 **Figure 5. ReaDirect V2 System Architecture.** The browser provides the user
 interface, recording, Live2D presentation, and isolated game host. All trusted
@@ -697,7 +697,7 @@ Analysis safeguards:
 |  - confirmed response result             - persisted learner progress          |
 |  - child-safe bounded feedback           - Diagnostic and Final summaries      |
 |  - one clue, one guided retry,            - class/school/system aggregates      |
-|    then one demonstration                - authorized audio-review evidence     |
+|    then one demonstration                - transcript and scoring evidence      |
 |  - saved next activity                   - ASR quality and confusion evidence   |
 |  - scores and reading profile            - audit and verification records       |
 |  - achievements and completion state     - de-identified research dataset      |

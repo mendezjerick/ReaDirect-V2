@@ -98,7 +98,6 @@ export function TeacherDashboardPage() {
   const credentialCommit = useButtonCommit();
   const reportsCommit = useButtonCommit();
   const analyticsCommit = useButtonCommit();
-  const audioReviewCommit = useButtonCommit();
   const activityCommit = useButtonCommit();
   const [session, setSession] = useState(loadStaffSession);
   const [assignmentAcknowledged, setAssignmentAcknowledged] = useState(false);
@@ -502,17 +501,6 @@ export function TeacherDashboardPage() {
               }
             >
               Analytics
-            </StaffButton>
-            <StaffButton
-              size="regular"
-              committing={audioReviewCommit.committing}
-              onClick={() =>
-                audioReviewCommit.commit(() =>
-                  navigate("/staff/teacher/audio-review"),
-                )
-              }
-            >
-              Audio Review
             </StaffButton>
           </div>
         </StaffCard>

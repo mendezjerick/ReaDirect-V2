@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { webAppEntryHref } from "../../deployment/productionDomains";
 import "./browser-landing.css";
 
 // A verified ReaDirect Play Store listing is not configured yet.
@@ -219,7 +220,10 @@ export function BrowserLandingPage() {
   }, []);
 
   const goTo = (path: string) => navigate(path);
-  const tapToContinueHref = "/?entry=tap";
+  const tapToContinueHref = webAppEntryHref(
+    window.location.hostname,
+    import.meta.env.VITE_WEB_APP_ORIGIN ?? "",
+  );
 
   return (
     <main className="browser-landing">

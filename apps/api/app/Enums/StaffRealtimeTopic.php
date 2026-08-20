@@ -15,7 +15,6 @@ enum StaffRealtimeTopic: string
     case Analytics = 'analytics';
     case Reports = 'reports';
     case InstructionalInsights = 'instructional-insights';
-    case AudioReviews = 'audio-reviews';
     case AssessmentReviews = 'assessment-reviews';
     case Operations = 'operations';
 }

@@ -252,5 +252,6 @@ export function useAudioRecorder(
     stopPlayback,
     play,
     retry: clear,
+    discard: clear,
   };
 }

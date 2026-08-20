@@ -18,7 +18,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 final class LearnerLessonOneController extends Controller
@@ -81,9 +80,6 @@ final class LearnerLessonOneController extends Controller
         }
         $classification = $this->classifyEvidence($evidence, $final);
         $diagnosisKey = $this->diagnosisKey($classification);
-        $bytes = file_get_contents($audio->getRealPath());
-        $extension = strtolower($audio->getClientOriginalExtension() ?: 'webm');
-
         DB::transaction(function () use (
             $run,
             $item,
@@ -92,8 +88,6 @@ final class LearnerLessonOneController extends Controller
             $evidence,
             $classification,
             $diagnosisKey,
-            $bytes,
-            $extension,
         ): void {
             $response = LessonResponse::query()->firstOrCreate(
                 [
@@ -126,9 +120,6 @@ final class LearnerLessonOneController extends Controller
             ], true)
                 ? (int) $nextState['academic_attempt_count']
                 : null;
-            $sha = hash('sha256', $bytes);
-            $path = "lesson-audio/{$run->id}/{$run->mission_key}/{$item['content_id']}-{$attemptSequence}-{$sha}.{$extension}";
-            Storage::disk('local')->put($path, $bytes);
             $decision = $classification === LessonTeachingStateMachine::CLASS_CLEAR_CORRECT
                 ? 'CORRECT'
                 : 'NEEDS_SUPPORT';
@@ -142,8 +133,6 @@ final class LearnerLessonOneController extends Controller
                 'raw_transcript' => $raw,
                 'final_transcript' => $final,
                 'decision' => $decision,
-                'audio_path' => $path,
-                'audio_sha256' => $sha,
                 'evidence' => $evidence,
             ]);
             $response->forceFill([
@@ -151,8 +140,8 @@ final class LearnerLessonOneController extends Controller
                 'raw_transcript' => $raw,
                 'final_transcript' => $final,
                 'decision' => $decision,
-                'audio_path' => $path,
-                'audio_sha256' => $sha,
+                'audio_path' => null,
+                'audio_sha256' => null,
                 'evidence' => [
                     ...$evidence,
                     'audio_classification' => $classification,

@@ -161,6 +161,8 @@ final class LearnerAssessmentPartOneTest extends TestCase
             'task_key' => 'task-1a',
             'decision' => 'CORRECT',
             'score' => 1,
+            'audio_path' => null,
+            'audio_sha256' => null,
         ]);
         Http::assertSent(fn ($request): bool => $request->hasHeader(
             'Authorization',

@@ -6,7 +6,7 @@
 
 ## 1. Executive summary
 
-ReaDirect is a Filipino reading-intervention platform with four user portals: learner, teacher, school administrator, and system administrator. Its academic path starts with a diagnostic assessment, continues through six reading lessons, and ends with a final assessment. Teachers review recordings and progress; administrators manage users, assignments, content, and operational reports.
+ReaDirect is a Filipino reading-intervention platform with four user portals: learner, teacher, school administrator, and system administrator. Its academic path starts with a diagnostic assessment, continues through six reading lessons, and ends with a final assessment. Teachers review derived learning evidence and progress; administrators manage users, assignments, content, and operational reports.
 
 The system consists of:
 
@@ -43,7 +43,7 @@ ReaDirect owns:
 - Learner enrollment and teacher/school relationships.
 - Academic content, snapshots, assessment runs, lesson runs, responses, scores, reviews, and progress.
 - Browser and Android session transport.
-- Learner recordings and their processing metadata.
+- Transient learner speech processing and derived transcripts, scores, and instructional evidence.
 - Staff dashboards, exports, notifications, and audit records.
 - Local ASR, deterministic pronunciation decisions, TTS, and GPU coordination.
 - Educational game launch and progress integration.
@@ -230,7 +230,7 @@ Guest-related tables exist in the schema, but no public guest login flow was fou
 | Role                 | Main capabilities                                                                               |
 | -------------------- | ----------------------------------------------------------------------------------------------- |
 | Learner              | Complete assigned diagnostic, lessons, final assessment, games, and optional native practice    |
-| Teacher              | View assigned learners, review recordings, monitor progress, use reports and learning resources |
+| Teacher              | View assigned learners, review derived evidence, monitor progress, use reports and learning resources |
 | School administrator | Manage school users/relationships and school-level operational views                            |
 | System administrator | Manage cross-school configuration, staff, content, permissions, audit and system operations     |
 
@@ -349,9 +349,9 @@ Because Learn With Clara currently has uncommitted working-tree changes, this do
 
 The React client obtains microphone access through `getUserMedia`, records with `MediaRecorder`, provides recording state and playback controls, and uploads the resulting media to Laravel. Browser or WebView support determines the exact source encoding, so the backend and model services must not assume every device produces the same container or codec.
 
-### 17.2 Ingestion and persistence
+### 17.2 Ingestion and deletion
 
-Laravel validates the request and its academic ownership, associates the recording with the correct run/task, stores the private media artifact, and records processing metadata. Audio is private learner data and must not be exposed through an unrestricted public disk.
+Laravel validates the request and its academic ownership, associates the temporary upload with the correct run/task, and forwards it to ASR without copying it into application storage. ASR deletes its bounded scratch file after processing. Laravel persists only derived evidence such as transcripts, decisions, and scores.
 
 ### 17.3 Processing
 
@@ -359,7 +359,7 @@ Depending on task type, Laravel sends the recording and expected content to the 
 
 ### 17.4 Review
 
-Authorized teachers can review recordings and related machine output for learners in their scope. Human review changes must remain auditable and must not mutate unrelated runs or raw evidence.
+Authorized teachers can review progress and derived machine output for learners in their scope. The teacher audio-playback and historical recording-review feature is not part of V1.
 
 ### 17.5 Operational concerns
 
@@ -497,7 +497,7 @@ The Laravel schema is the relational source of truth. The repository currently h
 - Academic content and version/snapshot relationships.
 - Diagnostic and final assessment runs, tasks, responses, and results.
 - Lesson runs, activities, progress, and completion.
-- Recordings, transcripts, reviews, and scoring metadata.
+- Transcripts, model evidence, reviews, and scoring metadata; raw learner voice is not persisted.
 - Notifications, reports, audit/operational records, and supporting data.
 
 Production is oriented toward PostgreSQL; local development can use SQLite. SQLite success is not proof of PostgreSQL correctness because constraints, JSON behavior, indexes, types, concurrency, and SQL features differ.
@@ -506,7 +506,7 @@ The tracked `apps/api/database/database.sqlite` file is a repository hygiene and
 
 ## 30. Persistence and resume behavior
 
-Authoritative persisted state includes sessions, content versions/snapshots, assessment and lesson runs, responses, recordings, model results, reviews, completion, profiles, and staff/audit records.
+Authoritative persisted state includes sessions, content versions/snapshots, assessment and lesson runs, responses, model results, reviews, completion, profiles, and staff/audit records. Raw learner recordings are transient and are not authoritative persisted state.
 
 Client-side state includes current screen, unsubmitted interaction state, cached API responses, playback/recording UI state, and selected presentation preferences. Native encrypted storage additionally holds the Android session token, and Offline Practice stores validated packages.
 
@@ -537,19 +537,19 @@ Resume behavior must follow these rules:
 - Confirm production cookie flags, CORS allowlists, trusted proxies, HTTPS, and WSS.
 - Store production secrets outside repository files and rotate staging/development tokens before deployment.
 - Remove or formally sanitize the tracked SQLite database.
-- Define private-audio encryption, retention, deletion, backup, and restore behavior.
+- Verify zero-retention learner-audio handling across browser memory, Laravel request temp files, ASR scratch files, logs, and database fields.
 - Verify Android backup policy and device-session key handling.
-- Threat-model exports, ID enumeration, school-boundary queries, and recording delivery.
+- Threat-model exports, ID enumeration, school-boundary queries, and speech-upload handling.
 - Limit model-service access to authenticated internal callers and bound upload/time/resource use.
 - Add dependency and secret scanning to CI.
 
 ### 31.3 Research and child-data governance
 
-The application processes learner identity, educational performance, and voice recordings. Technical tables alone do not establish a lawful research or school deployment process. Before real participant use, define and implement:
+The application processes learner identity, educational performance, and transient voice input. Technical tables alone do not establish a lawful research or school deployment process. Before real participant use, define and implement:
 
 - Consent/assent and withdrawal status.
 - Purpose limitation and data-minimization rules.
-- Retention schedules for raw audio, derived transcripts, scores, exports, and backups.
+- A zero-retention rule for raw audio and retention schedules for derived transcripts, scores, exports, and backups.
 - Deidentification/pseudonymization for research datasets.
 - Authorized export workflow and audit trail.
 - Deletion and correction procedures across database, files, replicas, and backups.
@@ -665,21 +665,21 @@ Credentials → Laravel authenticate → opaque native session token
 → protected learner routes
 ```
 
-### 36.3 Recorded academic task
+### 36.3 Speech academic task
 
 ```text
 Load server run/snapshot → request microphone → record/play back
-→ upload to authorized Laravel task → private file + metadata
-→ ASR/Nu processing → Laravel equivalence/scoring
-→ persist response/run progress → client refetches authoritative state
+→ upload to authorized Laravel task → transient ASR processing
+→ delete browser/request/ASR audio → Laravel equivalence/scoring
+→ persist derived response/run progress → client refetches authoritative state
 ```
 
-### 36.4 Teacher review
+### 36.4 Teacher evidence review
 
 ```text
 Staff session/device verification → scoped learner/run query
-→ authorized private recording delivery → review decision
-→ audit/persist update → report and realtime invalidation
+→ authorized progress/transcript/evidence delivery
+→ report and realtime invalidation
 ```
 
 ### 36.5 Offline Practice
@@ -701,8 +701,8 @@ Signed-in Android learner → fetch package manifest
 | Historical run content         | Persisted run snapshot                         | Current content editor/UI                           |
 | Assessment branching and score | Laravel services                               | React feedback, reports                             |
 | Lesson completion              | Laravel services/database                      | Learner dashboard cache                             |
-| Raw recording                  | Private server storage + database reference    | Temporary browser blob/playback                     |
-| Transcript/model evidence      | Python result persisted/interpreted by Laravel | Review UI                                           |
+| Raw recording                  | No durable owner; transient request processing | Temporary browser Blob and ASR scratch file         |
+| Transcript/model evidence      | Python result persisted/interpreted by Laravel | Progress and evidence UI                            |
 | Human review                   | Authorized Laravel workflow                    | Report/query caches                                 |
 | Clara audio                    | TTS plus Laravel/private artifact policy       | Browser playback/cache                              |
 | Realtime state                 | Persisted Laravel data                         | Reverb event stream                                 |

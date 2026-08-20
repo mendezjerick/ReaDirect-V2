@@ -306,6 +306,7 @@ export function LessonTwoPage() {
           : "Your answer could not be checked.",
       );
     } finally {
+      recorder.discard();
       setBusy(false);
     }
   };

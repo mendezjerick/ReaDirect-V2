@@ -15,7 +15,6 @@ export const staffRealtimeTopicSchema = z.enum([
   "analytics",
   "reports",
   "instructional-insights",
-  "audio-reviews",
   "assessment-reviews",
   "operations",
 ]);
@@ -135,9 +134,6 @@ function appendTeacherQueryKeys(
       break;
     case "reports":
       add("teacher-report", staffUserId);
-      break;
-    case "audio-reviews":
-      add("teacher-audio-reviews", staffUserId);
       break;
     case "assessment-reviews":
       add("teacher-assessment-review");

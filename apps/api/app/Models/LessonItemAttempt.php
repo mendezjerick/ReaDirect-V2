@@ -27,8 +27,6 @@ final class LessonItemAttempt extends Model
         'raw_transcript',
         'final_transcript',
         'decision',
-        'audio_path',
-        'audio_sha256',
         'evidence',
     ];
 

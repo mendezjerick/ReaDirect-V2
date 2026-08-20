@@ -18,8 +18,6 @@ final class AssessmentResponse extends Model
         'scoring_transcript',
         'decision',
         'score',
-        'audio_path',
-        'audio_sha256',
         'evidence',
     ];
 

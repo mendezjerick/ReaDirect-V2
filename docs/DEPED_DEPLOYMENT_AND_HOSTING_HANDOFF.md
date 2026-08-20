@@ -71,7 +71,7 @@ repository.
 
 4. The current government data-classification and residency framework should
    be reviewed when deployment begins, especially because ReaDirect handles
-   learner accounts and recordings:
+   learner accounts and transient voice inputs:
    [2026 Government Data Classification and Residency Update](https://pia.gov.ph/press-release/president-marcos-signs-eo-119-unlocking-digital-infrastructure-growth-and-strengthening-philippine-data-security/).
 
 These sources demonstrate capability and policy direction. Actual access still
@@ -96,7 +96,7 @@ DepEd must provide:
 
 A conventional government website-hosting account may not be sufficient for
 ReaDirect because the system requires long-running PHP and Python services,
-PostgreSQL, queues, WebSockets, private learner recordings, and local AI model
+PostgreSQL, queues, WebSockets, transient speech processing, and local AI model
 caches. The requested service should therefore be an application VM, private
 cloud instance, or equivalent Infrastructure as a Service allocation.
 
@@ -111,12 +111,12 @@ cloud instance, or equivalent Infrastructure as a Service allocation.
 | Laravel Reverb | WebSocket-capable service | None |
 | Laravel Scheduler and database queue | Background Windows services or scheduled tasks | None |
 | PostgreSQL | Managed database or private database service | None |
-| Private learner recordings and speech catalog | Protected SSD, network storage, or approved object storage | None |
+| Approved speech catalog and request scratch space | Catalog bundled with the release; bounded ephemeral scratch storage | None |
 | ASR/Faster-Whisper | Python 3.11 service; CPU mode is supported | Optional |
 | VoxCPM2 TTS | Python 3.11 service; CPU fallback is supported | Recommended for responsive dynamic speech |
 
 Only the public web boundary should accept Internet traffic. PostgreSQL, ASR,
-TTS, model caches, recordings, and administrative interfaces must remain on the
+TTS, model caches, transient speech uploads, and administrative interfaces must remain on the
 private network.
 
 ## Recommended Pilot Allocation
@@ -129,7 +129,7 @@ not a national-scale sizing guarantee:
 | Operating system | Windows Server compatible with the approved ReaDirect Windows x64 stack |
 | CPU | 12 logical CPU cores |
 | Memory | 32 GB RAM |
-| Storage | At least 250 GB SSD, expandable according to recording retention |
+| Storage | At least 250 GB SSD for model artifacts, release assets, caches, logs, and operational headroom |
 | Database | PostgreSQL with scheduled backups and tested restoration |
 | Public ingress | HTTPS on port 443 through DepEd's approved gateway |
 | WebSockets | Supported through the gateway for Laravel Reverb |
@@ -145,8 +145,8 @@ Final sizing must be based on:
 
 - Number of schools
 - Simultaneous learners
-- Expected recording volume
-- Recording retention period
+- Expected speech-upload volume and ASR requests per minute
+- Verification of the zero-retention raw-audio policy
 - ASR requests per minute
 - Dynamic TTS requests per minute
 - Required response-time target
@@ -235,7 +235,7 @@ release containing the following:
 - Queue and WebSocket monitoring
 - AI-model warm-up and readiness checks
 - Database backup and tested restore procedure
-- Private file and recording backup procedure
+- Database and approved catalog backup procedure, plus temporary-audio cleanup verification
 - Upgrade, rollback, and disaster-recovery procedures
 - Named DepEd operational owner and escalation route
 
@@ -304,8 +304,8 @@ release containing the following:
 - What operating systems and application deployment methods are supported?
 - Can the receiving team provision a full VM, or only conventional web hosting?
 - Is PostgreSQL available as a managed service, or should it run on the VM?
-- Can DepEd provide private file storage and automated backups?
-- What recording-retention and data-residency rules apply?
+- Can DepEd provide automated PostgreSQL backups and approved model/catalog artifact delivery?
+- Does DepEd approve zero retention for raw learner audio, and what residency rules apply to derived transcripts and scores?
 - Is outbound Internet access allowed during installation?
 - How must offline AI models and licensed assets be transferred and scanned?
 - Is a CUDA-capable GPU or approved GPU service available?
@@ -356,4 +356,3 @@ First complete the production handoff package, request a DepEd VM and private
 storage, pilot the supported CPU paths, and measure actual latency and capacity.
 Add government-managed GPU capacity only when the measurements demonstrate that
 it is necessary.
-

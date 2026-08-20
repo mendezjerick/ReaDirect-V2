@@ -10,7 +10,7 @@ final class LessonResponse extends Model
 {
     protected $fillable = [
         'lesson_run_id', 'mission_key', 'item_key', 'item_order', 'response_type',
-        'raw_transcript', 'final_transcript', 'decision', 'audio_path', 'audio_sha256', 'evidence',
+        'raw_transcript', 'final_transcript', 'decision', 'evidence',
         'teaching_state', 'outcome', 'academic_attempt_count', 'technical_retry_count',
         'highest_scaffold_used', 'independent_mastery', 'diagnosis_key',
         'review_recommended', 'demonstration_given_at', 'completed_at',

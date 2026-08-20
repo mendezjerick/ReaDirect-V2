@@ -650,7 +650,7 @@ export function AssessmentPartTwoPage({
           state.item.item_key,
           recorder.audio,
           assessmentType,
-        ),
+        ).finally(() => recorder.discard()),
         "submit",
       );
     } else if (isComprehension && state.item && selectedChoice) {

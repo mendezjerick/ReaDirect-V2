@@ -161,7 +161,6 @@ export const teacherNavigationGroups: StaffNavigationGroup[] = [
       },
       { label: "Reports", to: "/staff/teacher/reports" },
       { label: "Analytics", to: "/staff/teacher/analytics" },
-      { label: "Audio review", to: "/staff/teacher/audio-review" },
     ],
   },
   {

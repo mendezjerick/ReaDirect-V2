@@ -20,7 +20,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 abstract class LearnerSpokenTextLessonController extends Controller
@@ -130,9 +129,6 @@ abstract class LearnerSpokenTextLessonController extends Controller
             $evidence['transcript_alignment'] = $alignment;
         }
         $diagnosisKey = $this->diagnosisKey($classification, $alignment);
-        $bytes = file_get_contents($audio->getRealPath());
-        $extension = strtolower($audio->getClientOriginalExtension() ?: 'webm');
-
         DB::transaction(function () use (
             $run,
             $item,
@@ -141,8 +137,6 @@ abstract class LearnerSpokenTextLessonController extends Controller
             $evidence,
             $classification,
             $diagnosisKey,
-            $bytes,
-            $extension,
         ): void {
             $lockedRun = LessonRun::query()->lockForUpdate()->findOrFail($run->id);
             abort_unless($lockedRun->status === LessonRun::STATUS_ACTIVE, 409, 'This lesson is already complete.');
@@ -188,10 +182,6 @@ abstract class LearnerSpokenTextLessonController extends Controller
             ], true)
                 ? (int) $nextState['academic_attempt_count']
                 : null;
-            $sha = hash('sha256', $bytes);
-            $path = "lesson-audio/{$lockedRun->id}/{$lockedRun->mission_key}/"
-                ."{$lockedItem['content_id']}-{$attemptSequence}-{$sha}.{$extension}";
-            Storage::disk('local')->put($path, $bytes);
             $decision = $classification === LessonTeachingStateMachine::CLASS_CLEAR_CORRECT
                 ? 'CORRECT'
                 : 'NEEDS_SUPPORT';
@@ -205,8 +195,6 @@ abstract class LearnerSpokenTextLessonController extends Controller
                 'raw_transcript' => $raw,
                 'final_transcript' => $final,
                 'decision' => $decision,
-                'audio_path' => $path,
-                'audio_sha256' => $sha,
                 'evidence' => $evidence,
             ]);
             $response->forceFill([
@@ -214,8 +202,8 @@ abstract class LearnerSpokenTextLessonController extends Controller
                 'raw_transcript' => $raw,
                 'final_transcript' => $final,
                 'decision' => $decision,
-                'audio_path' => $path,
-                'audio_sha256' => $sha,
+                'audio_path' => null,
+                'audio_sha256' => null,
                 'evidence' => [
                     ...$evidence,
                     'audio_classification' => $classification,

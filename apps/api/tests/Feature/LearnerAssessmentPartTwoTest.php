@@ -87,6 +87,8 @@ final class LearnerAssessmentPartTwoTest extends TestCase
             'assessment_run_id' => $run->id,
             'task_key' => 'task-3a',
             'score' => 100,
+            'audio_path' => null,
+            'audio_sha256' => null,
         ]);
         $response = AssessmentResponse::query()
             ->where('assessment_run_id', $run->id)

@@ -14,7 +14,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use RuntimeException;
 
@@ -146,12 +145,6 @@ final class LearnerAssessmentPartOneController extends Controller
             return response()->json(['message' => $error->getMessage()], 503);
         }
 
-        $audioBytes = file_get_contents($audio->getRealPath());
-        $sha = hash('sha256', $audioBytes);
-        $extension = strtolower($audio->getClientOriginalExtension() ?: 'webm');
-        $path = "assessment-audio/{$run->id}/{$run->stage}/{$item['item_key']}-{$sha}.{$extension}";
-        Storage::disk('local')->put($path, $audioBytes);
-
         DB::transaction(function () use (
             $run,
             $item,
@@ -159,8 +152,6 @@ final class LearnerAssessmentPartOneController extends Controller
             $scoringTranscript,
             $decision,
             $score,
-            $path,
-            $sha,
             $evidence,
         ): void {
             AssessmentResponse::query()->create([
@@ -173,8 +164,6 @@ final class LearnerAssessmentPartOneController extends Controller
                 'scoring_transcript' => $scoringTranscript,
                 'decision' => $decision,
                 'score' => $score,
-                'audio_path' => $path,
-                'audio_sha256' => $sha,
                 'evidence' => $evidence,
             ]);
             $this->advanceCurrentItem($run);
