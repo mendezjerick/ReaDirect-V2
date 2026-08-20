@@ -1,6 +1,8 @@
 import type { LearnerSpeechLanguage } from "../learner-auth/learnerApi";
 
-export function isFilipino(language: LearnerSpeechLanguage | undefined): boolean {
+export function isFilipino(
+  language: LearnerSpeechLanguage | undefined,
+): boolean {
   return language === "fil-PH";
 }
 
@@ -16,10 +18,16 @@ export const claraMenuCopy = {
     readingSkills: "Reading skills",
     status: "Choose a lesson for your short class with Ma'am Clara.",
     topics: {
-      letters: { label: "Letters", description: "Meet letters and their sounds." },
+      letters: {
+        label: "Letters",
+        description: "Meet letters and their sounds.",
+      },
       words: { label: "Words", description: "Read and build little words." },
       phrases: { label: "Phrases", description: "Join words smoothly." },
-      sentences: { label: "Sentences", description: "Read a complete thought." },
+      sentences: {
+        label: "Sentences",
+        description: "Read a complete thought.",
+      },
       comprehension: {
         label: "Comprehension",
         description: "Find meaning in what you read.",
@@ -87,6 +95,36 @@ export const claraLettersCopy = {
     nextStop: "Next Stop",
     playAgain: "Play Again",
     backToClasses: "Back to Classes",
+    parade: {
+      stationNames: {
+        A: "Apple Arch",
+        B: "Balloon Float",
+        C: "Curved Banner",
+        D: "Drum Cart",
+        E: "Final Wagon",
+      },
+      openingTitle: "THE LETTER PARADE",
+      finaleTitle: "PARADE READY",
+      finaleCopy: "Every partner is here",
+      findHeading: "Help Clara find the partner",
+      storyHeading: "The Little-Letter Parade",
+      foundCount: (found: number, total: number) =>
+        `${found} of ${total} found`,
+      completionAria:
+        "All five big and little letter pairs marching in the parade.",
+      storyAria:
+        "A gust of wind scatters the little letters away from the parade.",
+      sceneAria: (title: string, station: string) =>
+        `${title} at the ${station}.`,
+      choicesAria: (letter: string) => `Find little ${letter}`,
+      chooseLittle: (letter: string) => `Choose little ${letter}`,
+      sceneTitle: {
+        story: "The little letters blew away",
+        completion: "The Letter Parade",
+        find: (letter: string) => `Find little ${letter}`,
+        teach: (letter: string) => `${letter} found its partner`,
+      },
+    },
   },
   fil: {
     heading: "Mag-aral kasama si Ma'am Clara",
@@ -102,8 +140,10 @@ export const claraLettersCopy = {
     wrong: "May ibang kapares ang letrang iyon. Tingnan muli.",
     find: (lower: string, upper: string) =>
       `Pindutin ang maliit na ${lower} na kapares ng malaking ${upper}.`,
-    teach: (letter: string) => `Ikaw naman. Bigkasin nang malakas ang ${letter}.`,
-    complete: "Nahanap na ng bawat letra ang kapares nito. Handa na ang parada.",
+    teach: (letter: string) =>
+      `Ikaw naman. Bigkasin nang malakas ang ${letter}.`,
+    complete:
+      "Nahanap na ng bawat letra ang kapares nito. Handa na ang parada.",
     tryLoading: "I-load ang kuwento",
     seeParade: "Tingnan ang parada",
     startStory: "Simulan ang kuwento",
@@ -113,6 +153,34 @@ export const claraLettersCopy = {
     nextStop: "Susunod na hintuan",
     playAgain: "Maglaro muli",
     backToClasses: "Bumalik sa mga klase",
+    parade: {
+      stationNames: {
+        A: "Arko ng Mansanas",
+        B: "Lobo",
+        C: "Watawat na Kurba",
+        D: "Kariton ng Tambol",
+        E: "Huling Kariton",
+      },
+      openingTitle: "PARADA NG MGA LETRA",
+      finaleTitle: "HANDA NA ANG PARADA",
+      finaleCopy: "Narito na ang lahat ng kapares",
+      findHeading: "Tulungan si Clara hanapin ang kapares",
+      storyHeading: "Parada ng Maliliit na Letra",
+      foundCount: (found: number, total: number) =>
+        `${found} sa ${total} nahanap`,
+      completionAria:
+        "Nasa parada na ang limang pares ng malalaki at maliliit na letra.",
+      storyAria: "Tinangay ng hangin ang maliliit na letra mula sa parada.",
+      sceneAria: (title: string, station: string) => `${title} sa ${station}.`,
+      choicesAria: (letter: string) => `Hanapin ang maliit na ${letter}`,
+      chooseLittle: (letter: string) => `Piliin ang maliit na ${letter}`,
+      sceneTitle: {
+        story: "Tinangay ang maliliit na letra",
+        completion: "Parada ng mga Letra",
+        find: (letter: string) => `Hanapin ang maliit na ${letter}`,
+        teach: (letter: string) => `Nahanap ng ${letter} ang kapares nito`,
+      },
+    },
   },
 } as const;
 
@@ -121,7 +189,8 @@ export const claraPracticeCopy = {
     heading: "Learn with Ma'am Clara",
     complete: "Practice complete",
     completedTitle: "You did it!",
-    completedMessage: "Clara says: Every little step makes your reading stronger.",
+    completedMessage:
+      "Clara says: Every little step makes your reading stronger.",
     instruction: "Ma'am Clara says: Take your time and try your best.",
     wonderful: "Wonderful work!",
     again: "Let's look again.",
@@ -148,7 +217,8 @@ export const claraPracticeCopy = {
     completedTitle: "Nagawa mo!",
     completedMessage:
       "Sabi ni Clara: Bawat maliit na hakbang ay nagpapalakas ng iyong pagbasa.",
-    instruction: "Sabi ni Ma'am Clara: Maglaan ng oras at gawin ang iyong makakaya.",
+    instruction:
+      "Sabi ni Ma'am Clara: Maglaan ng oras at gawin ang iyong makakaya.",
     wonderful: "Napakahusay!",
     again: "Tingnan nating muli.",
     encouragement: "Kaya mo iyan!",
@@ -164,7 +234,8 @@ export const claraPracticeCopy = {
       almost: "Malapit na! Pindutin ang salita sa sagot para subukan muli.",
       correctPhrase: "Tama! Ipinagmamalaki ni Clara ang iyong pagbasa.",
       chooseAnswer: "Pumili muna ng isang sagot.",
-      goodTry: (clue: string) => `Magandang pagsubok. Hanapin ang pahiwatig: ${clue}`,
+      goodTry: (clue: string) =>
+        `Magandang pagsubok. Hanapin ang pahiwatig: ${clue}`,
       correctComprehension: "Tama! Nahanap mo ang pahiwatig sa kuwento.",
     },
   },
@@ -182,7 +253,8 @@ export const claraWordsCopy = {
     error: "That story sound needs another try.",
     rescueClue: "Clara's rescue clue",
     chooseWord: "Choose the word that belongs in this story moment.",
-    wordWrong: "That word belongs somewhere else. Look at the story clue again.",
+    wordWrong:
+      "That word belongs somewhere else. Look at the story clue again.",
     rescued: (word: string) => `You rescued ${word}. The story can continue.`,
     wrong: "Listen to the story clue and try another word.",
     find: "Listen to the story, then find the word that belongs.",
@@ -199,7 +271,8 @@ export const claraWordsCopy = {
     rescueClue: "Pahiwatig ni Clara sa pagsagip",
     chooseWord: "Piliin ang salitang nababagay sa bahaging ito ng kuwento.",
     wordWrong: "May ibang lugar ang salitang iyon. Tingnan muli ang pahiwatig.",
-    rescued: (word: string) => `Nailigtas mo ang ${word}. Maaaring magpatuloy ang kuwento.`,
+    rescued: (word: string) =>
+      `Nailigtas mo ang ${word}. Maaaring magpatuloy ang kuwento.`,
     wrong: "Pakinggan ang pahiwatig at subukan ang ibang salita.",
     find: "Pakinggan ang kuwento, pagkatapos hanapin ang tamang salita.",
   },

@@ -296,12 +296,25 @@ describe("LearnWithClaraLettersPage", () => {
   it("shows Filipino Clara guidance when Filipino is selected", async () => {
     renderPage("fil-PH");
 
-    expect(await screen.findByText("Handa na ang kuwento ng mga letra.")).toBeVisible();
+    expect(
+      await screen.findByText("Handa na ang kuwento ng mga letra."),
+    ).toBeVisible();
     fireEvent.click(
       await screen.findByRole("button", { name: "Simulan ang kuwento" }),
     );
     expect(
       await screen.findByText("Kailangan ng maliliit na letra ang tulong mo."),
+    ).toBeVisible();
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Hanapin ang unang letra" }),
+    );
+    expect(
+      await screen.findByText("Tulungan si Clara hanapin ang kapares"),
+    ).toBeVisible();
+    expect(await screen.findByText("Hanapin ang maliit na a")).toBeVisible();
+    expect(
+      await screen.findByRole("button", { name: "Piliin ang maliit na a" }),
     ).toBeVisible();
   });
 });

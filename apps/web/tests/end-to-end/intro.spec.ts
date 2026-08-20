@@ -1,7 +1,20 @@
 import { expect, test } from "@playwright/test";
 
 test("intro fits the viewport and continues to home", async ({ page }) => {
-  await page.goto("/");
+  // Browser root opens the public landing page; the query flag exercises the
+  // mobile-style Tap to Continue entry without pretending a browser is native.
+  await page.route("**/api/experience/intro/settings", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        revision: "e2e-intro",
+        display_mode: "static",
+        speech_mode: "published_only",
+      }),
+    });
+  });
+  await page.goto("/?entry=tap");
 
   const title = page.getByRole("heading", { name: "ReaDirect" });
   const continueButton = page.getByRole("button", { name: "Tap to continue" });

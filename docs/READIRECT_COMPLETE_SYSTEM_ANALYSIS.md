@@ -1,480 +1,876 @@
-# ReaDirect Complete System Analysis
+# ReaDirect Complete System Documentation
 
-## 1. Executive Summary
+> Current as of August 20, 2026, at repository revision `3c2d51df1e5e8e49a96528488a056f7f11011177`.
+>
+> This is the canonical repository-wide technical guide. It describes the implemented system, not only its intended design. Uncommitted Learn With Clara changes and the modified local SQLite file present during this review are not treated as finalized behavior.
 
-ReaDirect is a browser-based reading intervention that guides learners from letter recognition through comprehension. A React/Vite client serves learner, teacher, school-administrator, and system-administrator portals. A Laravel API owns authentication, authorization, progression, assessment and lesson runs, content snapshots, scoring, reporting, and persistence. Python services provide speech recognition (ASR/Mu/Nu) and local text-to-speech (TTS). The development database is the Laravel relational schema with a SQLite file currently present.
+## 1. Executive summary
 
-Core learner and staff workflows are implemented, including diagnostic/final assessment, six lessons, teacher review/reporting, and ASR/TTS boundaries. Game Zero remains a placeholder, academic content management is read-only, and mobile/standalone behavior is only partly evidenced. Server services and persisted runs are authoritative; browser state is presentation/cache state.
+ReaDirect is a Filipino reading-intervention platform with four user portals: learner, teacher, school administrator, and system administrator. Its academic path starts with a diagnostic assessment, continues through six reading lessons, and ends with a final assessment. Teachers review recordings and progress; administrators manage users, assignments, content, and operational reports.
 
-Key source paths include `apps/web/src/App.tsx`, `apps/api/routes/api.php`, `apps/api/app/Services`, `services/asr/app/mu.py`, and `services/tts/main.py`.
+The system consists of:
 
-## 2. Technology Stack
+- A React/TypeScript web application used in desktop browsers and packaged as an Android application through Capacitor.
+- A Laravel API that owns identity, authorization, academic progression, scoring, content, reports, sessions, queues, and relational persistence.
+- A FastAPI speech-recognition service that provides Mu transcription and Nu deterministic letter decisions.
+- A FastAPI VoxCPM2 text-to-speech service for Ma'am Clara audio.
+- A shared GPU-runtime package that coordinates scarce model capacity across the Python services.
+- Three active educational games, with a fourth legacy placeholder still present in the repository.
 
-| Layer                | Technology                                       | Purpose                             |
-| -------------------- | ------------------------------------------------ | ----------------------------------- |
-| Web                  | React, TypeScript, Vite, React Router            | Browser portals                     |
-| Client data          | TanStack Query, React context, storage           | Cache, sessions, UI state           |
-| API                  | PHP Laravel, Eloquent, PHPUnit                   | HTTP/domain/persistence             |
-| Database             | Laravel relational schema; SQLite in development | Identity, runs, responses           |
-| Speech               | Python service, faster-whisper                   | Mu transcription and validation     |
-| Deterministic speech | Nu plus Laravel equivalence/alignment            | Letter and expected-aware decisions |
-| TTS                  | Python VoxCPM2 service                           | Clara speech                        |
-| Queue/realtime       | Laravel queue and Reverb                         | Jobs and staff updates              |
-| Browser audio        | getUserMedia and MediaRecorder                   | Recording/playback                  |
-| Tests                | PHPUnit, Vitest, Playwright, pytest              | Automated verification              |
+The core learner experience is compatible between supported browsers and Android because both clients use the same React application and Laravel contracts. They are not fully interchangeable: Android uses native encrypted bearer sessions and provides the noncanonical Offline Practice feature, while the browser uses HttpOnly cookies and has no equivalent offline academic mode. Staff portals should be treated as browser-first; their relative API and realtime assumptions are not fully native-safe.
 
-## 3. Repository Structure
+The largest readiness gaps are production deployment topology, model packaging, durable private audio storage, PostgreSQL migration/restore rehearsal, environment and network hardening, resource benchmarking, research-governance controls, and continuous integration.
+
+## 2. Documentation scope and authority
+
+This document covers application behavior, architecture, roles, data ownership, persistence, AI services, games, browser/mobile compatibility, deployment, security, tests, and known risks. It was derived from repository source, configuration, migrations, routes, tests, scripts, and existing focused documentation.
+
+When sources disagree, use this precedence:
+
+1. Executed code and database migrations.
+2. Automated tests that exercise the code.
+3. Environment examples and startup/build scripts.
+4. Focused current documentation.
+5. Older planning notes and comments.
+
+Statements labeled **inferred** are strongly supported by code structure but were not executed end to end. Statements labeled **unconfirmed** need runtime or deployment evidence.
+
+## 3. System boundaries
+
+ReaDirect owns:
+
+- Learner, teacher, school-administrator, and system-administrator identities.
+- Learner enrollment and teacher/school relationships.
+- Academic content, snapshots, assessment runs, lesson runs, responses, scores, reviews, and progress.
+- Browser and Android session transport.
+- Learner recordings and their processing metadata.
+- Staff dashboards, exports, notifications, and audit records.
+- Local ASR, deterministic pronunciation decisions, TTS, and GPU coordination.
+- Educational game launch and progress integration.
+
+External or environment-provided capabilities include:
+
+- PostgreSQL in the intended production deployment.
+- Gmail SMTP for staff verification and email workflows.
+- Cloudflare Tunnel for the current staging helper.
+- Android OS facilities exposed through Capacitor plugins.
+- Browser microphone, media encoding, storage, and network APIs.
+- Model files and GPU/CPU runtimes required by the Python services.
+
+## 4. Technology stack
+
+| Area                 | Current implementation                                      | Primary responsibility                          |
+| -------------------- | ----------------------------------------------------------- | ----------------------------------------------- |
+| Web                  | React 19, TypeScript 5.9, Vite 8                            | All user interfaces                             |
+| Routing              | React Router 7                                              | Portal and learner route trees                  |
+| Server state         | TanStack Query                                              | API cache, mutations, invalidation              |
+| Android              | Capacitor 8.5                                               | Native shell and device integration             |
+| Native plugins       | App, Filesystem, File Transfer, Network                     | Lifecycle, downloads, file access, connectivity |
+| API                  | Laravel 13.20 on PHP 8.3                                    | Domain rules, HTTP, queues, persistence         |
+| Realtime             | Laravel Reverb                                              | Staff-facing events and live updates            |
+| Database             | Eloquent; PostgreSQL production orientation; SQLite locally | Relational system of record                     |
+| ASR                  | FastAPI, faster-whisper                                     | Speech transcription and validation             |
+| Deterministic speech | Nu plus Laravel equivalence rules                           | Expected-aware letter/word decisions            |
+| TTS                  | FastAPI, VoxCPM2 2.0.3                                      | Clara speech generation                         |
+| GPU coordination     | Shared Python `gpu-runtime` package                         | Cross-process lock and capacity management      |
+| Games                | PixiJS and KAPLAY                                           | Three learner minigames                         |
+| Testing              | PHPUnit, Vitest, Playwright, pytest                         | Unit, feature, and end-to-end checks            |
+
+The repository contains both `pnpm-lock.yaml` and `package-lock.json`. The scripted and documented JavaScript workflow uses pnpm; the duplicate lockfile is a maintenance risk unless deliberately required.
+
+## 5. Repository structure
 
 ```text
-apps/api/                 Laravel application, routes, migrations, tests
-apps/web/                 React/Vite application and browser tests
-services/asr/             Mu/ASR service and model artifacts
-services/tts/             VoxCPM2 service and cache
-docs/                     Architecture and manuscript documents
-scripts/                  Launch/catalog helpers
-start.ps1, stop.ps1       Local service orchestration
+ReaDirect-V2/
+├── apps/
+│   ├── api/                 Laravel API, database, queues, Reverb
+│   └── web/                 React application and Capacitor Android project
+├── games/
+│   ├── game-alpha/          Space Letter game (PixiJS)
+│   ├── game-one/            Readscape (KAPLAY)
+│   ├── game-two/            Ottertale (PixiJS)
+│   └── game-zero/           Dormant/legacy placeholder
+├── services/
+│   ├── asr/                 Mu/Nu speech service
+│   ├── tts/                 VoxCPM2 Clara service
+│   └── gpu-runtime/         Shared model-capacity coordination
+├── scripts/                 Bootstrap, lifecycle, Android and utility scripts
+├── docs/                    System, deployment, and compatibility documentation
+├── start.ps1 / stop.ps1     Local full-stack lifecycle
+└── cstart.ps1 / cstop.ps1   Cloudflare-backed staging lifecycle
 ```
 
-API domain code is under apps/api/app, routes under apps/api/routes, and schema under apps/api/database. Client feature code is under apps/web/src/features; app providers and routing are under apps/web/src/app and apps/web/src/App.tsx. ASR and TTS are independent processes.
+The main navigation points for future maintainers are:
 
-## 4. Application Startup
+- `apps/web/src/App.tsx` for the client route graph.
+- `apps/web/src/lib/api.ts` and auth/session modules for transport behavior.
+- `apps/api/routes/api.php` for the HTTP surface.
+- `apps/api/app/Http/Controllers` for request orchestration.
+- `apps/api/app/Services` for domain behavior.
+- `apps/api/database/migrations` for the persistent data contract.
+- `services/asr/app` and `services/tts` for model-service behavior.
+- Each active game's `src` and test folders for gameplay logic.
 
-apps/web/src/main.tsx mounts AppProviders, BrowserRouter, and App. apps/web/src/app/AppProviders.tsx installs theme, query, staff lifecycle, and realtime providers. apps/web/src/App.tsx defines public, learner, and staff routes.
+## 6. Processes and local startup
 
-apps/api/bootstrap/app.php bootstraps Laravel API, health, and broadcast routes. start.ps1 currently launches Vite on 5174, Laravel on 8000, Reverb on 8080, a queue worker, ASR on 8001, and TTS on 8002; it sets MU_DEVICE=cpu and runs migrations. ASR readiness is /live and /ready in services/asr/main.py; TTS has a separate readiness path. No recurring academic job was found.
+`start.ps1` starts the complete local development stack:
 
-## 5. High-Level Architecture
+| Process         | Default port | Notes                                                |
+| --------------- | -----------: | ---------------------------------------------------- |
+| Vite web client |         5174 | React development server                             |
+| Laravel API     |         8000 | HTTP API and local storage delivery                  |
+| ASR service     |         8001 | CPU-oriented local defaults use `base.en` and `int8` |
+| TTS service     |         8002 | CPU-oriented local VoxCPM2 process                   |
+| Laravel Reverb  |         8080 | WebSocket/realtime server                            |
+| Queue worker    |          n/a | Database-backed queue processing                     |
 
-```mermaid
-flowchart LR
-  Browser[React/Vite browser] --> API[Laravel API]
-  API --> DB[(Relational database)]
-  API --> Files[Private audio/filesystem]
-  API --> ASR[Python ASR: Mu + validation]
-  API --> TTS[Python TTS: VoxCPM2]
-  API --> Queue[Queue/Reverb]
-  ASR --> Nu[Nu decisions]
-  TTS --> Browser
-  DB --> Reports[Teacher/admin reports]
+The script bootstraps temporary service tokens, applies Laravel migrations with `--force`, prunes failed queue jobs, and coordinates process startup. This is convenient for development but is not a production process manager.
+
+`cstart.ps1` is a staging convenience wrapper. It starts the local services and publishes the Vite frontend through Cloudflare Tunnel. It does not itself prove that the API, ASR, TTS, Reverb, private media, and Android networking are production-ready behind one public topology.
+
+## 7. High-level request and data flow
+
+```text
+Browser or Android WebView
+        │
+        ├── React routes and local UI state
+        │       │
+        │       ├── HTTPS API requests ───────► Laravel
+        │       │                                 ├── policies/domain services
+        │       │                                 ├── PostgreSQL/SQLite
+        │       │                                 ├── private audio storage
+        │       │                                 ├── queue jobs
+        │       │                                 └── Reverb events
+        │       │
+        │       ├── recording upload ──────────► Laravel ─► ASR/Nu
+        │       └── Clara speech request ───────► Laravel ─► TTS
+        │
+        └── Android-only Capacitor bridge
+                ├── encrypted session storage
+                ├── connectivity status
+                └── Offline Practice package files
 ```
 
-The browser does not access the database or model files directly. Laravel is the authenticated integration boundary; Python services are internal except for health endpoints.
+Laravel is the authority for academic and authorization decisions. The browser is the authority only for temporary presentation state. Python model outputs are evidence consumed by Laravel rather than a replacement for Laravel's score/progression rules.
 
-## 6. Frontend Architecture
+## 8. Frontend architecture
 
-apps/web/src/App.tsx groups public, learner, and staff routes. Learner routes include login, dashboard, Clara intro, diagnostic/final assessment, lessons 1–6, and games. Staff routes are nested by teacher, school_admin, and system_admin.
+The web application is a single React application with route groups for public pages, learners, teachers, school administrators, system administrators, games, and native-only experiences. Major frontend patterns include:
 
-TanStack Query defaults in apps/web/src/app/queryClient.ts use 30 seconds stale time, one query retry, and no mutation retry. Providers own theme, staff heartbeat/lifecycle, and realtime. Feature components own interaction state; learnerApi.ts and staffApi.ts centralize requests. RequireStaffRole is a navigation guard, not the authorization authority.
+- React Router route guards for identity and role boundaries.
+- TanStack Query for server-state reads and mutations.
+- Context/providers for cross-cutting UI and session concerns.
+- Feature-oriented folders for assessments, lessons, Learn With Clara, Offline Practice, staff portals, audio, and games.
+- Browser storage for nonauthoritative cache, resume hints, UI preferences, and native transport support.
+- Shared responsive CSS/components plus feature-specific layouts.
 
-## 7. Backend Architecture
+Client-side route guards improve navigation and presentation but are not security boundaries. All protected data and mutations must remain authorized by Laravel middleware, policies, and ownership checks.
 
-Laravel bootstrap/middleware establish headers, throttles, and broadcasts. Controllers in apps/api/app/Http/Controllers are boundary adapters; services implement progression, assessment, lesson, reporting, speech, reset, and content rules. Eloquent models map the schema. AppServiceProvider applies production security/rate limits and avoids destructive migrations at boot.
+## 9. Browser and Android compatibility
 
-Assessment and lesson services create immutable snapshots, persist responses/attempts, and expose resumable runs. Staff services scope data by teacher_id or school_id.
+Both form factors run the same compiled React code and share learner API contracts. The detailed compatibility matrix is in [Browser and Mobile Compatibility](./BROWSER_AND_MOBILE_COMPATIBILITY.md).
 
-## 8. Authentication
+| Capability                           | Desktop/mobile browser                            | Android package                                      | Compatibility conclusion                                          |
+| ------------------------------------ | ------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------- |
+| Core learner lessons and assessments | Supported                                         | Supported through WebView                            | Shared behavior when API/media access works                       |
+| Authentication transport             | HttpOnly cookie plus session snapshot/sentinel    | Encrypted native bearer session                      | Same account semantics, different transport                       |
+| Recording                            | Browser media APIs                                | WebView media APIs and Android permissions           | Compatible in design; device codecs/permissions need device tests |
+| Online persistence                   | Laravel                                           | Laravel                                              | Same authoritative data                                           |
+| Offline Practice                     | Not a canonical browser workflow                  | Android-first local downloads                        | Native-only and noncanonical                                      |
+| Staff portals                        | Browser-first                                     | Technically routable but not fully native-safe       | Do not claim native staff support                                 |
+| Realtime                             | Uses current host assumptions                     | Host assumptions may not match configured API origin | Requires native-specific validation                               |
+| PWA install/offline                  | Dependencies exist but no complete Workbox wiring | Native shell supplies installability                 | Browser PWA support is unconfirmed                                |
 
-Learner auth uses LearnerAuthController, LearnerSessionResolver, and learnerApi.ts. A five-character [A-Za-z]{2}\d{3} code is uppercased and checked against an active learner with a dummy hash. A SHA-256 token hash is stored; sessions live 12 hours, idle-expire after 60 minutes, and are limited to five. Token and snapshot are in sessionStorage under readirect.learner-session. There is no self-registration or learner recovery.
+Offline Practice does not write assessment, lesson, or progress records to the academic system. A learner may practice downloaded material without network access, but those actions do not later become official completion or scores.
 
-Staff auth uses StaffAuthController, StaffSessionResolver, RequireStaffRole, and staffApi.ts. Non-remembered sessions last eight hours; remembered sessions last 30 days and use a device HMAC. A 120-second lease, heartbeat, verification codes, and audit entries exist. Non-remembered state is sessionStorage; remembered state is localStorage. staffFetch clears state on 401. No public forgot-password route was found.
+## 10. API architecture
 
-## 9. Roles and Authorization
+`apps/api/routes/api.php` defines approximately 144 static route declarations; assessment route generation adds repeated diagnostic/final surfaces. Routes are grouped by public access, learner authentication, staff authentication, role/permission middleware, and service-to-service access.
 
-| Role         | Capabilities                                           | Server enforcement                        |
-| ------------ | ------------------------------------------------------ | ----------------------------------------- |
-| learner      | Own dashboard, assessments, lessons, games             | Learner resolver and learner_id ownership |
-| teacher      | Own learners, credentials, reviews, reports            | Teacher scope and role middleware         |
-| school_admin | School classes, teachers, learners, insights           | school_id scope                           |
-| system_admin | Directories, monitoring, speech tools, settings, audit | System-admin middleware                   |
-| guest        | Database foundation only                               | No active public login found              |
+The API codebase contains approximately:
 
-Backend session/object checks are authoritative; frontend guards only shape navigation.
+- 51 controllers for HTTP orchestration.
+- 74 services for domain and integration behavior.
+- 27 Eloquent models.
+- 35 database migrations.
 
-## 10. Learner System
+The architectural intent is controller-thin/service-rich, although maintainers should verify individual paths before changing them. Route names and response shapes are public contracts for the React application, tests, service calls, and potentially deployed clients.
 
-After code login, the learner dashboard loads progress and recent activity. Intro/Clara establishes listening context, then diagnostic or an available lesson is opened. Lesson and assessment pages resume server-side runs after refresh or device changes. Audio, transcripts, attempts, scores, and completion are written by the API.
+API responsibilities include:
 
-## 11. Academic Progression
+- Sessions, verification, logout, device/session revocation, and throttling.
+- User, school, assignment, and roster management.
+- Assessment and lesson run lifecycle.
+- Content selection and immutable run snapshots.
+- Recording ingestion, quality checks, transcription, review, and scoring.
+- Learner progression, reports, exports, notifications, and audit data.
+- TTS brokerage and private media delivery.
+- Realtime event publication.
 
-The intended path is Diagnostic → Letters → Words → Phrases → Sentences → Short Passage → Comprehension → Final Assessment. Once diagnostic is completed or skipped, lessons 1–6 are independently accessible; numbered sequence is not enforced. Final access requires all six distinct lesson keys completed. LearnerReadingPathService, LearnerLessonAccessService, LearnerLessonCompletionService, and LearnerFinalAssessmentAccessService are authoritative. Browser menu order and derived booleans are presentation only.
+## 11. Authentication and session model
 
-```mermaid
-flowchart LR
- D[Diagnostic complete/skip] --> L1[Letters]
- D --> L2[Words]
- D --> L3[Phrases]
- D --> L4[Sentences]
- D --> L5[Short passage]
- D --> L6[Comprehension]
- L1 & L2 & L3 & L4 & L5 & L6 --> F[Final access]
+### 11.1 Learners
+
+Learner sessions have a 12-hour absolute lifetime, a 60-minute idle window, and a maximum of five concurrent sessions. Login is throttled by both IP and account identifier.
+
+- Browsers receive an HttpOnly authentication cookie. A readable sentinel/session snapshot helps the UI restore presentation state but is not the credential authority.
+- Android stores an opaque bearer session using the native encrypted storage path. The web layer sends that token with API requests.
+- Logout and revocation must clear both server authority and the applicable client transport state.
+
+### 11.2 Staff
+
+Staff sessions default to eight hours. A remembered session may last 30 days. Activity uses a 30-second heartbeat and a 120-second lease, and registered devices use HMAC-based verification. Email verification and recovery flows depend on configured mail delivery, currently oriented toward Gmail SMTP.
+
+### 11.3 Guest data
+
+Guest-related tables exist in the schema, but no public guest login flow was found. Treat guest functionality as dormant/incomplete unless a current route and client flow are introduced together.
+
+## 12. Roles and authorization
+
+| Role                 | Main capabilities                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| Learner              | Complete assigned diagnostic, lessons, final assessment, games, and optional native practice    |
+| Teacher              | View assigned learners, review recordings, monitor progress, use reports and learning resources |
+| School administrator | Manage school users/relationships and school-level operational views                            |
+| System administrator | Manage cross-school configuration, staff, content, permissions, audit and system operations     |
+
+Authorization is layered:
+
+- Route middleware verifies the session type and broad role/permission.
+- Policies and service checks restrict resource ownership and school/teacher scope.
+- Query scoping limits which records can be listed or reported.
+- The client hides or redirects inaccessible UI, but this is convenience only.
+
+Any new endpoint must define all four: authentication type, role/permission, record ownership/scope, and safe response fields.
+
+## 13. Learner journey and progression
+
+The canonical academic journey is:
+
+1. Learner signs in.
+2. Diagnostic assessment is required before lessons.
+3. Lessons 1 through 6 become available; they are not implemented as a strict one-by-one unlock chain.
+4. Every lesson must be completed before the final assessment becomes available.
+5. The final assessment produces the ending profile and comparison data.
+
+Progress is server-owned. Client storage can help resume screens, but it must never unlock content or invent completion independently.
+
+## 14. Assessment architecture
+
+Diagnostic and final assessments share a common structure and much of the same implementation.
+
+### 14.1 Part One
+
+Part One contains:
+
+1. Orientation.
+2. Task 1A: Nu-supported letter work.
+3. Task 2A: rhyme selection.
+4. Task 2B: Mu/equivalence-supported word work.
+
+The branch threshold is:
+
+- Score `<= 6`: low branch.
+- Score `> 6`: high branch.
+
+The current `continueResult` behavior completes a low-branch assessment immediately after Part One and records score `0` with profile `Low Emerging`. This behavior is shared by diagnostic and final paths and is easy to misread if only the UI is inspected.
+
+### 14.2 Part Two
+
+The high branch continues to a passage and five comprehension questions. Reading accuracy is calculated as:
+
+```text
+accuracy = max(0, 100 - (2 × incorrectWords))
+incorrectWords is capped at 50 for this calculation
 ```
 
-## 12. Diagnostic Assessment
+The final combined score is:
 
-Diagnostic and final share part-one/part-two controllers/pages, distinguished by assessment type. AssessmentContentCatalog loads active CSV rows, sorts deterministically, and snapshots content into the run.
-
-Part one requires orientation audio (25 MB maximum), ASR readiness, and usable quality. Task 1A uses Nu; Task 2A is a rhyme choice; Task 2B uses Mu and SpeechEquivalenceResolver. A skipped task persists zero. If Task 1A ≤6, Task 2A runs, Task 2B is auto-zeroed, and the run completes after part one. Above 6, Task 2B runs, Task 2A is auto-10, and part two follows. Bands are Full Refresher ≤10, Moderate Refresher ≤16, Light Refresher ≤26, otherwise Grade Ready.
-
-## 13. Final Assessment
-
-Final access is checked against six completed lessons. Part two selects one immutable story from two entries. Passage audio is capped at 50 MB, transcribed by Mu, and aligned by Laravel equivalence; incorrect words are capped at 50 and accuracy is 100 − 2×incorrect. Five comprehension choices supply the other component. Final score is rounded 60% comprehension + 40% accuracy. Profiles are Low Emerging Reader ≤25, High Emerging ≤50, Developing ≤75, Transitioning ≤90, otherwise Reading at Grade Level.
-
-## 14. Assessment Tasks and Branching
-
-| Task | Input/interpreter              | Branch or score               |
-| ---- | ------------------------------ | ----------------------------- |
-| 1A   | Letter recording / Nu          | Controls low/high branch      |
-| 2A   | Rhyme choice / answer key      | Low branch; auto-10 on high   |
-| 2B   | Word recording / Mu + resolver | High branch; auto-zero on low |
-| 3A   | Passage / Mu + alignment       | Accuracy component            |
-| 3B   | Five choices / answer key      | Comprehension component       |
-
-LearnerAssessmentAsr maps unavailable/malformed service responses to runtime failures. Unusable audio is rejected as a client error; individual spoken items may score zero on SILENCE/UNUSABLE rather than gate the entire run.
-
-## 15. Lesson Architecture
-
-LessonContentCatalog reads active CSV content. lesson_runs contain immutable snapshots; lesson_target_exposures track presentation. lesson_responses and lesson_item_attempts preserve response, audio, transcript, evidence, and retry kind.
-
-LessonTeachingStateMachine covers listening, feedback, clue, guided retry, demonstrating, echo, review, and advancing, with up to two academic and two technical retries. Lesson 1 and 6 have custom controllers; spoken lessons use shared orchestration.
-
-## 16. Lesson 1 — Letters
-
-Route /learner/lessons/1. LearnerLessonOneController and LessonOnePage present 15 items (three missions of five). Nu decides letters. Attempts can be independent, guided, echo, technical, or skip; evidence and completion persist through lesson APIs. Letter Leader is awarded on completion.
-
-## 17. Lesson 2 — Words
-
-Route /learner/lessons/2. LearnerLessonTwoController and LessonTwoPage present two groups of five words. Mu transcribes and SpeechEquivalenceResolver determines expected-aware correctness. Shared recording, retry, persistence, and resume behavior apply.
-
-## 18. Lesson 3 — Phrases
-
-Route /learner/lessons/3. LearnerSpokenTextLessonController and SpokenTextLessonPage present five phrases. Mu, phrase equivalence, retry state, and persisted attempts provide feedback and completion.
-
-## 19. Lesson 4 — Sentences
-
-Route /learner/lessons/4. The shared spoken-text page presents five sentences. Audio validation, Mu, sentence equivalence, retry state, and server-owned completion match lessons 2–3.
-
-## 20. Lesson 5 — Short Passage
-
-Route /learner/lessons/5. The shared page presents one passage and a review/accuracy phase. It has a clear-recording terminal result, then persists Mu/alignment evidence and completion.
-
-## 21. Lesson 6 — Comprehension
-
-Route /learner/lessons/6. LearnerLessonSixController and LessonSixPage present five who/what/where/when/why choices. It is choice-only: no recorder, Mu, Nu, or audio upload. Answers and completion use the lesson run API.
-
-## 22. Content Management
-
-AssessmentContentCatalog and LessonContentCatalog read active CSV rows. New source versions affect future runs; immutable snapshots protect in-progress runs. SystemAdminLearningContentController is read-only; no academic create/edit/publish endpoint was found.
-
-TTS has a separate draft/published catalog with seeders and apps/api/scripts/publish-staged-tts-catalog.php. It publishes speech lines, not academic lesson content.
-
-## 23. Recorder Architecture
-
-AssessmentRecorder.tsx renders the recorder and useAudioRecorder.ts owns idle, recording, recorded, and playing state. getUserMedia obtains a stream; MediaRecorder collects chunks; object URLs support playback; tracks stop during cleanup. Recordings under 500 ms are rejected and optional maximum duration is enforced. Permission/playback failures are generic UI errors.
-
-Assessment pages send the Blob to the API. The API stores private audio, validates quality, calls ASR, interprets the transcript, writes response/evidence, and returns score/feedback. Failures before commit can retry; completed responses are not silently overwritten.
-
-## 24. Recorder UI Architecture
-
-AssessmentRecorder.tsx renders .assessment-recorder**control[data-state], .assessment-recorder**icon, SVG mic/play icons, a span.assessment-recorder\_\_stop-icon, labels, bars, retry, and error text. Ownership is in apps/web/src/features/assessment/assessment.css.
-
-The base control is a circular grid item with width clamp(9.6rem,42vw,11.25rem), aspect-ratio 1, four-pixel border, padding, and shadow. Icon wrapper/SVG is about 2.8rem; stop mark is 2rem. Landscape reduces the control to roughly min(25svh,7rem). Verified issue: the button centers the wrapper, but the stop child is not centered within that wrapper, so it can start upper-left in compact layouts. No fix was made.
-
-## 25. Audio Pipeline
-
-```mermaid
-flowchart LR
- Mic[Microphone] --> Blob[Browser MediaRecorder Blob]
- Blob --> API[Learner API]
- API --> Quality[Audio validation]
- Quality --> ASR[Mu/ASR]
- ASR --> Interpret[Nu or equivalence]
- Interpret --> Store[Runs/responses/attempts]
- Store --> UI[Feedback and resume]
+```text
+combined = (comprehension × 0.60) + (accuracy × 0.40)
 ```
 
-Python removes temporary ASR uploads. Laravel stores private path/hash references and evidence. No complete historical retention scheduler was found.
+Profile bands are:
 
-## 26. Audio-Quality Validation
+| Combined score | Profile       |
+| -------------: | ------------- |
+|        `<= 25` | Low Emerging  |
+|        `<= 50` | High Emerging |
+|        `<= 75` | Developing    |
+|        `<= 90` | Transitioning |
+|         `> 90` | Grade Level   |
 
-services/asr/app/audio.py decodes to 16 kHz mono and rejects audio shorter than .25 seconds, over the maximum duration, RMS below −45 dB, or mostly silent (silence ratio ≥.92). Clipping ratio ≥.01 is a warning; noise profiling can flag background noise. The service accepts wav/mp3/m4a/webm/ogg/flac and limits uploads to 25 MB; VAD is disabled.
+Part One band labels elsewhere in the system are:
 
-Orientation rejects audio_quality.usable=false. Spoken item quality does not consistently gate scoring, so SILENCE/UNUSABLE can become zero. Physical microphone quality, every browser codec, and production retention remain UNCONFIRMED.
+| Part One score | Band           |
+| -------------: | -------------- |
+|        `<= 10` | Full Refresher |
+|        `<= 16` | Moderate       |
+|        `<= 26` | Light          |
+|         `> 26` | Grade Ready    |
 
-## 27. Mu
+### 14.3 Assessment invariants
 
-services/asr/app/mu.py uses faster-whisper behind protected ASR endpoints. /live and /ready are public health checks; other requests require an internal bearer token. Uploads are bounded, temporary files are cleaned, and a single-concurrency queue limits wait and evaluation time.
+- A run snapshots its content so later content edits do not rewrite historical evidence.
+- Submitted responses and recordings belong to a specific run/task.
+- Server services compute authoritative branching, completion, and profile outcomes.
+- Automatic speech evidence can be reviewed or corrected by authorized staff where the workflow permits.
+- Retrying, abandoning, and resuming must preserve the run-state contract rather than infer state from the current screen.
 
-The current working code advertises/downloads base.en (services/asr/app/mu.py and scripts/cache-models.py) because the laptop cannot run the original large-v3-turbo. Existing model_artifacts/mu metadata/runtime-config still name large-v3-turbo; cached tiny.en and large-v3-turbo directories exist. \_local_source searches model artifacts before the .cache/faster-whisper-base.en directory, while start.ps1 sets MU_DEVICE=cpu but not MU_MODEL_PATH. The intended base.en migration is CONFIRMED, but the exact checkpoint selected by default startup is HIGH-RISK/UNCONFIRMED.
+## 15. Lesson architecture
 
-## 28. Nu
+| Lesson | Primary skill | Main interaction                             |
+| -----: | ------------- | -------------------------------------------- |
+|      1 | Letters       | Nu-assisted letter recognition/pronunciation |
+|      2 | Words         | Mu-assisted word reading                     |
+|      3 | Phrases       | Recorded phrase reading                      |
+|      4 | Sentences     | Recorded sentence reading                    |
+|      5 | Short passage | Passage reading and recording                |
+|      6 | Comprehension | 5W choice-only questions                     |
 
-Nu is deterministic logic bundled with Mu, not a second neural model. It normalizes letter-like speech, uses aliases/reviewed equivalences, and emits A–Z, SILENCE, or UNKNOWN decisions with evidence. It serves diagnostic Task 1A, Lesson 1, and the system-admin sandbox. Nu owns letter correctness; Mu supplies transcript evidence.
+Each lesson uses a server-owned run and content snapshot. Completion should be derived from required submitted tasks, not solely from route visitation or local storage. Lesson 6 differs from the recording-oriented lessons because its core response is choice-based comprehension.
 
-## 29. Transcript Processing
+Changes to lesson content, task counts, or completion logic must be evaluated against existing in-progress runs, snapshots, reports, tests, and final-assessment gating.
 
-The effective pipeline is raw audio → raw Mu transcript/segments → normalized text → expected-aware equivalence → alignment/score transcript → persisted evidence. SpeechEquivalenceResolver is authoritative for words, phrases, sentences, and passage tokens. TranscriptAlignmentService contains a second alignment implementation for pedagogical diagnosis and is DUPLICATED LOGIC; changes must be compared with the resolver.
+## 16. Learn With Clara
 
-Raw and normalized transcript/evidence JSON are retained with responses or attempts. Python comparison output is diagnostic evidence, not the final academic result.
+Learn With Clara is a guided practice area adjacent to the canonical lesson/assessment path.
 
-## 30. Scoring Architecture
+- The Letters experience includes a server-backed checkpoint.
+- Words and other practice interactions are primarily client-side practice experiences.
+- Practice UI state is not automatically equivalent to academic progress.
+- Clara voice output is obtained through the system TTS boundary rather than generated by browser speech synthesis as the canonical path.
 
-Laravel services own scoring and persistence. Task 1A uses Nu; choices use catalog answer keys; spoken tasks use SpeechEquivalenceResolver and alignment. Final scoring combines comprehension and passage accuracy in Laravel. Frontend displays derive from API responses.
+Because Learn With Clara currently has uncommitted working-tree changes, this document does not treat those edits as a stable final contract. Before changing the feature, compare the active source and tests rather than relying on this section alone.
 
-Presentation progression booleans, current_required_lesson_order, and pedagogical alignment are alternate-looking paths. They are DUPLICATED LOGIC or presentation state, not authorities.
+## 17. Recording and audio pipeline
 
-## 31. Ma'am Clara
+### 17.1 Capture
 
-Clara is a Live2D/intro experience under apps/web/src/features/intro/live2d. claraSpeech.ts and readiness hooks coordinate prompts, listening sessions, and transitions. LearnerTtsController serves fixed catalog audio and dynamic lines. Frontend stops playback before record, submit, navigation, support, and cleanup. Clara does not own scores or progression.
+The React client obtains microphone access through `getUserMedia`, records with `MediaRecorder`, provides recording state and playback controls, and uploads the resulting media to Laravel. Browser or WebView support determines the exact source encoding, so the backend and model services must not assume every device produces the same container or codec.
 
-## 32. Text-to-Speech
+### 17.2 Ingestion and persistence
 
-services/tts/main.py loads local VoxCPM2 from .cache/models/openbmb--VoxCPM2, accepts text/reference/language/profile data, and emits PCM16 WAV. References include assets/audio/voice-references/sh and sh-fil. A single queue/generation lock serializes work; cache keys include text, reference, language, and fingerprint. Fixed published audio and dynamic lines coexist. No separate acoustic-echo-cancellation profile was confirmed.
+Laravel validates the request and its academic ownership, associates the recording with the correct run/task, stores the private media artifact, and records processing metadata. Audio is private learner data and must not be exposed through an unrestricted public disk.
 
-## 33. Teacher System
+### 17.3 Processing
 
-Teacher routes support learner CRUD/import, credential creation/reset, learner detail, diagnostic/final review, analytics, reports, and private audio review. TeacherReportService scopes by teacher_id, uses latest runs, and accounts for six-lesson completion, skips, and reviews. TeacherAudioReviewController serves private/no-store audio and additive reviews; canonical_records_changed=false prevents score mutation.
+Depending on task type, Laravel sends the recording and expected content to the speech service. The response can include transcript, confidence/quality evidence, deterministic matches, and error information. Laravel interprets this evidence through its domain services and persists the result used by academic workflows.
 
-## 34. Administrator System
+### 17.4 Review
 
-School admins manage school classes, teachers, learners, insights, reports, and dashboards under school_id. System admins manage directories, settings, audit/monitoring, games/players, guests, speech sandbox/equivalence/confusion tools, and a system learner portal. Learning-content inspection is read-only; academic publish/write endpoints were not found.
+Authorized teachers can review recordings and related machine output for learners in their scope. Human review changes must remain auditable and must not mutate unrelated runs or raw evidence.
 
-## 35. API Architecture
+### 17.5 Operational concerns
 
-apps/api/routes/api.php contains approximately 154 routes grouped into these families:
+- Codec support must be tested on real target browsers and Android devices.
+- Upload limits, request timeouts, reverse-proxy limits, and model timeouts must agree.
+- Private storage needs backup, retention, deletion, and orphan-cleanup policies.
+- Database backup alone is insufficient if audio files live on ephemeral or separate storage.
+- Microphone denial, interruption, zero-length audio, poor signal, and network loss require explicit recoverable UI states.
 
-| Domain                | Representative boundary                                 | Auth/scope                               |
-| --------------------- | ------------------------------------------------------- | ---------------------------------------- |
-| Learner auth/progress | learner auth/session/dashboard controllers              | Learner session                          |
-| Assessments           | part one/two, upload, skip, complete                    | Learner run ownership                    |
-| Lessons               | start/item/respond/complete controllers                 | Learner run ownership                    |
-| Speech                | ASR client, TTS controller, sandbox/equivalence tools   | Learner, system-admin, or internal token |
-| Teacher               | learner CRUD/import/reset, reviews, reports, audio      | Teacher scope                            |
-| School admin          | school/class/teacher/learner and insights               | School scope                             |
-| System admin          | directories, settings, audit, games, content inspection | System-admin                             |
-| Health/realtime       | health and broadcast routes                             | Route-specific                           |
+## 18. ASR, Mu, and Nu
 
-Frontend API modules are contract clients; controllers delegate rules to services. Exact endpoint names should be read from routes/api.php before adding integrations.
+The FastAPI ASR service exposes two conceptual capabilities:
 
-## 36. Database Architecture
+- **Mu** uses faster-whisper to transcribe speech and support expected-word/equivalence decisions.
+- **Nu** supplies deterministic, expected-aware decisions for letter-oriented tasks rather than depending only on a free-form transcript.
 
-Identity and scope tables include staff_users, schools, learners, learner_sessions, learner_progress_states, staff_sessions, and staff_verification_codes. Academic tables include assessment_runs, assessment_responses, lesson_runs, lesson_responses, lesson_item_attempts, lesson_target_exposures, and learner_achievements. Review/reporting tables include staff_response_reviews and staff_audit_logs. Games/guests/TTS/queue tables include game_catalog, game_profiles, game_saves, guest_accounts, guest_sessions, tts_voice_versions, tts_speech_lines, jobs, and failed_jobs.
+Laravel remains the academic authority. A model-service response is not itself proof that a lesson or assessment is complete. Service-to-service requests use configured tokens, and callers need explicit handling for unavailable models, capacity exhaustion, malformed media, and timeouts.
 
-```mermaid
-erDiagram
- SCHOOLS ||--o{ STAFF_USERS : scopes
- SCHOOLS ||--o{ LEARNERS : contains
- STAFF_USERS ||--o{ LEARNERS : teaches
- LEARNERS ||--o{ ASSESSMENT_RUNS : owns
- ASSESSMENT_RUNS ||--o{ ASSESSMENT_RESPONSES : has
- LEARNERS ||--o{ LESSON_RUNS : owns
- LESSON_RUNS ||--o{ LESSON_RESPONSES : has
- LESSON_RESPONSES ||--o{ LESSON_ITEM_ATTEMPTS : records
- STAFF_USERS ||--o{ STAFF_AUDIT_LOGS : creates
- STAFF_USERS ||--o{ STAFF_RESPONSE_REVIEWS : authors
- LEARNERS ||--o{ GAME_PROFILES : owns
- GAME_PROFILES ||--o{ GAME_SAVES : stores
+Local startup defaults favor CPU compatibility (`base.en`, `int8`). Production accuracy, latency, memory, and concurrency cannot be inferred from those developer defaults. The deployed model identity and compute configuration should be versioned and recorded alongside benchmarks.
+
+## 19. Transcript processing and scoring authority
+
+Transcript handling spans multiple layers:
+
+1. The client captures media and identifies the expected academic item.
+2. Laravel validates the run, task, user, and content snapshot.
+3. ASR produces speech evidence.
+4. Laravel equivalence/alignment logic interprets that evidence against expected content.
+5. Laravel persists response-level results and recalculates run-level state.
+6. Staff review may add authorized corrections or decisions.
+
+This boundary is important: changing only a React success animation cannot change the authoritative score, and changing only ASR text normalization may not change Laravel equivalence behavior. Scoring changes require coordinated tests at both service and Laravel integration levels.
+
+## 20. Ma'am Clara and TTS
+
+The TTS service uses VoxCPM2 2.0.3 to synthesize Clara speech. Laravel brokers requests and application access; the client should not need direct model-service credentials.
+
+The repository contains approximately 600 tracked private TTS WAV artifacts. They improve repeat playback and reduce synthesis demand, but they also create storage, licensing, provenance, retention, and repository-size obligations. A production design should clarify whether these files are immutable application assets, generated cache, or learner-related records and then enforce the matching lifecycle.
+
+TTS readiness depends on more than an HTTP process being alive. Model files must exist, initialization must succeed, the device must have capacity, and a representative synthesis must complete within acceptable latency.
+
+## 21. Shared GPU coordination
+
+`services/gpu-runtime` coordinates model capacity across the ASR and TTS processes. Its purpose is to prevent independent services from assuming the same accelerator memory is simultaneously available.
+
+The package supplies cross-process locking/capacity behavior, but production limits still need measurement. Relevant dimensions include:
+
+- Cold-start and model-load time.
+- Peak GPU and system memory per model.
+- Safe concurrent requests.
+- Queueing and timeout behavior during contention.
+- Recovery after a worker or model process crashes while holding capacity.
+- CPU fallback throughput and acceptable user-facing wait time.
+
+## 22. Offline Practice
+
+Offline Practice is an Android-first, noncanonical practice subsystem. Signed-in learners can download validated practice packages and use them without a live academic API connection.
+
+The download path validates package schema, file paths, hashes, and sizes before treating content as usable. Capacitor Filesystem and File Transfer provide device storage and transfer behavior, while Network reports connectivity.
+
+Important boundaries:
+
+- It is practice, not an offline clone of assessments or lessons.
+- It does not award official completion, progression, or assessment scores.
+- It does not synchronize offline academic attempts after reconnection.
+- Package identity/version must be preserved so files are not mixed across releases.
+- Downloads need sufficient storage, interruption handling, integrity failure states, and cleanup behavior.
+- Access to download packages is still tied to a signed-in learner.
+
+If future work adds offline academic sync, that is a new distributed-data feature requiring conflict rules, idempotent server APIs, attempt identity, clock-independent ordering, revocation handling, and migration/version compatibility.
+
+## 23. Educational games
+
+Three games are active:
+
+| Package      | Learner-facing identity | Engine | Status                |
+| ------------ | ----------------------- | ------ | --------------------- |
+| `game-alpha` | Space Letter            | PixiJS | Active                |
+| `game-one`   | Readscape               | KAPLAY | Active                |
+| `game-two`   | Ottertale               | PixiJS | Active                |
+| `game-zero`  | Placeholder/legacy      | Varies | Dormant route/package |
+
+Games run inside the broader learner application but retain their own rendering loops, assets, input handling, and tests. Their integration must respect authenticated learner context, navigation back to the application, viewport/safe-area behavior, audio lifecycle, and any server progress contract.
+
+Game Zero should not be described as an active learner feature. Removing it safely requires checking routes, imports, build/package references, tests, and documentation together.
+
+## 24. Teacher portal
+
+The teacher portal provides an assigned-learner view rather than unrestricted school data. Its main domains are:
+
+- Roster and learner status.
+- Diagnostic, lesson, and final progress.
+- Recording review and machine-output inspection.
+- Reports and exports.
+- Notifications/realtime updates.
+- Learning resources and supporting content.
+
+Teacher mutations must enforce assignment and school scope in Laravel. A learner identifier supplied by the browser is never sufficient authorization.
+
+## 25. School-administrator portal
+
+School administrators operate within a school boundary. Their responsibilities include school-scoped staff and learner administration, relationship/assignment management, and school-level operational views. Cross-school records must be excluded at query and policy level, not merely hidden in the interface.
+
+Changes to school membership can affect authentication, teacher visibility, reports, historical ownership, and active sessions. Destructive or reassignment operations therefore need explicit validation and audit records.
+
+## 26. System-administrator portal
+
+System administrators manage cross-school concerns, including staff, schools, roles/permissions, content, audits, and system-level operational data. These are high-impact routes and should have the strongest authorization, validation, audit, and confirmation controls.
+
+Content changes must preserve historical assessment/lesson snapshots. Editing current content must not silently rewrite what a learner previously saw or how an existing run is interpreted.
+
+## 27. Realtime behavior
+
+Laravel Reverb supports staff-facing notifications and live updates. Realtime is an enhancement to persisted state, not the system of record: after a missed event or reconnect, the client must be able to refetch current Laravel state.
+
+The browser path derives realtime connection information from the current host. The Android app can use a separately configured API origin, so current-host assumptions may point the WebView at the wrong server. Native staff/realtime support remains unconfirmed until origin, TLS/WSS, authentication, reconnect, and background/foreground behavior are verified on a packaged app.
+
+## 28. Content model
+
+Academic content is managed centrally and consumed through run snapshots. The core rule is immutability of historical context:
+
+- A new run selects current eligible content.
+- The run stores or references a stable snapshot/version.
+- Learner responses point to the run/task evidence.
+- Later administrative edits affect future selection, not completed history.
+
+Content-management changes must account for media references, ordering, active/inactive state, validation, duplicate identifiers, assessment and lesson consumers, TTS artifacts, and existing in-progress runs.
+
+## 29. Database architecture
+
+The Laravel schema is the relational source of truth. The repository currently has 35 migrations and 27 models covering these broad domains:
+
+- Users, roles, permissions, schools, staff devices, and sessions.
+- Learners, teacher assignments, enrollment, and guest-related records.
+- Academic content and version/snapshot relationships.
+- Diagnostic and final assessment runs, tasks, responses, and results.
+- Lesson runs, activities, progress, and completion.
+- Recordings, transcripts, reviews, and scoring metadata.
+- Notifications, reports, audit/operational records, and supporting data.
+
+Production is oriented toward PostgreSQL; local development can use SQLite. SQLite success is not proof of PostgreSQL correctness because constraints, JSON behavior, indexes, types, concurrency, and SQL features differ.
+
+The tracked `apps/api/database/database.sqlite` file is a repository hygiene and privacy risk. It remains tracked despite ignore rules and was modified in the reviewed working tree. Its values were intentionally not inspected for this documentation task. The team should determine whether it contains only disposable fixtures, remove it from version control if appropriate, and rotate any exposed secrets or personal data following an approved process.
+
+## 30. Persistence and resume behavior
+
+Authoritative persisted state includes sessions, content versions/snapshots, assessment and lesson runs, responses, recordings, model results, reviews, completion, profiles, and staff/audit records.
+
+Client-side state includes current screen, unsubmitted interaction state, cached API responses, playback/recording UI state, and selected presentation preferences. Native encrypted storage additionally holds the Android session token, and Offline Practice stores validated packages.
+
+Resume behavior must follow these rules:
+
+- Reload from the latest server run rather than reconstructing academic truth from a route.
+- Do not create a duplicate run when an eligible in-progress run already exists.
+- Do not resubmit an already accepted response without an idempotency/retry contract.
+- Handle expired/revoked sessions before attempting protected resume calls.
+- Treat local cache as stale after account changes, logout, or package version changes.
+
+## 31. Security and privacy
+
+### 31.1 Security controls present in the design
+
+- Separate learner and staff session models.
+- HttpOnly browser credentials and encrypted Android bearer storage.
+- Absolute/idle session lifetimes, concurrency limits, revocation, and throttling.
+- Role, permission, ownership, assignment, and school scoping.
+- Staff device verification and email-verification workflows.
+- Private media access through authorized application paths.
+- Service tokens between Laravel and Python services.
+- Input validation and server-owned score/progression rules.
+- Audit-oriented records for sensitive staff actions.
+
+### 31.2 High-priority security work
+
+- Confirm production cookie flags, CORS allowlists, trusted proxies, HTTPS, and WSS.
+- Store production secrets outside repository files and rotate staging/development tokens before deployment.
+- Remove or formally sanitize the tracked SQLite database.
+- Define private-audio encryption, retention, deletion, backup, and restore behavior.
+- Verify Android backup policy and device-session key handling.
+- Threat-model exports, ID enumeration, school-boundary queries, and recording delivery.
+- Limit model-service access to authenticated internal callers and bound upload/time/resource use.
+- Add dependency and secret scanning to CI.
+
+### 31.3 Research and child-data governance
+
+The application processes learner identity, educational performance, and voice recordings. Technical tables alone do not establish a lawful research or school deployment process. Before real participant use, define and implement:
+
+- Consent/assent and withdrawal status.
+- Purpose limitation and data-minimization rules.
+- Retention schedules for raw audio, derived transcripts, scores, exports, and backups.
+- Deidentification/pseudonymization for research datasets.
+- Authorized export workflow and audit trail.
+- Deletion and correction procedures across database, files, replicas, and backups.
+- Incident response and access-review responsibilities.
+
+These requirements need project/legal/institutional approval; they cannot be inferred from code alone.
+
+## 32. Configuration
+
+Configuration spans multiple trust zones:
+
+- React build-time variables for API/public origins and client behavior.
+- Laravel environment for database, session, cache, queue, mail, Reverb, storage, and Python-service endpoints/tokens.
+- ASR environment for model identity, quantization, device, capacity, and service authentication.
+- TTS environment for model paths, device/capacity, cache/output, and authentication.
+- Android build/runtime configuration for API origin, permissions, cleartext/TLS policy, package identity, and signing.
+- Cloudflare/reverse-proxy configuration for public routing and trusted forwarded headers.
+
+Never assume an `.env.example` value is production-safe. A deployable configuration inventory should state which component owns each variable, whether it is secret, its allowed values, default behavior, and whether it is required at build time or runtime.
+
+## 33. Deployment and operational readiness
+
+### 33.1 Current local/staging posture
+
+The repository provides a strong developer launcher and a Cloudflare-backed staging helper. Docker-related material exists, but the reviewed setup does not yet demonstrate a complete production topology.
+
+### 33.2 Confirmed gaps
+
+- Model directories are excluded by `.dockerignore`, so a built model-service image will not contain required weights unless another provisioning mechanism supplies them.
+- Private learner audio does not have a documented durable production volume/object-store and restore plan.
+- The API container/process approach relies on `artisan serve`, which is a development server rather than a production PHP serving topology.
+- Separate production supervision/topology for API, queue workers, scheduler, and Reverb is not fully defined.
+- A clean PostgreSQL migration plus backup/restore rehearsal has not been evidenced.
+- Production CORS, trusted proxy, HTTPS/WSS, domain, mail, storage, and Python-service network settings are not finalized.
+- ASR/TTS/GPU memory, latency, concurrency, and timeout budgets are not benchmarked.
+- Readiness endpoints can return HTTP 200 while their body reports `not_ready`; orchestration must inspect semantics or the endpoints should use failing status codes.
+- No tracked CI/CD workflow was found.
+
+### 33.3 Minimum production topology
+
+A production deployment should explicitly provide:
+
+1. Static web hosting or a production frontend server.
+2. A production PHP runtime/web server for Laravel.
+3. PostgreSQL with managed backups and restore verification.
+4. Durable private object/file storage for learner audio.
+5. Supervised queue workers and scheduler.
+6. Reverb behind correctly configured secure WebSockets.
+7. Authenticated ASR and TTS services with provisioned models.
+8. Shared GPU coordination where services share hardware.
+9. Central logs, metrics, alerting, and request correlation.
+10. Secret management, TLS, network policy, and disaster-recovery procedures.
+
+See [Pre-deployment Hosting Audit](./PRE_DEPLOYMENT_HOSTING_AUDIT.md) for the focused hosting checklist.
+
+## 34. Testing architecture
+
+The repository contains approximately:
+
+| Suite                      | Count observed | Main focus                                         |
+| -------------------------- | -------------: | -------------------------------------------------- |
+| Laravel tests              |             70 | API, services, authorization, academic behavior    |
+| Web unit/integration tests |            104 | Components, hooks, client contracts, feature logic |
+| Playwright specifications  |             11 | Browser end-to-end paths                           |
+| Python test modules        |              8 | ASR/TTS/runtime behavior                           |
+| Game tests                 |             24 | Game rules and integration behavior                |
+
+Counts are repository-shape indicators, not coverage percentages. High-value end-to-end scenarios still requiring explicit production-like evidence include:
+
+- A new learner from diagnostic through all lessons and final assessment.
+- Low-branch and high-branch assessment behavior.
+- Session expiry/revocation during recording or submission.
+- Teacher review with strict assignment/school boundaries.
+- Real-device Android login, microphone, upload, playback, downloads, and reconnect.
+- Reverb reconnect and stale-data recovery.
+- ASR/TTS overload, timeout, and model-unavailable behavior.
+- PostgreSQL clean install, upgrade, backup, and restore.
+
+One focused mobile test currently conflicts with the Android manifest: `OfflinePracticeAndroidBackup.test.ts` forbids `MODIFY_AUDIO_SETTINGS`, while the manifest declares it. Resolve whether the permission or the test expresses the intended product policy before treating the mobile suite as fully green.
+
+## 35. Logging, errors, and observability
+
+Laravel, Vite/browser, Python services, queue workers, Reverb, and Android each produce separate failure signals. Production support needs correlation across them.
+
+Recommended minimum fields are request/correlation ID, authenticated actor ID and role where safe, run/task ID, service/model version, latency, outcome category, and retryability. Do not log session tokens, raw passwords, complete personal exports, or raw learner audio payloads.
+
+User-facing errors should distinguish:
+
+- Permission or session failure.
+- Connectivity interruption.
+- Microphone/codec/capture failure.
+- Invalid or too-low-quality recording.
+- Model service busy/unavailable.
+- Server validation conflict.
+- Safe retry versus action requiring restart or staff help.
+
+Health endpoints should separately represent process liveness and dependency/model readiness.
+
+## 36. Representative end-to-end flows
+
+### 36.1 Browser learner login
+
+```text
+Credentials → Laravel throttle/authenticate → server learner session
+→ HttpOnly cookie → client session snapshot → protected learner routes
 ```
 
-JSON snapshots/evidence, transcript text, audio paths/hashes, scores, identity fields, and audit metadata are sensitive. staff_response_reviews is polymorphic (response_kind/response_id) without a conventional foreign key. LearnerProgressResetService deletes audio paths from assessment/lesson response rows but does not enumerate historical lesson_item_attempts.audio_path, creating a HIGH-RISK orphan-retention possibility.
+### 36.2 Android learner login
 
-## 37. Authoritative Ownership Matrix
+```text
+Credentials → Laravel authenticate → opaque native session token
+→ encrypted Capacitor storage → Authorization header on API requests
+→ protected learner routes
+```
 
-| Concern                       | Authoritative owner                       | Main implementation                                   | Persistence                    |
-| ----------------------------- | ----------------------------------------- | ----------------------------------------------------- | ------------------------------ |
-| Authentication                | Session controllers/resolvers             | LearnerSessionResolver, StaffSessionResolver          | Session tables + browser token |
-| Authorization                 | Middleware and scoped services            | RequireStaffRole and controllers                      | Request context                |
-| Learner profile               | Learner model/services                    | learner controllers                                   | learners                       |
-| Academic progression          | Reading-path/access services              | LearnerReadingPathService and access services         | progress/runs                  |
-| Assessment run                | Assessment run service                    | assessment controllers/services                       | assessment_runs                |
-| Assessment scoring            | Laravel scoring/equivalence               | SpeechEquivalenceResolver                             | response score/evidence        |
-| Lesson completion             | Lesson completion service                 | LearnerLessonCompletionService                        | lesson_runs                    |
-| Content                       | Catalog loaders and snapshots             | AssessmentContentCatalog, LessonContentCatalog        | CSV + snapshot JSON            |
-| Recorder state                | React hook/component                      | useAudioRecorder, AssessmentRecorder                  | Browser memory                 |
-| Audio                         | API/private filesystem + ASR temp handler | ASR client/service                                    | path/hash and temporary        |
-| Audio quality                 | Python validator + Laravel gate           | audio.py and assessment service                       | quality evidence               |
-| Raw transcript                | ASR result                                | services/asr                                          | response/attempt evidence      |
-| Normalized/scoring transcript | Resolver/alignment                        | SpeechEquivalenceResolver, TranscriptAlignmentService | response evidence              |
-| Mu/Nu                         | Python service                            | mu.py and deterministic Nu                            | model cache/decision evidence  |
-| Clara/TTS                     | React orchestration + TTS service         | claraSpeech.ts, services/tts/main.py                  | catalog/cache                  |
-| Research data                 | No dedicated subsystem confirmed          | operational response/report tables                    | Operational data only          |
+### 36.3 Recorded academic task
 
-## 38. Frontend State Management
+```text
+Load server run/snapshot → request microphone → record/play back
+→ upload to authorized Laravel task → private file + metadata
+→ ASR/Nu processing → Laravel equivalence/scoring
+→ persist response/run progress → client refetches authoritative state
+```
 
-TanStack Query owns server cache freshness and invalidation. React context owns theme, staff lifecycle, and realtime. Assessment/lesson components own current item, recorder state, retry phase, local errors, and playback. Session snapshots bridge browser storage to the API but do not authorize requests. XState is a dependency with no runtime imports found: POSSIBLY UNUSED.
+### 36.4 Teacher review
 
-## 39. Persistence and Resume Behavior
+```text
+Staff session/device verification → scoped learner/run query
+→ authorized private recording delivery → review decision
+→ audit/persist update → report and realtime invalidation
+```
 
-| State/data                     | Memory        | Browser storage | Server/DB                | Refresh          | Device change       |
-| ------------------------------ | ------------- | --------------- | ------------------------ | ---------------- | ------------------- |
-| Recorder stream/chunks         | Yes           | No              | No until upload          | Lost             | Lost                |
-| Learner token/snapshot         | No after load | sessionStorage  | Hashed session           | Same tab resumes | New login           |
-| Remembered staff token         | No after load | localStorage    | Staff session/device     | Resumes          | Device dependent    |
-| Assessment run/content         | No            | No              | assessment_runs snapshot | Resumes          | Resumes after login |
-| Lesson attempts/audio/evidence | No            | No              | lesson tables            | Resumes          | Resumes             |
-| Query cache                    | Yes           | No              | API source               | Refetches        | Refetches           |
-| TTS cache                      | No            | No              | TTS filesystem           | Host-persistent  | Host dependent      |
+### 36.5 Offline Practice
 
-## 40. Research Data
+```text
+Signed-in Android learner → fetch package manifest
+→ download files → validate schema/path/hash/size
+→ store native package → practice offline
+→ no academic completion or score sync
+```
 
-Research language and operational evidence exist in assessment/lesson responses, attempts, transcripts, audio references, staff reviews, and reports. No participant, consent, de-identification, study-arm, research-export, or CRLA-specific schema/API was found. Such requirements are UNCONFIRMED and are not presented as implemented.
+## 37. Ownership matrix
 
-## 41. Privacy and Security Architecture
+| Concern                        | Authoritative owner                            | Non-authoritative consumers/caches                  |
+| ------------------------------ | ---------------------------------------------- | --------------------------------------------------- |
+| Identity and session validity  | Laravel/database                               | React session presentation, Android encrypted token |
+| Roles and permissions          | Laravel/database                               | Route visibility                                    |
+| Academic content               | Laravel/database                               | Query cache, run snapshot consumers                 |
+| Historical run content         | Persisted run snapshot                         | Current content editor/UI                           |
+| Assessment branching and score | Laravel services                               | React feedback, reports                             |
+| Lesson completion              | Laravel services/database                      | Learner dashboard cache                             |
+| Raw recording                  | Private server storage + database reference    | Temporary browser blob/playback                     |
+| Transcript/model evidence      | Python result persisted/interpreted by Laravel | Review UI                                           |
+| Human review                   | Authorized Laravel workflow                    | Report/query caches                                 |
+| Clara audio                    | TTS plus Laravel/private artifact policy       | Browser playback/cache                              |
+| Realtime state                 | Persisted Laravel data                         | Reverb event stream                                 |
+| Offline Practice package       | Validated Android local files                  | Download UI                                         |
+| Offline Practice activity      | Device-local only                              | No academic consumer                                |
 
-Hashed tokens, password/dummy hashes, backend object/role checks, private/no-store audio, internal service tokens, size limits, security headers, rate limiting, and staff audit logging are CONFIRMED. Risks include indefinite historical audio references, remembered staff tokens in localStorage, weaker login limiter symmetry than learner codes, deferred upload content validation, same-origin/CORS assumptions, and polymorphic reviews without foreign keys. This is an architecture summary, not a penetration test.
+## 38. Risk register
 
-## 42. External Services
+| Priority | Risk                                                         | Why it matters                                            | Required direction                                    |
+| -------- | ------------------------------------------------------------ | --------------------------------------------------------- | ----------------------------------------------------- |
+| Critical | Tracked modified SQLite database                             | Possible secrets or learner data in version history       | Classify, sanitize/remove safely, rotate if necessary |
+| Critical | No durable private-audio plan                                | Database restore could leave academic evidence missing    | Provision storage, backup, restore, retention         |
+| Critical | Incomplete production topology                               | Development processes are not resilient or secure hosting | Define and rehearse deployment architecture           |
+| High     | Model weights excluded from images                           | ASR/TTS can start without being operational               | Provision/version models and test readiness           |
+| High     | PostgreSQL lifecycle unproven                                | Local SQLite may hide migration/query failures            | Clean migration and restore rehearsal                 |
+| High     | Network/auth/TLS config unfinished                           | Browser, Android, Reverb, and services may disagree       | Produce environment matrix and integration tests      |
+| High     | No ML capacity benchmarks                                    | Recording/Clara requests may time out under use           | Benchmark and set concurrency/backpressure            |
+| High     | Research governance not implemented                          | Voice and child education data are sensitive              | Approve consent, retention, export, deletion controls |
+| Medium   | Readiness returns 200 when not ready                         | Orchestrators may route traffic too early                 | Correct probe status/semantics                        |
+| Medium   | Staff Android/realtime assumptions                           | Packaged staff UI may call wrong origins                  | Declare unsupported or implement/test native config   |
+| Medium   | Audio retention and orphan files                             | Storage growth and privacy exposure                       | Add lifecycle jobs and reconciliation                 |
+| Medium   | Polymorphic review relationships lack database FK guarantees | Orphans/type mismatch can evade relational checks         | Add service validation and integrity auditing         |
+| Medium   | PWA dependencies are unwired                                 | Browser offline/install claims could be misleading        | Finish service-worker design or remove claims/deps    |
+| Low      | XState appears unused                                        | Dependency and conceptual overhead                        | Confirm and remove or document usage                  |
+| Low      | Dual JS lockfiles and tracked temp/output artifacts          | Reproducibility and repository noise                      | Standardize tooling and clean generated files         |
 
-Confirmed dependencies are local ASR, local TTS, Laravel queue/Reverb, and the browser microphone. Names include MU_DEVICE, MU_MODEL_PATH, ASR/TTS base URLs, internal service tokens, queue/reverb variables, database settings, and application/Vite URLs. Secret values are omitted. cstart.ps1 exposes Vite through Cloudflare staging only; no external cloud speech provider was confirmed.
+## 39. Change-risk guide
 
-## 43. Configuration
+| Change area            | Also inspect                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| Login/session behavior | Browser cookies, Android encrypted storage, guards, throttles, device records, logout/revocation tests |
+| Assessment scoring     | Both diagnostic/final services, branch thresholds, reports, profiles, snapshots, tests                 |
+| Lesson completion      | Run state, required task count, dashboard, final gate, reports, resume tests                           |
+| Recording UI           | MediaRecorder codecs, permissions, upload validation, ASR inputs, retries, private storage             |
+| ASR/Mu/Nu              | Python contract, Laravel client/equivalence, model config, timeouts, fixtures                          |
+| Clara/TTS              | Laravel broker, Python model, generated audio lifecycle, GPU lock, playback UI                         |
+| Content schema         | Admin validation, snapshots, in-progress runs, reports, TTS/media references                           |
+| Staff data views       | Policies, school/assignment scopes, exports, realtime channels, audit                                  |
+| Android API origin     | Auth transport, downloads, private media, Reverb, TLS/network policy                                   |
+| Games                  | Host route, engine lifecycle, assets, viewport/input, learner progress contract                        |
+| Database migration     | SQLite and PostgreSQL, indexes/FKs, backfill, rollback/restore, models/tests                           |
 
-Inspect .env.example, apps/api/config, Vite environment usage, services/asr settings, services/tts settings, and start.ps1. Important variable names are APP*ENV, APP_URL, DB*_, queue/broadcast variables, ASR\__, TTS\_\*, MU_DEVICE, MU_MODEL_PATH, internal bearer tokens, and Vite public API/realtime URLs. Never document local secret values.
+## 40. Development and verification commands
 
-## 44. Testing Architecture
+From the repository root in PowerShell:
 
-apps/api/tests contains 66 Laravel test files; web tests number 84 with eight Playwright E2E suites; ASR has three test areas and TTS two. Targeted verification passed 38 Laravel tests/303 assertions, 11 assessment component tests, 19 ASR tests, and 20 TTS tests. Broad web and Composer runs timed out without output. php artisan test is not defined; Composer/PHPUnit is the entry point.
+```powershell
+# Bootstrap dependencies and local prerequisites
+.\scripts\bootstrap.ps1
 
-Game One has substantial tests, Game Alpha has a small suite, and Game Zero has no local package test suite. Important gaps are real Mu checkpoint accuracy, real VoxCPM generation, recorder permissions/MIME across browsers, physical devices/WebViews, retention/reset cleanup, and a complete green full-suite run.
+# Start/stop local full stack
+.\start.ps1
+.\stop.ps1
 
-## 45. Error Handling
+# Start/stop Cloudflare staging helper
+.\cstart.ps1
+.\cstop.ps1
 
-API helpers parse generic error envelopes. Staff 401 clears staff state; learner dashboard errors clear stale activity, while activity pages may show generic errors. Recorder denial, short recordings, playback, ASR malformed/unavailable, TTS readiness, missing content, and transaction failures have separate paths. Runs resume when an open server run exists; failures before commit can retry.
+# Web checks
+corepack pnpm --filter @readirect/web lint
+corepack pnpm --filter @readirect/web typecheck
+corepack pnpm --filter @readirect/web test
+corepack pnpm --filter @readirect/web build
 
-## 46. Logging and Audit
+# Laravel checks (run in apps/api)
+composer test
+vendor/bin/pint --test
 
-staff_audit_logs records staff security and administrative actions. Python services write process logs; local launcher output is under .runtime/logs. No centralized Laravel retention configuration was confirmed. Sandbox/service outputs can include transcript text and audio references, so logs are sensitive.
+# Python service checks (run in the applicable service)
+uv run pytest
+uv run ruff check .
 
-## 47. Responsive Architecture
+# Android debug build against staging
+.\scripts\mobile-cloudflare-build.ps1 `
+  -ApiOrigin "https://staging.readirect.org" `
+  -SkipInstall
+```
 
-The shell uses viewport-fit=cover, safe-area insets, hidden overflow in several shells, fixed controls, and 100vh/100svh combinations. Assessment CSS uses clamp sizing and short-height landscape rules. System Chrome checks covered desktop, laptop, tablet landscape/portrait, and phone portrait/landscape: public pages had no horizontal overflow, but phone-landscape public/home and learner-login pages exceeded short height and learner-login controls can be offscreen. The mocked assessment speech page had no horizontal overflow. No physical-device certification is claimed.
+Run the smallest relevant tests while developing, then the affected suite and production build before handoff. Database, auth, academic progression, or deployment changes warrant broader validation.
 
-## 48. Phone / Standalone Mode
+## 41. Important source files
 
-Repository evidence supports normal browser operation only. No manifest, service-worker registration, standalone display mode, Capacitor/Cordova/WebView/TWA wrapper, or fullscreen host was confirmed; PWA/Workbox dependencies are unwired. There is no separate phone/standalone code path. Actual deployment host behavior remains UNCONFIRMED.
+| Domain              | Starting points                                               |
+| ------------------- | ------------------------------------------------------------- |
+| Client routes       | `apps/web/src/App.tsx`                                        |
+| Web API transport   | `apps/web/src/lib/api.ts` and adjacent session/auth modules   |
+| Learner features    | `apps/web/src/features`                                       |
+| Android project     | `apps/web/android` and Capacitor configuration                |
+| API routes          | `apps/api/routes/api.php`                                     |
+| Controllers         | `apps/api/app/Http/Controllers`                               |
+| Domain services     | `apps/api/app/Services`                                       |
+| Policies/middleware | `apps/api/app/Policies`, `apps/api/app/Http/Middleware`       |
+| Models/migrations   | `apps/api/app/Models`, `apps/api/database/migrations`         |
+| Queue jobs/events   | `apps/api/app/Jobs`, events/listeners/broadcast configuration |
+| ASR/Mu/Nu           | `services/asr/app`                                            |
+| TTS                 | `services/tts`                                                |
+| GPU coordination    | `services/gpu-runtime`                                        |
+| Games               | `games/game-alpha`, `games/game-one`, `games/game-two`        |
+| Lifecycle scripts   | `start.ps1`, `stop.ps1`, `cstart.ps1`, `cstop.ps1`, `scripts` |
+| Compatibility       | `docs/BROWSER_AND_MOBILE_COMPATIBILITY.md`                    |
+| Hosting readiness   | `docs/PRE_DEPLOYMENT_HOSTING_AUDIT.md`                        |
 
-## 49. Legacy / Duplicate / Possibly Unused Code
+## 42. Verified, inferred, and unconfirmed areas
 
-| Area                            | Status                | Evidence                                           | Risk                         |
-| ------------------------------- | --------------------- | -------------------------------------------------- | ---------------------------- |
-| current_required_lesson_order   | LEGACY                | Backend allows independent lessons                 | False sequencing can return  |
-| Frontend progression fallbacks  | DUPLICATED LOGIC      | Derived menu booleans                              | UI/server disagreement       |
-| Mu metadata versus base.en code | HIGH-RISK AREA        | Large-v3-turbo metadata and base.en loader coexist | Wrong checkpoint             |
-| Transcript alignment            | DUPLICATED LOGIC      | Resolver plus alignment service                    | Drift in score/feedback      |
-| Lesson orchestration            | DUPLICATED LOGIC      | Custom lessons plus shared controller              | Inconsistent fixes           |
-| XState                          | POSSIBLY UNUSED       | No runtime imports                                 | Misleading architecture      |
-| PWA/Workbox                     | POSSIBLY UNUSED       | No manifest/service worker                         | Do not call app PWA          |
-| Game Zero                       | PARTIALLY IMPLEMENTED | Route/UI placeholder and dormant metadata          | Bounded removal needed       |
-| Guest foundation                | PARTIALLY IMPLEMENTED | Tables/routes, no public login                     | Unsupported-flow assumptions |
+### Verified from repository source and tests
 
-## 50. Important End-to-End Flows
+- Four primary roles and their separated portal architecture.
+- Diagnostic → six lessons → final learner journey.
+- Assessment branch thresholds, weighting, and profile bands described above.
+- Separate browser-cookie and Android-bearer session transports.
+- Android Offline Practice package validation and noncanonical status.
+- Three active games plus dormant Game Zero.
+- Laravel/Reverb/queue and ASR/TTS local process layout.
+- Current repository and test-suite shape counts.
 
-1. Learner login: browser submits code → Laravel normalizes/checks learner → hashed session token → dashboard requests.
-2. Diagnostic: start/snapshot catalog → orientation quality gate → Nu and branch tasks → persist score → expose lessons.
-3. Spoken lesson: start/resume run → record Blob → upload → quality/ASR/Mu → expected-aware equivalence → persist attempt → retry/feedback → complete.
-4. Final: verify six lesson keys → snapshot story → passage alignment + comprehension → combine score/profile → complete.
-5. Teacher review: scoped report/audio request → private audio or additive review → audit without canonical mutation.
-6. Clara: stop conflicting playback → request fixed/dynamic TTS → cached/generated WAV → playback → cleanup.
+### Inferred from implementation structure
 
-## 51. Known Remaining Work
+- Staff experiences are intentionally browser-first.
+- Run snapshots are designed to preserve historical academic content.
+- Realtime events are refresh hints rather than authoritative state.
+- GPU coordination is meant for colocated/shared accelerator deployment.
 
-### 51.1 Remove Game Zero
+### Unconfirmed without deployment or real-device evidence
 
-Game Zero has a frontend route/skeleton and dormant catalog/metadata references; no active academic backend or dedicated model was found. Future removal should inventory web game routes/components, navigation/tests, and system-admin metadata, then delete only dead references. Database impact appears none beyond dormant catalog rows. Estimated small-to-medium scope; MEDIUM risk.
+- Complete supported-browser and Android device/version matrix.
+- Production microphone codec compatibility and long-recording limits.
+- Native staff portal and Reverb behavior.
+- ASR/TTS accuracy, latency, and concurrency at target load.
+- Production storage durability, disaster recovery, and database restore time.
+- Gmail deliverability and production domain configuration.
+- Accessibility compliance under assistive technology, zoom, and text scaling.
+- Formal consent, retention, deidentification, and research-export governance.
 
-### 51.2 Recorder Button Shape
+## 43. System health summary
 
-AssessmentRecorder and shared assessment.css affect diagnostic, final, and spoken lessons. The safe boundary is local clamp/aspect-ratio/short-height CSS and component measurements. A global redesign is HIGH risk because all recorder consumers share it.
+### Strong foundations
 
-### 51.3 Stop Icon Centering
+- Clear separation between React presentation, Laravel academic authority, and Python model services.
+- Rich server-owned assessment/lesson persistence and role-specific portals.
+- Explicit browser versus Android authentication paths.
+- Content snapshots and review/reporting concepts suited to longitudinal learner evidence.
+- Broad automated-test footprint across the API, web, Python services, and games.
 
-The verified root cause is the centered button/grid wrapper combined with an uncentered fixed-size stop child. Compact wrappers can be smaller than the stop mark. Future correction should remain within recorder markup/icon wrapper/CSS; no API, scoring, or state change is necessary.
+### Fragile or highly coupled areas
 
-### 51.4 Phone / Standalone Responsiveness
+- Recording → storage → ASR → equivalence → score → report pipeline.
+- Diagnostic/final shared branching and scoring behavior.
+- Session behavior across cookie and native bearer transports.
+- Content changes that interact with snapshots and in-progress runs.
+- Deployment origins across HTTPS API, WSS realtime, private media, Android, and Python services.
 
-Observed issues are short-height browser layouts, chiefly public/home and learner-login in phone landscape, not a confirmed standalone shell. First identify the real host, then inspect route-specific overflow, fixed controls, svh/dvh, safe areas, keyboard resize, and orientation. Keep local fixes separate from shared recorder rules.
+### Partially implemented or operationally incomplete
 
-## 52. Change-Risk Map
+- Production deployment and CI/CD.
+- Durable media/model provisioning.
+- Browser PWA behavior.
+- Native staff/realtime support.
+- Research data governance.
+- Capacity and disaster-recovery validation.
 
-| Risk      | Areas                                                                  | Reason                                                    |
-| --------- | ---------------------------------------------------------------------- | --------------------------------------------------------- |
-| VERY HIGH | Sessions, authorization, progression, scoring, equivalence, migrations | Changes access, academic results, or historical data      |
-| HIGH      | Recorder CSS, Mu resolution, audio retention, transcript alignment     | Cross-screen, model, privacy, or duplicated-logic effects |
-| MEDIUM    | Catalogs, TTS publication, reports, responsive shells                  | Snapshot/report/UI compatibility                          |
-| LOW       | Isolated read-only documentation/inspection                            | No canonical data when isolated                           |
+### Legacy or cleanup candidates
 
-## 53. Important Files by Domain
+- Game Zero.
+- Guest schema without a public flow.
+- Potentially unused XState dependency.
+- Duplicate JavaScript lockfiles.
+- Tracked SQLite and generated/temp artifacts.
 
-| Domain      | Primary files                                 | Related files                |
-| ----------- | --------------------------------------------- | ---------------------------- |
-| Startup     | start.ps1, main.tsx, bootstrap/app.php        | stop.ps1, cstart.ps1         |
-| Auth        | learner/staff auth controllers and resolvers  | learnerApi.ts, staffApi.ts   |
-| Progression | reading-path/access/completion services       | App.tsx                      |
-| Assessments | assessment controllers/services/catalogs      | assessment pages/tests       |
-| Lessons     | lesson controllers and state machine          | lesson pages/catalog         |
-| Recorder    | AssessmentRecorder.tsx, useAudioRecorder.ts   | assessment.css               |
-| ASR/Mu/Nu   | services/asr/main.py, app/mu.py, app/audio.py | cache-models.py              |
-| TTS/Clara   | services/tts/main.py, claraSpeech.ts          | TTS controller/catalog       |
-| Staff/admin | scoped controllers/services                   | route middleware/API modules |
-| Database    | migrations/models                             | reset/report services        |
+## 44. Maintenance rule
 
-## 54. Future-Agent Navigation Guide
-
-| If changing...     | Start here                          | Also inspect                        | Risk        |
-| ------------------ | ----------------------------------- | ----------------------------------- | ----------- |
-| Authentication     | session controllers/resolvers       | middleware, migrations, API clients | VERY HIGH   |
-| Authorization      | RequireStaffRole/scoped controllers | policies, services, routes          | VERY HIGH   |
-| Progression        | reading-path/access services        | dashboard/menu derivations          | VERY HIGH   |
-| Diagnostic/final   | assessment services/controllers     | pages, catalogs, tests              | VERY HIGH   |
-| Lessons            | state machine/controller            | each lesson page/catalog            | HIGH        |
-| Content            | catalog loaders/seeders             | snapshot schema                     | MEDIUM      |
-| Recorder           | component/hook                      | assessment.css, all consumers       | HIGH        |
-| Audio              | ASR client/audio.py                 | limits, temp cleanup, tests         | HIGH        |
-| Mu/Nu              | mu.py and deterministic logic       | cache script, metadata, launcher    | VERY HIGH   |
-| Transcript/scoring | resolver/alignment                  | report consumers/tests              | VERY HIGH   |
-| Clara/TTS          | claraSpeech.ts and TTS service      | catalog/cache                       | HIGH        |
-| Teacher/admin      | scoped services/controllers         | middleware/reports                  | HIGH        |
-| Database           | migrations/models                   | reset/report services               | VERY HIGH   |
-| Responsive         | owning page/CSS                     | shared shells/browser checks        | MEDIUM/HIGH |
-| Phone/standalone   | deployment host first               | viewport/safe-area CSS              | HIGH        |
-| Game Zero          | route/catalog references            | navigation/tests/admin metadata     | MEDIUM      |
-
-## 55. Unconfirmed Areas
-
-- Exact Mu checkpoint selected by default while base.en, tiny.en, and large-v3-turbo artifacts coexist.
-- Production ASR/TTS topology, GPU availability, and real model accuracy.
-- Physical device/browser permission, codec, keyboard, and WebView behavior.
-- Any deployment wrapper adding standalone/fullscreen behavior.
-- Complete audio retention/garbage collection and orphan cleanup.
-- Centralized log retention, deployed CORS/edge headers, and external monitoring.
-- Research consent, participant/de-identification/export subsystem.
-- Full test-suite result after broad runs timed out.
-
-## 56. System Health Summary
-
-### Stable / Well-Defined
-
-Session/role boundaries, immutable run snapshots, core learner flows, lesson retry state, teacher scoping, private audio responses, and targeted tests are clearly represented.
-
-### Fragile / Highly Coupled
-
-Shared recorder CSS/markup, short-height layouts, Mu model discovery, audio retention/reset, transcript alignment, and report queries.
-
-### Partially Implemented
-
-Game Zero, guest foundation, academic content administration, research data, and standalone/mobile wrapper.
-
-### Duplicated
-
-Frontend progression derivations, transcript alignment, and lesson-specific orchestration alongside shared infrastructure.
-
-### Possibly Legacy
-
-current_required_lesson_order, stale large-v3-turbo metadata, unwired XState/PWA/Workbox/deployment packages, and dormant game/guest paths.
-
-### Important Untested Areas
-
-Real model accuracy/checkpoint selection, physical devices/WebViews, microphone/codec edge cases, retention/reset cleanup, and a complete green test suite.
-
-### Areas Future Agents Must Not Modify Casually
-
-Do not casually change session lifetime/ownership checks, progression services, assessment branching/scoring, equivalence/alignment, immutable snapshots, recorder shared CSS, Mu model resolution, audio retention, migrations, or school/teacher report scopes. Verify the authoritative owner before editing.
+Update this document whenever a change affects architecture, roles, routes, session transport, academic progression/scoring, data ownership, speech/TTS contracts, Android capabilities, deployment, persistence, or operational requirements. For narrow details, keep the focused document authoritative and link to it here rather than duplicating large procedures.
