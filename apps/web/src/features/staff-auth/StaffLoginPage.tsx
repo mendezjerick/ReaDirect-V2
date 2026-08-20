@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -275,6 +275,9 @@ export function StaffLoginPage() {
             <p className="staff-login-card__roles">
               For system administrators, school administrators, and teachers.
             </p>
+            <Link className="staff-login-card__legal" to="/credits-licenses">
+              Credits &amp; licenses
+            </Link>
           </Surface>
         </Surface>
       </div>

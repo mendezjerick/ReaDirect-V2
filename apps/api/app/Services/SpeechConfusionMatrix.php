@@ -2,46 +2,44 @@
 
 namespace App\Services;
 
-use App\Models\SpeechSandboxAttempt;
 use Illuminate\Support\Collection;
 
 final class SpeechConfusionMatrix
 {
-    public const AUDIT_VERSION = 'four-voice-item-token-v2';
+    public const AUDIT_VERSION = BundledSpeechAuditSource::CONTENT_AUDIT_VERSION;
 
     public const LEGACY_CONTENT_AUDIT_VERSION = 'two-voice-item-token-v1';
 
-    public const LETTER_AUDIT_VERSION = 'three-voice-letter-alias-v1';
+    public const LETTER_AUDIT_VERSION = BundledSpeechAuditSource::LETTER_AUDIT_VERSION;
 
-    public const NEGATIVE_AUDIT_VERSION = 'content-distractor-raw-v1';
+    public const NEGATIVE_AUDIT_VERSION = BundledSpeechAuditSource::CONTENT_NEGATIVE_AUDIT_VERSION;
 
-    public const LETTER_NEGATIVE_AUDIT_VERSION = 'letter-distractor-raw-v1';
+    public const LETTER_NEGATIVE_AUDIT_VERSION = BundledSpeechAuditSource::LETTER_NEGATIVE_AUDIT_VERSION;
 
     public const OVERALL_EVALUATION_VERSION = 'content-and-letter-distractor-raw-v1';
 
     public const EMPTY_TOKEN = '__none__';
 
+    public function __construct(private readonly BundledSpeechAuditSource $audits) {}
+
     /**
      * @return array<string, mixed>
      */
-    public function raw(?string $fixtureSet = null, ?string $taskType = null): array
+    public function raw(?string $fixtureSource = null, ?string $taskType = null): array
     {
-        $allAttempts = SpeechSandboxAttempt::query()
-            ->whereIn('mode', [SpeechSandboxAttempt::MODE_GENERAL, SpeechSandboxAttempt::MODE_LETTER])
-            ->where('service_status', 200)
-            ->orderBy('id')
-            ->get()
-            ->filter(fn (SpeechSandboxAttempt $attempt): bool => $this->isFixtureAuditAttempt($attempt))
-            ->values();
-
-        $availableFixtureSets = $this->availableValues($allAttempts, 'fixture_set');
+        $allAttempts = collect($this->audits->positiveAttempts());
+        $internalFixtureSet = $fixtureSource !== null
+            ? $this->audits->internalFixtureSetForSource($fixtureSource)
+            : null;
         $availableTaskTypes = $this->availableValues($allAttempts, 'task_type');
         $attempts = $allAttempts
-            ->when($fixtureSet !== null, fn (Collection $items): Collection => $items->filter(
-                fn (SpeechSandboxAttempt $attempt): bool => ($attempt->request_metadata['fixture_set'] ?? null) === $fixtureSet,
+            ->when($internalFixtureSet !== null, fn (Collection $items): Collection => $items->where(
+                'fixture_set',
+                $internalFixtureSet,
             ))
-            ->when($taskType !== null, fn (Collection $items): Collection => $items->filter(
-                fn (SpeechSandboxAttempt $attempt): bool => ($attempt->request_metadata['task_type'] ?? null) === $taskType,
+            ->when($taskType !== null, fn (Collection $items): Collection => $items->where(
+                'task_type',
+                $taskType,
             ))
             ->values();
 
@@ -54,19 +52,14 @@ final class SpeechConfusionMatrix
         $insertions = 0;
 
         foreach ($attempts as $attempt) {
-            $comparison = $this->rawComparison($attempt);
-            if (($comparison['exact_match'] ?? false) === true) {
+            if ($attempt['raw_exact']) {
                 $exactAttempts++;
             }
 
-            foreach ($comparison['differences'] ?? [] as $difference) {
-                $status = (string) ($difference['status'] ?? '');
-                if (! in_array($status, ['match', 'substitution', 'omission', 'insertion'], true)) {
-                    continue;
-                }
-
-                $expected = $this->token($difference['expected'] ?? null);
-                $recognized = $this->token($difference['recognized'] ?? null);
+            foreach ($this->compareTokens($attempt['expected'], $attempt['recognized']) as $difference) {
+                $status = $difference['status'];
+                $expected = $this->token($difference['expected']);
+                $recognized = $this->token($difference['recognized']);
                 $key = $expected."\0".$recognized;
                 $cells[$key] = ($cells[$key] ?? 0) + 1;
 
@@ -111,18 +104,24 @@ final class SpeechConfusionMatrix
             ->sortByDesc('count')
             ->values();
 
-        $binaryClassifications = $this->rawBinaryClassifications($allAttempts);
+        $binaryClassifications = $this->rawBinaryClassifications(
+            $allAttempts,
+            collect($this->audits->negativeAttempts()),
+        );
 
         return [
             'mode' => 'raw',
+            'source' => 'bundled_fixture_audits',
+            'source_versions' => $this->audits->versions(),
+            'fixture_sources' => $this->audits->provenance(),
             'audit_version' => self::AUDIT_VERSION,
             'letter_audit_version' => self::LETTER_AUDIT_VERSION,
             'selected_filters' => [
-                'fixture_set' => $fixtureSet,
+                'fixture_source' => $fixtureSource,
                 'task_type' => $taskType,
             ],
             'available_filters' => [
-                'fixture_sets' => $availableFixtureSets,
+                'fixture_sources' => BundledSpeechAuditSource::fixtureSourceIds(),
                 'task_types' => $availableTaskTypes,
             ],
             'summary' => [
@@ -151,34 +150,23 @@ final class SpeechConfusionMatrix
     }
 
     /**
-     * @param  Collection<int, SpeechSandboxAttempt>  $allPositiveAttempts
+     * @param  Collection<int, array<string, mixed>>  $positiveAttempts
+     * @param  Collection<int, array<string, mixed>>  $negativeAttempts
      * @return array{overall: array<string, mixed>, content: array<string, mixed>, letter: array<string, mixed>}
      */
-    private function rawBinaryClassifications(Collection $allPositiveAttempts): array
-    {
-        $allPositiveAttempts = $allPositiveAttempts
-            ->filter(fn (SpeechSandboxAttempt $attempt): bool => $attempt->review_outcome === 'expected_correct')
-            ->values();
-
-        $contentPositiveAttempts = $allPositiveAttempts
-            ->where('mode', SpeechSandboxAttempt::MODE_GENERAL)
-            ->values();
-        $letterPositiveAttempts = $allPositiveAttempts
-            ->where('mode', SpeechSandboxAttempt::MODE_LETTER)
-            ->values();
-        $contentNegativeAttempts = $this->negativeAttempts(
-            SpeechSandboxAttempt::MODE_GENERAL,
-            self::NEGATIVE_AUDIT_VERSION,
-        );
-        $letterNegativeAttempts = $this->negativeAttempts(
-            SpeechSandboxAttempt::MODE_LETTER,
-            self::LETTER_NEGATIVE_AUDIT_VERSION,
-        );
+    private function rawBinaryClassifications(
+        Collection $positiveAttempts,
+        Collection $negativeAttempts,
+    ): array {
+        $contentPositiveAttempts = $positiveAttempts->where('scope', 'content')->values();
+        $letterPositiveAttempts = $positiveAttempts->where('scope', 'letter')->values();
+        $contentNegativeAttempts = $negativeAttempts->where('scope', 'content')->values();
+        $letterNegativeAttempts = $negativeAttempts->where('scope', 'letter')->values();
 
         return [
             'overall' => $this->rawBinaryClassification(
-                $allPositiveAttempts,
-                $contentNegativeAttempts->concat($letterNegativeAttempts)->values(),
+                $positiveAttempts,
+                $negativeAttempts,
                 'overall',
                 self::OVERALL_EVALUATION_VERSION,
                 'content_raw_exact_and_letter_resolved',
@@ -200,23 +188,9 @@ final class SpeechConfusionMatrix
         ];
     }
 
-    /** @return Collection<int, SpeechSandboxAttempt> */
-    private function negativeAttempts(string $mode, string $auditVersion): Collection
-    {
-        return SpeechSandboxAttempt::query()
-            ->where('mode', $mode)
-            ->where('service_status', 200)
-            ->where('review_outcome', 'expected_wrong')
-            ->orderBy('id')
-            ->get()
-            ->filter(fn (SpeechSandboxAttempt $attempt): bool => ($attempt->request_metadata['distractor_audit_version'] ?? null) === $auditVersion
-                && ($attempt->request_metadata['ground_truth'] ?? null) === 'negative')
-            ->values();
-    }
-
     /**
-     * @param  Collection<int, SpeechSandboxAttempt>  $positiveAttempts
-     * @param  Collection<int, SpeechSandboxAttempt>  $negativeAttempts
+     * @param  Collection<int, array<string, mixed>>  $positiveAttempts
+     * @param  Collection<int, array<string, mixed>>  $negativeAttempts
      * @return array<string, mixed>
      */
     private function rawBinaryClassification(
@@ -226,23 +200,16 @@ final class SpeechConfusionMatrix
         string $evaluationVersion,
         string $acceptanceRule,
     ): array {
-
-        $truePositives = $positiveAttempts->filter(
-            fn (SpeechSandboxAttempt $attempt): bool => $this->binaryAccepted($attempt, $scope),
-        )->count();
+        $truePositives = $positiveAttempts->where('accepted', true)->count();
         $falseNegatives = $positiveAttempts->count() - $truePositives;
-        $falsePositives = $negativeAttempts->filter(
-            fn (SpeechSandboxAttempt $attempt): bool => $this->binaryAccepted($attempt, $scope),
-        )->count();
+        $falsePositives = $negativeAttempts->where('accepted', true)->count();
         $trueNegatives = $negativeAttempts->count() - $falsePositives;
         $total = $positiveAttempts->count() + $negativeAttempts->count();
 
         $bySource = $negativeAttempts
-            ->groupBy(fn (SpeechSandboxAttempt $attempt): string => (string) ($attempt->request_metadata['distractor_type'] ?? 'unknown'))
-            ->map(function (Collection $attempts) use ($scope): array {
-                $falsePositives = $attempts->filter(
-                    fn (SpeechSandboxAttempt $attempt): bool => $this->binaryAccepted($attempt, $scope),
-                )->count();
+            ->groupBy('source')
+            ->map(function (Collection $attempts): array {
+                $falsePositives = $attempts->where('accepted', true)->count();
 
                 return [
                     'attempts' => $attempts->count(),
@@ -274,61 +241,91 @@ final class SpeechConfusionMatrix
         ];
     }
 
-    private function rawAccepted(SpeechSandboxAttempt $attempt): bool
+    /**
+     * Reproduces the ASR audit's word-level LCS alignment and merges adjacent
+     * insertion/omission pairs into substitutions.
+     *
+     * @return list<array{status: string, expected: string, recognized: string}>
+     */
+    private function compareTokens(string $expected, string $recognized): array
     {
-        return ($this->rawComparison($attempt)['exact_match'] ?? false) === true;
-    }
+        $expectedTokens = $expected === '' ? [] : explode(' ', $expected);
+        $recognizedTokens = $recognized === '' ? [] : explode(' ', $recognized);
+        $expectedCount = count($expectedTokens);
+        $recognizedCount = count($recognizedTokens);
+        $table = array_fill(0, $expectedCount + 1, array_fill(0, $recognizedCount + 1, 0));
 
-    private function binaryAccepted(SpeechSandboxAttempt $attempt, string $scope): bool
-    {
-        if ($attempt->mode === SpeechSandboxAttempt::MODE_LETTER
-            && in_array($scope, ['overall', 'letter'], true)) {
-            return ($attempt->service_response['decision'] ?? null) === 'CORRECT'
-                || $attempt->equivalence_rule_id !== null;
+        for ($left = 1; $left <= $expectedCount; $left++) {
+            for ($right = 1; $right <= $recognizedCount; $right++) {
+                $table[$left][$right] = $expectedTokens[$left - 1] === $recognizedTokens[$right - 1]
+                    ? $table[$left - 1][$right - 1] + 1
+                    : max($table[$left - 1][$right], $table[$left][$right - 1]);
+            }
         }
 
-        return $this->rawAccepted($attempt);
-    }
-
-    private function isFixtureAuditAttempt(SpeechSandboxAttempt $attempt): bool
-    {
-        $auditVersion = $attempt->request_metadata['fixture_audit_version'] ?? null;
-
-        return ($attempt->mode === SpeechSandboxAttempt::MODE_GENERAL
-                && in_array($auditVersion, [
-                    self::AUDIT_VERSION,
-                    self::LEGACY_CONTENT_AUDIT_VERSION,
-                ], true))
-            || ($attempt->mode === SpeechSandboxAttempt::MODE_LETTER
-                && $auditVersion === self::LETTER_AUDIT_VERSION);
-    }
-
-    /** @return array{exact_match: bool, differences: list<array{status: string, expected: string, recognized: string}>} */
-    private function rawComparison(SpeechSandboxAttempt $attempt): array
-    {
-        if ($attempt->mode !== SpeechSandboxAttempt::MODE_LETTER) {
-            return $attempt->service_response['comparison'] ?? [
-                'exact_match' => false,
-                'differences' => [],
-            ];
+        $differences = [];
+        $left = $expectedCount;
+        $right = $recognizedCount;
+        while ($left > 0 || $right > 0) {
+            if ($left > 0
+                && $right > 0
+                && $expectedTokens[$left - 1] === $recognizedTokens[$right - 1]) {
+                $differences[] = [
+                    'status' => 'match',
+                    'expected' => $expectedTokens[$left - 1],
+                    'recognized' => $recognizedTokens[$right - 1],
+                ];
+                $left--;
+                $right--;
+            } elseif ($right > 0
+                && ($left === 0 || $table[$left][$right - 1] >= $table[$left - 1][$right])) {
+                $differences[] = [
+                    'status' => 'insertion',
+                    'expected' => '',
+                    'recognized' => $recognizedTokens[$right - 1],
+                ];
+                $right--;
+            } else {
+                $differences[] = [
+                    'status' => 'omission',
+                    'expected' => $expectedTokens[$left - 1],
+                    'recognized' => '',
+                ];
+                $left--;
+            }
         }
 
-        $expected = $this->normalize((string) $attempt->expected_value);
-        $recognized = $this->normalize((string) (
-            $attempt->service_response['normalized_transcript']
-                ?? $attempt->service_response['raw_transcript']
-                ?? ''
-        ));
-        $exact = $expected !== '' && $expected === $recognized;
+        return $this->mergeSubstitutions(array_reverse($differences));
+    }
 
-        return [
-            'exact_match' => $exact,
-            'differences' => [[
-                'status' => $exact ? 'match' : ($recognized === '' ? 'omission' : 'substitution'),
-                'expected' => $expected,
-                'recognized' => $recognized,
-            ]],
-        ];
+    /**
+     * @param  list<array{status: string, expected: string, recognized: string}>  $differences
+     * @return list<array{status: string, expected: string, recognized: string}>
+     */
+    private function mergeSubstitutions(array $differences): array
+    {
+        $merged = [];
+        for ($index = 0, $count = count($differences); $index < $count; $index++) {
+            $current = $differences[$index];
+            $following = $differences[$index + 1] ?? null;
+            if ($following !== null
+                && in_array($current['status'], ['insertion', 'omission'], true)
+                && in_array($following['status'], ['insertion', 'omission'], true)
+                && $current['status'] !== $following['status']) {
+                $insertion = $current['status'] === 'insertion' ? $current : $following;
+                $omission = $current['status'] === 'omission' ? $current : $following;
+                $merged[] = [
+                    'status' => 'substitution',
+                    'expected' => $omission['expected'],
+                    'recognized' => $insertion['recognized'],
+                ];
+                $index++;
+            } else {
+                $merged[] = $current;
+            }
+        }
+
+        return $merged;
     }
 
     private function ratio(int $numerator, int $denominator): float
@@ -337,13 +334,13 @@ final class SpeechConfusionMatrix
     }
 
     /**
-     * @param  Collection<int, SpeechSandboxAttempt>  $attempts
+     * @param  Collection<int, array<string, mixed>>  $attempts
      * @return list<string>
      */
     private function availableValues(Collection $attempts, string $key): array
     {
         return $attempts
-            ->map(fn (SpeechSandboxAttempt $attempt): ?string => $attempt->request_metadata[$key] ?? null)
+            ->pluck($key)
             ->filter()
             ->unique()
             ->sort()
@@ -356,13 +353,6 @@ final class SpeechConfusionMatrix
         $token = trim(mb_strtolower((string) $value));
 
         return $token === '' ? self::EMPTY_TOKEN : $token;
-    }
-
-    private function normalize(string $value): string
-    {
-        preg_match_all("/[a-z0-9']+/", mb_strtolower($value), $matches);
-
-        return implode(' ', $matches[0]);
     }
 
     private function sortKey(string $token): string

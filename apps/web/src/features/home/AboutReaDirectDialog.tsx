@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 interface AboutReaDirectDialogProps {
   onClose: () => void;
 }
@@ -234,6 +236,11 @@ export function AboutReaDirectDialog({ onClose }: AboutReaDirectDialogProps) {
               through this application are those of the researchers and do not
               necessarily reflect the official policies, positions, or
               endorsements of the Department of Education or any of its offices.
+            </p>
+            <p>
+              <Link to="/credits-licenses" onClick={onClose}>
+                View credits and licences
+              </Link>
             </p>
           </section>
         </div>

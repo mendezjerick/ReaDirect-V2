@@ -32,6 +32,10 @@ RUN composer install \
 
 COPY apps/api ./
 COPY content /var/content
+COPY services/asr/fixtures/content/fixture-equivalence-audit.json /var/services/asr/fixtures/content/fixture-equivalence-audit.json
+COPY services/asr/fixtures/letters/fixture-equivalence-audit.json /var/services/asr/fixtures/letters/fixture-equivalence-audit.json
+COPY services/asr/fixtures/distractors/distractor-evaluation-audit.json /var/services/asr/fixtures/distractors/distractor-evaluation-audit.json
+COPY services/asr/fixtures/distractors/letter-distractor-evaluation-audit.json /var/services/asr/fixtures/distractors/letter-distractor-evaluation-audit.json
 
 RUN mkdir -p \
         bootstrap/cache \

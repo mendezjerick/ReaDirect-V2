@@ -1,0 +1,124 @@
+.credits-licenses {
+  min-height: 100dvh;
+  padding: clamp(1rem, 4vw, 3.5rem);
+  background: var(--color-surface-page);
+  color: var(--color-text-primary);
+}
+
+.credits-licenses__header,
+.credits-licenses__content {
+  width: min(100%, 50rem);
+  margin-inline: auto;
+}
+
+.credits-licenses__header {
+  display: grid;
+  gap: 0.65rem;
+  padding-block: clamp(1rem, 5vw, 3rem) clamp(1.5rem, 5vw, 3rem);
+}
+
+.credits-licenses__back {
+  width: fit-content;
+  color: var(--color-action-primary);
+  font-weight: 800;
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.18em;
+}
+
+.credits-licenses__header > p {
+  margin: 1rem 0 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-display-family);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.credits-licenses h1,
+.credits-licenses h2 {
+  font-family: var(--font-display-family);
+}
+
+.credits-licenses h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 8vw, 4.2rem);
+  line-height: 0.98;
+}
+
+.credits-licenses__header > span {
+  max-width: 42rem;
+  color: var(--color-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.credits-licenses__content {
+  display: grid;
+  gap: 1rem;
+  padding-bottom: 3rem;
+}
+
+.credits-licenses__content > section {
+  padding: clamp(1rem, 3vw, 1.6rem);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-panel);
+  box-shadow: 0 4px 0 var(--color-frame-depth);
+}
+
+.credits-licenses h2 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.25rem, 4vw, 1.6rem);
+}
+
+.credits-licenses p,
+.credits-licenses li,
+.credits-licenses dd {
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+.credits-licenses p:last-child,
+.credits-licenses ul:last-child,
+.credits-licenses dl:last-child {
+  margin-bottom: 0;
+}
+
+.credits-licenses dl {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.credits-licenses dl > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.credits-licenses dt {
+  color: var(--color-text-primary);
+  font-weight: 800;
+}
+
+.credits-licenses dd {
+  margin: 0;
+}
+
+.credits-licenses ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.credits-licenses a:not(.credits-licenses__back) {
+  color: var(--color-action-primary);
+  font-weight: 750;
+}
+
+.credits-licenses__note {
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-control);
+  background: var(--color-action-secondary);
+}

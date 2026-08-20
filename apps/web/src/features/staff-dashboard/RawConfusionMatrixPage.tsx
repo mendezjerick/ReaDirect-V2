@@ -47,17 +47,17 @@ function sortedTokens(tokens: Iterable<string>): string[] {
 
 export function RawConfusionMatrixPage() {
   const staffUserId = useSystemAdminSpeechSession();
-  const [fixtureSet, setFixtureSet] = useState("");
+  const [fixtureSource, setFixtureSource] = useState("");
   const [taskType, setTaskType] = useState("");
   const [binaryScope, setBinaryScope] = useState<BinaryScope>("overall");
   const [matrixView, setMatrixView] = useState<"confusions" | "all">(
     "confusions",
   );
   const matrixQuery = useQuery({
-    queryKey: ["raw-confusion-matrix", staffUserId, fixtureSet, taskType],
+    queryKey: ["raw-confusion-matrix", staffUserId, fixtureSource, taskType],
     queryFn: () =>
       getRawConfusionMatrix(staffUserId as number, {
-        fixtureSet: fixtureSet || undefined,
+        fixtureSource: fixtureSource || undefined,
         taskType: taskType || undefined,
       }),
     enabled: staffUserId !== null,
@@ -88,18 +88,28 @@ export function RawConfusionMatrixPage() {
   );
   const summary = matrix?.summary;
   const binary = matrix?.binary_classifications[binaryScope];
-  const totalErrors = summary
+  const totalDifferences = summary
     ? summary.substitutions + summary.omissions + summary.insertions
     : 0;
+  const fixtureSourceLabels = useMemo(
+    () =>
+      new Map(
+        (matrix?.fixture_sources.sources ?? []).map((source) => [
+          source.id,
+          source.display_name,
+        ]),
+      ),
+    [matrix],
+  );
 
   return (
     <SpeechSandboxShell
       eyebrow="Speech analytics"
       title="Raw confusion matrix"
-      description="Inspect expected tokens against Mu's untouched output before Equivalence Book repair."
+      description="Inspect the final bundled fixture benchmark against Mu's untouched output before Equivalence Book repair."
       sessionPurpose="the speech confusion matrix"
       badge={
-        <span className="staff-environment-badge">Before equivalence</span>
+        <span className="staff-environment-badge">Bundled audit baseline</span>
       }
     >
       <section
@@ -108,7 +118,7 @@ export function RawConfusionMatrixPage() {
         aria-busy={matrixQuery.isPending}
       >
         <Surface kind="panel" padding="normal">
-          <span>Recordings</span>
+          <span>Fixture runs</span>
           <strong>{summary?.attempts ?? "—"}</strong>
         </Surface>
         <Surface kind="panel" padding="normal">
@@ -124,10 +134,48 @@ export function RawConfusionMatrixPage() {
           </strong>
         </Surface>
         <Surface kind="panel" padding="normal">
-          <span>Token errors</span>
-          <strong>{summary ? totalErrors : "—"}</strong>
+          <span>Raw token differences</span>
+          <strong>{summary ? totalDifferences : "—"}</strong>
         </Surface>
       </section>
+
+      <Surface
+        kind="panel"
+        padding="normal"
+        className="staff-data-card fixture-provenance"
+      >
+        <header className="staff-data-card__header">
+          <div>
+            <p>Bundled evaluation data</p>
+            <h2>Fixture sources</h2>
+          </div>
+        </header>
+
+        <p className="confusion-axis-note">
+          {matrix?.fixture_sources.content_description ??
+            "Loading fixture provenance."}
+        </p>
+
+        <div className="fixture-provenance__grid">
+          {matrix?.fixture_sources.sources.map((source) => (
+            <article key={source.id}>
+              <div>
+                <strong>{source.display_name}</strong>
+              </div>
+              <p>{source.description}</p>
+            </article>
+          ))}
+          {matrix ? (
+            <article>
+              <div>
+                <strong>{matrix.fixture_sources.negative.display_name}</strong>
+                <span>FPTN and silence</span>
+              </div>
+              <p>{matrix.fixture_sources.negative.description}</p>
+            </article>
+          ) : null}
+        </div>
+      </Surface>
 
       <Surface
         kind="panel"
@@ -156,9 +204,10 @@ export function RawConfusionMatrixPage() {
         </header>
 
         <p className="confusion-axis-note">
-          Known-correct {binaryScopeLabels[binaryScope].toLowerCase()}{" "}
-          recordings are positive. The same FPTN and silence recordings are
-          evaluated as negatives for content and letters.{" "}
+          Known-correct {binaryScopeLabels[binaryScope].toLowerCase()} fixture
+          runs are positive. The bundled FPTN and silence fixtures are evaluated
+          as negatives for content and letters. These fixed results ship with
+          the app and do not depend on the live database.{" "}
           {binaryScopeNotes[binaryScope]}
         </p>
 
@@ -250,13 +299,13 @@ export function RawConfusionMatrixPage() {
           <label className="speech-sandbox-field">
             <span>Voice fixture</span>
             <select
-              value={fixtureSet}
-              onChange={(event) => setFixtureSet(event.target.value)}
+              value={fixtureSource}
+              onChange={(event) => setFixtureSource(event.target.value)}
             >
               <option value="">All voices</option>
-              {matrix?.available_filters.fixture_sets.map((value) => (
+              {matrix?.available_filters.fixture_sources.map((value) => (
                 <option key={value} value={value}>
-                  {value}
+                  {fixtureSourceLabels.get(value) ?? value}
                 </option>
               ))}
             </select>

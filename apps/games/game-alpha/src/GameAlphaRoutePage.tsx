@@ -308,6 +308,9 @@ export function GameAlphaRoutePage({
               </li>
               <li>Earn an extra heart every 30,000 points.</li>
             </ul>
+            <p className="game-alpha__credit">
+              Sound effects by SoundsbyDane.
+            </p>
             <button type="button" onClick={() => openScreen("menu")}>
               Back to Menu
             </button>

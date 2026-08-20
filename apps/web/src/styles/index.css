@@ -3569,6 +3569,54 @@ textarea.staff-field__control {
   font-size: clamp(1.15rem, 4vw, 1.45rem);
 }
 
+.fixture-provenance {
+  min-width: 0;
+  margin-top: 1rem;
+}
+
+.fixture-provenance__grid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.fixture-provenance__grid article {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.8rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-muted);
+}
+
+.fixture-provenance__grid article > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.fixture-provenance__grid strong {
+  color: var(--color-text-primary);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.fixture-provenance__grid span {
+  color: var(--color-text-muted);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fixture-provenance__grid p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
 .confusion-workspace,
 .confusion-pairs,
 .binary-confusion {
@@ -3698,6 +3746,14 @@ textarea.staff-field__control {
 
   .binary-confusion__sources {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fixture-provenance__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fixture-provenance__grid article:last-child {
+    grid-column: 1 / -1;
   }
 }
 

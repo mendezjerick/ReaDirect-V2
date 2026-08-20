@@ -124,6 +124,16 @@ apps/web/public/assets/live2d/core/
 # Local root-level handoff archives
 /*.zip
 
+# Local datasets and generated release packages
+/ReaDirect_CH4_Training_Datasets_Package_2026-08-13/
+/assets/speechocean762/
+/apps/web/android-apk/
+/apps/web/dist-apk/
+/output/releases/
+/output/reports/
+/services/tts/storage/offline-apk-package/
+/services/tts/storage/offline-apk-vorbis-cache/
+
 # Local runtime files
 .runtime/
 *.log

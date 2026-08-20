@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StaffUser;
+use App\Services\BundledSpeechAuditSource;
 use App\Services\SpeechConfusionMatrix;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ final class SystemAdminSpeechAnalyticsController extends Controller
     ): JsonResponse {
         $this->assertSystemAdministrator($staffUser);
         $validated = $request->validate([
-            'fixture_set' => ['nullable', Rule::in(['millie2', 'millie2-plus', 'jz', 'shai'])],
+            'fixture_source' => ['nullable', Rule::in(BundledSpeechAuditSource::fixtureSourceIds())],
             'task_type' => [
                 'nullable',
                 Rule::in(['letter', 'word', 'phrase', 'sentence', 'passage', 'comprehension']),
@@ -25,7 +26,7 @@ final class SystemAdminSpeechAnalyticsController extends Controller
         ]);
 
         return response()->json($matrix->raw(
-            $validated['fixture_set'] ?? null,
+            $validated['fixture_source'] ?? null,
             $validated['task_type'] ?? null,
         ));
     }

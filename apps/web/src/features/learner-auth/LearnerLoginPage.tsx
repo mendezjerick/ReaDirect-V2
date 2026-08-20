@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
@@ -253,6 +253,9 @@ export function LearnerLoginPage() {
             >
               Back to home
             </BigButton>
+            <Link className="learner-login-card__legal" to="/credits-licenses">
+              Credits &amp; licenses
+            </Link>
           </Surface>
         </Surface>
       </div>

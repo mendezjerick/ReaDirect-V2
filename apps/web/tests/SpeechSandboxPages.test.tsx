@@ -116,11 +116,58 @@ function binaryClassificationResponse(scope: "overall" | "content" | "letter") {
 
 const rawConfusionMatrixResponse = {
   mode: "raw",
-  audit_version: "two-voice-item-token-v1",
+  source: "bundled_fixture_audits",
+  source_versions: {
+    content: "four-voice-item-token-v3",
+    letters: "three-voice-letter-alias-v1",
+    content_negatives: "content-distractor-raw-v1",
+    letter_negatives: "letter-distractor-raw-v1",
+  },
+  fixture_sources: {
+    content_description:
+      "ReaDirect Version 1 assessment and lesson content synthesized with VoxCPM2 from the listed reference voices.",
+    sources: [
+      {
+        id: "elevenlabs-filipino-childlike-female-voice-1",
+        display_name: "ElevenLabs child-like Filipino female voice 1",
+        description:
+          "An ElevenLabs-generated, high-pitched Filipino female reference voice selected to approximate children's speech.",
+      },
+      {
+        id: "elevenlabs-filipino-childlike-female-voice-2",
+        display_name: "ElevenLabs child-like Filipino female voice 2",
+        description:
+          "An alternate ElevenLabs-generated, high-pitched Filipino female reference voice selected to approximate children's speech.",
+      },
+      {
+        id: "jezreel-r-ramos",
+        display_name: "Jezreel R. Ramos",
+        description:
+          "VoxCPM2 fixture recordings generated from the Jezreel R. Ramos reference voice.",
+      },
+      {
+        id: "shaila-patrice-d-avallenda",
+        display_name: "Shaila Patrice D. Avallenda",
+        description:
+          "VoxCPM2 fixture recordings generated from the Shaila Patrice D. Avallenda reference voice.",
+      },
+    ],
+    negative: {
+      display_name: "Kaggle negative fixture set",
+      description:
+        "Known-negative noisy-speech and silence recordings sourced from the Kaggle dataset by abdullahhaydarkadolu.",
+    },
+  },
+  audit_version: "four-voice-item-token-v3",
   letter_audit_version: "three-voice-letter-alias-v1",
-  selected_filters: { fixture_set: null, task_type: null },
+  selected_filters: { fixture_source: null, task_type: null },
   available_filters: {
-    fixture_sets: ["jz", "millie2", "millie2-plus", "shai"],
+    fixture_sources: [
+      "elevenlabs-filipino-childlike-female-voice-1",
+      "elevenlabs-filipino-childlike-female-voice-2",
+      "jezreel-r-ramos",
+      "shaila-patrice-d-avallenda",
+    ],
     task_types: ["letter", "phrase", "word"],
   },
   summary: {
@@ -293,6 +340,15 @@ describe("system-admin speech sandboxes", () => {
     expect(
       screen.getByRole("heading", { name: "Overall TP / TN / FP / FN" }),
     ).toBeVisible();
+    expect(screen.getByText("Raw token differences")).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Fixture sources" }),
+    ).toBeVisible();
+    expect(screen.getAllByText("Jezreel R. Ramos")[0]).toBeVisible();
+    expect(
+      screen.getAllByText("Shaila Patrice D. Avallenda")[0],
+    ).toBeVisible();
+    expect(screen.getByText("Kaggle negative fixture set")).toBeVisible();
     await user.selectOptions(
       screen.getByLabelText("Binary evaluation scope"),
       "letter",

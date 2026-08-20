@@ -33,6 +33,12 @@ const PublicDocsPage = lazy(() =>
   })),
 );
 
+const CreditsLicensesPage = lazy(() =>
+  import("./features/legal/CreditsLicensesPage").then((module) => ({
+    default: module.CreditsLicensesPage,
+  })),
+);
+
 const LearnerDashboardPage = lazy(() =>
   import("./features/learner-dashboard/LearnerDashboardPage").then(
     (module) => ({ default: module.LearnerDashboardPage }),
@@ -498,6 +504,7 @@ export function App() {
               <Route path="/landing" element={<BrowserLandingPage />} />
               <Route path="/docs" element={<PublicDocsPage />} />
               <Route path="/docs/:docSlug" element={<PublicDocsPage />} />
+              <Route path="/credits-licenses" element={<CreditsLicensesPage />} />
               <Route
                 path="/learner/modes"
                 element={<NativeLearnerEntryPage initialView="modes" />}

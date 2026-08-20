@@ -132,6 +132,13 @@
   justify-self: center;
 }
 
+.learner-login-card__legal {
+  justify-self: center;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
 @media (min-width: 48rem) {
   .learner-login-page {
     padding: 2rem;

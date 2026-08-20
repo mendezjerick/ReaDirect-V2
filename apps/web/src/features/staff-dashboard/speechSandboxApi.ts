@@ -103,14 +103,35 @@ const binaryClassificationSchema = z.object({
 
 const rawConfusionMatrixSchema = z.object({
   mode: z.literal("raw"),
+  source: z.literal("bundled_fixture_audits"),
+  source_versions: z.object({
+    content: z.string(),
+    letters: z.string(),
+    content_negatives: z.string(),
+    letter_negatives: z.string(),
+  }),
+  fixture_sources: z.object({
+    content_description: z.string(),
+    sources: z.array(
+      z.object({
+        id: z.string(),
+        display_name: z.string(),
+        description: z.string(),
+      }),
+    ),
+    negative: z.object({
+      display_name: z.string(),
+      description: z.string(),
+    }),
+  }),
   audit_version: z.string(),
   letter_audit_version: z.string(),
   selected_filters: z.object({
-    fixture_set: z.string().nullable(),
+    fixture_source: z.string().nullable(),
     task_type: z.string().nullable(),
   }),
   available_filters: z.object({
-    fixture_sets: z.array(z.string()),
+    fixture_sources: z.array(z.string()),
     task_types: z.array(z.string()),
   }),
   summary: z.object({
@@ -351,11 +372,11 @@ export async function getEquivalenceBook(
 
 export async function getRawConfusionMatrix(
   staffUserId: number,
-  filters: { fixtureSet?: string; taskType?: string } = {},
+  filters: { fixtureSource?: string; taskType?: string } = {},
 ): Promise<RawConfusionMatrix> {
   const search = new URLSearchParams();
-  if (filters.fixtureSet) {
-    search.set("fixture_set", filters.fixtureSet);
+  if (filters.fixtureSource) {
+    search.set("fixture_source", filters.fixtureSource);
   }
   if (filters.taskType) {
     search.set("task_type", filters.taskType);

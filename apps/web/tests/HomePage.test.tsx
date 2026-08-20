@@ -63,6 +63,9 @@ describe("HomePage", () => {
     expect(
       within(dialog).getByAltText("Nick Narry S. Mendoza"),
     ).toHaveAttribute("src", "/assets/profile/nick.png");
+    expect(
+      within(dialog).getByRole("link", { name: "View credits and licences" }),
+    ).toHaveAttribute("href", "/credits-licenses");
 
     fireEvent.click(
       within(dialog).getByRole("button", {
