@@ -5,13 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
-import {
-  playClaraSpeech,
-  prepareClaraSpeech,
-  type ClaraSpeechKey,
-  type ClaraSpeechPlayback,
-  unlockClaraAudio,
-} from "../clara-audio/claraSpeech";
 import { ClaraStage } from "../intro/ClaraStage";
 import type {
   ClaraEmotion,
@@ -28,7 +21,6 @@ import {
 import "./learn-with-clara-letters.css";
 
 type ViewPhase = "welcome" | "lesson";
-type LineState = "preparing" | "speaking" | "finished" | "error";
 type CheckpointState = "loading" | "ready" | "error";
 
 const classLetters = ["A", "B", "C", "D", "E"] as const;
@@ -143,25 +135,14 @@ export function LearnWithClaraLettersPage() {
     useState<CheckpointState>("loading");
   const [lettersState, setLettersState] =
     useState<LearnWithClaraLettersState | null>(null);
-  const [lineState, setLineState] = useState<LineState>("finished");
-  const [preparedSpeech, setPreparedSpeech] = useState<{
-    key: ClaraSpeechKey;
-    blob: Blob;
-  } | null>(null);
-  const [speechLevel, setSpeechLevel] = useState(0);
-  const [claraReady, setClaraReady] = useState(false);
-  const [playNonce, setPlayNonce] = useState(0);
   const [actionPending, setActionPending] = useState(false);
   const [choicePending, setChoicePending] = useState(false);
   const [wrongChoice, setWrongChoice] = useState("");
   const [foundChoice, setFoundChoice] = useState("");
   const [actionError, setActionError] = useState("");
-  const playbackRef = useRef<ClaraSpeechPlayback | null>(null);
   const choiceTimerRef = useRef<number | null>(null);
 
   const scene = phase === "lesson" ? lettersState?.scene : null;
-  const activeSpeechKey: ClaraSpeechKey | null =
-    phase === "welcome" ? null : (scene?.speech_key ?? null);
   const presentation = presentationFor(phase, lettersState);
   const currentProgress = scene?.item_progress?.current ?? 5;
   const classComplete = scene?.kind === "completion";
@@ -195,100 +176,6 @@ export function LearnWithClaraLettersPage() {
     };
   }, [navigate, session?.token]);
 
-  useEffect(() => {
-    if (!session?.token || !activeSpeechKey) {
-      return;
-    }
-
-    let active = true;
-    setLineState("preparing");
-    setPreparedSpeech(null);
-    setSpeechLevel(0);
-    setWrongChoice("");
-    setFoundChoice("");
-    setChoicePending(false);
-
-    void prepareClaraSpeech(activeSpeechKey, session.token)
-      .then((speech) => {
-        if (active) {
-          setPreparedSpeech({ key: activeSpeechKey, blob: speech });
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setLineState("error");
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [activeSpeechKey, playNonce, session?.token]);
-
-  useEffect(() => {
-    if (!session?.token || !lettersState) {
-      return;
-    }
-
-    for (const speechKey of lettersState.prefetch_speech_keys) {
-      void prepareClaraSpeech(speechKey, session.token).catch(() => undefined);
-    }
-  }, [lettersState, session?.token]);
-
-  useEffect(() => {
-    if (
-      !preparedSpeech ||
-      preparedSpeech.key !== activeSpeechKey ||
-      !claraReady
-    ) {
-      return;
-    }
-
-    let active = true;
-
-    const speak = async () => {
-      try {
-        const playback = await playClaraSpeech(
-          preparedSpeech.blob,
-          (level) => {
-            if (active) {
-              setSpeechLevel(level);
-            }
-          },
-          { modelState: "ready" },
-        );
-        playbackRef.current = playback;
-
-        if (!active) {
-          playback.stop();
-          return;
-        }
-
-        setLineState("speaking");
-        await playback.finished;
-
-        if (active) {
-          setLineState("finished");
-          setSpeechLevel(0);
-          playbackRef.current = null;
-        }
-      } catch {
-        if (active) {
-          setLineState("error");
-          setSpeechLevel(0);
-        }
-      }
-    };
-
-    void speak();
-
-    return () => {
-      active = false;
-      playbackRef.current?.stop();
-      playbackRef.current = null;
-    };
-  }, [activeSpeechKey, claraReady, preparedSpeech]);
-
   useEffect(
     () => () => {
       if (choiceTimerRef.current !== null) {
@@ -297,6 +184,12 @@ export function LearnWithClaraLettersPage() {
     },
     [],
   );
+
+  useEffect(() => {
+    setWrongChoice("");
+    setFoundChoice("");
+    setChoicePending(false);
+  }, [lettersState?.scene.key]);
 
   const retryCheckpoint = () => {
     if (!session?.token) {
@@ -314,8 +207,6 @@ export function LearnWithClaraLettersPage() {
 
   const beginLesson = () => {
     if (checkpointState === "ready") {
-      unlockClaraAudio();
-      setLineState("preparing");
       setPhase("lesson");
     }
   };
@@ -332,7 +223,6 @@ export function LearnWithClaraLettersPage() {
         session.token,
         lettersState.scene.key,
       );
-      setLineState("preparing");
       setLettersState(nextState);
     } catch (error) {
       setActionError(
@@ -346,7 +236,7 @@ export function LearnWithClaraLettersPage() {
   };
 
   const chooseLetter = (choice: string) => {
-    if (scene?.kind !== "find" || lineState !== "finished" || choicePending) {
+    if (scene?.kind !== "find" || choicePending) {
       return;
     }
 
@@ -373,13 +263,11 @@ export function LearnWithClaraLettersPage() {
       return;
     }
 
-    unlockClaraAudio();
     setActionPending(true);
     setActionError("");
     try {
       const nextState = await restartLearnWithClaraLetters(session.token);
       setLettersState(nextState);
-      setLineState("preparing");
       setPhase("lesson");
     } catch (error) {
       setActionError(
@@ -392,28 +280,9 @@ export function LearnWithClaraLettersPage() {
     }
   };
 
-  const replay = () => {
-    unlockClaraAudio();
-    setPlayNonce((current) => current + 1);
-  };
-
   const statusCopy = () => {
     if (phase === "welcome") {
       return "Your letter story is ready.";
-    }
-
-    if (lineState === "preparing") {
-      return "Ma'am Clara is getting the next story moment ready.";
-    }
-
-    if (lineState === "speaking") {
-      return scene?.kind === "teach"
-        ? "Watch the pair and listen to its letter name."
-        : "Listen to Ma'am Clara's story.";
-    }
-
-    if (lineState === "error") {
-      return "That story sound needs another try.";
     }
 
     if (scene?.kind === "story") {
@@ -486,26 +355,12 @@ export function LearnWithClaraLettersPage() {
               <ClaraStage
                 emotion={presentation.emotion}
                 behavior={presentation.behavior}
-                speaking={lineState === "speaking"}
-                speechLevel={speechLevel}
-                onLoadStateChange={(state) => setClaraReady(state === "ready")}
               />
             </div>
             <div className="letters-class__coaching">
               <p className="letters-class__status" aria-live="polite">
                 {statusCopy()}
               </p>
-
-              {phase === "lesson" && lineState === "error" ? (
-                <BigButton
-                  className="letters-class__action"
-                  variant="secondary"
-                  size="regular"
-                  onClick={replay}
-                >
-                  Try the sound again
-                </BigButton>
-              ) : null}
 
               {phase === "welcome" ? (
                 checkpointState === "error" ? (
@@ -538,8 +393,7 @@ export function LearnWithClaraLettersPage() {
               ) : null}
 
               {phase === "lesson" &&
-              scene?.kind === "story" &&
-              lineState === "finished" ? (
+              scene?.kind === "story" ? (
                 <BigButton
                   className="letters-class__action"
                   size="regular"
@@ -553,8 +407,7 @@ export function LearnWithClaraLettersPage() {
               ) : null}
 
               {phase === "lesson" &&
-              scene?.kind === "teach" &&
-              lineState === "finished" ? (
+              scene?.kind === "teach" ? (
                 <BigButton
                   className="letters-class__action"
                   size="regular"
@@ -570,8 +423,7 @@ export function LearnWithClaraLettersPage() {
               ) : null}
 
               {phase === "lesson" &&
-              classComplete &&
-              lineState === "finished" ? (
+              classComplete ? (
                 <div className="letters-class__completion-actions">
                   <BigButton
                     variant="secondary"
@@ -608,7 +460,6 @@ export function LearnWithClaraLettersPage() {
             ) : (
               <LearnWithClaraLetterParade
                 scene={scene}
-                lineState={lineState}
                 wrongChoice={wrongChoice}
                 foundChoice={foundChoice}
                 choosing={choicePending}

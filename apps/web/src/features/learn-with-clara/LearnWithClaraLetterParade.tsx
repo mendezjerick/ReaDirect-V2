@@ -2,11 +2,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import type { LearnWithClaraLettersScene } from "./learnWithClaraLettersApi";
 
-type LineState = "preparing" | "speaking" | "finished" | "error";
-
 interface LearnWithClaraLetterParadeProps {
   scene: LearnWithClaraLettersScene;
-  lineState: LineState;
   wrongChoice: string;
   foundChoice: string;
   choosing: boolean;
@@ -471,15 +468,13 @@ function FinaleScene() {
 
 export function LearnWithClaraLetterParade({
   scene,
-  lineState,
   wrongChoice,
   foundChoice,
   choosing,
   onChoose,
 }: LearnWithClaraLetterParadeProps) {
   const foundCount = foundCountFor(scene);
-  const choicesReady =
-    scene.kind === "find" && lineState === "finished" && !choosing;
+  const choicesReady = scene.kind === "find" && !choosing;
 
   return (
     <section className="parade-story" aria-labelledby="letters-class-title">
