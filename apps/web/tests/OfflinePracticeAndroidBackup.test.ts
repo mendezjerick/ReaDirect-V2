@@ -31,15 +31,16 @@ describe("Offline Practice Android privacy boundary", () => {
     );
   });
 
-  it("keeps storage permissions narrow", () => {
+  it("keeps storage permissions narrow and WebView capture permissions explicit", () => {
     const manifest = readFileSync(
       resolve(androidRoot, "app/src/main/AndroidManifest.xml"),
       "utf8",
     );
     expect(manifest).toContain("android.permission.INTERNET");
     expect(manifest).toContain("android.permission.RECORD_AUDIO");
+    expect(manifest).toContain("android.permission.MODIFY_AUDIO_SETTINGS");
     expect(manifest).not.toMatch(
-      /READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE|MANAGE_EXTERNAL_STORAGE|MODIFY_AUDIO_SETTINGS/,
+      /READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE|MANAGE_EXTERNAL_STORAGE/,
     );
   });
 });
