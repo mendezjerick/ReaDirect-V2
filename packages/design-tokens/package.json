@@ -7,6 +7,11 @@
     "./colors.css": "./src/colors.css",
     "./effects.css": "./src/effects.css",
     "./themes/t2.css": "./src/themes/t2.css",
-    "./themes/t3.css": "./src/themes/t3.css"
+    "./themes/t3.css": "./src/themes/t3.css",
+    "./themes/t4.css": "./src/themes/t4.css",
+    "./themes/t5.css": "./src/themes/t5.css",
+    "./themes/t6.css": "./src/themes/t6.css",
+    "./themes/t7.css": "./src/themes/t7.css",
+    "./themes/t8.css": "./src/themes/t8.css"
   }
 }

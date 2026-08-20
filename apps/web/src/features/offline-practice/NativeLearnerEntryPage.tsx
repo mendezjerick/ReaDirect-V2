@@ -82,7 +82,17 @@ function NativeStaticClara() {
       ? "/assets/live2d/clara/stills/clara-t2.png"
       : theme === "t3"
         ? "/assets/live2d/clara/stills/clara-t3.png"
-        : "/assets/live2d/clara/stills/clara-default.png";
+        : theme === "t4"
+          ? "/assets/live2d/clara/stills/clara-t4.png"
+          : theme === "t5"
+            ? "/assets/live2d/clara/stills/clara-t5.png"
+            : theme === "t6"
+              ? "/assets/live2d/clara/stills/clara-t6.png"
+              : theme === "t7"
+                ? "/assets/live2d/clara/stills/clara-t7.png"
+                : theme === "t8"
+                  ? "/assets/live2d/clara/stills/clara-t8.png"
+                  : "/assets/live2d/clara/stills/clara-default.png";
 
   return (
     <figure
@@ -105,10 +115,20 @@ function NativeStartupScreen() {
   const { theme } = useTheme();
   const source =
     theme === "t2"
-      ? "/assets/backgrounds/T2mobile.jpg"
+      ? "/assets/backgrounds/T2mobile.png"
       : theme === "t3"
         ? "/assets/backgrounds/T3mobile.png"
-        : "/assets/backgrounds/T1mobile.png";
+        : theme === "t4"
+          ? "/assets/backgrounds/T4mobile.png"
+          : theme === "t5"
+            ? "/assets/backgrounds/T5mobile.png"
+            : theme === "t6"
+              ? "/assets/backgrounds/T6mobile.png"
+              : theme === "t7"
+                ? "/assets/backgrounds/T7mobile.png"
+                : theme === "t8"
+                  ? "/assets/backgrounds/T8mobile.png"
+                  : "/assets/backgrounds/T1mobile.png";
   return (
     <main
       className="native-startup-splash"

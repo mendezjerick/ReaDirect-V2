@@ -9,7 +9,16 @@ const webRoot = path.resolve(scriptDirectory, "..");
 const repositoryRoot = path.resolve(webRoot, "../..");
 const themeId = process.env.CLARA_THEME_ID ?? "t1";
 
-if (themeId !== "t1" && themeId !== "t2" && themeId !== "t3") {
+if (
+  themeId !== "t1" &&
+  themeId !== "t2" &&
+  themeId !== "t3" &&
+  themeId !== "t4" &&
+  themeId !== "t5" &&
+  themeId !== "t6" &&
+  themeId !== "t7" &&
+  themeId !== "t8"
+) {
   throw new Error(`Unsupported Clara fallback theme: ${themeId}`);
 }
 
@@ -154,6 +163,19 @@ try {
   const page = await context.newPage();
 
   await page.route("**/*", async (route) => {
+    if (new URL(route.request().url()).pathname === "/api/experience/intro/settings") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          revision: "clara-fallback-capture",
+          display_mode: "live2d",
+          speech_mode: "hybrid",
+        }),
+      });
+      return;
+    }
+
     if (route.request().resourceType() !== "document") {
       await route.continue();
       return;
@@ -169,7 +191,9 @@ try {
     await route.fulfill({ response, body: captureHtml });
   });
 
-  await page.goto(captureUrl, { waitUntil: "domcontentloaded" });
+  const captureEntryUrl = new URL(captureUrl);
+  captureEntryUrl.searchParams.set("entry", "tap");
+  await page.goto(captureEntryUrl.href, { waitUntil: "domcontentloaded" });
 
   const stage = page.locator('.clara-stage[data-live2d-state="ready"]');
   await stage.waitFor({ state: "visible" });

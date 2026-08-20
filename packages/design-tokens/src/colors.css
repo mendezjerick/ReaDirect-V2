@@ -8,8 +8,13 @@
   --asset-home-background-mobile: var(--asset-learner-flow-background-mobile);
   --asset-home-background-desktop: var(--asset-learner-flow-background-desktop);
   --asset-theme-t1-preview: url("/assets/backgrounds/T1mobile.png");
-  --asset-theme-t2-preview: url("/assets/backgrounds/T2mobile.jpg");
+  --asset-theme-t2-preview: url("/assets/backgrounds/T2mobile.png");
   --asset-theme-t3-preview: url("/assets/backgrounds/T3mobile.png");
+  --asset-theme-t4-preview: url("/assets/backgrounds/T4mobile.png");
+  --asset-theme-t5-preview: url("/assets/backgrounds/T5mobile.png");
+  --asset-theme-t6-preview: url("/assets/backgrounds/T6mobile.png");
+  --asset-theme-t7-preview: url("/assets/backgrounds/T7mobile.png");
+  --asset-theme-t8-preview: url("/assets/backgrounds/T8mobile.png");
 
   --font-display-family:
     "Fredoka", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
@@ -64,8 +69,21 @@
   --color-action-skip-border: #bca9a9;
   --color-action-skip-depth: #d8c5c5;
 
+  /* Fixed semantic states */
+  --color-info: #2d7184;
+  --color-info-soft: #e5f3f7;
+  --color-success: #247451;
+  --color-success-strong: #185c3d;
+  --color-success-soft: #e8f6ef;
+  --color-surface-success-soft: var(--color-success-soft);
+  --color-warning: #9a5a00;
+  --color-warning-soft: #fff4d6;
+  --color-danger: #b42318;
+  --color-danger-soft: #feeceb;
+  --color-focus: #1769d2;
+
   /* Informational result labels */
-  --color-result-label-surface: #83c2d2;
+  --color-result-label-surface: var(--color-info);
   --color-result-label-border: color-mix(
     in srgb,
     var(--color-result-label-surface) 74%,
@@ -109,14 +127,6 @@
   --color-achievement-overlay-icon-depth: #211927;
   --color-achievement-overlay-shadow: #020204;
 
-  --color-success: #247451;
-  --color-success-soft: #e8f6ef;
-  --color-warning: #9a5a00;
-  --color-warning-soft: #fff4d6;
-  --color-danger: #b42318;
-  --color-danger-soft: #feeceb;
-  --color-focus: #1769d2;
-
   /* Professional staff workspace */
   --color-staff-page: #eef2f3;
   --color-staff-sidebar: #102a43;
@@ -124,7 +134,7 @@
   --color-staff-sidebar-hover: #1b3b57;
   --color-staff-sidebar-text: #fffdf7;
   --color-staff-sidebar-muted: #bfd0dc;
-  --color-staff-sidebar-disabled: #7790a1;
+  --color-staff-sidebar-disabled: var(--color-button-unavailable-surface);
   --color-staff-navigation-overlay: color-mix(
     in srgb,
     var(--color-staff-sidebar) 68%,

@@ -9,6 +9,7 @@ import { createAppQueryClient } from "../src/app/queryClient";
 import { ReadingJourneyMenuPage } from "../src/features/lesson-intro/LessonIntroPage";
 import type { LearnerReadingPath } from "../src/features/learner-auth/learnerApi";
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
+import { THEME_STORAGE_KEY } from "../src/features/theme/theme";
 
 const freshPath: LearnerReadingPath = {
   diagnostic: { status: "required", score: null },
@@ -116,8 +117,24 @@ describe("ReadingJourneyMenuPage", () => {
 
   afterEach(() => {
     window.sessionStorage.clear();
+    window.localStorage.removeItem(THEME_STORAGE_KEY);
+    delete document.documentElement.dataset.theme;
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+  });
+
+  it("offers and applies the space theme from the Reading Journey", async () => {
+    const user = userEvent.setup();
+    renderReadingJourney();
+
+    const spaceTheme = screen.getByRole("button", {
+      name: "Use Space theme",
+    });
+    await user.click(spaceTheme);
+
+    expect(spaceTheme).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement).toHaveAttribute("data-theme", "t8");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t8");
   });
 
   it("shows only the Diagnostic as available for a fresh learner", async () => {

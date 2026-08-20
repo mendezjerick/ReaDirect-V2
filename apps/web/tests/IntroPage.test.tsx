@@ -221,6 +221,76 @@ describe("IntroPage", () => {
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t3");
   });
 
+  it("offers and persists the desert theme", () => {
+    renderIntro();
+
+    const desertTheme = screen.getByRole("button", {
+      name: "Use Desert theme",
+    });
+
+    fireEvent.click(desertTheme);
+
+    expect(desertTheme).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement).toHaveAttribute("data-theme", "t4");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t4");
+  });
+
+  it("offers and persists the volcano theme", () => {
+    renderIntro();
+
+    const volcanoTheme = screen.getByRole("button", {
+      name: "Use Volcano theme",
+    });
+
+    fireEvent.click(volcanoTheme);
+
+    expect(volcanoTheme).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement).toHaveAttribute("data-theme", "t5");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t5");
+  });
+
+  it("offers and persists the jade theme", () => {
+    renderIntro();
+
+    const jadeTheme = screen.getByRole("button", {
+      name: "Use Jade theme",
+    });
+
+    fireEvent.click(jadeTheme);
+
+    expect(jadeTheme).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement).toHaveAttribute("data-theme", "t6");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t6");
+  });
+
+  it("offers and persists the castle theme", () => {
+    renderIntro();
+
+    const castleTheme = screen.getByRole("button", {
+      name: "Use Castle theme",
+    });
+
+    fireEvent.click(castleTheme);
+
+    expect(castleTheme).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement).toHaveAttribute("data-theme", "t7");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t7");
+  });
+
+  it("offers and persists the space theme", () => {
+    renderIntro();
+
+    const spaceTheme = screen.getByRole("button", {
+      name: "Use Space theme",
+    });
+
+    fireEvent.click(spaceTheme);
+
+    expect(spaceTheme).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement).toHaveAttribute("data-theme", "t8");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("t8");
+  });
+
   it("shows the press commit before continuing to the home route", async () => {
     vi.useFakeTimers();
 

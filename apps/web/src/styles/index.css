@@ -2,6 +2,11 @@
 @import "@readirect/design-tokens/colors.css";
 @import "@readirect/design-tokens/themes/t2.css";
 @import "@readirect/design-tokens/themes/t3.css";
+@import "@readirect/design-tokens/themes/t4.css";
+@import "@readirect/design-tokens/themes/t5.css";
+@import "@readirect/design-tokens/themes/t6.css";
+@import "@readirect/design-tokens/themes/t7.css";
+@import "@readirect/design-tokens/themes/t8.css";
 @import "@readirect/design-tokens/effects.css";
 
 @font-face {
@@ -4620,6 +4625,26 @@ textarea.staff-field__control {
   background-image: var(--asset-theme-t3-preview);
 }
 
+.theme-selector__choice[data-theme-option="t4"] {
+  background-image: var(--asset-theme-t4-preview);
+}
+
+.theme-selector__choice[data-theme-option="t5"] {
+  background-image: var(--asset-theme-t5-preview);
+}
+
+.theme-selector__choice[data-theme-option="t6"] {
+  background-image: var(--asset-theme-t6-preview);
+}
+
+.theme-selector__choice[data-theme-option="t7"] {
+  background-image: var(--asset-theme-t7-preview);
+}
+
+.theme-selector__choice[data-theme-option="t8"] {
+  background-image: var(--asset-theme-t8-preview);
+}
+
 .theme-selector__choice:hover {
   border-color: var(--color-action-secondary-hover);
 }
@@ -4642,6 +4667,26 @@ textarea.staff-field__control {
 .theme-selector__choice:focus-visible {
   outline: 0.2rem solid var(--color-focus);
   outline-offset: 0.35rem;
+}
+
+@media (max-width: 47.999rem) {
+  .theme-selector {
+    width: min(calc(100% - 1.5rem), 18rem);
+  }
+
+  .theme-selector__track {
+    display: grid;
+    min-height: calc(
+      var(--theme-choice-size) + var(--theme-choice-size) + 1.3rem
+    );
+    grid-template-columns: repeat(4, var(--theme-choice-size));
+    column-gap: clamp(0.5rem, 2.5vw, 0.7rem);
+    row-gap: 0.55rem;
+  }
+
+  .theme-selector__choice {
+    flex: none;
+  }
 }
 
 .intro-page__content {
@@ -5522,7 +5567,16 @@ textarea.staff-field__control {
 
 @media (max-height: 40rem) and (orientation: landscape) {
   .theme-selector {
+    --theme-choice-size: clamp(2rem, 6.5vw, 2.75rem);
+
     top: max(0.5rem, env(safe-area-inset-top));
+    width: min(calc(100% - 1rem), 32rem);
+  }
+
+  .theme-selector__track {
+    display: flex;
+    min-height: calc(var(--theme-choice-size) + 0.75rem);
+    gap: clamp(0.3rem, 1vw, 0.55rem);
   }
 
   .intro-page__content {

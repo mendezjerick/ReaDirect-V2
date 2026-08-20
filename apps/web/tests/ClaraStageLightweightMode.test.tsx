@@ -23,8 +23,9 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-test("uses bundled static Clara immediately on native startup without API settings", () => {
+test("uses bundled themed Clara immediately on native startup without API settings", () => {
   vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+  window.localStorage.setItem("readirect.theme", "t8");
   const fetchMock = vi.fn().mockRejectedValue(new Error("API unavailable"));
   vi.stubGlobal("fetch", fetchMock);
 
@@ -41,7 +42,10 @@ test("uses bundled static Clara immediately on native startup without API settin
   const stage = container.querySelector(".clara-stage");
   expect(stage).toHaveAttribute("data-clara-display-mode", "static");
   expect(stage).not.toHaveAttribute("data-live2d-model");
-  expect(container.querySelector(".clara-stage__static-image")).toBeTruthy();
+  expect(container.querySelector(".clara-stage__static-image")).toHaveAttribute(
+    "src",
+    "/assets/live2d/clara/stills/clara-t8.png",
+  );
   expect(container.querySelector(".clara-stage__canvas")).toBeNull();
   expect(fetchMock).not.toHaveBeenCalled();
 });
@@ -276,6 +280,65 @@ test("uses the dawn static Clara portrait without mounting Live2D", async () => 
   expect(container.querySelector(".clara-stage__static-image")).toHaveAttribute(
     "src",
     "/assets/live2d/clara/stills/clara-t3.png",
+  );
+  expect(container.querySelector(".clara-stage__canvas")).toBeNull();
+});
+
+test("uses the desert static Clara portrait without mounting Live2D", async () => {
+  window.localStorage.setItem("readirect.theme", "t4");
+  saveLearnerSession({
+    token: "learner-desert-token",
+    learner: {
+      id: 4,
+      learner_code: "DS004",
+      full_name: "Desert Learner",
+      first_name: "Desert",
+      account_purpose: "standard",
+      speech_language: "en",
+      school: null,
+      grade_level: null,
+      section: null,
+      progress: {
+        stage: "required_lessons",
+        current_required_lesson_order: 1,
+      },
+      achievement_keys: [],
+    },
+    session: { expires_at: "2026-08-02T00:00:00Z" },
+  });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          revision: "setting-1-1",
+          display_mode: "static",
+          speech_mode: "published_only",
+        }),
+        { status: 200 },
+      ),
+    ),
+  );
+  const { container } = render(
+    <MemoryRouter initialEntries={["/learner/assessment/part-one"]}>
+      <ThemeProvider>
+        <LearnerExperienceProvider>
+          <ClaraStage />
+        </LearnerExperienceProvider>
+      </ThemeProvider>
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => {
+    expect(container.querySelector(".clara-stage")).toHaveAttribute(
+      "data-clara-display-mode",
+      "static",
+    );
+  });
+
+  expect(container.querySelector(".clara-stage__static-image")).toHaveAttribute(
+    "src",
+    "/assets/live2d/clara/stills/clara-t4.png",
   );
   expect(container.querySelector(".clara-stage__canvas")).toBeNull();
 });

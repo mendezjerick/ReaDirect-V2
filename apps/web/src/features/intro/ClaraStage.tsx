@@ -75,7 +75,17 @@ export function ClaraStage({
       ? "/assets/live2d/clara/stills/clara-t2.png"
       : theme === "t3"
         ? "/assets/live2d/clara/stills/clara-t3.png"
-        : "/assets/live2d/clara/stills/clara-default.png";
+        : theme === "t4"
+          ? "/assets/live2d/clara/stills/clara-t4.png"
+          : theme === "t5"
+            ? "/assets/live2d/clara/stills/clara-t5.png"
+            : theme === "t6"
+              ? "/assets/live2d/clara/stills/clara-t6.png"
+              : theme === "t7"
+                ? "/assets/live2d/clara/stills/clara-t7.png"
+                : theme === "t8"
+                  ? "/assets/live2d/clara/stills/clara-t8.png"
+                  : "/assets/live2d/clara/stills/clara-default.png";
   // Live2D updates its palette from the document theme in place.  Only a
   // static portrait depends on this source, so do not treat a Live2D theme
   // change as a new render that needs the stage loader.

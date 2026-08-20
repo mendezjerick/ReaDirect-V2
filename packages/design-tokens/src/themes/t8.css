@@ -1,0 +1,67 @@
+/* Theme 8: lunar space. Moon silver, graphite, and near-black form an achromatic palette. */
+:root[data-theme="t8"] {
+  --asset-learner-flow-background-mobile: url("/assets/backgrounds/T8mobile.png");
+  --asset-learner-flow-background-desktop: url("/assets/backgrounds/T8desktop.png");
+
+  --color-surface-page: #ececef;
+  --color-surface-frame: #d0d1d7;
+  --color-surface-panel: #f8f8fa;
+  --color-surface-notice: #e5e5e9;
+  --color-surface-muted: #dedfe4;
+  --color-learner-background-veil: color-mix(
+    in srgb,
+    var(--color-surface-page) 20%,
+    var(--color-transparent)
+  );
+
+  --color-text-primary: #1f2027;
+  --color-text-secondary: #454650;
+  --color-text-muted: #6b6c76;
+  --color-text-on-action: #fbfbfd;
+
+  --color-border-warm: #9a9ba4;
+  --color-border-soft: #cecfd5;
+  --color-border-strong: #555761;
+  --color-frame-depth: #7a7c86;
+
+  --color-action-primary: #3d3f49;
+  --color-action-primary-hover: #32343d;
+  --color-action-primary-pressed: #292b33;
+  --color-action-primary-depth: #181920;
+  --color-action-secondary: #f8f8fa;
+  --color-action-secondary-hover: #e5e5e9;
+
+  --color-staff-page: #e1e2e6;
+  --color-staff-sidebar: #171820;
+  --color-staff-sidebar-active: #353740;
+  --color-staff-sidebar-hover: #282a32;
+  --color-staff-sidebar-text: #f8f8fa;
+  --color-staff-sidebar-muted: #b9bac2;
+  --color-staff-navigation-overlay: color-mix(
+    in srgb,
+    var(--color-staff-sidebar) 68%,
+    var(--color-transparent)
+  );
+  --color-staff-card-depth: #c4c5cb;
+  --color-staff-chart-track: #d4d5da;
+  --color-staff-chart-fill: #3d3f49;
+
+  --color-accent-coral-soft: #777984;
+  --color-accent-sun: #b9bac4;
+
+  --color-clara-hair: #747681;
+  --color-clara-hair-outline: #3f414b;
+  --color-clara-hair-highlight: #c1c2c9;
+  --color-clara-hair-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 72%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-hair-deep-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 44%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-hoodie: #202129;
+  --color-clara-strings: #e1e1e6;
+}

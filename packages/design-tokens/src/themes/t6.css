@@ -1,0 +1,67 @@
+/* Theme 6: jade temple. Aqua, jade, and deep teal form one continuous hue family. */
+:root[data-theme="t6"] {
+  --asset-learner-flow-background-mobile: url("/assets/backgrounds/T6mobile.png");
+  --asset-learner-flow-background-desktop: url("/assets/backgrounds/T6desktop.png");
+
+  --color-surface-page: #e9f6f3;
+  --color-surface-frame: #cce9e3;
+  --color-surface-panel: #f8fcfa;
+  --color-surface-notice: #e5f5f1;
+  --color-surface-muted: #e0efeb;
+  --color-learner-background-veil: color-mix(
+    in srgb,
+    var(--color-surface-page) 20%,
+    var(--color-transparent)
+  );
+
+  --color-text-primary: #123b3b;
+  --color-text-secondary: #315d5b;
+  --color-text-muted: #557b78;
+  --color-text-on-action: #f8fffd;
+
+  --color-border-warm: #7fbab1;
+  --color-border-soft: #c5e2dc;
+  --color-border-strong: #276f6c;
+  --color-frame-depth: #65a49d;
+
+  --color-action-primary: #167d78;
+  --color-action-primary-hover: #126b67;
+  --color-action-primary-pressed: #0f5b58;
+  --color-action-primary-depth: #0a4442;
+  --color-action-secondary: #f8fcfa;
+  --color-action-secondary-hover: #e7f5f1;
+
+  --color-staff-page: #e3f1ee;
+  --color-staff-sidebar: #123f43;
+  --color-staff-sidebar-active: #23666a;
+  --color-staff-sidebar-hover: #1a5357;
+  --color-staff-sidebar-text: #f3fbf9;
+  --color-staff-sidebar-muted: #afd4ce;
+  --color-staff-navigation-overlay: color-mix(
+    in srgb,
+    var(--color-staff-sidebar) 68%,
+    var(--color-transparent)
+  );
+  --color-staff-card-depth: #bedbd5;
+  --color-staff-chart-track: #d5e7e3;
+  --color-staff-chart-fill: #167d78;
+
+  --color-accent-coral-soft: #59b9ad;
+  --color-accent-sun: #a9ded5;
+
+  --color-clara-hair: #3aa69c;
+  --color-clara-hair-outline: #1c6864;
+  --color-clara-hair-highlight: #a8ded6;
+  --color-clara-hair-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 72%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-hair-deep-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 44%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-hoodie: #103f42;
+  --color-clara-strings: #d8efea;
+}
