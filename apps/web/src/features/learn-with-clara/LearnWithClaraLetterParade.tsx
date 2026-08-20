@@ -1,9 +1,11 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import type { LearnWithClaraLettersScene } from "./learnWithClaraLettersApi";
+import type { claraLettersCopy } from "./learnWithClaraCopy";
 
 interface LearnWithClaraLetterParadeProps {
   scene: LearnWithClaraLettersScene;
+  copy: (typeof claraLettersCopy)["en"] | (typeof claraLettersCopy)["fil"];
   wrongChoice: string;
   foundChoice: string;
   choosing: boolean;
@@ -11,14 +13,6 @@ interface LearnWithClaraLetterParadeProps {
 }
 
 const paradeLetters = ["A", "B", "C", "D", "E"] as const;
-
-const stationNames = {
-  A: "Apple Arch",
-  B: "Balloon Float",
-  C: "Curved Banner",
-  D: "Drum Cart",
-  E: "Final Wagon",
-} as const;
 
 function foundCountFor(scene: LearnWithClaraLettersScene) {
   if (scene.kind === "completion") {
@@ -241,7 +235,7 @@ function ParadeLine({
   );
 }
 
-function OpeningScene() {
+function OpeningScene({ title }: { title: string }) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -255,7 +249,7 @@ function OpeningScene() {
         y="105"
         textAnchor="middle"
       >
-        THE LETTER PARADE
+        {title}
       </text>
       {paradeLetters.map((letter, index) => (
         <motion.g
@@ -321,9 +315,13 @@ function OpeningScene() {
 function ActiveLetterScene({
   scene,
   foundChoice,
+  stationNames,
 }: {
   scene: LearnWithClaraLettersScene;
   foundChoice: string;
+  stationNames:
+    | typeof claraLettersCopy.en.parade.stationNames
+    | typeof claraLettersCopy.fil.parade.stationNames;
 }) {
   const reduceMotion = useReducedMotion();
   const [capital, lowercase] = scene.display_text.split(" ");
@@ -420,7 +418,7 @@ function ActiveLetterScene({
   );
 }
 
-function FinaleScene() {
+function FinaleScene({ title, copy }: { title: string; copy: string }) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -436,7 +434,7 @@ function FinaleScene() {
         animate={reduceMotion ? undefined : { scale: [1, 1.04, 1] }}
         transition={{ duration: 1.2, repeat: Infinity }}
       >
-        PARADE READY
+        {title}
       </motion.text>
       {Array.from({ length: 18 }, (_, index) => (
         <motion.circle
@@ -460,7 +458,7 @@ function FinaleScene() {
         y="214"
         textAnchor="middle"
       >
-        Every partner is here
+        {copy}
       </text>
     </motion.g>
   );
@@ -468,6 +466,7 @@ function FinaleScene() {
 
 export function LearnWithClaraLetterParade({
   scene,
+  copy,
   wrongChoice,
   foundChoice,
   choosing,
@@ -475,6 +474,15 @@ export function LearnWithClaraLetterParade({
 }: LearnWithClaraLetterParadeProps) {
   const foundCount = foundCountFor(scene);
   const choicesReady = scene.kind === "find" && !choosing;
+  const stationNames = copy.parade.stationNames;
+  const sceneTitle =
+    scene.kind === "story"
+      ? copy.parade.sceneTitle.story
+      : scene.kind === "completion"
+        ? copy.parade.sceneTitle.completion
+        : scene.kind === "find"
+          ? copy.parade.sceneTitle.find(scene.display_text.slice(-1))
+          : copy.parade.sceneTitle.teach(scene.display_text.charAt(0));
 
   return (
     <section className="parade-story" aria-labelledby="letters-class-title">
@@ -482,12 +490,12 @@ export function LearnWithClaraLetterParade({
         <div>
           <p>
             {scene.kind === "find"
-              ? "Help Clara find the partner"
-              : "The Little-Letter Parade"}
+              ? copy.parade.findHeading
+              : copy.parade.storyHeading}
           </p>
-          <h2 id="letters-class-title">{scene.title}</h2>
+          <h2 id="letters-class-title">{sceneTitle}</h2>
         </div>
-        <span>{foundCount} of 5 found</span>
+        <span>{copy.parade.foundCount(foundCount, 5)}</span>
       </div>
 
       <div className="parade-story__canvas-wrap">
@@ -497,10 +505,15 @@ export function LearnWithClaraLetterParade({
           role="img"
           aria-label={
             scene.kind === "completion"
-              ? "All five big and little letter pairs marching in the parade."
+              ? copy.parade.completionAria
               : scene.kind === "story"
-                ? "A gust of wind scatters the little letters away from the parade."
-                : `${scene.title} at the ${stationNames[scene.display_text.charAt(0) as keyof typeof stationNames]}.`
+                ? copy.parade.storyAria
+                : copy.parade.sceneAria(
+                    sceneTitle,
+                    stationNames[
+                      scene.display_text.charAt(0) as keyof typeof stationNames
+                    ],
+                  )
           }
         >
           <defs>
@@ -564,14 +577,19 @@ export function LearnWithClaraLetterParade({
 
           <AnimatePresence mode="wait" initial={false}>
             {scene.kind === "story" ? (
-              <OpeningScene key="opening" />
+              <OpeningScene key="opening" title={copy.parade.openingTitle} />
             ) : scene.kind === "completion" ? (
-              <FinaleScene key="finale" />
+              <FinaleScene
+                key="finale"
+                title={copy.parade.finaleTitle}
+                copy={copy.parade.finaleCopy}
+              />
             ) : (
               <ActiveLetterScene
                 key={scene.key}
                 scene={scene}
                 foundChoice={foundChoice}
+                stationNames={stationNames}
               />
             )}
           </AnimatePresence>
@@ -586,7 +604,7 @@ export function LearnWithClaraLetterParade({
       {scene.kind === "find" ? (
         <div
           className="parade-story__choices"
-          aria-label={`Find little ${scene.display_text.slice(-1)}`}
+          aria-label={copy.parade.choicesAria(scene.display_text.slice(-1))}
         >
           {scene.choices.map((choice, index) => (
             <motion.button
@@ -596,7 +614,7 @@ export function LearnWithClaraLetterParade({
               data-wrong={wrongChoice === choice || undefined}
               data-found={foundChoice === choice || undefined}
               disabled={!choicesReady}
-              aria-label={`Choose little ${choice}`}
+              aria-label={copy.parade.chooseLittle(choice)}
               onClick={() => onChoose(choice)}
               animate={
                 wrongChoice === choice

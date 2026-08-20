@@ -76,19 +76,22 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
   const learnerToken = loadLearnerSession()?.token ?? null;
   const isOfflinePracticeRoute =
     location.pathname.startsWith("/learner/offline");
+  const isNativeStartupRoute =
+    isNativePlatform &&
+    (location.pathname === "/" || location.pathname === "/learner/modes");
   const appliesToLearnerRoute =
     location.pathname.startsWith("/learner/") &&
     location.pathname !== "/learner/login" &&
     !isOfflinePracticeRoute;
   const appliesToIntroRoute = location.pathname === "/";
   const requestKey =
-    appliesToLearnerRoute && learnerToken !== null
+    !isNativeStartupRoute && appliesToLearnerRoute && learnerToken !== null
       ? `learner:${location.key}:${learnerToken}`
-      : appliesToIntroRoute
+      : !isNativePlatform && appliesToIntroRoute
         ? `intro:${location.key}`
         : null;
   const [experience, setExperience] = useState<ResolvedLearnerExperience>(
-    isNativePlatform ? nativeExperience : defaultExperience,
+    isNativeStartupRoute ? nativeExperience : defaultExperience,
   );
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [displayModeOverride, setDisplayModeOverrideState] =
@@ -109,7 +112,7 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    if (isNativePlatform) {
+    if (isNativeStartupRoute || isOfflinePracticeRoute) {
       setExperience(nativeExperience);
       return;
     }
@@ -142,20 +145,22 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
     };
   }, [
     appliesToLearnerRoute,
-    isNativePlatform,
+    isNativeStartupRoute,
+    isOfflinePracticeRoute,
     learnerToken,
     requestKey,
     retryAttempt,
   ]);
 
   const value = useMemo<LearnerExperienceContextValue>(() => {
-    const resolvedExperience: ResolvedLearnerExperience = isNativePlatform
-      ? nativeExperience
-      : requestKey === null
-        ? defaultExperience
-        : experience.requestKey === requestKey
-          ? experience
-          : { state: "resolving", settings: null };
+    const resolvedExperience: ResolvedLearnerExperience =
+      isNativeStartupRoute || isOfflinePracticeRoute
+        ? nativeExperience
+        : requestKey === null
+          ? defaultExperience
+          : experience.requestKey === requestKey
+            ? experience
+            : { state: "resolving", settings: null };
     const systemDisplayMode =
       resolvedExperience.state === "ready"
         ? (resolvedExperience.settings?.display_mode ?? null)
@@ -167,14 +172,17 @@ export function LearnerExperienceProvider({ children }: PropsWithChildren) {
       ...resolvedExperience,
       displayMode:
         displayModeOverride ??
-        (isNativePlatform ? "static" : systemDisplayMode),
+        (isNativeStartupRoute || isOfflinePracticeRoute
+          ? "static"
+          : systemDisplayMode),
       retry,
       setDisplayModeOverride,
     };
   }, [
     displayModeOverride,
     experience,
-    isNativePlatform,
+    isNativeStartupRoute,
+    isOfflinePracticeRoute,
     requestKey,
     retry,
     setDisplayModeOverride,

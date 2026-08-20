@@ -401,8 +401,7 @@ export function LearnWithClaraLettersPage() {
                 )
               ) : null}
 
-              {phase === "lesson" &&
-              scene?.kind === "story" ? (
+              {phase === "lesson" && scene?.kind === "story" ? (
                 <BigButton
                   className="letters-class__action"
                   size="regular"
@@ -419,8 +418,7 @@ export function LearnWithClaraLettersPage() {
                 </BigButton>
               ) : null}
 
-              {phase === "lesson" &&
-              scene?.kind === "teach" ? (
+              {phase === "lesson" && scene?.kind === "teach" ? (
                 <BigButton
                   className="letters-class__action"
                   size="regular"
@@ -439,8 +437,7 @@ export function LearnWithClaraLettersPage() {
                 </BigButton>
               ) : null}
 
-              {phase === "lesson" &&
-              classComplete ? (
+              {phase === "lesson" && classComplete ? (
                 <div className="letters-class__completion-actions">
                   <BigButton
                     variant="secondary"
@@ -477,6 +474,7 @@ export function LearnWithClaraLettersPage() {
             ) : (
               <LearnWithClaraLetterParade
                 scene={scene}
+                copy={copy}
                 wrongChoice={wrongChoice}
                 foundChoice={foundChoice}
                 choosing={choicePending}

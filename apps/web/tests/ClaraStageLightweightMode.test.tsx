@@ -9,7 +9,11 @@ import {
   LearnerExperienceProvider,
   useLearnerExperience,
 } from "../src/features/learner-auth/LearnerExperienceProvider";
-import { saveLearnerSession } from "../src/features/learner-auth/learnerApi";
+import {
+  saveLearnerSession,
+  type LearnerSession,
+} from "../src/features/learner-auth/learnerApi";
+import { setNativeSessionCache } from "../src/app/nativeSecureSession";
 
 afterEach(() => {
   window.sessionStorage.clear();
@@ -25,7 +29,7 @@ test("uses bundled static Clara immediately on native startup without API settin
   vi.stubGlobal("fetch", fetchMock);
 
   const { container } = render(
-    <MemoryRouter initialEntries={["/learner/login"]}>
+    <MemoryRouter initialEntries={["/"]}>
       <ThemeProvider>
         <LearnerExperienceProvider>
           <ClaraStage />
@@ -71,6 +75,71 @@ test("keeps native startup static when the API is available", () => {
     "static",
   );
   expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("uses the shared learner experience settings for native online learning", async () => {
+  const nativeSession = {
+    token: "native-online-token",
+    learner: {
+      id: 4,
+      learner_code: "ON004",
+      full_name: "Online Learner",
+      first_name: "Online",
+      account_purpose: "standard",
+      speech_language: "en",
+      school: null,
+      grade_level: null,
+      section: null,
+      progress: {
+        stage: "required_lessons",
+        current_required_lesson_order: 1,
+      },
+      achievement_keys: [],
+    },
+    session: { expires_at: "2026-08-02T00:00:00Z" },
+  } as unknown as LearnerSession & { token: string };
+  vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+  setNativeSessionCache(
+    "readirect.learner-session",
+    JSON.stringify(nativeSession),
+  );
+  window.localStorage.setItem("readirect.learner.clara-display-mode", "static");
+  const fetchMock = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        revision: "native-online-1",
+        display_mode: "static",
+        speech_mode: "hybrid",
+      }),
+      { status: 200 },
+    ),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+
+  const { container } = render(
+    <MemoryRouter initialEntries={["/learner/dashboard"]}>
+      <ThemeProvider>
+        <LearnerExperienceProvider>
+          <ClaraStage />
+        </LearnerExperienceProvider>
+      </ThemeProvider>
+    </MemoryRouter>,
+  );
+
+  await waitFor(() =>
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/learners/experience/settings",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer native-online-token",
+        }),
+      }),
+    ),
+  );
+  expect(container.querySelector(".clara-stage")).toHaveAttribute(
+    "data-clara-display-mode",
+    "static",
+  );
 });
 
 test("preserves an explicitly saved native full-mode override", () => {
