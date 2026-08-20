@@ -13,6 +13,9 @@ node_modules
 **/storage/cache
 **/storage/reference-cache
 apps/api/storage/app/private/*
+!apps/api/storage/app/private/tts/
+!apps/api/storage/app/private/tts/catalog/
+!apps/api/storage/app/private/tts/catalog/**
 apps/api/database/*.sqlite
 dist
 coverage

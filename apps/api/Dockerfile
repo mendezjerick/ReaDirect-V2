@@ -7,6 +7,7 @@ RUN apt-get update \
         libonig-dev \
         libpq-dev \
         libzip-dev \
+        postgresql-client \
         unzip \
     && docker-php-ext-install \
         bcmath \
@@ -45,6 +46,7 @@ RUN mkdir -p \
         storage/framework/views \
         storage/logs \
     && chmod -R ug+rwX bootstrap/cache storage \
+    && chmod +x docker/production-entrypoint.sh \
     && composer dump-autoload --no-dev --classmap-authoritative \
     && APP_ENV=local php artisan package:discover --ansi
 
@@ -55,4 +57,4 @@ ENV APP_ENV=production \
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
+CMD ["./docker/production-entrypoint.sh"]

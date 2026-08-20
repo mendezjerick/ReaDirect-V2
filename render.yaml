@@ -1,0 +1,102 @@
+services:
+  - type: web
+    name: readirect-production-api
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: deployment/playstore
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    autoDeployTrigger: commit
+    envVars:
+      - key: APP_NAME
+        value: ReaDirect
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        value: https://api.readirect.org
+      - key: APP_FORCE_HTTPS
+        value: "true"
+      - key: TRUSTED_HOSTS
+        value: readirect-production-api.onrender.com,api.readirect.org
+      - key: TRUSTED_PROXIES
+        value: 127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://app.readirect.org,https://readirect.org,https://www.readirect.org,https://readirect-production.pages.dev
+      - key: SECURITY_HSTS_ENABLED
+        value: "true"
+      - key: SECURITY_HSTS_MAX_AGE
+        value: "31536000"
+      - key: SECURITY_HSTS_INCLUDE_SUBDOMAINS
+        value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: BROADCAST_CONNECTION
+        value: log
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: CACHE_STORE
+        value: array
+      - key: SESSION_DRIVER
+        value: array
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SCHEMA
+        value: readirect_production
+      - key: DB_SSLMODE
+        value: require
+      - key: DEV_SYSTEM_ADMIN_USERNAME
+        sync: false
+      - key: DEV_SYSTEM_ADMIN_PASSWORD
+        sync: false
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_SCHEME
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_REQUIRE_TLS
+        value: "true"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+      - key: MAIL_FROM_NAME
+        value: ReaDirect
+      - key: ASR_SERVICE_URL
+        value: https://asr.readirect.org
+      - key: ASR_SERVICE_TOKEN
+        sync: false
+      - key: ASR_CONNECT_TIMEOUT_SECONDS
+        value: "3"
+      - key: ASR_REQUEST_TIMEOUT_SECONDS
+        value: "90"
+      - key: TTS_SERVICE_URL
+        value: https://tts.readirect.org
+      - key: TTS_SERVICE_TOKEN
+        sync: false
+      - key: TTS_CONNECT_TIMEOUT_SECONDS
+        value: "3"
+      - key: TTS_REQUEST_TIMEOUT_SECONDS
+        value: "300"
