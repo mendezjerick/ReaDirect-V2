@@ -1,14 +1,6 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("unsupported Guest game entry", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      window.sessionStorage.clear();
-      document.cookie =
-        "readirect_learner_signed_in=; Max-Age=0; Path=/; SameSite=Lax";
-    });
-  });
-
   test("shows an immediate unavailable state and offers learner login", async ({
     page,
   }) => {
@@ -84,7 +76,7 @@ test.describe("unsupported Guest game entry", () => {
             completed_lesson_count: 0,
             final_assessment: { status: "locked" },
           },
-          session: { expires_at: "2026-07-27T00:00:00+00:00" },
+          session: { expires_at: "2099-01-01T00:00:00Z" },
         }),
       );
     });
@@ -97,6 +89,36 @@ test.describe("unsupported Guest game entry", () => {
           display_mode: "static",
           speech_mode: "published_only",
         }),
+      });
+    });
+    await page.route("**/api/learners/session/heartbeat", async (route) => {
+      await route.fulfill({ status: 204 });
+    });
+    await page.route("**/api/learners/games/profile", async (route) => {
+      if (route.request().method() === "POST") {
+        const { username } = route.request().postDataJSON() as {
+          username: string;
+        };
+        await route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: JSON.stringify({
+            profile: {
+              audience: "learner",
+              username,
+              discriminator: "0042",
+              public_handle: `${username}#0042`,
+              is_active: true,
+            },
+          }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ profile: null }),
       });
     });
 

@@ -18,10 +18,12 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$BindAddress = '127.0.0.1',
 
-    [ValidateRange(30, 600)]
+    [ValidateRange(30, 3600)]
     [int]$SpeechStartupTimeoutSeconds = 1000,
 
     [switch]$ProductionSpeechServices,
+
+    [switch]$ReloadSpeechServices,
 
     [switch]$OpenBrowser
 )
@@ -35,18 +37,13 @@ $logDirectory = Join-Path $runtimeDirectory 'logs'
 $serviceManifestPath = Join-Path $runtimeDirectory 'services.json'
 $stopRequestPath = Join-Path $runtimeDirectory 'stop-requested'
 $ttsServiceTokenPath = Join-Path $runtimeDirectory 'tts-service-token'
+$standardInputPath = Join-Path $runtimeDirectory 'empty-input.txt'
 $runningProcesses = [System.Collections.Generic.List[object]]::new()
 $serviceResults = [System.Collections.Generic.List[object]]::new()
 $previousReverbPort = [Environment]::GetEnvironmentVariable('REVERB_PORT', 'Process')
 $previousReverbServerPort = [Environment]::GetEnvironmentVariable('REVERB_SERVER_PORT', 'Process')
 $previousAsrServiceToken = [Environment]::GetEnvironmentVariable('ASR_SERVICE_TOKEN', 'Process')
 $previousTtsServiceToken = [Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process')
-$previousMuDevice = [Environment]::GetEnvironmentVariable('MU_DEVICE', 'Process')
-$previousMuModelPath = [Environment]::GetEnvironmentVariable('MU_MODEL_PATH', 'Process')
-$previousMuComputeType = [Environment]::GetEnvironmentVariable('MU_COMPUTE_TYPE', 'Process')
-$previousTtsDevice = [Environment]::GetEnvironmentVariable('READIRECT_TTS_DEVICE', 'Process')
-$previousCudaVisibleDevices = [Environment]::GetEnvironmentVariable('CUDA_VISIBLE_DEVICES', 'Process')
-$previousGpuCoordination = [Environment]::GetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', 'Process')
 
 function Write-Section {
     param([Parameter(Mandatory)][string]$Title)
@@ -159,6 +156,7 @@ function Start-ManagedProcess {
         -FilePath $Executable `
         -ArgumentList $Arguments `
         -WorkingDirectory $WorkingDirectory `
+        -RedirectStandardInput $standardInputPath `
         -RedirectStandardOutput $standardOutputPath `
         -RedirectStandardError $standardErrorPath `
         -WindowStyle Hidden `
@@ -237,6 +235,7 @@ function Start-ManagedBackgroundProcess {
         -FilePath $Executable `
         -ArgumentList $Arguments `
         -WorkingDirectory $WorkingDirectory `
+        -RedirectStandardInput $standardInputPath `
         -RedirectStandardOutput $standardOutputPath `
         -RedirectStandardError $standardErrorPath `
         -WindowStyle Hidden `
@@ -366,12 +365,17 @@ function Get-LanAddresses {
 }
 
 New-Item -ItemType Directory -Force -Path $logDirectory | Out-Null
+[IO.File]::WriteAllText($standardInputPath, '', [Text.UTF8Encoding]::new($false))
 Remove-Item -LiteralPath $stopRequestPath -Force -ErrorAction SilentlyContinue
 
 Write-Host 'ReaDirect local launcher' -ForegroundColor Green
 Write-Host "Repository: $repositoryRoot"
 
 try {
+    if ($ProductionSpeechServices -and $ReloadSpeechServices) {
+        throw 'ProductionSpeechServices and ReloadSpeechServices cannot be used together.'
+    }
+
     [Environment]::SetEnvironmentVariable('REVERB_PORT', [string]$ReverbPort, 'Process')
     [Environment]::SetEnvironmentVariable('REVERB_SERVER_PORT', [string]$ReverbPort, 'Process')
     if ([string]::IsNullOrWhiteSpace($previousAsrServiceToken)) {
@@ -383,17 +387,6 @@ try {
     Write-PrivateRuntimeToken `
         -Path $ttsServiceTokenPath `
         -Token ([Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process'))
-    [Environment]::SetEnvironmentVariable('MU_DEVICE', 'cpu', 'Process')
-    [Environment]::SetEnvironmentVariable('MU_COMPUTE_TYPE', 'int8', 'Process')
-    [Environment]::SetEnvironmentVariable('READIRECT_TTS_DEVICE', 'cpu', 'Process')
-    [Environment]::SetEnvironmentVariable('CUDA_VISIBLE_DEVICES', '', 'Process')
-    [Environment]::SetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', 'false', 'Process')
-    $lightweightMuModelPath = Join-Path $repositoryRoot 'services\asr\.cache\faster-whisper-base.en'
-    if ((Test-Path -LiteralPath (Join-Path $lightweightMuModelPath 'config.json')) -and
-        (Test-Path -LiteralPath (Join-Path $lightweightMuModelPath 'model.bin'))) {
-        [Environment]::SetEnvironmentVariable('MU_MODEL_PATH', $lightweightMuModelPath, 'Process')
-        Write-Host '  ASR       using local faster-whisper base.en cache' -ForegroundColor Green
-    }
 
     $corepackPath = Get-RequiredCommandPath `
         -Command 'corepack' `
@@ -521,11 +514,13 @@ try {
             '--port', "$($speechService.Port)",
             '--timeout-graceful-shutdown', '180'
         )
-        if ($ProductionSpeechServices) {
-            $speechArguments += @('--workers', '1')
+        if ($ReloadSpeechServices) {
+            $speechArguments += '--reload'
         }
         else {
-            $speechArguments += '--reload'
+            # A single worker keeps one GPU model loaded and gives the launcher a
+            # stable process tree that can be stopped without orphaning Uvicorn.
+            $speechArguments += @('--workers', '1')
         }
 
         $speechProcess = Start-ManagedProcess `
@@ -606,14 +601,9 @@ finally {
     Remove-Item -LiteralPath $serviceManifestPath -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $stopRequestPath -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $ttsServiceTokenPath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $standardInputPath -Force -ErrorAction SilentlyContinue
     [Environment]::SetEnvironmentVariable('REVERB_PORT', $previousReverbPort, 'Process')
     [Environment]::SetEnvironmentVariable('REVERB_SERVER_PORT', $previousReverbServerPort, 'Process')
     [Environment]::SetEnvironmentVariable('ASR_SERVICE_TOKEN', $previousAsrServiceToken, 'Process')
     [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', $previousTtsServiceToken, 'Process')
-    [Environment]::SetEnvironmentVariable('MU_DEVICE', $previousMuDevice, 'Process')
-    [Environment]::SetEnvironmentVariable('MU_MODEL_PATH', $previousMuModelPath, 'Process')
-    [Environment]::SetEnvironmentVariable('MU_COMPUTE_TYPE', $previousMuComputeType, 'Process')
-    [Environment]::SetEnvironmentVariable('READIRECT_TTS_DEVICE', $previousTtsDevice, 'Process')
-    [Environment]::SetEnvironmentVariable('CUDA_VISIBLE_DEVICES', $previousCudaVisibleDevices, 'Process')
-    [Environment]::SetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', $previousGpuCoordination, 'Process')
 }

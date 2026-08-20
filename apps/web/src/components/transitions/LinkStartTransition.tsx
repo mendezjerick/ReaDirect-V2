@@ -198,14 +198,10 @@ interface LinkStartTransitionProps {
 export function LinkStartTransition({
   variant = "full",
 }: LinkStartTransitionProps) {
-  if (variant === "clara") {
-    return <ClaraLinkStartTransition />;
-  }
-
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (variant === "white") {
+    if (variant !== "full") {
       return;
     }
 
@@ -249,6 +245,10 @@ export function LinkStartTransition({
       window.removeEventListener("resize", handleResize);
     };
   }, [variant]);
+
+  if (variant === "clara") {
+    return <ClaraLinkStartTransition />;
+  }
 
   if (variant === "white") {
     return (

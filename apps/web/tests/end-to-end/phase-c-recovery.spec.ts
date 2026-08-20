@@ -8,7 +8,7 @@ test.describe("Phase C recoverable loading", () => {
       await new Promise(() => undefined);
     });
 
-    await page.goto("/");
+    await page.goto("/?entry=tap");
 
     await expect(
       page.locator("[data-clara-display-mode='static']"),

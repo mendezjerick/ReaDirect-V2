@@ -201,7 +201,7 @@ describe("authenticated game lobby route flow", () => {
     expect(
       await screen.findByRole("heading", { name: "Alphabet Defender" }),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Back to Lobby" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back to lobby" }));
     expect(
       await screen.findByRole("heading", { name: "Ready to play?" }),
     ).toBeInTheDocument();

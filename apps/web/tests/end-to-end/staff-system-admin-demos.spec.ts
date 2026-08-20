@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const systemAdminSession = {
-  token: "system-admin-demo-test-session-token".repeat(2),
+  token: "cookie-session",
   session: { expires_at: "2099-01-01T00:00:00Z" },
   staff: {
     id: 1,

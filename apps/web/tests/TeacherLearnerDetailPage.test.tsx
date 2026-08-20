@@ -283,7 +283,7 @@ describe("TeacherLearnerDetailPage", () => {
     );
     const [, request] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(new Headers(request.headers).get("Authorization")).toBe(
-      `Bearer ${"teacher-session-token".repeat(4)}`,
+      "Bearer cookie-session",
     );
   });
 

@@ -1719,7 +1719,7 @@ export async function completeSchoolAdminSetup(input: {
     await response.json(),
   );
 
-  return staffSessionSchema.parse({
+  return storedStaffSessionSchema.parse({
     ...currentSession,
     staff: updatedAccount.staff,
   });

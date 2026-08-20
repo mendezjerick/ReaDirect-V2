@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const learnerSession = {
-  token: "game-one-e2e-token",
+  token: "cookie-session",
   learner: {
     id: 31,
     learner_code: "GO001",
@@ -17,7 +17,7 @@ const learnerSession = {
     },
     achievement_keys: [],
   },
-  session: { expires_at: "2026-07-27T00:00:00+00:00" },
+  session: { expires_at: "2099-01-01T00:00:00Z" },
 };
 
 test("Game One preserves the lobby and saves authenticated progress before exit", async ({
@@ -39,6 +39,10 @@ test("Game One preserves the lobby and saves authenticated progress before exit"
       JSON.stringify({ version: 1, language: "en" }),
     );
   }, learnerSession);
+
+  await page.route("**/api/learners/session/heartbeat", async (route) => {
+    await route.fulfill({ status: 204 });
+  });
 
   await page.route("**/api/learners/games/**", async (route) => {
     const request = route.request();
@@ -142,7 +146,7 @@ test("Game One preserves the lobby and saves authenticated progress before exit"
       "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}",
   });
 
-  await page.getByRole("button", { name: "Open Game One" }).click();
+  await page.getByRole("button", { name: "Open Readscape" }).click();
   await expect(page).toHaveURL(/\/learner\/games\/game-one$/);
   await expect(
     page.getByRole("heading", { name: /Lost Kingdom/ }),
@@ -189,7 +193,7 @@ test("Game One preserves the lobby and saves authenticated progress before exit"
   expect(authorizationHeaders.length).toBeGreaterThan(0);
   expect(
     authorizationHeaders.every(
-      (value) => value === "Bearer game-one-e2e-token",
+      (value) => value === "Bearer cookie-session",
     ),
   ).toBe(true);
   expect(

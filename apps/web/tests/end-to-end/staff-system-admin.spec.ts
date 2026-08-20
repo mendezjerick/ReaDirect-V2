@@ -12,7 +12,7 @@ const schoolAdministrator = {
 };
 
 const systemAdminSession = {
-  token: "system-admin-e2e-session-token".repeat(2),
+  token: "cookie-session",
   session: { expires_at: "2099-01-01T00:00:00Z" },
   staff: {
     id: 1,

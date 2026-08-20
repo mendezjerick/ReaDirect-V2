@@ -135,9 +135,11 @@ export const validOptionalAudioFallback = {
   },
   content: {
     ...validLetterPracticePack.content,
-    dialogues: bilingualDialogues.map(
-      ({ fixedSpeechKey, localAudioAssetId, ...dialogue }) => dialogue,
-    ),
+    dialogues: bilingualDialogues.map(({ dialogueKey, language, text }) => ({
+      dialogueKey,
+      language,
+      text,
+    })),
   },
 };
 

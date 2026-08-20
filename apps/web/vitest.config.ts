@@ -7,5 +7,10 @@ export default defineConfig({
     environment: "jsdom",
     exclude: ["tests/end-to-end/**", "node_modules/**", "dist/**"],
     setupFiles: "./tests/setup.ts",
+    server: {
+      deps: {
+        inline: ["@pixi/react"],
+      },
+    },
   },
 });

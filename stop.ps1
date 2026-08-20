@@ -26,6 +26,7 @@ $stopRequestPath = Join-Path $runtimeDirectory 'stop-requested'
 $stoppedProcessIds = [System.Collections.Generic.HashSet[int]]::new()
 $stoppedServices = [System.Collections.Generic.List[object]]::new()
 $warnings = [System.Collections.Generic.List[string]]::new()
+$launcherHandledStop = $false
 
 function Stop-VerifiedProcessTree {
     param(
@@ -106,6 +107,18 @@ Write-Host ''
 New-Item -ItemType Directory -Force -Path $runtimeDirectory | Out-Null
 Set-Content -LiteralPath $stopRequestPath -Value ([DateTime]::UtcNow.ToString('O'))
 
+# Give the foreground launcher a brief opportunity to perform its own
+# process-tree cleanup. This avoids racing its finally block and reporting
+# listeners as unverified while their recorded parent processes are exiting.
+if (Test-Path -LiteralPath $serviceManifestPath) {
+    $launcherCleanupDeadline = [DateTime]::UtcNow.AddSeconds(10)
+    while ((Test-Path -LiteralPath $serviceManifestPath) -and
+        [DateTime]::UtcNow -lt $launcherCleanupDeadline) {
+        Start-Sleep -Milliseconds 250
+    }
+    $launcherHandledStop = -not (Test-Path -LiteralPath $serviceManifestPath)
+}
+
 if (Test-Path -LiteralPath $serviceManifestPath) {
     try {
         $manifest = Get-Content -LiteralPath $serviceManifestPath -Raw | ConvertFrom-Json
@@ -165,7 +178,12 @@ Remove-Item -LiteralPath $serviceManifestPath -Force -ErrorAction SilentlyContin
 Remove-Item -LiteralPath "$serviceManifestPath.tmp" -Force -ErrorAction SilentlyContinue
 
 if ($stoppedServices.Count -eq 0) {
-    Write-Host 'No running ReaDirect services were found.' -ForegroundColor DarkYellow
+    if ($launcherHandledStop) {
+        Write-Host 'Stopped services through the running ReaDirect launcher.' -ForegroundColor White
+    }
+    else {
+        Write-Host 'No running ReaDirect services were found.' -ForegroundColor DarkYellow
+    }
 }
 else {
     Write-Host 'Stopped services' -ForegroundColor Cyan
