@@ -211,6 +211,43 @@ describe("authoritative Games Lobby profile", () => {
     ).toBeInTheDocument();
   });
 
+  it("re-evaluates a session-aware preview bypass after account changes", async () => {
+    let preview = false;
+    const client = {
+      loadGameProfile: vi.fn(
+        () => new Promise<typeof serverProfile | null>(() => undefined),
+      ),
+      createGameProfile: vi.fn(async () => serverProfile),
+    };
+
+    render(
+      <MemoryRouter initialEntries={["/learner/games/game-one"]}>
+        <GameLobbySkeletonProvider profileClient={client}>
+          <Routes>
+            <Route
+              path="/learner/games/game-one"
+              element={
+                <RequireSkeletonGameProfile bypass={() => preview}>
+                  <h1>Preview game</h1>
+                </RequireSkeletonGameProfile>
+              }
+            />
+          </Routes>
+        </GameLobbySkeletonProvider>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Loading game profile...",
+    );
+    preview = true;
+    window.dispatchEvent(new Event("readirect:learner-session-changed"));
+    expect(
+      await screen.findByRole("heading", { name: "Preview game" }),
+    ).toBeInTheDocument();
+    expect(client.loadGameProfile).toHaveBeenCalledOnce();
+  });
+
   it("keeps the registry limited to the three playable games", () => {
     expect(registeredGames.map((game) => [game.key, game.route])).toEqual([
       ["game-alpha", "/learner/games/game-alpha"],
