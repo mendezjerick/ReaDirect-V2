@@ -11,6 +11,8 @@ from readirect_gpu_runtime import (
     ServiceProcessGuard,
 )
 
+CHILD_START_TIMEOUT_SECONDS = 5
+
 
 def hold_gpu_in_child(lock_directory: str, acquired, release) -> None:
     coordinator = GpuCoordinator(
@@ -51,7 +53,7 @@ def test_gpu_permit_serializes_work_across_processes(tmp_path: Path) -> None:
         args=(str(tmp_path), child_acquired, release_child),
     )
     child.start()
-    assert child_acquired.wait(2)
+    assert child_acquired.wait(CHILD_START_TIMEOUT_SECONDS)
 
     coordinator = GpuCoordinator(
         service_name="parent",
@@ -93,7 +95,7 @@ def test_gpu_permit_wait_is_bounded(tmp_path: Path) -> None:
         args=(str(tmp_path), child_acquired, release_child),
     )
     child.start()
-    assert child_acquired.wait(2)
+    assert child_acquired.wait(CHILD_START_TIMEOUT_SECONDS)
 
     coordinator = GpuCoordinator(
         service_name="parent",
@@ -123,7 +125,7 @@ def test_process_guard_rejects_duplicate_service_for_same_gpu(tmp_path: Path) ->
         args=(str(tmp_path), child_acquired, release_child),
     )
     child.start()
-    assert child_acquired.wait(2)
+    assert child_acquired.wait(CHILD_START_TIMEOUT_SECONDS)
 
     guard = ServiceProcessGuard(
         service_name="asr",

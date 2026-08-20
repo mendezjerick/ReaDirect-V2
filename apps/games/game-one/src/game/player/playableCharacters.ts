@@ -24,7 +24,7 @@ export type PlayableCharacter = {
 export const PLAYABLE_CHARACTERS: readonly PlayableCharacter[] = [
   {
     id: "yato",
-    name: { en: "Yato", fil: "Yato" },
+    name: { en: "Nora", fil: "Nora" },
     assetKey: "learnerWalk",
     spriteLayout: "yato",
     spriteScale: 0.17,
@@ -34,7 +34,7 @@ export const PLAYABLE_CHARACTERS: readonly PlayableCharacter[] = [
   },
   {
     id: "blue-hair-explorer",
-    name: { en: "Rimuru Tempest", fil: "Rimuru Tempest" },
+    name: { en: "Tempura Necklace", fil: "Tempura Necklace" },
     assetKey: "blueHairExplorer",
     spriteLayout: "row-walk-four-way",
     spriteScale: 0.15,
@@ -44,7 +44,7 @@ export const PLAYABLE_CHARACTERS: readonly PlayableCharacter[] = [
   },
   {
     id: "iruma",
-    name: { en: "Iruma Suzuki", fil: "Iruma Suzuki" },
+    name: { en: "Maru", fil: "Maru" },
     assetKey: "iruma",
     spriteLayout: "yato-mirror-left",
     spriteScale: 0.35,
@@ -54,7 +54,7 @@ export const PLAYABLE_CHARACTERS: readonly PlayableCharacter[] = [
   },
   {
     id: "luffy",
-    name: { en: "Monkey D. Luffy", fil: "Monkey D. Luffy" },
+    name: { en: "Loafy", fil: "Loafy" },
     assetKey: "luffy",
     spriteLayout: "yato-mirror-left",
     spriteScale: 0.21, // scale down from 256px to fit game tiles
@@ -64,7 +64,7 @@ export const PLAYABLE_CHARACTERS: readonly PlayableCharacter[] = [
   },
   {
     id: "frieren",
-    name: { en: "Frieren", fil: "Frieren" },
+    name: { en: "Freeto", fil: "Freeto" },
     assetKey: "frieren",
     spriteLayout: "row-three-dir",
     spriteScale: 0.29,

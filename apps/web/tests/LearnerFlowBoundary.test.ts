@@ -18,6 +18,8 @@ const expectedLearnerRoutes = [
   "/learner/games/game-two",
   "/learner/learn-with-clara",
   "/learner/learn-with-clara/letters",
+  "/learner/learn-with-clara/practice/:practiceKey",
+  "/learner/learn-with-clara/words",
   "/learner/lesson-intro",
   "/learner/lessons/1",
   "/learner/lessons/2",
@@ -26,14 +28,15 @@ const expectedLearnerRoutes = [
   "/learner/lessons/5",
   "/learner/lessons/6",
   "/learner/login",
+  "/learner/modes",
   "/learner/offline",
+  "/learner/offline/category/:categoryKey",
   "/learner/offline/:packId",
 ].sort();
 
 const learnerFeatureDirectories = [
   "assessment",
   "clara-audio",
-  "home",
   "intro",
   "learn-with-clara",
   "learner-activity",

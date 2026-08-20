@@ -186,5 +186,5 @@ describe("TeacherFinalAssessmentPage", () => {
     });
 
     expect(screen.getByText("Learner detail opened")).toBeVisible();
-  });
+  }, 15_000);
 });

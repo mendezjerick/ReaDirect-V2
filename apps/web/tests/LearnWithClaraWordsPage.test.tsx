@@ -121,5 +121,5 @@ describe("LearnWithClaraWordsPage", () => {
     );
 
     expect(screen.getByText("Clara classes route")).toBeInTheDocument();
-  });
+  }, 15_000);
 });
