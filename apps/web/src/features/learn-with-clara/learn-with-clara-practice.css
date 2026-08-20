@@ -1,135 +1,18 @@
-.clara-practice {
-  width: 100%;
-  height: 100vh;
-  height: 100svh;
-  min-height: 100svh;
-  overflow-y: auto;
-  padding: max(0.65rem, env(safe-area-inset-top))
-    max(0.65rem, env(safe-area-inset-right))
-    max(0.85rem, env(safe-area-inset-bottom))
-    max(0.65rem, env(safe-area-inset-left));
-  color: var(--color-text-primary);
-}
-
-.clara-practice::before {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: var(--color-learner-background-veil);
-  content: "";
-}
-
-.clara-practice__shell {
-  width: min(100%, 66rem);
-  min-height: 100%;
-  margin: 0 auto;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  align-content: center;
-  gap: clamp(0.65rem, 1.5vw, 1rem);
-}
-
-.clara-practice__header,
-.clara-practice__main-panel,
-.clara-practice__teacher,
-.clara-practice__actions,
-.clara-practice__complete {
-  border: 2px solid var(--color-border-warm);
-  border-radius: var(--radius-panel);
-  background: var(--color-surface-panel);
-  box-shadow: 0 5px 0 var(--color-frame-depth);
-}
-
-.clara-practice__header {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.55rem 0.75rem;
-}
-
-.clara-practice__header > div {
-  min-width: 0;
-}
-
-.clara-practice__header p,
-.clara-practice__section-heading span:first-child,
-.clara-practice__story-heading p,
-.clara-practice__complete > p {
-  margin: 0;
-  color: var(--color-action-primary);
-  font-family: var(--font-display-family);
-  font-size: clamp(0.72rem, 2.6vw, var(--font-support));
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1.05;
-  text-transform: uppercase;
-}
-
-.clara-practice__header h1,
-.clara-practice__story-heading h2,
-.clara-practice__complete h2 {
-  margin: 0.14rem 0 0;
-  font-family: var(--font-display-family);
-  line-height: 1.02;
-}
-
-.clara-practice__header h1 {
-  font-size: clamp(1.45rem, 5.6vw, 2.3rem);
-}
-
-.clara-practice__progress {
-  display: flex;
-  gap: 0.22rem;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
 .clara-practice__progress li {
-  width: clamp(1.35rem, 5vw, 1.9rem);
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  border: 2px solid var(--color-border-warm);
-  border-radius: 50%;
-  color: var(--color-text-muted);
-  background: var(--color-surface-muted);
-  font-family: var(--font-display-family);
-  font-size: 0.78rem;
-}
-
-.clara-practice__progress li[data-complete] {
-  color: var(--color-text-on-action);
-  background: var(--color-success);
-  border-color: var(--color-success);
-}
-
-.clara-practice__progress li[data-current] {
-  color: var(--color-action-primary);
-  background: var(--color-action-secondary-hover);
-  border-color: var(--color-action-primary);
-  box-shadow: 0 2px 0 var(--color-action-primary-depth);
-}
-
-.clara-practice__workspace {
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(12rem, 0.7fr);
-  gap: clamp(0.65rem, 1.5vw, 1rem);
-}
-
-.clara-practice__main-panel,
-.clara-practice__teacher {
-  min-width: 0;
-  min-height: 0;
-  padding: clamp(0.8rem, 2.2vw, 1.25rem);
+  font-size: clamp(0.72rem, 2.5vw, 0.9rem);
 }
 
 .clara-practice__main-panel {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
   display: grid;
   align-content: start;
   gap: clamp(0.65rem, 1.7vw, 1rem);
+  overflow-y: auto;
+  padding-right: 0.2rem;
+  scrollbar-gutter: stable;
 }
 
 .clara-practice__section-heading {
@@ -141,6 +24,20 @@
   font-family: var(--font-reading-family);
   font-size: var(--font-support);
   font-weight: 650;
+}
+
+.clara-practice__section-heading span:first-child,
+.clara-practice__story-heading p,
+.clara-practice__welcome > p,
+.clara-practice__complete > p {
+  margin: 0;
+  color: var(--color-action-primary);
+  font-family: var(--font-display-family);
+  font-size: clamp(0.72rem, 2.6vw, var(--font-support));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+  text-transform: uppercase;
 }
 
 .clara-practice__section-heading span:last-child {
@@ -187,6 +84,7 @@
 
 .clara-practice__icon-badge svg,
 .clara-practice__listen svg,
+.clara-practice__welcome-icon svg,
 .clara-practice__complete-icon svg,
 .clara-practice__actions svg {
   width: 1.3rem;
@@ -278,9 +176,9 @@
 }
 
 .clara-practice__answer-chip {
+  border-color: var(--color-action-primary-depth);
   color: var(--color-text-on-action);
   background: var(--color-action-primary);
-  border-color: var(--color-action-primary-depth);
 }
 
 .clara-practice__token-grid,
@@ -311,8 +209,8 @@
 .clara-practice__token:not(:disabled):hover,
 .clara-practice__choice:not(:disabled):hover,
 .clara-practice__listen:hover {
-  transform: translateY(-1px);
   background: var(--color-action-secondary-hover);
+  transform: translateY(-1px);
 }
 
 .clara-practice__feedback {
@@ -353,6 +251,14 @@
   min-width: 0;
 }
 
+.clara-practice__story-heading h2,
+.clara-practice__welcome h2,
+.clara-practice__complete h2 {
+  margin: 0.14rem 0 0;
+  font-family: var(--font-display-family);
+  line-height: 1.02;
+}
+
 .clara-practice__story-heading h2 {
   font-size: clamp(1.3rem, 4.8vw, 1.8rem);
 }
@@ -374,63 +280,51 @@
   font-size: clamp(1rem, 3.2vw, 1.25rem);
 }
 
-.clara-practice__teacher {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  align-items: end;
-  overflow: hidden;
-  background: var(--color-surface-frame);
-}
-
-.clara-practice__clara {
-  min-height: 0;
-  display: grid;
-  place-items: end center;
-  overflow: hidden;
-}
-
-.clara-practice__clara .clara-stage {
-  width: min(100%, 14rem);
-  max-height: 100%;
-}
-
 .clara-practice__coach {
   display: grid;
-  gap: 0.3rem;
-  border-top: 2px solid var(--color-border-warm);
-  padding-top: 0.65rem;
+  gap: 0.2rem;
   color: var(--color-text-secondary);
   font-family: var(--font-reading-family);
-  line-height: 1.3;
+  font-size: 0.88rem;
+  line-height: 1.22;
+  text-align: center;
 }
 
 .clara-practice__coach strong {
   color: var(--color-text-primary);
   font-family: var(--font-display-family);
-  font-size: 1.2rem;
+  font-size: 1.08rem;
 }
 
 .clara-practice__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  padding: 0.65rem;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: 0.45rem;
 }
 
 .clara-practice__actions .big-button {
-  min-width: 9rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 3rem;
+  padding-inline: 0.55rem;
+  font-size: 0.95rem;
 }
 
+.clara-practice__welcome,
 .clara-practice__complete {
   width: min(100%, 36rem);
+  height: 100%;
   justify-self: center;
   display: grid;
+  place-content: center;
   justify-items: center;
   gap: 0.65rem;
   padding: clamp(1.25rem, 5vw, 2.5rem);
   text-align: center;
 }
 
+.clara-practice__welcome-icon,
 .clara-practice__complete-icon {
   width: 4rem;
   aspect-ratio: 1;
@@ -442,16 +336,24 @@
   background: var(--color-surface-muted);
 }
 
+.clara-practice__welcome-icon {
+  border-color: var(--color-action-primary);
+  color: var(--color-action-primary);
+}
+
+.clara-practice__welcome-icon svg,
 .clara-practice__complete-icon svg {
   width: 2rem;
   height: 2rem;
   stroke-width: 2.6;
 }
 
+.clara-practice__welcome h2,
 .clara-practice__complete h2 {
   font-size: clamp(2rem, 8vw, 3.5rem);
 }
 
+.clara-practice__welcome > span:not(.clara-practice__welcome-icon),
 .clara-practice__complete > span:not(.clara-practice__complete-icon) {
   max-width: 30rem;
   color: var(--color-text-secondary);
@@ -460,51 +362,40 @@
   line-height: 1.4;
 }
 
-.clara-practice__complete .big-button {
-  margin-top: 0.45rem;
-}
-
 @media (max-width: 47.999rem) {
-  .clara-practice__workspace {
-    grid-template-columns: 1fr;
+  .clara-practice__main-panel {
+    gap: clamp(0.45rem, 1.4svh, 0.7rem);
   }
 
-  .clara-practice__teacher {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-    min-height: 0;
+  .clara-practice__instruction,
+  .clara-practice__question {
+    padding: 0.42rem 0.55rem;
   }
 
-  .clara-practice__clara {
-    min-height: clamp(12rem, 55vw, 16rem);
-    border-right: 0;
-    border-bottom: 2px solid var(--color-border-warm);
-  }
-
-  .clara-practice__clara .clara-stage {
-    width: min(100%, 15rem);
+  .clara-practice__order,
+  .clara-practice__comprehension {
+    gap: clamp(0.45rem, 1.3svh, 0.65rem);
   }
 
   .clara-practice__coach {
-    align-content: center;
-    border-top: 0;
-    padding: 0 0.65rem;
-    text-align: center;
+    font-size: clamp(0.72rem, 2.7vw, 0.84rem);
+  }
+
+  .clara-practice__coach strong {
+    font-size: clamp(0.88rem, 3.4vw, 1rem);
+  }
+
+  .clara-practice__actions .big-button {
+    min-height: 2.75rem;
+    padding: 0.35rem;
+    font-size: clamp(0.78rem, 3vw, 0.92rem);
   }
 }
 
-@media (max-width: 30rem) {
-  .clara-practice__header {
-    gap: 0.45rem;
-    padding: 0.45rem;
-  }
-
-  .clara-practice__progress {
-    gap: 0.12rem;
-  }
-
-  .clara-practice__progress li {
+@media (max-width: 29rem) {
+  .clara-practice .letters-class__progress li {
     width: 1.25rem;
+    display: grid;
     border-width: 1px;
     font-size: 0.68rem;
   }
@@ -515,38 +406,15 @@
     min-height: 2.65rem;
     padding-inline: 0.58rem;
   }
-
-  .clara-practice__actions {
-    justify-content: stretch;
-  }
-
-  .clara-practice__actions .big-button {
-    flex: 1;
-    min-width: 0;
-  }
 }
 
 @media (max-height: 42rem) and (orientation: landscape) {
-  .clara-practice {
-    padding-block: max(0.4rem, env(safe-area-inset-top))
-      max(0.5rem, env(safe-area-inset-bottom));
+  .clara-practice__main-panel {
+    gap: 0.45rem;
   }
 
-  .clara-practice__workspace {
-    grid-template-columns: minmax(0, 1.6fr) minmax(12rem, 0.55fr);
-  }
-
-  .clara-practice__main-panel,
-  .clara-practice__teacher {
-    padding: 0.65rem;
-  }
-
-  .clara-practice__teacher {
-    grid-template-rows: minmax(0, 1fr) auto;
-  }
-
-  .clara-practice__clara .clara-stage {
-    width: min(100%, 9rem);
+  .clara-practice__instruction {
+    display: none;
   }
 
   .clara-practice__story {

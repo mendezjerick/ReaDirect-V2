@@ -6,6 +6,7 @@ import type { claraLettersCopy } from "./learnWithClaraCopy";
 interface LearnWithClaraLetterParadeProps {
   scene: LearnWithClaraLettersScene;
   copy: (typeof claraLettersCopy)["en"] | (typeof claraLettersCopy)["fil"];
+  interactive?: boolean;
   wrongChoice: string;
   foundChoice: string;
   choosing: boolean;
@@ -467,13 +468,14 @@ function FinaleScene({ title, copy }: { title: string; copy: string }) {
 export function LearnWithClaraLetterParade({
   scene,
   copy,
+  interactive = true,
   wrongChoice,
   foundChoice,
   choosing,
   onChoose,
 }: LearnWithClaraLetterParadeProps) {
   const foundCount = foundCountFor(scene);
-  const choicesReady = scene.kind === "find" && !choosing;
+  const choicesReady = scene.kind === "find" && interactive && !choosing;
   const stationNames = copy.parade.stationNames;
   const sceneTitle =
     scene.kind === "story"

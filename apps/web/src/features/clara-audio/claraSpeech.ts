@@ -1,7 +1,7 @@
 import { apiFetchWithTimeout, SPEECH_API_TIMEOUT_MS } from "../../lib/apiUrl";
 
 const speechRequests = new Map<string, Promise<Blob>>();
-const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260728-11";
+const SPEECH_DELIVERY_VERSION = "published-clara-sh-v1-catalog-20260820-12";
 const LESSON_SIX_SPEECH_DELIVERY_VERSION = "lesson-6-content-alignment-v2";
 let audioContext: AudioContext | null = null;
 const activeSpeechStops = new Set<() => void>();
@@ -69,6 +69,9 @@ export type ClaraSpeechKey =
   | "learn-with-clara-words-find-gap"
   | "learn-with-clara-words-find-hot"
   | "learn-with-clara-words-rescue-finale"
+  | `learn-with-clara-phrases-item-${1 | 2 | 3 | 4 | 5}`
+  | `learn-with-clara-sentences-item-${1 | 2 | 3 | 4 | 5}`
+  | `learn-with-clara-comprehension-item-${1 | 2 | 3}`
   | "lesson-intro"
   | "assessment-final-complete"
   | "lesson-1-mission-1"

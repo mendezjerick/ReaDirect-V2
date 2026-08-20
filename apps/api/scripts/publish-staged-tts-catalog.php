@@ -42,8 +42,13 @@ $newLines = $migration['new_lines'];
 $replacementLines = $migration['replacement_lines'];
 $targetLines = [...$newLines, ...$replacementLines];
 
-if (count($newLines) !== 53 || count($replacementLines) !== 2) {
-    throw new RuntimeException('The lightweight publication must contain 53 new lines and 2 replacements.');
+if ($newLines === [] && $replacementLines === []) {
+    throw new RuntimeException('The staged publication has no target lines.');
+}
+
+$expectedCatalogCount = $migration['expected_catalog_count'] ?? null;
+if (! is_int($expectedCatalogCount) || $expectedCatalogCount < 1) {
+    throw new RuntimeException('The staged publication must declare expected_catalog_count.');
 }
 
 foreach ($targetLines as $speechKey => $definition) {
@@ -59,9 +64,10 @@ $seeder = new TtsSpeechCatalogSeeder();
 $definitionsMethod = new ReflectionMethod($seeder, 'speechDefinitions');
 /** @var array<string, array{text: string, reference: string, path: string}> $activeDefinitions */
 $activeDefinitions = $definitionsMethod->invoke($seeder);
-if (count($activeDefinitions) !== 300) {
+if (count($activeDefinitions) !== $expectedCatalogCount) {
     throw new RuntimeException(sprintf(
-        'Expected 300 active published lines, resolved %d.',
+        'Expected %d active published lines, resolved %d.',
+        $expectedCatalogCount,
         count($activeDefinitions),
     ));
 }
@@ -151,9 +157,10 @@ try {
 fwrite(
     STDOUT,
     sprintf(
-        "Published %d new lines and %d archive-backed replacements for %s. Active catalog target: 300 lines.\n",
+        "Published %d new lines and %d archive-backed replacements for %s. Active catalog target: %d lines.\n",
         count($newLines),
         count($replacementLines),
         $migrationKey,
+        $expectedCatalogCount,
     ),
 );

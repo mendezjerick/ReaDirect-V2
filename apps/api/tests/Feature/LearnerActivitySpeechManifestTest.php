@@ -130,6 +130,30 @@ final class LearnerActivitySpeechManifestTest extends TestCase
         $this->assertFalse($manifest['requires_runtime']);
     }
 
+    public function test_all_other_learn_with_clara_activities_are_published_only(): void
+    {
+        foreach ([
+            'words' => 7,
+            'phrases' => 5,
+            'sentences' => 5,
+            'comprehension' => 3,
+        ] as $activity => $expectedLineCount) {
+            $manifest = app(ActivitySpeechManifestService::class)
+                ->forActivity("learn-with-clara-{$activity}");
+
+            $this->assertSame(
+                ["learn-with-clara-{$activity}-fixed"],
+                $manifest['published_groups'],
+            );
+            $this->assertCount(
+                $expectedLineCount,
+                $manifest['published_speech_keys'],
+            );
+            $this->assertSame([], $manifest['runtime_profiles']);
+            $this->assertFalse($manifest['requires_runtime']);
+        }
+    }
+
     public function test_diagnostic_part_two_is_explicitly_available_before_completion(): void
     {
         [$learner, $token] = $this->learnerSessionRecord('before_diagnostic');

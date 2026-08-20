@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
-import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { ClaraStage } from "../intro/ClaraStage";
 import {
@@ -17,13 +16,10 @@ import type {
   ClaraEmotion,
   ClaraTeachingBehavior,
 } from "../intro/live2d/ClaraPresentation";
-import {
-  WordRescueIcon,
-  type WordRescueWord,
-} from "./wordRescueIcons";
+import { WordRescueIcon, type WordRescueWord } from "./wordRescueIcons";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { claraWordsCopy, isFilipino } from "./learnWithClaraCopy";
-import "./learn-with-clara-letters.css";
+import { LearnWithClaraClassShell } from "./LearnWithClaraClassShell";
 import "./learn-with-clara-words.css";
 
 const storyMoments = [
@@ -77,14 +73,6 @@ const storySpeechKeys = {
   hot: "learn-with-clara-words-find-hot",
   finale: "learn-with-clara-words-rescue-finale",
 } as const satisfies Record<string, ClaraSpeechKey>;
-
-function BackIcon() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M26 16H7M14 9l-7 7 7 7" />
-    </svg>
-  );
-}
 
 function TrailProgress({
   current,
@@ -238,7 +226,11 @@ function StoryVisual({
         <span>Stop {currentIndex + 1}</span>
       </div>
 
-      <WordRescueBoard moment={moment} currentIndex={currentIndex} copy={copy} />
+      <WordRescueBoard
+        moment={moment}
+        currentIndex={currentIndex}
+        copy={copy}
+      />
 
       <div
         className="word-story__choices"
@@ -541,132 +533,105 @@ export function LearnWithClaraWordsPage() {
   };
 
   return (
-    <main
-      className="letters-class words-class learner-flow-page learner-typography-page"
-      aria-labelledby="words-story-title"
-      data-route-focus
-      tabIndex={-1}
-    >
-      <div className="letters-class__shell">
-        <Surface
-          className="letters-class__header"
-          kind="panel"
-          padding="compact"
-        >
-          <button
-            className="letters-class__back"
-            type="button"
-            aria-label={copy.back}
-            onClick={() => navigate("/learner/learn-with-clara")}
-          >
-            <BackIcon />
-          </button>
-          <div className="letters-class__header-copy">
-            <p>{copy.heading}</p>
-            <h1 id="words-story-title">{copy.title}</h1>
-          </div>
-          <TrailProgress
-            current={phase === "welcome" ? 1 : currentIndex + 1}
-            complete={phase === "completion"}
-          />
-        </Surface>
+    <LearnWithClaraClassShell
+      className="words-class"
+      titleId="words-story-title"
+      eyebrow={copy.heading}
+      title={copy.title}
+      backLabel={copy.back}
+      onBack={() => navigate("/learner/learn-with-clara")}
+      progress={
+        <TrailProgress
+          current={phase === "welcome" ? 1 : currentIndex + 1}
+          complete={phase === "completion"}
+        />
+      }
+      clara={
+        <ClaraStage
+          emotion={presentation.emotion}
+          behavior={presentation.behavior}
+          speaking={lineState === "speaking"}
+          speechLevel={speechLevel}
+          onLoadStateChange={(state) => setClaraReady(state === "ready")}
+        />
+      }
+      coaching={
+        <>
+          <p className="letters-class__status" aria-live="polite">
+            {statusCopy()}
+          </p>
 
-        <div className="letters-class__workspace">
-          <Surface
-            className="letters-class__teacher"
-            kind="frame"
-            padding="none"
-          >
-            <div className="letters-class__clara-wrap">
-              <ClaraStage
-                emotion={presentation.emotion}
-                behavior={presentation.behavior}
-                speaking={lineState === "speaking"}
-                speechLevel={speechLevel}
-                onLoadStateChange={(state) => setClaraReady(state === "ready")}
-              />
+          {phase !== "welcome" && lineState === "error" ? (
+            <BigButton
+              className="letters-class__action"
+              variant="secondary"
+              size="regular"
+              onClick={replay}
+            >
+              Try the sound again
+            </BigButton>
+          ) : null}
+
+          {phase === "welcome" ? (
+            <BigButton
+              className="letters-class__action"
+              size="regular"
+              committing={actionCommit.committing}
+              onClick={() => actionCommit.commit(startStory)}
+            >
+              Start Story
+            </BigButton>
+          ) : null}
+
+          {phase === "story" && foundWord ? (
+            <BigButton
+              className="letters-class__action"
+              size="regular"
+              committing={actionCommit.committing}
+              onClick={() => actionCommit.commit(nextStoryMoment)}
+            >
+              {currentIndex === storyMoments.length - 1
+                ? "Finish Story"
+                : "Next Story Moment"}
+            </BigButton>
+          ) : null}
+
+          {phase === "completion" ? (
+            <div className="letters-class__completion-actions">
+              <BigButton
+                variant="secondary"
+                size="regular"
+                onClick={() => actionCommit.commit(startStory)}
+              >
+                Tell It Again
+              </BigButton>
+              <BigButton
+                size="regular"
+                onClick={() => navigate("/learner/learn-with-clara")}
+              >
+                Back to Classes
+              </BigButton>
             </div>
-            <div className="letters-class__coaching">
-              <p className="letters-class__status" aria-live="polite">
-                {statusCopy()}
-              </p>
-
-              {phase !== "welcome" && lineState === "error" ? (
-                <BigButton
-                  className="letters-class__action"
-                  variant="secondary"
-                  size="regular"
-                  onClick={replay}
-                >
-                  Try the sound again
-                </BigButton>
-              ) : null}
-
-              {phase === "welcome" ? (
-                <BigButton
-                  className="letters-class__action"
-                  size="regular"
-                  committing={actionCommit.committing}
-                  onClick={() => actionCommit.commit(startStory)}
-                >
-                  Start Story
-                </BigButton>
-              ) : null}
-
-              {phase === "story" && foundWord ? (
-                <BigButton
-                  className="letters-class__action"
-                  size="regular"
-                  committing={actionCommit.committing}
-                  onClick={() => actionCommit.commit(nextStoryMoment)}
-                >
-                  {currentIndex === storyMoments.length - 1
-                    ? "Finish Story"
-                    : "Next Story Moment"}
-                </BigButton>
-              ) : null}
-
-              {phase === "completion" ? (
-                <div className="letters-class__completion-actions">
-                  <BigButton
-                    variant="secondary"
-                    size="regular"
-                    onClick={() => actionCommit.commit(startStory)}
-                  >
-                    Tell It Again
-                  </BigButton>
-                  <BigButton
-                    size="regular"
-                    onClick={() => navigate("/learner/learn-with-clara")}
-                  >
-                    Back to Classes
-                  </BigButton>
-                </div>
-              ) : null}
-            </div>
-          </Surface>
-
-          <Surface
-            className="letters-class__lesson"
-            kind="panel"
-            padding="compact"
-          >
-            {phase === "welcome" ? <WelcomeVisual /> : null}
-            {phase === "story" ? (
-              <StoryVisual
-                moment={currentMoment}
-                currentIndex={currentIndex}
-                foundWord={foundWord}
-                wrongWord={wrongWord}
-                lineState={lineState}
-                copy={copy}
-                onChoose={chooseWord}
-              />
-            ) : null}
-            {phase === "completion" ? <CompletionVisual /> : null}
-          </Surface>
-        </div>
-      </div>
-    </main>
+          ) : null}
+        </>
+      }
+      lesson={
+        <>
+          {phase === "welcome" ? <WelcomeVisual /> : null}
+          {phase === "story" ? (
+            <StoryVisual
+              moment={currentMoment}
+              currentIndex={currentIndex}
+              foundWord={foundWord}
+              wrongWord={wrongWord}
+              lineState={lineState}
+              copy={copy}
+              onChoose={chooseWord}
+            />
+          ) : null}
+          {phase === "completion" ? <CompletionVisual /> : null}
+        </>
+      }
+    />
   );
 }

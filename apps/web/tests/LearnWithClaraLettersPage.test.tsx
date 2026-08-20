@@ -187,17 +187,30 @@ describe("LearnWithClaraLettersPage", () => {
     vi.clearAllMocks();
   });
 
-  it("keeps the letter lesson interactive without generated Clara speech", async () => {
+  it("plays each generated Clara line before enabling the letter interaction", async () => {
     renderPage();
 
     expect(
       await screen.findByRole("button", { name: "Start Story" }),
     ).toBeVisible();
-    expect(speechMocks.prepare).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(speechMocks.prepare).toHaveBeenCalledWith(
+        "learn-with-clara-letters-find-a",
+        "cookie-session",
+      ),
+    );
+    speechMocks.prepare.mockClear();
 
     fireEvent.click(screen.getByRole("button", { name: "Start Story" }));
 
-    expect(speechMocks.unlock).not.toHaveBeenCalled();
+    expect(speechMocks.unlock).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(speechMocks.prepare).toHaveBeenCalledWith(
+        "learn-with-clara-letters-parade-opening",
+        "cookie-session",
+      ),
+    );
+    await waitFor(() => expect(speechMocks.play).toHaveBeenCalled());
     expect(
       await screen.findByText("The little letters blew away"),
     ).toBeVisible();
@@ -235,8 +248,10 @@ describe("LearnWithClaraLettersPage", () => {
     expect(
       screen.queryByRole("button", { name: /record/i }),
     ).not.toBeInTheDocument();
-    expect(speechMocks.prepare).not.toHaveBeenCalled();
-    expect(speechMocks.play).not.toHaveBeenCalled();
+    expect(speechMocks.prepare).toHaveBeenCalledWith(
+      "learn-with-clara-letters-find-a",
+      "cookie-session",
+    );
   });
 
   it("finishes the story with the animated parade and can restart", async () => {

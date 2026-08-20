@@ -3,8 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
-import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import {
+  playClaraSpeech,
+  prepareClaraSpeech,
+  type ClaraSpeechKey,
+  type ClaraSpeechPlayback,
+  unlockClaraAudio,
+} from "../clara-audio/claraSpeech";
 import { ClaraStage } from "../intro/ClaraStage";
 import type {
   ClaraEmotion,
@@ -12,6 +18,7 @@ import type {
 } from "../intro/live2d/ClaraPresentation";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { LearnWithClaraLetterParade } from "./LearnWithClaraLetterParade";
+import { LearnWithClaraClassShell } from "./LearnWithClaraClassShell";
 import { claraLettersCopy, isFilipino } from "./learnWithClaraCopy";
 import {
   advanceLearnWithClaraLetters,
@@ -19,20 +26,12 @@ import {
   startLearnWithClaraLetters,
   type LearnWithClaraLettersState,
 } from "./learnWithClaraLettersApi";
-import "./learn-with-clara-letters.css";
 
 type ViewPhase = "welcome" | "lesson";
+type LineState = "preparing" | "speaking" | "finished" | "error";
 type CheckpointState = "loading" | "ready" | "error";
 
 const classLetters = ["A", "B", "C", "D", "E"] as const;
-
-function BackIcon() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M26 16H7M14 9l-7 7 7 7" />
-    </svg>
-  );
-}
 
 function presentationFor(
   phase: ViewPhase,
@@ -105,7 +104,7 @@ function WelcomeVisual({
       </div>
       <div>
         <p>{copy.welcomeLabel}</p>
-        <h2 id="letters-class-title">{copy.welcomeTitle}</h2>
+        <h2>{copy.welcomeTitle}</h2>
       </div>
       <div className="letters-class__preview-letters" aria-label="A B C D E">
         {classLetters.map((letter, index) => (
@@ -140,14 +139,25 @@ export function LearnWithClaraLettersPage() {
     useState<CheckpointState>("loading");
   const [lettersState, setLettersState] =
     useState<LearnWithClaraLettersState | null>(null);
+  const [lineState, setLineState] = useState<LineState>("finished");
+  const [preparedSpeech, setPreparedSpeech] = useState<{
+    key: ClaraSpeechKey;
+    blob: Blob;
+  } | null>(null);
+  const [speechLevel, setSpeechLevel] = useState(0);
+  const [claraReady, setClaraReady] = useState(false);
+  const [playNonce, setPlayNonce] = useState(0);
   const [actionPending, setActionPending] = useState(false);
   const [choicePending, setChoicePending] = useState(false);
   const [wrongChoice, setWrongChoice] = useState("");
   const [foundChoice, setFoundChoice] = useState("");
   const [actionError, setActionError] = useState("");
+  const playbackRef = useRef<ClaraSpeechPlayback | null>(null);
   const choiceTimerRef = useRef<number | null>(null);
 
   const scene = phase === "lesson" ? lettersState?.scene : null;
+  const activeSpeechKey: ClaraSpeechKey | null =
+    phase === "welcome" ? null : (scene?.speech_key ?? null);
   const presentation = presentationFor(phase, lettersState);
   const currentProgress = scene?.item_progress?.current ?? 5;
   const classComplete = scene?.kind === "completion";
@@ -181,6 +191,97 @@ export function LearnWithClaraLettersPage() {
     };
   }, [navigate, session?.token]);
 
+  useEffect(() => {
+    if (!session?.token || !activeSpeechKey) {
+      return;
+    }
+
+    let active = true;
+    setLineState("preparing");
+    setPreparedSpeech(null);
+    setSpeechLevel(0);
+
+    void prepareClaraSpeech(activeSpeechKey, session.token)
+      .then((speech) => {
+        if (active) {
+          setPreparedSpeech({ key: activeSpeechKey, blob: speech });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setLineState("error");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activeSpeechKey, playNonce, session?.token]);
+
+  useEffect(() => {
+    if (!session?.token || !lettersState) {
+      return;
+    }
+
+    for (const speechKey of lettersState.prefetch_speech_keys) {
+      void prepareClaraSpeech(speechKey, session.token).catch(() => undefined);
+    }
+  }, [lettersState, session?.token]);
+
+  useEffect(() => {
+    if (
+      !preparedSpeech ||
+      preparedSpeech.key !== activeSpeechKey ||
+      !claraReady
+    ) {
+      return;
+    }
+
+    let active = true;
+
+    const speak = async () => {
+      try {
+        const playback = await playClaraSpeech(
+          preparedSpeech.blob,
+          (level) => {
+            if (active) {
+              setSpeechLevel(level);
+            }
+          },
+          { modelState: "ready" },
+        );
+        playbackRef.current = playback;
+
+        if (!active) {
+          playback.stop();
+          return;
+        }
+
+        setLineState("speaking");
+        await playback.finished;
+
+        if (active) {
+          setLineState("finished");
+          setSpeechLevel(0);
+          playbackRef.current = null;
+        }
+      } catch {
+        if (active) {
+          setLineState("error");
+          setSpeechLevel(0);
+        }
+      }
+    };
+
+    void speak();
+
+    return () => {
+      active = false;
+      playbackRef.current?.stop();
+      playbackRef.current = null;
+    };
+  }, [activeSpeechKey, claraReady, preparedSpeech]);
+
   useEffect(
     () => () => {
       if (choiceTimerRef.current !== null) {
@@ -212,6 +313,8 @@ export function LearnWithClaraLettersPage() {
 
   const beginLesson = () => {
     if (checkpointState === "ready") {
+      unlockClaraAudio();
+      setLineState("preparing");
       setPhase("lesson");
     }
   };
@@ -228,6 +331,7 @@ export function LearnWithClaraLettersPage() {
         session.token,
         lettersState.scene.key,
       );
+      setLineState("preparing");
       setLettersState(nextState);
     } catch (error) {
       setActionError(
@@ -243,7 +347,7 @@ export function LearnWithClaraLettersPage() {
   };
 
   const chooseLetter = (choice: string) => {
-    if (scene?.kind !== "find" || choicePending) {
+    if (scene?.kind !== "find" || lineState !== "finished" || choicePending) {
       return;
     }
 
@@ -270,11 +374,13 @@ export function LearnWithClaraLettersPage() {
       return;
     }
 
+    unlockClaraAudio();
     setActionPending(true);
     setActionError("");
     try {
       const nextState = await restartLearnWithClaraLetters(session.token);
       setLettersState(nextState);
+      setLineState("preparing");
       setPhase("lesson");
     } catch (error) {
       setActionError(
@@ -289,9 +395,26 @@ export function LearnWithClaraLettersPage() {
     }
   };
 
+  const replay = () => {
+    unlockClaraAudio();
+    setPlayNonce((current) => current + 1);
+  };
+
   const statusCopy = () => {
     if (phase === "welcome") {
       return copy.ready;
+    }
+
+    if (lineState === "preparing") {
+      return copy.preparing;
+    }
+
+    if (lineState === "speaking") {
+      return scene?.kind === "teach" ? copy.speakingTeach : copy.speakingStory;
+    }
+
+    if (lineState === "error") {
+      return copy.audioError;
     }
 
     if (scene?.kind === "story") {
@@ -316,174 +439,163 @@ export function LearnWithClaraLettersPage() {
   };
 
   return (
-    <main
-      className="letters-class learner-flow-page learner-typography-page"
-      aria-labelledby="letters-class-title"
-      data-route-focus
-      tabIndex={-1}
-    >
-      <div className="letters-class__shell">
-        <Surface
-          className="letters-class__header"
-          kind="panel"
-          padding="compact"
-        >
-          <button
-            className="letters-class__back"
-            type="button"
-            aria-label={copy.back}
-            onClick={() => navigate("/learner/learn-with-clara")}
-          >
-            <BackIcon />
-          </button>
-          <div className="letters-class__header-copy">
-            <p>{copy.heading}</p>
-            <h1>{copy.title}</h1>
-          </div>
-          <LessonProgress
-            current={
-              phase === "welcome"
-                ? (lettersState?.scene.item_progress?.current ?? 5)
-                : currentProgress
-            }
-            complete={
-              phase === "welcome"
-                ? lettersState?.status === "letters-complete"
-                : Boolean(classComplete)
-            }
-          />
-        </Surface>
+    <LearnWithClaraClassShell
+      titleId="letters-class-title"
+      eyebrow={copy.heading}
+      title={copy.title}
+      backLabel={copy.back}
+      onBack={() => navigate("/learner/learn-with-clara")}
+      progress={
+        <LessonProgress
+          current={
+            phase === "welcome"
+              ? (lettersState?.scene.item_progress?.current ?? 5)
+              : currentProgress
+          }
+          complete={
+            phase === "welcome"
+              ? lettersState?.status === "letters-complete"
+              : Boolean(classComplete)
+          }
+        />
+      }
+      clara={
+        <ClaraStage
+          emotion={presentation.emotion}
+          behavior={presentation.behavior}
+          speaking={lineState === "speaking"}
+          speechLevel={speechLevel}
+          onLoadStateChange={(state) => setClaraReady(state === "ready")}
+        />
+      }
+      coaching={
+        <>
+          <p className="letters-class__status" aria-live="polite">
+            {statusCopy()}
+          </p>
 
-        <div className="letters-class__workspace">
-          <Surface
-            className="letters-class__teacher"
-            kind="frame"
-            padding="none"
-          >
-            <div className="letters-class__clara-wrap">
-              <ClaraStage
-                emotion={presentation.emotion}
-                behavior={presentation.behavior}
-              />
-            </div>
-            <div className="letters-class__coaching">
-              <p className="letters-class__status" aria-live="polite">
-                {statusCopy()}
-              </p>
+          {phase === "lesson" && lineState === "error" ? (
+            <BigButton
+              className="letters-class__action"
+              variant="secondary"
+              size="regular"
+              onClick={replay}
+            >
+              {copy.retryAudio}
+            </BigButton>
+          ) : null}
 
-              {phase === "welcome" ? (
-                checkpointState === "error" ? (
-                  <BigButton
-                    className="letters-class__action"
-                    variant="secondary"
-                    size="regular"
-                    onClick={retryCheckpoint}
-                  >
-                    {copy.tryLoading}
-                  </BigButton>
-                ) : (
-                  <BigButton
-                    className="letters-class__action"
-                    size="regular"
-                    variant={
-                      checkpointState === "ready" ? "primary" : "unavailable"
-                    }
-                    disabled={checkpointState !== "ready"}
-                    committing={actionCommit.committing}
-                    onClick={() => actionCommit.commit(beginLesson)}
-                  >
-                    {lettersState?.status === "letters-complete"
-                      ? copy.seeParade
-                      : lettersState?.scene.key === "parade-opening"
-                        ? copy.startStory
-                        : copy.continueStory}
-                  </BigButton>
-                )
-              ) : null}
-
-              {phase === "lesson" && scene?.kind === "story" ? (
-                <BigButton
-                  className="letters-class__action"
-                  size="regular"
-                  busy={actionPending}
-                  busyLabel={
-                    isFilipino(session?.learner.speech_language)
-                      ? "Binubuksan ang unang hintuan"
-                      : "Opening the first stop"
-                  }
-                  committing={actionCommit.committing}
-                  onClick={() => actionCommit.commit(() => void advance())}
-                >
-                  {copy.findFirst}
-                </BigButton>
-              ) : null}
-
-              {phase === "lesson" && scene?.kind === "teach" ? (
-                <BigButton
-                  className="letters-class__action"
-                  size="regular"
-                  busy={actionPending}
-                  busyLabel={
-                    isFilipino(session?.learner.speech_language)
-                      ? "Inuusad ang parada"
-                      : "Moving the parade"
-                  }
-                  committing={actionCommit.committing}
-                  onClick={() => actionCommit.commit(() => void advance())}
-                >
-                  {scene.item_progress?.current === 5
-                    ? copy.startParade
-                    : copy.nextStop}
-                </BigButton>
-              ) : null}
-
-              {phase === "lesson" && classComplete ? (
-                <div className="letters-class__completion-actions">
-                  <BigButton
-                    variant="secondary"
-                    size="regular"
-                    busy={actionPending}
-                    onClick={() => void restart()}
-                  >
-                    {copy.playAgain}
-                  </BigButton>
-                  <BigButton
-                    size="regular"
-                    onClick={() => navigate("/learner/learn-with-clara")}
-                  >
-                    {copy.backToClasses}
-                  </BigButton>
-                </div>
-              ) : null}
-
-              {actionError ? (
-                <p className="letters-class__error" role="alert">
-                  {actionError}
-                </p>
-              ) : null}
-            </div>
-          </Surface>
-
-          <Surface
-            className="letters-class__lesson"
-            kind="panel"
-            padding="compact"
-          >
-            {phase === "welcome" || !scene ? (
-              <WelcomeVisual copy={copy} />
+          {phase === "welcome" ? (
+            checkpointState === "error" ? (
+              <BigButton
+                className="letters-class__action"
+                variant="secondary"
+                size="regular"
+                onClick={retryCheckpoint}
+              >
+                {copy.tryLoading}
+              </BigButton>
             ) : (
-              <LearnWithClaraLetterParade
-                scene={scene}
-                copy={copy}
-                wrongChoice={wrongChoice}
-                foundChoice={foundChoice}
-                choosing={choicePending}
-                onChoose={chooseLetter}
-              />
-            )}
-          </Surface>
-        </div>
-      </div>
-    </main>
+              <BigButton
+                className="letters-class__action"
+                size="regular"
+                variant={
+                  checkpointState === "ready" ? "primary" : "unavailable"
+                }
+                disabled={checkpointState !== "ready"}
+                committing={actionCommit.committing}
+                onClick={() => actionCommit.commit(beginLesson)}
+              >
+                {lettersState?.status === "letters-complete"
+                  ? copy.seeParade
+                  : lettersState?.scene.key === "parade-opening"
+                    ? copy.startStory
+                    : copy.continueStory}
+              </BigButton>
+            )
+          ) : null}
+
+          {phase === "lesson" &&
+          scene?.kind === "story" &&
+          lineState === "finished" ? (
+            <BigButton
+              className="letters-class__action"
+              size="regular"
+              busy={actionPending}
+              busyLabel={
+                isFilipino(session?.learner.speech_language)
+                  ? "Binubuksan ang unang hintuan"
+                  : "Opening the first stop"
+              }
+              committing={actionCommit.committing}
+              onClick={() => actionCommit.commit(() => void advance())}
+            >
+              {copy.findFirst}
+            </BigButton>
+          ) : null}
+
+          {phase === "lesson" &&
+          scene?.kind === "teach" &&
+          lineState === "finished" ? (
+            <BigButton
+              className="letters-class__action"
+              size="regular"
+              busy={actionPending}
+              busyLabel={
+                isFilipino(session?.learner.speech_language)
+                  ? "Inuusad ang parada"
+                  : "Moving the parade"
+              }
+              committing={actionCommit.committing}
+              onClick={() => actionCommit.commit(() => void advance())}
+            >
+              {scene.item_progress?.current === 5
+                ? copy.startParade
+                : copy.nextStop}
+            </BigButton>
+          ) : null}
+
+          {phase === "lesson" && classComplete && lineState === "finished" ? (
+            <div className="letters-class__completion-actions">
+              <BigButton
+                variant="secondary"
+                size="regular"
+                busy={actionPending}
+                onClick={() => void restart()}
+              >
+                {copy.playAgain}
+              </BigButton>
+              <BigButton
+                size="regular"
+                onClick={() => navigate("/learner/learn-with-clara")}
+              >
+                {copy.backToClasses}
+              </BigButton>
+            </div>
+          ) : null}
+
+          {actionError ? (
+            <p className="letters-class__error" role="alert">
+              {actionError}
+            </p>
+          ) : null}
+        </>
+      }
+      lesson={
+        phase === "welcome" || !scene ? (
+          <WelcomeVisual copy={copy} />
+        ) : (
+          <LearnWithClaraLetterParade
+            scene={scene}
+            copy={copy}
+            interactive={lineState === "finished"}
+            wrongChoice={wrongChoice}
+            foundChoice={foundChoice}
+            choosing={choicePending}
+            onChoose={chooseLetter}
+          />
+        )
+      }
+    />
   );
 }

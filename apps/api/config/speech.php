@@ -411,36 +411,110 @@ $learnWithClaraWordsLines = [
     ],
     'learn-with-clara-words-find-bat' => [
         'text' => 'Something flaps above the trail. Find the little word for a flying bat.',
-        'reference' => 'question',
+        'reference' => 'instruction',
         'path' => 'learn-with-clara/words/rescue/find-bat.wav',
     ],
     'learn-with-clara-words-find-can' => [
         'text' => 'A shiny can is rolling beside the path. Find the word that names it.',
-        'reference' => 'question',
+        'reference' => 'instruction',
         'path' => 'learn-with-clara/words/rescue/find-can.wav',
     ],
     'learn-with-clara-words-find-dot' => [
         'text' => 'A tiny dot marks the next step. Find the word for this little spot.',
-        'reference' => 'question',
+        'reference' => 'instruction',
         'path' => 'learn-with-clara/words/rescue/find-dot.wav',
     ],
     'learn-with-clara-words-find-gap' => [
         'text' => 'The bridge has a gap. Find the word for the space we must cross.',
-        'reference' => 'question',
+        'reference' => 'instruction',
         'path' => 'learn-with-clara/words/rescue/find-gap.wav',
     ],
     'learn-with-clara-words-find-hot' => [
         'text' => 'The final clue feels warm. Find the word that tells us it is hot.',
-        'reference' => 'question',
+        'reference' => 'instruction',
         'path' => 'learn-with-clara/words/rescue/find-hot.wav',
     ],
     'learn-with-clara-words-rescue-finale' => [
         'text' => 'You rescued every word. Bat, can, dot, gap, and hot are safe along the trail.',
-        'reference' => 'result',
+        'reference' => 'instruction',
         'path' => 'learn-with-clara/words/rescue/finale.wav',
     ],
 ];
 $learnWithClaraWordsSpeechKeys = array_keys($learnWithClaraWordsLines);
+
+$learnWithClaraPhraseLines = [
+    'learn-with-clara-phrases-item-1' => [
+        'text' => 'The red ball.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/phrases/items/item-1.wav',
+    ],
+    'learn-with-clara-phrases-item-2' => [
+        'text' => 'A small cat.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/phrases/items/item-2.wav',
+    ],
+    'learn-with-clara-phrases-item-3' => [
+        'text' => 'Blue sky.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/phrases/items/item-3.wav',
+    ],
+    'learn-with-clara-phrases-item-4' => [
+        'text' => 'My red hat.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/phrases/items/item-4.wav',
+    ],
+    'learn-with-clara-phrases-item-5' => [
+        'text' => 'Big green tree.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/phrases/items/item-5.wav',
+    ],
+];
+
+$learnWithClaraSentenceLines = [
+    'learn-with-clara-sentences-item-1' => [
+        'text' => 'The dog plays with the ball.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/sentences/items/item-1.wav',
+    ],
+    'learn-with-clara-sentences-item-2' => [
+        'text' => 'Mia reads a book.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/sentences/items/item-2.wav',
+    ],
+    'learn-with-clara-sentences-item-3' => [
+        'text' => 'The sun is warm.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/sentences/items/item-3.wav',
+    ],
+    'learn-with-clara-sentences-item-4' => [
+        'text' => 'The bird can fly.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/sentences/items/item-4.wav',
+    ],
+    'learn-with-clara-sentences-item-5' => [
+        'text' => 'We walk to school.',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/sentences/items/item-5.wav',
+    ],
+];
+
+$learnWithClaraComprehensionLines = [
+    'learn-with-clara-comprehension-item-1' => [
+        'text' => 'Lina plants a seed in soft soil. She gives it water each day. Soon, a green leaf pops up. What helps the seed grow?',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/comprehension/items/item-1.wav',
+    ],
+    'learn-with-clara-comprehension-item-2' => [
+        'text' => 'Noah sees dark clouds. He takes his yellow umbrella before he walks home. The rain starts on the way. What does Noah take?',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/comprehension/items/item-2.wav',
+    ],
+    'learn-with-clara-comprehension-item-3' => [
+        'text' => 'Ana drops her crayons. Ben helps her pick them up. Ana smiles and says thank you. Why does Ana smile?',
+        'reference' => 'instruction',
+        'path' => 'learn-with-clara/comprehension/items/item-3.wav',
+    ],
+];
 
 $lessonOneItemCueLines = [];
 $lessonOneItemOrdinals = [
@@ -675,6 +749,7 @@ $lightweightPublishedSpeechMigration = [
             'path' => 'lessons/lesson-2/support/feedback/lesson-2-feedback-demonstrated.wav',
         ],
     ],
+    'expected_catalog_count' => 300,
 ];
 
 $lessonOneSupportLines = [
@@ -751,9 +826,15 @@ return [
     ],
     'pending_published_catalog_migrations' => [
         'lightweight-v1' => $lightweightPublishedSpeechMigration,
-        'learn-with-clara-words-v1' => [
-            'new_lines' => $learnWithClaraWordsLines,
+        'learn-with-clara-practice-v1' => [
+            'new_lines' => [
+                ...$learnWithClaraWordsLines,
+                ...$learnWithClaraPhraseLines,
+                ...$learnWithClaraSentenceLines,
+                ...$learnWithClaraComprehensionLines,
+            ],
             'replacement_lines' => [],
+            'expected_catalog_count' => 320,
         ],
     ],
     'published_speech_groups' => [
@@ -798,6 +879,9 @@ return [
         'lesson-6-fixed' => array_keys($lessonSixLines),
         'learn-with-clara-letters-fixed' => $learnWithClaraLettersSpeechKeys,
         'learn-with-clara-words-fixed' => $learnWithClaraWordsSpeechKeys,
+        'learn-with-clara-phrases-fixed' => array_keys($learnWithClaraPhraseLines),
+        'learn-with-clara-sentences-fixed' => array_keys($learnWithClaraSentenceLines),
+        'learn-with-clara-comprehension-fixed' => array_keys($learnWithClaraComprehensionLines),
     ],
     'activity_speech_manifests' => [
         'assessment-part-one' => [
@@ -842,6 +926,18 @@ return [
         ],
         'learn-with-clara-words' => [
             'published_groups' => ['learn-with-clara-words-fixed'],
+            'runtime_profiles' => [],
+        ],
+        'learn-with-clara-phrases' => [
+            'published_groups' => ['learn-with-clara-phrases-fixed'],
+            'runtime_profiles' => [],
+        ],
+        'learn-with-clara-sentences' => [
+            'published_groups' => ['learn-with-clara-sentences-fixed'],
+            'runtime_profiles' => [],
+        ],
+        'learn-with-clara-comprehension' => [
+            'published_groups' => ['learn-with-clara-comprehension-fixed'],
             'runtime_profiles' => [],
         ],
     ],
@@ -890,6 +986,9 @@ return [
         ...$lessonSixLines,
         ...$learnWithClaraLettersLines,
         ...$learnWithClaraWordsLines,
+        ...$learnWithClaraPhraseLines,
+        ...$learnWithClaraSentenceLines,
+        ...$learnWithClaraComprehensionLines,
         'lesson-intro' => [
             'text' => 'Hi. I am happy you are here. Let us get ready to read together.',
             'reference' => 'introduce',
