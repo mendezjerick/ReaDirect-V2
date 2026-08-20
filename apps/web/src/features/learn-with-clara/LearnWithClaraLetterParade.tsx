@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
-import type { LearnWithClaraLettersScene } from "./learnWithClaraLettersApi";
+import type { LearnWithClaraLettersScene } from "./learnWithClaraLettersFlow";
 import type { claraLettersCopy } from "./learnWithClaraCopy";
 
 interface LearnWithClaraLetterParadeProps {

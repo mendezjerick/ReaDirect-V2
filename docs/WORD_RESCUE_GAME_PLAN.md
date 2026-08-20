@@ -26,9 +26,9 @@ presentation metadata, validation, tests, and review documentation.
 - Entry route: `/learner/learn-with-clara/letters`, lazy-loaded from `apps/web/src/App.tsx`.
 - Page coordinator: `apps/web/src/features/learn-with-clara/LearnWithClaraLettersPage.tsx`.
 - Animated world: `apps/web/src/features/learn-with-clara/LearnWithClaraLetterParade.tsx`.
-- Typed API client: `apps/web/src/features/learn-with-clara/learnWithClaraLettersApi.ts`, with Zod validation.
+- Client flow: `apps/web/src/features/learn-with-clara/learnWithClaraLettersFlow.ts`.
 - Styling: `apps/web/src/features/learn-with-clara/learn-with-clara-letters.css`.
-- Server sequence: `apps/api/app/Services/LearnWithClaraLettersFlow.php`.
+- Client sequence: `apps/web/src/features/learn-with-clara/learnWithClaraLettersFlow.ts`.
 - Server endpoints: `LearnerClaraListeningController` exposes authenticated `start`, `advance`, and `restart` actions.
 - Persistence: `learner_clara_listening_sessions`, deliberately separate from required lessons.
 

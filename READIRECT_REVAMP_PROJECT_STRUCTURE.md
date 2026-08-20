@@ -1322,7 +1322,7 @@ apps/web/src/features/learn-with-clara/LearnWithClaraMenuPage.tsx
 apps/web/src/features/learn-with-clara/LearnWithClaraLettersPage.tsx
 apps/web/src/features/learn-with-clara/LearnWithClaraLetterParade.tsx
 apps/web/src/features/learn-with-clara/learn-with-clara-menu.css
-apps/web/src/features/learn-with-clara/learnWithClaraLettersApi.ts
+apps/web/src/features/learn-with-clara/learnWithClaraLettersFlow.ts
 apps/web/src/features/learn-with-clara/learn-with-clara-letters.css
 ```
 

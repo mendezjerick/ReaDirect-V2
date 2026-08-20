@@ -65,7 +65,7 @@ The migration must inventory and route API requests from these areas through the
 - `src/features/learner-auth/learnerApi.ts`
 - `src/features/clara-audio/claraSpeech.ts`
 - `src/features/clara-audio/activitySpeechReadiness.ts`
-- `src/features/learn-with-clara/learnWithClaraLettersApi.ts`
+- `src/features/learn-with-clara/learnWithClaraLettersFlow.ts`
 - `src/features/game-one/gameOneHostAdapter.ts`
 - `src/features/lesson/lessonApi.ts`
 - `src/features/lesson/lessonSixApi.ts`

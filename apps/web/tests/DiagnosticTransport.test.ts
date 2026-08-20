@@ -17,7 +17,6 @@ import {
   clearPreparedClaraSpeech,
   prepareClaraSpeech,
 } from "../src/features/clara-audio/claraSpeech";
-import { startLearnWithClaraLetters } from "../src/features/learn-with-clara/learnWithClaraLettersApi";
 
 const partOneState = {
   run_id: 7,
@@ -62,25 +61,6 @@ const activityReadiness = {
   runtime_profiles: ["result"],
   profiles_ready: ["result"],
   device: "cpu",
-};
-
-const lettersState = {
-  session_id: 3,
-  lesson_key: "letters" as const,
-  chapter_key: "letter-names-a-e" as const,
-  status: "active" as const,
-  visit_count: 1,
-  scene: {
-    key: "opening",
-    kind: "story" as const,
-    title: "Letters",
-    display_text: "Find the letters.",
-    pronunciation: "letters",
-    speech_key: "learn-with-clara-letters-parade-opening" as const,
-    choices: ["A"],
-    item_progress: null,
-  },
-  prefetch_speech_keys: ["learn-with-clara-letters-parade-opening" as const],
 };
 
 function mockJsonResponse(body: unknown): Response {
@@ -219,17 +199,4 @@ describe("Diagnostic authenticated transport", () => {
     );
   });
 
-  it("uses credentialed transport for learner-authenticated Clara letters", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(mockJsonResponse(lettersState));
-    vi.stubGlobal("fetch", fetchMock);
-
-    await expect(startLearnWithClaraLetters("cookie-session")).resolves.toEqual(
-      lettersState,
-    );
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/learners/learn-with-clara/letters/start",
-      expect.objectContaining({ credentials: "include" }),
-    );
-  });
 });
