@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Surface } from "../../components/ui/Surface";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import "./learn-with-clara-letters.css";
 
 interface LearnWithClaraClassShellProps {
@@ -22,11 +23,7 @@ function joinClasses(...values: Array<string | false | null | undefined>) {
 }
 
 function BackIcon() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M26 16H7M14 9l-7 7 7 7" />
-    </svg>
-  );
+  return <PixelIcon name="arrow-left" />;
 }
 
 export function LearnWithClaraClassShell({

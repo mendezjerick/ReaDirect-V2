@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { useConnectivity } from "../connectivity/connectivityContext";
@@ -60,22 +61,11 @@ function localStatus(
 }
 
 function PracticeBookIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M8 10.5c6.5-2.3 11.8-1.1 16 3.1v25.8c-4.2-4.2-9.5-5.4-16-3.1V10.5Z" />
-      <path d="M40 10.5c-6.5-2.3-11.8-1.1-16 3.1v25.8c4.2-4.2 9.5-5.4 16-3.1V10.5Z" />
-      <path d="M12.5 17.5c3-.7 6 .1 8.5 2.1M12.5 23c3-.7 6 .1 8.5 2.1M35.5 17.5c-3-.7-6 .1-8.5 2.1M35.5 23c-3-.7-6 .1-8.5 2.1" />
-    </svg>
-  );
+  return <PixelIcon name="book" />;
 }
 
 function PracticeLeafIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M37.5 10.5C24 10.5 13 17.2 13 28.4c0 4.8 3.2 8 8 8 11.2 0 17.9-11 16.5-25.9Z" />
-      <path d="M11 38c5.1-8.2 10.5-13.4 20.5-18.5" />
-    </svg>
-  );
+  return <PixelIcon name="leaf" />;
 }
 
 interface PackCardProps {

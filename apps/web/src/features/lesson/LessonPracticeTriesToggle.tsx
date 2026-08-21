@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import type { LessonPracticeTries } from "./lessonApi";
 
 interface LessonPracticeTriesToggleProps {
@@ -44,10 +45,7 @@ export function LessonPracticeTriesToggle({
         disabled={disabled || openCommit.committing}
         onClick={() => openCommit.commit(() => setOpen(true))}
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M19 7v5h-5" />
-          <path d="M18.2 12a6.5 6.5 0 1 1-1.9-4.6L19 10" />
-        </svg>
+        <PixelIcon name="replay" />
         {practiceTries.count > 0 ? (
           <strong aria-hidden="true">{practiceTries.count}</strong>
         ) : null}
@@ -77,7 +75,7 @@ export function LessonPracticeTriesToggle({
                     aria-label="Close practice tries"
                     onClick={() => setOpen(false)}
                   >
-                    ×
+                    <PixelIcon name="close" />
                   </button>
                 </header>
 

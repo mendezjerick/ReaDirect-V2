@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon, type PixelIconName } from "../../components/ui/PixelIcon";
 import {
   playClaraSpeech,
   prepareClaraSpeech,
@@ -224,49 +225,16 @@ function Icon({
 }: {
   name: "arrow" | "book" | "check" | "hint" | "retry" | "speaker";
 }) {
-  if (name === "arrow") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 12h15M13 5l7 7-7 7" />
-      </svg>
-    );
-  }
-  if (name === "check") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="m5 12 4 4L19 6" />
-      </svg>
-    );
-  }
-  if (name === "retry") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M20 11a8 8 0 1 0 1 4" />
-        <path d="M20 5v6h-6" />
-      </svg>
-    );
-  }
-  if (name === "speaker") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 10v4h4l5 4V6l-5 4H4Z" />
-        <path d="M17 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12" />
-      </svg>
-    );
-  }
-  if (name === "hint") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M9 18h6M10 21h4M8.5 14.5A6 6 0 1 1 16 14c-.8.8-1.2 1.5-1.2 2H9.7c0-.6-.4-1.1-1.2-1.5Z" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 4h14v16H5z" />
-      <path d="M8 8h8M8 12h8M8 16h5" />
-    </svg>
-  );
+  const pixelName: Record<typeof name, PixelIconName> = {
+    arrow: "arrow-right",
+    book: "book",
+    check: "check",
+    hint: "lightbulb",
+    retry: "replay",
+    speaker: "speaker",
+  };
+
+  return <PixelIcon name={pixelName[name]} />;
 }
 
 function ProgressDots({

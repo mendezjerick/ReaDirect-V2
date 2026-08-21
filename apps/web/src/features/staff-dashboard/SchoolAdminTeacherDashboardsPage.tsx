@@ -24,6 +24,7 @@ import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigat
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import {
   clearStaffSession,
   getSchoolAdminTeachers,
@@ -32,11 +33,7 @@ import {
 import { getSchoolAdminTeacherDashboard } from "./schoolAdminApi";
 
 function DashboardIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" />
-    </svg>
-  );
+  return <PixelIcon name="dashboard" />;
 }
 
 export function SchoolAdminTeacherDashboardsPage() {

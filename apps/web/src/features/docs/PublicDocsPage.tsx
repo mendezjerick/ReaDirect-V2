@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 
 import "./public-docs.css";
 
@@ -595,7 +596,7 @@ function DocsHome() {
                     key={slug}
                   >
                     <span>{label}</span>
-                    <span aria-hidden="true">→</span>
+                    <PixelIcon name="arrow-right" />
                   </Link>
                 ))}
               </div>
@@ -700,7 +701,7 @@ function DocsArticle({ page }: { page: DocPage }) {
         <div className="public-docs__article-cta">
           <strong>Bring ReaDirect to your class</strong>
           <a href="mailto:hello@readirect.org?subject=Bring%20ReaDirect%20to%20my%20class">
-            Contact ReaDirect support →
+            Contact ReaDirect support <PixelIcon name="arrow-right" />
           </a>
         </div>
       ) : null}
@@ -712,10 +713,10 @@ function DocsArticle({ page }: { page: DocPage }) {
           <p className="public-docs__eyebrow">Keep exploring</p>
           <div>
             <Link to="/docs/testing">
-              Testing &amp; Quality <span aria-hidden="true">→</span>
+              Testing &amp; Quality <PixelIcon name="arrow-right" />
             </Link>
             <Link to="/docs/for-schools">
-              For Schools <span aria-hidden="true">→</span>
+              For Schools <PixelIcon name="arrow-right" />
             </Link>
           </div>
         </nav>

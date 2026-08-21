@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { ThemeSelector } from "../theme/ThemeSelector";
 import { AboutReaDirectDialog } from "./AboutReaDirectDialog";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
@@ -35,20 +36,6 @@ function readLandingIdentity(): LandingIdentity {
         kind: learner.learner.account_purpose === "guest" ? "guest" : "learner",
       }
     : null;
-}
-
-function BookIcon() {
-  return (
-    <svg
-      className="home-page__read-icon"
-      viewBox="0 0 32 32"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path d="M4 6.5c4.8-.7 8.8.4 12 3.2v16.1c-3.2-2.8-7.2-3.9-12-3.2V6.5Z" />
-      <path d="M28 6.5c-4.8-.7-8.8.4-12 3.2v16.1c3.2-2.8 7.2-3.9 12-3.2V6.5Z" />
-    </svg>
-  );
 }
 
 export function HomePage() {
@@ -119,7 +106,9 @@ export function HomePage() {
       <section className="home-page__actions" aria-label="Home actions">
         <BigButton
           className="home-page__read-button"
-          leadingIcon={<BookIcon />}
+          leadingIcon={
+            <PixelIcon className="home-page__read-icon" name="book" />
+          }
           committing={learnerLoginCommit.committing}
           onClick={openPrimaryAction}
         >

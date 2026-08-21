@@ -1,6 +1,7 @@
 import { useState, type PropsWithChildren, type ReactNode } from "react";
 
 import { StaffButton } from "./StaffButton";
+import { PixelIcon } from "../ui/PixelIcon";
 import { StaffNavigation } from "./SystemAdminNavigation";
 import {
   systemAdminNavigationGroups,
@@ -83,9 +84,7 @@ export function StaffShell({
             onClick={() => setMobileMenuOpen(true)}
           >
             <span className="staff-mobile-header__menu-icon" aria-hidden="true">
-              <span />
-              <span />
-              <span />
+              <PixelIcon name="menu" />
             </span>
             <span>Menu</span>
           </button>
@@ -131,7 +130,7 @@ export function StaffShell({
                   aria-label="Close navigation menu"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <span aria-hidden="true">×</span>
+                  <PixelIcon name="close" />
                 </button>
               </div>
               <StaffNavigation

@@ -141,6 +141,15 @@ button {
   image-rendering: pixelated;
 }
 
+.pixel-icon {
+  display: inline-block;
+  width: 1em;
+  height: auto;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  vertical-align: -0.125em;
+}
+
 .big-button {
   display: inline-flex;
   max-width: 100%;
@@ -834,7 +843,12 @@ button {
 .staff-mobile-header__menu-icon {
   display: grid;
   width: 1.25rem;
-  gap: 0.2rem;
+  place-items: center;
+}
+
+.staff-mobile-header__menu-icon .pixel-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .staff-mobile-header__menu-icon span {
@@ -4421,15 +4435,15 @@ textarea.staff-field__control {
     linear-gradient(
       135deg,
       color-mix(
-          in srgb,
-          var(--color-action-primary-depth) 46%,
-          var(--color-transparent)
-        ),
+        in srgb,
+        var(--color-action-primary-depth) 46%,
+        var(--color-transparent)
+      ),
       color-mix(
-          in srgb,
-          var(--color-action-primary) 22%,
-          var(--color-transparent)
-        )
+        in srgb,
+        var(--color-action-primary) 22%,
+        var(--color-transparent)
+      )
     ),
     var(--asset-home-background-desktop);
   background-position: center;
@@ -4451,15 +4465,15 @@ textarea.staff-field__control {
     linear-gradient(
       135deg,
       color-mix(
-          in srgb,
-          var(--color-action-primary-depth) 34%,
-          var(--color-transparent)
-        ),
+        in srgb,
+        var(--color-action-primary-depth) 34%,
+        var(--color-transparent)
+      ),
       color-mix(
-          in srgb,
-          var(--color-action-primary-hover) 16%,
-          var(--color-transparent)
-        )
+        in srgb,
+        var(--color-action-primary-hover) 16%,
+        var(--color-transparent)
+      )
     ),
     var(--asset-home-background-desktop);
 }
@@ -4471,15 +4485,15 @@ textarea.staff-field__control {
     linear-gradient(
       135deg,
       color-mix(
-          in srgb,
-          var(--color-action-primary-depth) 58%,
-          var(--color-transparent)
-        ),
+        in srgb,
+        var(--color-action-primary-depth) 58%,
+        var(--color-transparent)
+      ),
       color-mix(
-          in srgb,
-          var(--color-action-primary-pressed) 30%,
-          var(--color-transparent)
-        )
+        in srgb,
+        var(--color-action-primary-pressed) 30%,
+        var(--color-transparent)
+      )
     ),
     var(--asset-home-background-desktop);
   box-shadow: 0 2px 0
@@ -4591,6 +4605,11 @@ textarea.staff-field__control {
   font-size: 1.65rem;
   line-height: 1;
   cursor: pointer;
+}
+
+.home-about__header button .pixel-icon {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .home-about__content {
@@ -4732,6 +4751,11 @@ textarea.staff-field__control {
   font-weight: 700;
   line-height: 1;
   text-decoration: none;
+}
+
+.home-about__credits-link .pixel-icon {
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .home-about__credits-link:hover {

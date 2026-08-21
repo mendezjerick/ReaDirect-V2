@@ -2,33 +2,21 @@ import { Capacitor } from "@capacitor/core";
 import { useLocation } from "react-router-dom";
 
 import { useConnectivity } from "./connectivityContext";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import "./native-connectivity-banner.css";
 
 function WifiOffIcon() {
   return (
-    <svg
-      className="native-connectivity-banner__icon"
-      viewBox="0 0 32 32"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path d="M4 11.5a18 18 0 0 1 24 0M8.5 16a11.5 11.5 0 0 1 15 0M13 20.5a5.5 5.5 0 0 1 6 0M16 25h.01" />
-      <path d="M5 5 27 27" />
-    </svg>
+    <PixelIcon className="native-connectivity-banner__icon" name="wifi-off" />
   );
 }
 
 function WarningIcon() {
   return (
-    <svg
+    <PixelIcon
       className="native-connectivity-banner__icon native-connectivity-banner__icon--warning"
-      viewBox="0 0 32 32"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path d="m16 4 13 24H3L16 4Z" />
-      <path d="M16 11v8M16 23h.01" />
-    </svg>
+      name="warning"
+    />
   );
 }
 

@@ -17,42 +17,26 @@ import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns"
 import { systemAdminNavigationGroups } from "../../components/staff/staffNavigation";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import {
   clearStaffSession,
   getSystemAdminSchools,
 } from "../staff-auth/staffApi";
 
 function SchoolsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 21V10l8-6 8 6v11M9 21v-6h6v6M2 21h20" />
-    </svg>
-  );
+  return <PixelIcon name="school" />;
 }
 
 function AdministratorsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M16 11h6" />
-    </svg>
-  );
+  return <PixelIcon name="teacher" />;
 }
 
 function TeachersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 8h5M19.5 5.5v5" />
-    </svg>
-  );
+  return <PixelIcon name="teacher" />;
 }
 
 function LearnersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m2 9 10-5 10 5-10 5L2 9Z" />
-      <path d="M6 11.5V16c3.2 2.5 8.8 2.5 12 0v-4.5M22 9v6" />
-    </svg>
-  );
+  return <PixelIcon name="learner" />;
 }
 
 function formatCount(active: number, total: number): string {

@@ -18,6 +18,7 @@ import { systemAdminNavigationGroups } from "../../components/staff/staffNavigat
 import { SelectField } from "../../components/ui/SelectField";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import {
   clearStaffSession,
   getSystemAdminTeachers,
@@ -26,37 +27,19 @@ import {
 type AccountFilter = "all" | "active" | "inactive";
 
 function TeachersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 8h5M19.5 5.5v5" />
-    </svg>
-  );
+  return <PixelIcon name="teacher" />;
 }
 
 function ActiveIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M20 7 9 18l-5-5" />
-      <path d="M12 3a9 9 0 1 0 9 9" />
-    </svg>
-  );
+  return <PixelIcon name="check-circle" />;
 }
 
 function LearnersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m2 9 10-5 10 5-10 5L2 9Z" />
-      <path d="M6 11.5V16c3.2 2.5 8.8 2.5 12 0v-4.5M22 9v6" />
-    </svg>
-  );
+  return <PixelIcon name="learner" />;
 }
 
 function AssignmentIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 11 12 14 22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-    </svg>
-  );
+  return <PixelIcon name="clipboard-check" />;
 }
 
 function formatCreatedDate(value: string | null): string {

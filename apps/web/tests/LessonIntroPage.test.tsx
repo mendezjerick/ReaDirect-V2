@@ -171,7 +171,7 @@ describe("ReadingJourneyMenuPage", () => {
     expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
     expect(
       container.querySelectorAll(
-        'img.reading-journey-card__book-icon[src="/assets/icons/book.png"]',
+        'svg.reading-journey-card__book-icon[data-pixel-icon="book"]',
       ),
     ).toHaveLength(6);
     expect(container.querySelector(".clara-stage")).toBeNull();

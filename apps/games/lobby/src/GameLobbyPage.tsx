@@ -26,23 +26,40 @@ export interface GameLobbyPageProps {
 
 const gameSlots = registeredGames;
 
+function LobbyPixelIcon({
+  name,
+}: {
+  name: "arrow-left" | "book" | "gamepad" | "words";
+}) {
+  const paths = {
+    "arrow-left": "M2 11h3V9h2V7h2V5h4v5h9v4h-9v5H9v-2H7v-2H5v-2H2z",
+    book: "M2 4h8v2h2v15h-2v-2H2zm12 2h2V4h8v15h-8v2h-2zM5 8v2h5V8zm0 4v2h5v-2zm9-4v2h5V8zm0 4v2h5v-2z",
+    gamepad:
+      "M7 6h10v2h3v3h2v8h-3v2h-4l-2-3h-2l-2 3H5v-2H2v-8h2V8h3zm0 5v2H5v3h2v-2h2v-3zm8 0v3h3v-3z",
+    words:
+      "M3 5h18v14H3zm3 3v3h3V8zm5 0v3h3V8zm5 0v3h2V8zM6 13v3h6v-3zm8 0v3h4v-3z",
+  } as const;
+
+  return (
+    <svg
+      className="game-lobby__pixel-icon"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+      shapeRendering="crispEdges"
+    >
+      <path d={paths[name]} fillRule="evenodd" clipRule="evenodd" />
+    </svg>
+  );
+}
+
 function GameSymbol({ gameKey }: { gameKey: GameKey }) {
   return gameKey === "game-alpha" ? (
-    <svg viewBox="0 0 64 64" aria-hidden="true">
-      <path d="M20 17h24v6h6v18h-6v6H20v-6h-6V23h6v-6Z" />
-      <path d="M24 27h6v6h-6zM34 27h6v6h-6zM26 39h12M29 11h6v6" />
-    </svg>
+    <LobbyPixelIcon name="gamepad" />
   ) : gameKey === "chronicles-of-the-lost-kingdom" ? (
-    <svg viewBox="0 0 64 64" aria-hidden="true">
-      <path d="M13 48V16h18c8 0 14 5 14 13s-6 13-14 13H22" />
-      <path d="M22 24h9c3 0 5 2 5 5s-2 5-5 5h-9M49 14v10M44 19h10" />
-    </svg>
+    <LobbyPixelIcon name="book" />
   ) : (
-    <svg viewBox="0 0 64 64" aria-hidden="true">
-      <path d="M10 18h44v32H10V18Z" />
-      <path d="M19 28h8v8h-8zM31 28h14M19 41h26" />
-      <path d="m48 10 6 8-6 8" />
-    </svg>
+    <LobbyPixelIcon name="words" />
   );
 }
 
@@ -149,7 +166,7 @@ export function GameLobbyPage({ previewMode = false }: GameLobbyPageProps) {
             disabled={Boolean(launchingGame)}
             onClick={() => navigate("/learner/dashboard")}
           >
-            <span aria-hidden="true">←</span> Dashboard
+            <LobbyPixelIcon name="arrow-left" /> Dashboard
           </button>
         </header>
 

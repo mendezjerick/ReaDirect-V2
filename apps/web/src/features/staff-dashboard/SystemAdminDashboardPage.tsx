@@ -17,6 +17,7 @@ import { StaffShell } from "../../components/staff/StaffShell";
 import { StaffState } from "../../components/staff/StaffState";
 import { TemporaryCredentialsNotice } from "../../components/staff/TemporaryCredentialsNotice";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import {
   clearStaffSession,
   getSystemAdminOverview,
@@ -25,37 +26,19 @@ import {
 } from "../staff-auth/staffApi";
 
 function SchoolsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6M8 11h.01M12 11h.01M16 11h.01" />
-    </svg>
-  );
+  return <PixelIcon name="school" />;
 }
 
 function PeopleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
+  return <PixelIcon name="users" />;
 }
 
 function LearnerIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m2 9 10-5 10 5-10 5L2 9Z" />
-      <path d="M6 11.5V16c3.2 2.5 8.8 2.5 12 0v-4.5M22 9v6" />
-    </svg>
-  );
+  return <PixelIcon name="learner" />;
 }
 
 function SandboxIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z" />
-      <path d="m4 7.5 8 4.5 8-4.5M12 12v9" />
-    </svg>
-  );
+  return <PixelIcon name="cube" />;
 }
 
 function formatEventTime(value: string | null): string {

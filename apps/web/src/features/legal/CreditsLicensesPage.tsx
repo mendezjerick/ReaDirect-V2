@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 
 import "./credits-licenses.css";
 
@@ -12,7 +13,7 @@ export function CreditsLicensesPage() {
     >
       <header className="credits-licenses__header">
         <Link className="credits-licenses__back" to="/home">
-          ← Back to ReaDirect
+          <PixelIcon name="arrow-left" /> Back to ReaDirect
         </Link>
         <p>About ReaDirect</p>
         <h1 id="credits-licenses-title">Credits &amp; licenses</h1>
@@ -59,9 +60,9 @@ export function CreditsLicensesPage() {
                 >
                   Customizable Goth VTuber Model Etsy listing
                 </a>
-                . ReaDirect uses the model and its derived Ma&apos;am Clara stills
-                under the seller&apos;s non-exclusive terms. The Live2D Cubism
-                runtime is licensed separately under its accompanying
+                . ReaDirect uses the model and its derived Ma&apos;am Clara
+                stills under the seller&apos;s non-exclusive terms. The Live2D
+                Cubism runtime is licensed separately under its accompanying
                 third-party terms.
               </dd>
             </div>
@@ -75,18 +76,18 @@ export function CreditsLicensesPage() {
             <div>
               <dt>Game One Ninja Adventure assets</dt>
               <dd>
-                Pixel-boy&apos;s Ninja Adventure Asset Pack, CC0 1.0. Attribution
-                is appreciated but not required by the licence.
+                Pixel-boy&apos;s Ninja Adventure Asset Pack, CC0 1.0.
+                Attribution is appreciated but not required by the licence.
               </dd>
             </div>
             <div>
               <dt>OtterTale (Game Two)</dt>
               <dd>
-                Repackaged, remixed, and original game assets released under
-                CC0 1.0. Credits: analogStudios_, RottingPixels, Brackeys,
-                Sofia Thirslund, Asbjørn Thirslund, and Jayvee Enaguas
-                (Pixel Operator). Attribution is preserved although not
-                required by the licence.
+                Repackaged, remixed, and original game assets released under CC0
+                1.0. Credits: analogStudios_, RottingPixels, Brackeys, Sofia
+                Thirslund, Asbjørn Thirslund, and Jayvee Enaguas (Pixel
+                Operator). Attribution is preserved although not required by the
+                licence.
               </dd>
             </div>
           </dl>
@@ -95,9 +96,9 @@ export function CreditsLicensesPage() {
         <section aria-labelledby="credits-audio">
           <h2 id="credits-audio">Audio and voice</h2>
           <p>
-            Ma&apos;am Clara&apos;s English and Filipino voice references are used with
-            written consent from Shaila Patrice D. Avallenda for VoxCPM2 voice
-            cloning and resulting ReaDirect speech output.
+            Ma&apos;am Clara&apos;s English and Filipino voice references are
+            used with written consent from Shaila Patrice D. Avallenda for
+            VoxCPM2 voice cloning and resulting ReaDirect speech output.
           </p>
           <p>
             <strong>Alphabet Defender:</strong> Sound effects by SoundsbyDane.
@@ -117,19 +118,31 @@ export function CreditsLicensesPage() {
           <ul>
             <li>
               Whisper ASR model weights — MIT License.{" "}
-              <a href="https://github.com/openai/whisper" target="_blank" rel="noreferrer">
+              <a
+                href="https://github.com/openai/whisper"
+                target="_blank"
+                rel="noreferrer"
+              >
                 OpenAI Whisper
               </a>
             </li>
             <li>
               VoxCPM2 speech synthesis — Apache License 2.0.{" "}
-              <a href="https://huggingface.co/openbmb/VoxCPM2" target="_blank" rel="noreferrer">
+              <a
+                href="https://huggingface.co/openbmb/VoxCPM2"
+                target="_blank"
+                rel="noreferrer"
+              >
                 VoxCPM2 model card
               </a>
             </li>
             <li>
               SpeechOcean762 historical training corpus — CC BY 4.0.{" "}
-              <a href="https://www.openslr.org/101/" target="_blank" rel="noreferrer">
+              <a
+                href="https://www.openslr.org/101/"
+                target="_blank"
+                rel="noreferrer"
+              >
                 OpenSLR record
               </a>
             </li>

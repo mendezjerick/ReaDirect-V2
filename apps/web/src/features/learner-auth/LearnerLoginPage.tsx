@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
@@ -22,16 +23,6 @@ interface LearnerLoginForm {
   learner_code: string;
   password: string;
   remember_me: boolean;
-}
-
-function ReaderIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M7 11c7-1 12.7.8 17 5.2V39c-4.3-4.4-10-6.2-17-5.2V11Z" />
-      <path d="M41 11c-7-1-12.7.8-17 5.2V39c4.3-4.4 10-6.2 17-5.2V11Z" />
-      <path d="M24 16.2V39" />
-    </svg>
-  );
 }
 
 export function LearnerLoginPage() {
@@ -160,7 +151,7 @@ export function LearnerLoginPage() {
           <Surface kind="panel" padding="roomy">
             <header className="learner-login-card__header">
               <span className="learner-login-card__icon">
-                <ReaderIcon />
+                <PixelIcon name="reader" />
               </span>
               <div>
                 <p>Reader sign in</p>

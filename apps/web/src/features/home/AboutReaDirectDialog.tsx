@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 
 interface AboutReaDirectDialogProps {
   onClose: () => void;
@@ -50,7 +51,7 @@ export function AboutReaDirectDialog({ onClose }: AboutReaDirectDialogProps) {
             onClick={onClose}
             aria-label="Close About ReaDirect"
           >
-            <span aria-hidden="true">×</span>
+            <PixelIcon name="close" />
           </button>
         </header>
 
@@ -251,7 +252,7 @@ export function AboutReaDirectDialog({ onClose }: AboutReaDirectDialogProps) {
               onClick={onClose}
             >
               View credits and licences
-              <span aria-hidden="true">→</span>
+              <PixelIcon name="arrow-right" />
             </Link>
           </section>
         </div>

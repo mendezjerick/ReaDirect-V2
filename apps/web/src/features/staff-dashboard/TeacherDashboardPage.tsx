@@ -23,6 +23,7 @@ import { teacherNavigationGroups } from "../../components/staff/staffNavigation"
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import {
   acknowledgeTeacherAssignment,
   clearStaffSession,
@@ -33,48 +34,23 @@ import {
 } from "../staff-auth/staffApi";
 
 function LearnersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 8h5M19.5 5.5v5" />
-    </svg>
-  );
+  return <PixelIcon name="users" />;
 }
 
 function CompleteIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M20 7 9 18l-5-5" />
-      <path d="M12 3a9 9 0 1 0 9 9" />
-    </svg>
-  );
+  return <PixelIcon name="check-circle" />;
 }
 
 function PendingIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
-    </svg>
-  );
+  return <PixelIcon name="clock" />;
 }
 
 function ReadyIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m4 14 6-6 4 4 6-6" />
-      <path d="M15 6h5v5" />
-      <path d="M4 20h16" />
-    </svg>
-  );
+  return <PixelIcon name="trend-up" />;
 }
 
 function FlagIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 21V4" />
-      <path d="M5 5h11l-2 4 2 4H5" />
-    </svg>
-  );
+  return <PixelIcon name="flag" />;
 }
 
 function formatActivityDate(value: string | null) {

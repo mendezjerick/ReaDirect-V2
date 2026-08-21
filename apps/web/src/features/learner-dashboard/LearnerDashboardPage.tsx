@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { ReadingJourneyAchievementIcon } from "../achievements/ReadingJourneyAchievementIcon";
@@ -20,52 +21,6 @@ import {
 } from "../learner-auth/learnerApi";
 import { useLearnerExperience } from "../learner-auth/LearnerExperienceProvider";
 import "./learner-dashboard.css";
-
-function LearningIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M7 10c7-1 12 1 17 5v25c-5-4-10-6-17-5V10Z" />
-      <path d="M41 10c-7-1-12 1-17 5v25c5-4 10-6 17-5V10Z" />
-      <path d="M12 17c3 0 5 .6 8 2M12 23c3 0 5 .6 8 2M36 17c-3 0-5 .6-8 2M36 23c-3 0-5 .6-8 2" />
-    </svg>
-  );
-}
-
-function GamesIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M16 17h16c7 0 11 6 10 14l-1 5c-.7 4-5 5-8 2l-5-5h-8l-5 5c-3 3-7.3 2-8-2l-1-5c-1-8 3-14 10-14Z" />
-      <path d="M14 25h8M18 21v8M31 24h.1M35 28h.1" />
-    </svg>
-  );
-}
-
-function OfflineModeIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M39 8C22 9 10 15 9 29c0 7 5 11 11 11 14-1 18-14 19-32Z" />
-      <path d="M9 40c6-10 13-16 25-22" />
-    </svg>
-  );
-}
-
-function TrophyIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M15 8h18v8c0 8-4 13-9 13s-9-5-9-13V8Z" />
-      <path d="M15 12H8v3c0 6 4 9 9 9M33 12h7v3c0 6-4 9-9 9M24 29v7M17 40h14M20 36h8" />
-    </svg>
-  );
-}
-
-function ClaraStoryIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M8 11h24c4 0 7 3 7 7v11c0 4-3 7-7 7H20l-8 6v-6H8c-4 0-7-3-7-7V18c0-4 3-7 7-7Z" />
-      <path d="M12 20h16M12 27h11M35 6v8M31 10h8" />
-    </svg>
-  );
-}
 
 export function LearnerDashboardPage() {
   const navigate = useNavigate();
@@ -261,7 +216,7 @@ export function LearnerDashboardPage() {
           padding="roomy"
         >
           <div className="learner-dashboard__primary-symbol">
-            <LearningIcon />
+            <PixelIcon name="book" />
           </div>
           <div className="learner-dashboard__primary-copy">
             <p className="learner-dashboard__next-label">
@@ -302,7 +257,7 @@ export function LearnerDashboardPage() {
           >
             <div className="learner-dashboard__utility-heading">
               <span className="learner-dashboard__utility-icon">
-                <GamesIcon />
+                <PixelIcon name="gamepad" />
               </span>
               <div>
                 <p className="learner-dashboard__eyebrow">Play and practice</p>
@@ -329,7 +284,7 @@ export function LearnerDashboardPage() {
           >
             <div className="learner-dashboard__utility-heading">
               <span className="learner-dashboard__utility-icon">
-                <ClaraStoryIcon />
+                <PixelIcon name="speech" />
               </span>
               <div>
                 <p className="learner-dashboard__eyebrow">
@@ -359,7 +314,7 @@ export function LearnerDashboardPage() {
             >
               <div className="learner-dashboard__utility-heading">
                 <span className="learner-dashboard__utility-icon">
-                  <OfflineModeIcon />
+                  <PixelIcon name="leaf" />
                 </span>
                 <div>
                   <p className="learner-dashboard__eyebrow">
@@ -392,7 +347,7 @@ export function LearnerDashboardPage() {
           >
             <div className="learner-dashboard__utility-heading">
               <span className="learner-dashboard__utility-icon">
-                <TrophyIcon />
+                <PixelIcon name="trophy" />
               </span>
               <div>
                 <p className="learner-dashboard__eyebrow">Your collection</p>

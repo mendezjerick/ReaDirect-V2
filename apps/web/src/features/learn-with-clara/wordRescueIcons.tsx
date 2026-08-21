@@ -6,41 +6,52 @@ export type WordRescueWord = (typeof WORD_RESCUE_WORDS)[number];
 type IconProps = SVGProps<SVGSVGElement>;
 type WordIcon = (props: IconProps) => ReactNode;
 
+function PixelWordSvg({ path, style, ...props }: IconProps & { path: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      shapeRendering="crispEdges"
+      style={{ fill: "currentColor", stroke: "none", ...style }}
+      {...props}
+    >
+      <path d={path} fillRule="evenodd" clipRule="evenodd" />
+    </svg>
+  );
+}
+
 const BatIcon: WordIcon = (props) => (
-  <svg viewBox="0 0 64 64" {...props}>
-    <path d="M8 23c9-1 15 2 24 8 9-6 15-9 24-8l-8 8 5 10-12-3-9 11-9-11-12 3 5-10-8-8Z" />
-    <path d="M32 31v18M26 27l6 4 6-4" />
-  </svg>
+  <PixelWordSvg
+    path="M2 6h4v2h3v2h2v2h2v-2h2V8h3V6h4v5h-2v5h-4v3h-2v3h-4v-3H8v-3H4v-5H2z"
+    {...props}
+  />
 );
 
 const CanIcon: WordIcon = (props) => (
-  <svg viewBox="0 0 64 64" {...props}>
-    <ellipse cx="32" cy="16" rx="17" ry="6" />
-    <path d="M15 16v31c0 4 8 7 17 7s17-3 17-7V16" />
-    <path d="M20 29h24M20 39h24" />
-  </svg>
+  <PixelWordSvg
+    path="M6 2h12v2h2v16h-2v2H6v-2H4V4h2zm1 4v3h10V6zm0 5v3h10v-3zm0 5v3h10v-3z"
+    {...props}
+  />
 );
 
 const DotIcon: WordIcon = (props) => (
-  <svg viewBox="0 0 64 64" {...props}>
-    <circle cx="32" cy="32" r="17" />
-    <circle cx="32" cy="32" r="5" fill="currentColor" stroke="none" />
-  </svg>
+  <PixelWordSvg
+    path="M8 3h8v2h3v3h2v8h-2v3h-3v2H8v-2H5v-3H3V8h2V5h3zm2 7v4h4v-4z"
+    {...props}
+  />
 );
 
 const GapIcon: WordIcon = (props) => (
-  <svg viewBox="0 0 64 64" {...props}>
-    <path d="M8 43h17M39 43h17M8 25h17M39 25h17" />
-    <path d="M25 43h14M25 25h14" strokeDasharray="3 5" />
-    <path d="m27 14 5 6 5-6M27 54l5-6 5 6" />
-  </svg>
+  <PixelWordSvg
+    path="M2 5h7v4H2zm13 0h7v4h-7zM2 15h7v4H2zm13 0h7v4h-7zM10 7h4v2h-4zm0 8h4v2h-4zM11 2h2v3h-2zm0 17h2v3h-2z"
+    {...props}
+  />
 );
 
 const HotIcon: WordIcon = (props) => (
-  <svg viewBox="0 0 64 64" {...props}>
-    <path d="M33 8c5 11-5 14-1 22 2 4 7 4 8-3 8 7 11 13 9 21-2 9-9 14-18 14-11 0-20-7-20-18 0-8 5-14 12-21 0 8 4 10 7 6 4-5-2-12 3-21Z" />
-    <path d="M32 39c4 4 5 7 4 11-1 4-4 6-7 6-4 0-7-3-7-7 0-3 2-6 6-10 0 4 2 4 4 0Z" />
-  </svg>
+  <PixelWordSvg
+    path="M11 2h4v4h2v3h2v2h2v7h-2v3h-3v2H8v-2H5v-3H3v-6h2V9h3v4h2v-3h2V7h-1zm0 13H9v4h2v2h2v-2h2v-4h-2v2h-2z"
+    {...props}
+  />
 );
 
 export const WORD_RESCUE_ICON_BY_WORD: Record<WordRescueWord, WordIcon> = {
@@ -52,7 +63,7 @@ export const WORD_RESCUE_ICON_BY_WORD: Record<WordRescueWord, WordIcon> = {
 };
 
 /**
- * Word Story uses local, authored vector icons. The text fallback remains
+ * Word Story uses local, authored pixel-vector icons. The text fallback remains
  * available for any future vocabulary item that is not in this mapping.
  */
 export function WordRescueIcon({

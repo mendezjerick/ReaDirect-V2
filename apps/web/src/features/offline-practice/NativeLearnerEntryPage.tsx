@@ -6,6 +6,7 @@ import {
   LinkStartTransition,
 } from "../../components/transitions/LinkStartTransition";
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { useConnectivity } from "../connectivity/connectivityContext";
@@ -17,21 +18,11 @@ import "./offline-practice.css";
 const NATIVE_STARTUP_DURATION_MS = 5000;
 
 function EntryBookIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
-      <path d="M7 10c7-1 12 1 17 5v25c-5-4-10-6-17-5V10Z" />
-      <path d="M41 10c-7-1-12 1-17 5v25c5-4 10-6 17-5V10Z" />
-    </svg>
-  );
+  return <PixelIcon name="book" />;
 }
 
 function OfflineLeafIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
-      <path d="M39 8C22 9 10 15 9 29c0 7 5 11 11 11 14-1 18-14 19-32Z" />
-      <path d="M9 40c6-10 13-16 25-22" />
-    </svg>
-  );
+  return <PixelIcon name="leaf" />;
 }
 
 function OnlineModeArtwork() {
@@ -58,21 +49,11 @@ function OfflineModeArtwork() {
 }
 
 function WifiOffIcon() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <path d="M4 11.5a18 18 0 0 1 24 0M8.5 16a11.5 11.5 0 0 1 15 0M13 20.5a5.5 5.5 0 0 1 6 0M16 25h.01" />
-      <path d="M5 5 27 27" />
-    </svg>
-  );
+  return <PixelIcon name="wifi-off" />;
 }
 
 function WarningIcon() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <path d="m16 4 13 24H3L16 4Z" />
-      <path d="M16 11v8M16 23h.01" />
-    </svg>
-  );
+  return <PixelIcon name="warning" />;
 }
 
 function NativeStaticClara() {

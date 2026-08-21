@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { clearActivitySpeechPreparation } from "../clara-audio/activitySpeechReadiness";
@@ -99,9 +100,7 @@ function SpeechLanguageSwitch({
           </span>
 
           <span className="speech-language-switch__handle" aria-hidden="true">
-            <svg viewBox="0 0 28 28">
-              <path d="M5 9h15m-4-4 4 4-4 4M23 19H8m4 4-4-4 4-4" />
-            </svg>
+            <PixelIcon name="swap" />
           </span>
 
           <span
@@ -137,43 +136,19 @@ function SpeechLanguageSwitch({
 }
 
 function AssessmentIcon({ final = false }: { final?: boolean }) {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M14 6h20v6H14zM10 10h28v32H10z" />
-      <path d="m17 23 4 4 9-10M17 34h14" />
-      {final ? (
-        <path d="m24 4 2.3 4.7 5.2.8-3.8 3.7.9 5.2-4.6-2.5-4.6 2.5.9-5.2-3.8-3.7 5.2-.8z" />
-      ) : null}
-    </svg>
-  );
+  return <PixelIcon name={final ? "trophy" : "clipboard-check"} />;
 }
 
 function BookIcon() {
-  return (
-    <img
-      className="reading-journey-card__book-icon"
-      src="/assets/icons/book.png"
-      alt=""
-      aria-hidden="true"
-      draggable={false}
-    />
-  );
+  return <PixelIcon className="reading-journey-card__book-icon" name="book" />;
 }
 
 function LockIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5z" />
-    </svg>
-  );
+  return <PixelIcon name="lock" />;
 }
 
 function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m5 12 4 4 10-10" />
-    </svg>
-  );
+  return <PixelIcon name="check" />;
 }
 
 function JourneyActivity({

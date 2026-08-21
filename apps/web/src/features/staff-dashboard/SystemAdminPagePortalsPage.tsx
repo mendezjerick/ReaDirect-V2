@@ -11,6 +11,7 @@ import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns"
 import { StaffPageHeader } from "../../components/staff/StaffPageHeader";
 import { StaffShell } from "../../components/staff/StaffShell";
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import { saveLearnerSession } from "../learner-auth/learnerApi";
@@ -323,7 +324,7 @@ export function SystemAdminPagePortalsPage() {
                   className="staff-portal-placeholder__mark"
                   aria-hidden="true"
                 >
-                  →
+                  <PixelIcon name="arrow-right" />
                 </span>
                 <div>
                   <strong>Portal launching is not active yet</strong>

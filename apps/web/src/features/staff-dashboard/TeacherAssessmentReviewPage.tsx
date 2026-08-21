@@ -18,6 +18,7 @@ import { teacherNavigationGroups } from "../../components/staff/staffNavigation"
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { clearStaffSession, loadStaffSession } from "../staff-auth/staffApi";
 import {
   getTeacherAssessmentReview,
@@ -25,11 +26,7 @@ import {
 } from "./teacherAssessmentReviewApi";
 
 function ReviewMetricIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5" />
-    </svg>
-  );
+  return <PixelIcon name="document" />;
 }
 
 function formatDate(value: string | null): string {

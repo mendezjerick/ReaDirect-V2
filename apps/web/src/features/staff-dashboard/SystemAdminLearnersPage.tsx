@@ -18,6 +18,7 @@ import { systemAdminNavigationGroups } from "../../components/staff/staffNavigat
 import { SelectField } from "../../components/ui/SelectField";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import {
   clearStaffSession,
   getSystemAdminLearners,
@@ -27,37 +28,19 @@ import { readingPathStageLabel, readingPathSummary } from "./readingPathLabels";
 type AccountFilter = "all" | "active" | "inactive";
 
 function LearnersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m2 9 10-5 10 5-10 5L2 9Z" />
-      <path d="M6 11.5V16c3.2 2.5 8.8 2.5 12 0v-4.5M22 9v6" />
-    </svg>
-  );
+  return <PixelIcon name="learner" />;
 }
 
 function ActiveIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M20 7 9 18l-5-5" />
-      <path d="M12 3a9 9 0 1 0 9 9" />
-    </svg>
-  );
+  return <PixelIcon name="check-circle" />;
 }
 
 function DiagnosticIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 11 12 14 22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-    </svg>
-  );
+  return <PixelIcon name="clipboard-check" />;
 }
 
 function FinalIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4" />
-    </svg>
-  );
+  return <PixelIcon name="trophy" />;
 }
 
 export function SystemAdminLearnersPage() {

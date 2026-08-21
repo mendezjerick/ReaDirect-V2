@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import {
   clearPagePortalOrigin,
   getPagePortalReturnPath,
@@ -42,11 +43,7 @@ export function LearnerActivityHomeButton() {
         })
       }
     >
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="m3.5 10.5 8.5-7 8.5 7" />
-        <path d="M5.5 9.2V21h13V9.2" />
-        <path d="M9.2 21v-6.4h5.6V21" />
-      </svg>
+      <PixelIcon name="home" />
     </button>
   );
 }

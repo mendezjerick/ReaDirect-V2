@@ -23,6 +23,7 @@ import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigat
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import {
   clearStaffSession,
   getSchoolAdminOverview,
@@ -30,29 +31,15 @@ import {
 } from "../staff-auth/staffApi";
 
 function TeachersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 8h5M19.5 5.5v5" />
-    </svg>
-  );
+  return <PixelIcon name="teacher" />;
 }
 
 function LearnersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m2 9 10-5 10 5-10 5L2 9Z" />
-      <path d="M6 11.5V16c3.2 2.5 8.8 2.5 12 0v-4.5M22 9v6" />
-    </svg>
-  );
+  return <PixelIcon name="learner" />;
 }
 
 function ActiveLearnersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M20 7 9 18l-5-5" />
-      <path d="M12 3a9 9 0 1 0 9 9" />
-    </svg>
-  );
+  return <PixelIcon name="check-circle" />;
 }
 
 function formatAssessmentDate(value: string | null): string {

@@ -17,15 +17,12 @@ import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigat
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { clearStaffSession, loadStaffSession } from "../staff-auth/staffApi";
 import { getSchoolAdminReport } from "./schoolAdminApi";
 
 function ReportIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6 3h9l3 3v15H6zM9 10h6M9 14h6M9 18h4" />
-    </svg>
-  );
+  return <PixelIcon name="document" />;
 }
 
 export function SchoolAdminReportsPage() {

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Surface } from "../../components/ui/Surface";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { unlockClaraAudio } from "../clara-audio/claraSpeech";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { claraMenuCopy, isFilipino } from "./learnWithClaraCopy";
@@ -38,12 +39,7 @@ const claraTopics = [
 type ClaraTopicKey = (typeof claraTopics)[number]["key"];
 
 function HomeIcon() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <path d="m5 15 11-9 11 9" />
-      <path d="M8 13v13h16V13M13 26v-8h6v8" />
-    </svg>
-  );
+  return <PixelIcon name="home" />;
 }
 
 function TopicIcon({ topic }: { topic: ClaraTopicKey }) {
@@ -56,39 +52,18 @@ function TopicIcon({ topic }: { topic: ClaraTopicKey }) {
   }
 
   if (topic === "words") {
-    return (
-      <svg viewBox="0 0 64 64" aria-hidden="true">
-        <rect x="7" y="18" width="50" height="29" rx="7" />
-        <path d="M16 28h8M28 28h8M40 28h8M16 38h12M32 38h16" />
-      </svg>
-    );
+    return <PixelIcon name="words" />;
   }
 
   if (topic === "phrases") {
-    return (
-      <svg viewBox="0 0 64 64" aria-hidden="true">
-        <path d="M9 20h30M9 30h46M9 44h36" />
-        <circle cx="49" cy="20" r="4" />
-      </svg>
-    );
+    return <PixelIcon name="phrases" />;
   }
 
   if (topic === "sentences") {
-    return (
-      <svg viewBox="0 0 64 64" aria-hidden="true">
-        <path d="M9 18h46M9 31h39M9 44h30" />
-        <circle cx="48" cy="44" r="3.5" />
-      </svg>
-    );
+    return <PixelIcon name="sentences" />;
   }
 
-  return (
-    <svg viewBox="0 0 64 64" aria-hidden="true">
-      <path d="M12 12h40v34H30L18 55v-9h-6V12Z" />
-      <path d="M25 25c.5-5 4-8 9-8 5.5 0 9 3 9 7.5 0 6-7 6-7 11" />
-      <circle cx="36" cy="41" r="2" />
-    </svg>
-  );
+  return <PixelIcon name="comprehension" />;
 }
 
 export function LearnWithClaraMenuPage() {
@@ -181,7 +156,7 @@ export function LearnWithClaraMenuPage() {
                   <span>{copy.topics[topic.key].description}</span>
                 </span>
                 <span className="clara-menu__topic-arrow" aria-hidden="true">
-                  →
+                  <PixelIcon name="arrow-right" />
                 </span>
               </button>
             ))}

@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
 import { TextField } from "../../components/ui/TextField";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
@@ -21,27 +22,6 @@ interface StaffLoginForm {
   identifier: string;
   password: string;
   remember_me: boolean;
-}
-
-function BookShieldIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
-      <path d="M7 10.5c6.8-1 12.5.6 17 4.8v23c-4.5-4.1-10.2-5.7-17-4.7V10.5Z" />
-      <path d="M41 10.5c-6.8-1-12.5.6-17 4.8v23c4.5-4.1 10.2-5.7 17-4.7V10.5Z" />
-      <path d="M24 17.5v20" />
-      <path d="m31.5 19.5 4.5 2v4.2c0 3.4-1.8 6.4-4.5 7.8-2.7-1.4-4.5-4.4-4.5-7.8v-4.2l4.5-2Z" />
-      <path d="m29.6 26.3 1.3 1.4 2.7-3" />
-    </svg>
-  );
-}
-
-function BackIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="m14.5 6-6 6 6 6" />
-      <path d="M9 12h9" />
-    </svg>
-  );
 }
 
 export function StaffLoginPage() {
@@ -179,7 +159,7 @@ export function StaffLoginPage() {
           className="staff-login-page__back"
           variant="secondary"
           size="regular"
-          leadingIcon={<BackIcon />}
+          leadingIcon={<PixelIcon name="arrow-left" />}
           committing={navigationCommit.committing}
           onClick={returnHome}
         >
@@ -190,7 +170,7 @@ export function StaffLoginPage() {
           <Surface kind="panel" padding="roomy">
             <header className="staff-login-card__header">
               <div className="staff-login-card__mark">
-                <BookShieldIcon />
+                <PixelIcon name="book-shield" />
               </div>
 
               <div>

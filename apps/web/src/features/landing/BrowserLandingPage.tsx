@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 
 import { webAppEntryHref } from "../../deployment/productionDomains";
 import "./browser-landing.css";
@@ -19,22 +20,7 @@ function BrandMark() {
 }
 
 function ArrowIcon() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      aria-hidden="true"
-      className="browser-landing__arrow"
-    >
-      <path
-        d="M3 8h9M8.5 4.5 12 8l-3.5 3.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <PixelIcon className="browser-landing__arrow" name="arrow-right" />;
 }
 
 function PlayStoreIcon() {
@@ -90,101 +76,26 @@ function PlayStoreStatus({
 type FeatureIconKind = "voice" | "clara" | "progress";
 
 function FeatureIcon({ kind }: { kind: FeatureIconKind }) {
-  if (kind === "voice") {
-    return (
-      <svg viewBox="0 0 48 48" focusable="false">
-        <path
-          d="M24 8a6 6 0 0 0-6 6v10a6 6 0 0 0 12 0V14a6 6 0 0 0-6-6Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-        <path
-          d="M12 23a12 12 0 0 0 24 0M24 35v6M18 41h12"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
-
-  if (kind === "clara") {
-    return (
-      <svg viewBox="0 0 48 48" focusable="false">
-        <path d="M10 24c0-10 6-16 14-16s14 6 14 16v7H10v-7Z" fill="#62b96c" />
-        <path d="M14 27c0-7 4-11 10-11s10 4 10 11v7H14v-7Z" fill="#ffac68" />
-        <path
-          d="M15 23h7v6h-7zM26 23h7v6h-7zM22 25h4"
-          fill="none"
-          stroke="#202744"
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-        <path d="M20 34h8v6h-8z" fill="#202744" />
-        <path
-          d="M12 22c1-7 5-11 12-11s11 4 12 11"
-          fill="none"
-          stroke="#27723d"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
-
   return (
-    <svg viewBox="0 0 48 48" focusable="false">
-      <circle
-        cx="24"
-        cy="24"
-        r="15"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-      />
-      <path
-        d="M24 9v7l5-4M39 24h-7M24 39v-7l-5 4M9 24h7"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <PixelIcon
+      name={
+        kind === "voice"
+          ? "microphone"
+          : kind === "clara"
+            ? "clara"
+            : "progress"
+      }
+    />
   );
 }
 
 type FooterIconKind = "site" | "mail" | "play";
 
 function FooterIcon({ kind }: { kind: FooterIconKind }) {
-  if (kind === "mail") {
-    return (
-      <svg viewBox="0 0 24 24" focusable="false">
-        <rect x="3" y="5" width="18" height="14" rx="3" fill="none" />
-        <path d="m4 7 8 6 8-6" fill="none" />
-      </svg>
-    );
-  }
-
-  if (kind === "play") {
-    return (
-      <svg viewBox="0 0 24 24" focusable="false">
-        <path d="M8 5.5 18 12 8 18.5v-13Z" fill="none" />
-      </svg>
-    );
-  }
-
   return (
-    <svg viewBox="0 0 24 24" focusable="false">
-      <circle cx="12" cy="12" r="8.5" fill="none" />
-      <path
-        d="M3.8 12h16.4M12 3.5c2.2 2.3 3.3 5.1 3.3 8.5s-1.1 6.2-3.3 8.5c-2.2-2.3-3.3-5.1-3.3-8.5S9.8 5.8 12 3.5Z"
-        fill="none"
-      />
-    </svg>
+    <PixelIcon
+      name={kind === "mail" ? "mail" : kind === "play" ? "play" : "globe"}
+    />
   );
 }
 
@@ -335,10 +246,16 @@ export function BrowserLandingPage() {
               </div>
             </div>
             <div className="landing-float landing-float--one">
-              Listen &amp; practise <span>↗</span>
+              Listen &amp; practise{" "}
+              <span>
+                <PixelIcon name="external-link" />
+              </span>
             </div>
             <div className="landing-float landing-float--two">
-              Progress saved <span>✓</span>
+              Progress saved{" "}
+              <span>
+                <PixelIcon name="check" />
+              </span>
             </div>
           </div>
         </section>
@@ -523,7 +440,7 @@ export function BrowserLandingPage() {
                 to="/home"
                 aria-label="Use ReaDirect in Browser"
               >
-                Visit readirect.org â†—
+                Visit readirect.org <PixelIcon name="external-link" />
               </Link>
               <Link className="browser-landing__footer-site-clean" to="/home">
                 Use ReaDirect in Browser <ArrowIcon />
@@ -570,9 +487,11 @@ export function BrowserLandingPage() {
             </span>
             <span>Made for young readers, families, and schools.</span>
             <a className="browser-landing__footer-meta-clean" href="#hero">
-              Back to top ↑
+              Back to top <PixelIcon name="arrow-up" />
             </a>
-            <a href="#hero">Back to top ↑</a>
+            <a href="#hero">
+              Back to top <PixelIcon name="arrow-up" />
+            </a>
           </div>
         </footer>
       </div>

@@ -22,15 +22,12 @@ import { schoolAdminNavigationGroups } from "../../components/staff/staffNavigat
 import { BigButton } from "../../components/ui/BigButton";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { clearStaffSession, loadStaffSession } from "../staff-auth/staffApi";
 import { getSchoolAdminInstructionalInsights } from "./schoolAdminApi";
 
 function InsightIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 18h6M10 22h4M8.5 14.5A7 7 0 1 1 15.5 14.5C14.6 15.2 14 16 14 17h-4c0-1-.6-1.8-1.5-2.5Z" />
-    </svg>
-  );
+  return <PixelIcon name="lightbulb" />;
 }
 
 export function SchoolAdminInstructionalInsightsPage() {

@@ -140,6 +140,17 @@
   font-size: var(--font-support);
 }
 
+.game-lobby__back-button .game-lobby__pixel-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.game-lobby__pixel-icon {
+  display: block;
+  fill: currentColor;
+  stroke: none;
+}
+
 .game-lobby__back-button:active:not(:disabled) {
   transform: translateY(3px);
   box-shadow: 0 1px 0 var(--color-border-warm);

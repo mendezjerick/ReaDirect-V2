@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { StaffBadge } from "../../components/staff/StaffBadge";
 import { StaffBrandIcon } from "../../components/staff/StaffBrandIcon";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { StaffButton } from "../../components/staff/StaffButton";
 import { StaffCard } from "../../components/staff/StaffCard";
 import { StaffWorkspacePage } from "../../components/staff/StaffContentPatterns";
@@ -138,7 +139,9 @@ export function SystemAdminLearningRulesPage() {
               <div className="learning-guard-grid">
                 {rulesQuery.data.delivery_guards.map((guard) => (
                   <article key={guard.title}>
-                    <span aria-hidden="true">✓</span>
+                    <span aria-hidden="true">
+                      <PixelIcon name="check" />
+                    </span>
                     <div>
                       <h3>{guard.title}</h3>
                       <p>{guard.description}</p>
