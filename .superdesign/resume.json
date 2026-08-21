@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "/landing": {
+      "targetKind": "existing-ui",
+      "projectId": "79922ffd-a234-4760-8c46-63e6f2333291",
+      "baselineDraftId": "031d7636-764f-4e5d-9309-5e32f4d59f30",
+      "activeDraftId": "031d7636-764f-4e5d-9309-5e32f4d59f30",
+      "designSystemPath": ".superdesign/design-system.md",
+      "referenceIds": [
+        "a97ef70b-261a-44bc-a39b-d9879d6b9fae",
+        "ae5d5910-3512-447a-a696-61f8f2607eca",
+        "apps-web-public-assets-icons-icon-png",
+        "apps-web-public-assets-fonts-jersey-20-regular-woff2"
+      ],
+      "brandAssets": {
+        "logo": {
+          "assetKey": "apps-web-public-assets-icons-icon-png",
+          "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/79922ffd-a234-4760-8c46-63e6f2333291/brand-assets/apps-web-public-assets-icons-icon-png/icon.png",
+          "sourcePath": "apps/web/public/assets/icons/icon.png"
+        }
+      },
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        "apps/web/src/features/landing/BrowserLandingPage.tsx",
+        "apps/web/src/features/landing/browser-landing.css",
+        ".superdesign/init/components.md",
+        ".superdesign/init/layouts.md",
+        ".superdesign/init/routes.md",
+        ".superdesign/init/theme.md",
+        ".superdesign/init/pages.md",
+        ".superdesign/init/extractable-components.md"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "84ac0e316b7b0ef2c471f1ccf65200c0a9e76b4308a35b731a001a68139ebb1f",
+        "apps/web/src/features/landing/BrowserLandingPage.tsx": "b2d3c54e9d4c287e423ad81b454034ae4b53378deeb93d394d4b9122feaf5455",
+        "apps/web/src/features/landing/browser-landing.css": "286745c84c8984f9d779a572baba2cb5eeae95abd20a8767fdb5756b9ea42627",
+        ".superdesign/init/components.md": "647feb82d5a61303d54c9b70973aa79f41b72574b18701ab889eec3545352fec",
+        ".superdesign/init/layouts.md": "c51d284698bac97f1818d550bb70d26ad2166ba7bcbbbd3d7e50854937f5edc7",
+        ".superdesign/init/routes.md": "274c3aaa6de6dc46303c97e9d9f5ac62a3765a8e6486dbec4fc8ae3a898b4e66",
+        ".superdesign/init/theme.md": "198ec853db1c3470192849805acf26cbebb96169dacf6d7fc68ed3fb83ea48e5",
+        ".superdesign/init/pages.md": "70e67f5088096bf94308835f1a8234a6017bc44a5a79ab3576bd2992b69bebfd",
+        ".superdesign/init/extractable-components.md": "b95e93f98177bf2684f814877e82be9f654f4ded588c7e07d1b62be918f2f7ef"
+      },
+      "components": [],
+      "drafts": {
+        "031d7636-764f-4e5d-9309-5e32f4d59f30": {
+          "title": "Landing — Alpine Pixel Poly",
+          "visualDirection": "background-led alpine palette with angular pixel framing and low-poly feature thumbnails",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-08-21T16:21:21.3380788+08:00"
+    },
+    "/docs": {
+      "targetKind": "existing-ui",
+      "projectId": "79922ffd-a234-4760-8c46-63e6f2333291",
+      "baselineDraftId": "ed20d5c9-4594-47be-99aa-a829b5c60f41",
+      "activeDraftId": "ed20d5c9-4594-47be-99aa-a829b5c60f41",
+      "designSystemPath": ".superdesign/design-system.md",
+      "referenceIds": [
+        "a97ef70b-261a-44bc-a39b-d9879d6b9fae",
+        "ae5d5910-3512-447a-a696-61f8f2607eca",
+        "apps-web-public-assets-icons-icon-png",
+        "apps-web-public-assets-fonts-jersey-20-regular-woff2"
+      ],
+      "brandAssets": {
+        "logo": {
+          "assetKey": "apps-web-public-assets-icons-icon-png",
+          "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/79922ffd-a234-4760-8c46-63e6f2333291/brand-assets/apps-web-public-assets-icons-icon-png/icon.png",
+          "sourcePath": "apps/web/public/assets/icons/icon.png"
+        }
+      },
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        "apps/web/src/features/docs/PublicDocsPage.tsx",
+        "apps/web/src/features/docs/public-docs.css",
+        "apps/web/src/features/legal/CreditsLicensesPage.tsx",
+        "apps/web/src/features/legal/credits-licenses.css",
+        "apps/web/src/features/public-info/PublicInfoShell.tsx",
+        "apps/web/src/features/public-info/public-info-shell.css",
+        "apps/web/src/features/landing/BrowserLandingPage.tsx",
+        "apps/web/src/features/landing/browser-landing.css"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "84ac0e316b7b0ef2c471f1ccf65200c0a9e76b4308a35b731a001a68139ebb1f",
+        "apps/web/src/features/docs/PublicDocsPage.tsx": "c3a5f444664afc1ee0b0bdb4d7ec9482c3c600b518d52b0e7f683383d5940601",
+        "apps/web/src/features/docs/public-docs.css": "9ecc71e06aad9327679d0ddcfd52ba7ba3bc48a89220485bbfdfd17c15f33f39",
+        "apps/web/src/features/legal/CreditsLicensesPage.tsx": "9269f7e55689201f214d4bfccbffdf7ac08d0d2111b02c890e14ce16a1986569",
+        "apps/web/src/features/legal/credits-licenses.css": "3f5241d723385538dc7ef31deb38f6e4285aac5c36b7b8ea83f721496c819188",
+        "apps/web/src/features/public-info/PublicInfoShell.tsx": "6b9fa97957fa3e8fff90485ffe3b12939bd277f242c8a6bd9838a91519924301",
+        "apps/web/src/features/public-info/public-info-shell.css": "b235d7ee81e4c875f4f43eac7294b8be52b5a820f60a4739e9d8a62e75caee8c",
+        "apps/web/src/features/landing/BrowserLandingPage.tsx": "b2d3c54e9d4c287e423ad81b454034ae4b53378deeb93d394d4b9122feaf5455",
+        "apps/web/src/features/landing/browser-landing.css": "286745c84c8984f9d779a572baba2cb5eeae95abd20a8767fdb5756b9ea42627"
+      },
+      "components": [],
+      "drafts": {
+        "ed20d5c9-4594-47be-99aa-a829b5c60f41": {
+          "title": "Shared Public Information — Alpine",
+          "visualDirection": "shared angular alpine documentation and legal-information shell derived from the approved landing design",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-08-21T16:21:21.3380788+08:00"
+    }
+  }
+}

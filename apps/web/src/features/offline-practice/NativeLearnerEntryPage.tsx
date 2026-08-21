@@ -124,7 +124,7 @@ function NativeStartupScreen() {
       />
       <img
         className="native-startup-splash__icon"
-        src="/assets/icons/icon.png"
+        src="/assets/icons/rd.png"
         alt="ReaDirect"
       />
       <span className="native-startup-splash__loader" aria-hidden="true" />

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { PixelIcon } from "../../components/ui/PixelIcon";
+import { PublicInfoShell } from "../public-info/PublicInfoShell";
 
 import "./public-docs.css";
 
@@ -457,52 +458,6 @@ const DOC_PAGES: Record<DocSlug, DocPage> = {
   },
 };
 
-function DocsBrandMark() {
-  return (
-    <>
-      <img
-        className="public-docs__brand-mark"
-        src="/assets/icons/icon.png"
-        alt=""
-        aria-hidden="true"
-      />
-      {
-        null /*
-      <rect width="40" height="40" rx="12" fill="currentColor" opacity="0.16" />
-      <path
-        d="M10 12.5c5.5-2.2 10.2-1.4 10.2 1.8v14.2c0-3.2-4.7-4-10.2-1.8V12.5Zm20 0c-5.5-2.2-10.2-1.4-10.2 1.8v14.2c0-3.2 4.7-4 10.2-1.8V12.5Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.3"
-        strokeLinejoin="round"
-      />
-      <path d="M20 14.4v14.1" stroke="currentColor" strokeWidth="2.3" />
-    </svg> */
-      }
-    </>
-  );
-}
-
-function DocsHeader() {
-  return (
-    <header className="public-docs__header">
-      <div className="public-docs__header-inner">
-        <Link
-          className="public-docs__brand"
-          to="/docs"
-          aria-label="ReaDirect documentation home"
-        >
-          <DocsBrandMark />
-          <span>ReaDirect Documentation</span>
-        </Link>
-        <Link className="public-docs__back-link" to="/landing">
-          Back to ReaDirect
-        </Link>
-      </div>
-    </header>
-  );
-}
-
 function DocsNavigation({ activeSlug }: { activeSlug?: string }) {
   return (
     <>
@@ -546,16 +501,6 @@ function DocsNavigation({ activeSlug }: { activeSlug?: string }) {
   );
 }
 
-function DocsFooter() {
-  return (
-    <footer className="public-docs__footer">
-      <span>© {new Date().getFullYear()} ReaDirect</span>
-      <span>Public guidance for learners, families, and schools.</span>
-      <a href="mailto:hello@readirect.org">Contact support</a>
-    </footer>
-  );
-}
-
 function DocsShell({
   activeSlug,
   children,
@@ -564,14 +509,12 @@ function DocsShell({
   children: ReactNode;
 }) {
   return (
-    <main className="public-docs">
-      <DocsHeader />
+    <PublicInfoShell className="public-docs">
       <div className="public-docs__layout">
         <DocsNavigation activeSlug={activeSlug} />
         {children}
       </div>
-      <DocsFooter />
-    </main>
+    </PublicInfoShell>
   );
 }
 
@@ -579,11 +522,13 @@ function DocsHome() {
   return (
     <DocsShell>
       <section className="public-docs__home" aria-labelledby="docs-title">
-        <p className="public-docs__eyebrow">Public help area</p>
-        <h1 id="docs-title">ReaDirect Documentation</h1>
-        <p className="public-docs__lead">
-          Everything you need to understand, use, and support ReaDirect.
-        </p>
+        <div className="public-docs__home-hero">
+          <p className="public-docs__eyebrow">Public help area</p>
+          <h1 id="docs-title">ReaDirect Documentation</h1>
+          <p className="public-docs__lead">
+            Everything you need to understand, use, and support ReaDirect.
+          </p>
+        </div>
         <div className="public-docs__card-grid">
           {DOC_GROUPS.map((group) => (
             <section className="public-docs__category" key={group.label}>

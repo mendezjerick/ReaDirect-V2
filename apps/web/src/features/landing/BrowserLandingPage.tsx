@@ -12,7 +12,7 @@ function BrandMark() {
   return (
     <img
       className="browser-landing__mark"
-      src="/assets/icons/icon.png"
+      src="/assets/icons/rd.png"
       alt=""
       aria-hidden="true"
     />
@@ -21,28 +21,6 @@ function BrandMark() {
 
 function ArrowIcon() {
   return <PixelIcon className="browser-landing__arrow" name="arrow-right" />;
-}
-
-function PlayStoreIcon() {
-  return (
-    <svg
-      className="browser-landing__play-store-icon"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M3.6 2.7 13.9 12 3.6 21.3c-.4-.3-.6-.8-.6-1.4V4.1c0-.6.2-1.1.6-1.4Z"
-        fill="#55c9f2"
-      />
-      <path
-        d="m15.2 10.8 3.2-2.9 2.2 1.2c.8.5.8 1.6 0 2.1l-2.2 1.2-3.2-2.9Z"
-        fill="#f9d34c"
-      />
-      <path d="m3.6 2.7 11.6 8.1-3.2 2.9L3.6 2.7Z" fill="#62d48f" />
-      <path d="m3.6 21.3 8.4-8.6 3.2 2.9-11.6 5.7Z" fill="#ed6c73" />
-    </svg>
-  );
 }
 
 function PlayStoreStatus({
@@ -59,42 +37,35 @@ function PlayStoreStatus({
       target="_blank"
       rel="noreferrer"
     >
-      <PlayStoreIcon /> {label}
+      {label}
     </a>
   ) : (
     <span
       className={`${className} browser-landing__play-store-status`}
       aria-disabled="true"
     >
-      <PlayStoreIcon />
       <span>{label}</span>
       <small>Coming soon</small>
     </span>
   );
 }
 
-type FeatureIconKind = "voice" | "clara" | "progress";
+const LANDING_ARTWORK = {
+  offline: "/assets/illustrations/offline.png",
+  voice: "/assets/illustrations/speak.png",
+  clara: "/assets/illustrations/learn.png",
+  progress: "/assets/illustrations/keep.png",
+} as const;
 
-function FeatureIcon({ kind }: { kind: FeatureIconKind }) {
+function ArtworkSlot({ kind }: { kind: keyof typeof LANDING_ARTWORK }) {
   return (
-    <PixelIcon
-      name={
-        kind === "voice"
-          ? "microphone"
-          : kind === "clara"
-            ? "clara"
-            : "progress"
-      }
-    />
-  );
-}
-
-type FooterIconKind = "site" | "mail" | "play";
-
-function FooterIcon({ kind }: { kind: FooterIconKind }) {
-  return (
-    <PixelIcon
-      name={kind === "mail" ? "mail" : kind === "play" ? "play" : "globe"}
+    <img
+      className="browser-landing__art-slot"
+      src={LANDING_ARTWORK[kind]}
+      alt=""
+      data-testid="landing-art-slot"
+      data-art-slot={kind}
+      aria-hidden="true"
     />
   );
 }
@@ -130,7 +101,6 @@ export function BrowserLandingPage() {
     };
   }, []);
 
-  const goTo = (path: string) => navigate(path);
   const tapToContinueHref = webAppEntryHref(
     window.location.hostname,
     import.meta.env.VITE_WEB_APP_ORIGIN ?? "",
@@ -156,16 +126,14 @@ export function BrowserLandingPage() {
             <a href="#about">About</a>
             <a href="#contact">Contact</a>
           </div>
-          <div className="browser-landing__nav-actions">
-            <a
-              className="landing-button landing-button--quiet"
-              href={tapToContinueHref}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Join
-            </a>
-          </div>
+          <a
+            className="browser-landing__nav-join"
+            href={tapToContinueHref}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Join <ArrowIcon />
+          </a>
         </nav>
       </header>
 
@@ -194,7 +162,7 @@ export function BrowserLandingPage() {
                 Join ReaDirect <ArrowIcon />
               </a>
               <a
-                className="landing-button landing-button--outline"
+                className="landing-button landing-button--mist"
                 href={tapToContinueHref}
                 target="_blank"
                 rel="noreferrer"
@@ -211,87 +179,15 @@ export function BrowserLandingPage() {
               voice.
             </p>
           </div>
-
-          <div
-            className="browser-landing__hero-visual"
-            aria-label="A preview of the ReaDirect reading journey"
-          >
-            <div className="landing-orbit landing-orbit--one" />
-            <div className="landing-orbit landing-orbit--two" />
-            <div className="landing-preview-card">
-              <div className="landing-preview-card__topline">
-                <span className="landing-status-dot" /> Today&apos;s reading
-                journey <span>01</span>
-              </div>
-              <div
-                className="landing-preview-card__illustration"
-                aria-hidden="true"
-              >
-                <div className="landing-preview-card__sun" />
-                <div className="landing-preview-card__hill landing-preview-card__hill--back" />
-                <div className="landing-preview-card__hill landing-preview-card__hill--front" />
-                <div className="landing-preview-card__book">
-                  <span />
-                  <span />
-                </div>
-              </div>
-              <div className="landing-preview-card__footer">
-                <div>
-                  <strong>Clara&apos;s next step</strong>
-                  <span>Read it. Say it. Understand it.</span>
-                </div>
-                <div className="landing-preview-card__progress">
-                  <span style={{ width: "64%" }} />
-                </div>
-              </div>
-            </div>
-            <div className="landing-float landing-float--one">
-              Listen &amp; practise{" "}
-              <span>
-                <PixelIcon name="external-link" />
-              </span>
-            </div>
-            <div className="landing-float landing-float--two">
-              Progress saved{" "}
-              <span>
-                <PixelIcon name="check" />
-              </span>
-            </div>
-          </div>
         </section>
 
         <section
-          className="browser-landing__offline-hero"
+          className="browser-landing__offline"
           id="offline"
           aria-labelledby="offline-title"
         >
-          <div
-            className="browser-landing__offline-visual"
-            aria-label="A preview of ReaDirect offline mode"
-          >
-            <div className="offline-orbit offline-orbit--one" />
-            <div className="offline-orbit offline-orbit--two" />
-            <div className="offline-device">
-              <div className="offline-device__topline">
-                <span className="landing-status-dot" /> ReaDirect offline
-                <span>01</span>
-              </div>
-              <div className="offline-device__screen">
-                <div className="offline-device__clara">
-                  <FeatureIcon kind="clara" />
-                </div>
-                <div className="offline-device__lesson">
-                  <span>Today&apos;s reading</span>
-                  <strong>Read. Say. Understand.</strong>
-                  <div className="offline-device__progress">
-                    <span />
-                  </div>
-                </div>
-              </div>
-              <span className="offline-device__status">
-                Ready to use offline
-              </span>
-            </div>
+          <div className="browser-landing__offline-art">
+            <ArtworkSlot kind="offline" />
           </div>
           <div className="browser-landing__offline-copy">
             <p className="browser-landing__eyebrow">Learning that travels</p>
@@ -302,32 +198,34 @@ export function BrowserLandingPage() {
               rhythm of small, confidence-building wins.
             </p>
             <span className="browser-landing__offline-note">
-              Offline access is coming soon.
+              Offline access is coming soon
             </span>
           </div>
         </section>
 
         <section
-          className="browser-landing__section"
+          className="browser-landing__about"
           id="about"
           aria-labelledby="about-title"
         >
-          <div className="browser-landing__section-heading">
-            <p className="browser-landing__eyebrow">Why ReaDirect</p>
-            <h2 id="about-title">
-              Every learner deserves a patient place to practise.
-            </h2>
-          </div>
-          <div className="browser-landing__about-copy">
-            <p>
-              ReaDirect is a reading companion for elementary learners. It
-              combines oral-reading practice, comprehension activities, games,
-              and gentle feedback in one welcoming space.
-            </p>
-            <p>
-              With clear next steps and progress that follows the learner,
-              practice becomes a small, repeatable win — at school or at home.
-            </p>
+          <div className="browser-landing__about-grid">
+            <div className="browser-landing__about-title">
+              <p className="browser-landing__eyebrow">Why ReaDirect</p>
+              <h2 id="about-title">
+                Every learner deserves a patient place to practise.
+              </h2>
+            </div>
+            <div className="browser-landing__about-copy">
+              <p>
+                ReaDirect is a reading companion for elementary learners. It
+                combines oral-reading practice, comprehension activities, games,
+                and gentle feedback in one welcoming space.
+              </p>
+              <p>
+                With clear next steps and progress that follows the learner,
+                practice becomes a small, repeatable win — at school or at home.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -336,7 +234,7 @@ export function BrowserLandingPage() {
           id="features"
           aria-labelledby="features-title"
         >
-          <div className="browser-landing__section-heading browser-landing__section-heading--center">
+          <div className="browser-landing__section-heading">
             <p className="browser-landing__eyebrow">
               A little help, right on time
             </p>
@@ -346,37 +244,45 @@ export function BrowserLandingPage() {
           </div>
           <div className="browser-landing__feature-grid">
             <article className="landing-feature-card">
-              <span className="landing-feature-card__number">01</span>
-              <span className="landing-feature-card__icon" aria-hidden="true">
-                <FeatureIcon kind="voice" />
-              </span>
-              <h3>Speak with confidence</h3>
-              <p>
-                Practice aloud with supportive prompts that make the next
-                sentence feel possible.
-              </p>
+              <div className="landing-feature-card__art">
+                <ArtworkSlot kind="voice" />
+              </div>
+              <div className="landing-feature-card__copy">
+                <span className="landing-feature-card__number">01 · Voice</span>
+                <h3>Speak with confidence</h3>
+                <p>
+                  Practice aloud with supportive prompts that make the next
+                  sentence feel possible.
+                </p>
+              </div>
             </article>
             <article className="landing-feature-card">
-              <span className="landing-feature-card__number">02</span>
-              <span className="landing-feature-card__icon" aria-hidden="true">
-                <FeatureIcon kind="clara" />
-              </span>
-              <h3>Learn with Clara</h3>
-              <p>
-                A friendly guide turns reading routines into clear, encouraging
-                steps.
-              </p>
+              <div className="landing-feature-card__art">
+                <ArtworkSlot kind="clara" />
+              </div>
+              <div className="landing-feature-card__copy">
+                <span className="landing-feature-card__number">02 · Clara</span>
+                <h3>Learn with Clara</h3>
+                <p>
+                  A friendly guide turns reading routines into clear,
+                  encouraging steps.
+                </p>
+              </div>
             </article>
             <article className="landing-feature-card">
-              <span className="landing-feature-card__number">03</span>
-              <span className="landing-feature-card__icon" aria-hidden="true">
-                <FeatureIcon kind="progress" />
-              </span>
-              <h3>Keep your momentum</h3>
-              <p>
-                Lessons, activities, and progress stay connected so learners
-                always know what comes next.
-              </p>
+              <div className="landing-feature-card__art">
+                <ArtworkSlot kind="progress" />
+              </div>
+              <div className="landing-feature-card__copy">
+                <span className="landing-feature-card__number">
+                  03 · Progress
+                </span>
+                <h3>Keep your momentum</h3>
+                <p>
+                  Lessons, activities, and progress stay connected so learners
+                  always know what comes next.
+                </p>
+              </div>
             </article>
           </div>
         </section>
@@ -386,37 +292,39 @@ export function BrowserLandingPage() {
           id="contact"
           aria-labelledby="contact-title"
         >
-          <div>
-            <p className="browser-landing__eyebrow">
-              Let&apos;s make reading feel possible
-            </p>
-            <h2 id="contact-title">Ready to take the next step?</h2>
-            <p>
-              Start in the browser today, or ask your school coordinator about
-              ReaDirect for your learning community.
-            </p>
-            <ul className="browser-landing__contact-highlights">
-              <li>Guided practice</li>
-              <li>Clara&apos;s encouragement</li>
-              <li>Progress that stays with you</li>
-            </ul>
-            <p className="browser-landing__contact-note">
-              No complicated setup. Just a calmer way to practise, one small win
-              at a time.
-            </p>
-          </div>
-          <div className="browser-landing__contact-actions">
-            <button
-              type="button"
-              className="landing-button landing-button--primary"
-              onClick={() => goTo("/home")}
-            >
-              Start reading <ArrowIcon />
-            </button>
-            <PlayStoreStatus
-              className="landing-button landing-button--outline"
-              label="Download on Play Store"
-            />
+          <div className="browser-landing__contact-panel">
+            <div>
+              <p className="browser-landing__eyebrow">
+                Let&apos;s make reading feel possible
+              </p>
+              <h2 id="contact-title">Ready to take the next step?</h2>
+              <p>
+                Start in the browser today, or ask your school coordinator about
+                ReaDirect for your learning community.
+              </p>
+              <ul className="browser-landing__contact-highlights">
+                <li>Guided practice</li>
+                <li>Clara&apos;s encouragement</li>
+                <li>Progress that stays with you</li>
+              </ul>
+              <p className="browser-landing__contact-note">
+                No complicated setup. Just a calmer way to practise, one small
+                win at a time.
+              </p>
+            </div>
+            <div className="browser-landing__contact-actions">
+              <button
+                type="button"
+                className="landing-button landing-button--primary"
+                onClick={() => navigate("/home")}
+              >
+                Start reading <ArrowIcon />
+              </button>
+              <PlayStoreStatus
+                className="landing-button landing-button--mist"
+                label="Download on Play Store"
+              />
+            </div>
           </div>
         </section>
 
@@ -424,27 +332,19 @@ export function BrowserLandingPage() {
           <div className="browser-landing__footer-main">
             <div className="browser-landing__footer-spotlight">
               <BrandMark />
-              <strong>
-                Reading support that meets learners where they are.
-              </strong>
+              <h3>Reading support that meets learners where they are.</h3>
               <p>
                 Practise aloud, learn with Clara, and keep every small win
                 moving forward.
               </p>
-              <PlayStoreStatus
-                className="browser-landing__footer-store"
-                label="Download on Google Play"
-              />
-              <Link
-                className="browser-landing__footer-site browser-landing__footer-site--legacy"
-                to="/home"
-                aria-label="Use ReaDirect in Browser"
+              <a
+                className="browser-landing__footer-site"
+                href={tapToContinueHref}
+                target="_blank"
+                rel="noreferrer"
               >
-                Visit readirect.org <PixelIcon name="external-link" />
-              </Link>
-              <Link className="browser-landing__footer-site-clean" to="/home">
                 Use ReaDirect in Browser <ArrowIcon />
-              </Link>
+              </a>
             </div>
             <div className="browser-landing__footer-column">
               <h3>For schools</h3>
@@ -461,40 +361,26 @@ export function BrowserLandingPage() {
               <Link to="/docs/faq">Frequently asked questions</Link>
               <Link to="/credits-licenses">Credits &amp; licenses</Link>
             </div>
-            <div className="browser-landing__footer-column browser-landing__footer-connect">
+            <div className="browser-landing__footer-column">
               <h3>Support</h3>
               <p>Questions, ideas, or a learner ready to begin?</p>
               <Link to="/docs/accessibility">Accessibility</Link>
               <Link to="/docs/privacy">Privacy &amp; data</Link>
               <a href="mailto:hello@readirect.org">Contact ReaDirect</a>
-              <div className="browser-landing__footer-socials">
-                <Link to="/home" aria-label="Open ReaDirect in Browser">
-                  <FooterIcon kind="site" />
-                </Link>
-                <a
-                  href="mailto:hello@readirect.org"
-                  aria-label="Email ReaDirect"
-                >
-                  <FooterIcon kind="mail" />
-                </a>
-              </div>
             </div>
           </div>
           <div className="browser-landing__footer-meta">
-            <span>© {new Date().getFullYear()} ReaDirect</span>
-            <span className="browser-landing__footer-meta-clean">
-              © {new Date().getFullYear()} ReaDirect
+            <span>
+              © {new Date().getFullYear()} ReaDirect · Made for young readers,
+              families, and schools.
             </span>
-            <span>Made for young readers, families, and schools.</span>
-            <a className="browser-landing__footer-meta-clean" href="#hero">
-              Back to top <PixelIcon name="arrow-up" />
-            </a>
             <a href="#hero">
               Back to top <PixelIcon name="arrow-up" />
             </a>
           </div>
         </footer>
       </div>
+
       <div
         className="browser-landing__progress-label"
         role="progressbar"

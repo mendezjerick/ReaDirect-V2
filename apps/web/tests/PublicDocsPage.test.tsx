@@ -19,6 +19,14 @@ describe("PublicDocsPage", () => {
   it("renders the public documentation hub and safe navigation", () => {
     renderDocs();
 
+    expect(screen.getByRole("banner")).toHaveClass("public-info-shell__header");
+    expect(screen.getByRole("contentinfo")).toHaveClass(
+      "public-info-shell__footer",
+    );
+    expect(
+      screen.getByRole("banner").querySelector("img.public-info-shell__mark"),
+    ).toHaveAttribute("src", "/assets/icons/rd.png");
+
     expect(
       screen.getByRole("heading", { name: "ReaDirect Documentation" }),
     ).toBeInTheDocument();

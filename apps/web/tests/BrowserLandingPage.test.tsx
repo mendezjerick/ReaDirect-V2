@@ -76,6 +76,40 @@ describe("BrowserLandingPage", () => {
     });
   });
 
+  it("renders the supplied low-poly artwork in its labeled landing slots", () => {
+    renderLanding();
+
+    const artworkSlots = screen.getAllByTestId("landing-art-slot");
+    const expectedArtwork = [
+      ["offline", "/assets/illustrations/offline.png"],
+      ["voice", "/assets/illustrations/speak.png"],
+      ["clara", "/assets/illustrations/learn.png"],
+      ["progress", "/assets/illustrations/keep.png"],
+    ];
+
+    expect(artworkSlots).toHaveLength(4);
+    artworkSlots.forEach((slot, index) => {
+      expect(slot.tagName).toBe("IMG");
+      expect(slot).toHaveAttribute("data-art-slot", expectedArtwork[index][0]);
+      expect(slot).toHaveAttribute("src", expectedArtwork[index][1]);
+      expect(slot).toHaveAttribute("alt", "");
+      expect(slot).toHaveAttribute("aria-hidden", "true");
+    });
+  });
+
+  it("uses the updated ReaDirect mark wherever the landing brand appears", () => {
+    renderLanding();
+
+    const brandMarks = document.querySelectorAll<HTMLImageElement>(
+      ".browser-landing__mark",
+    );
+
+    expect(brandMarks).toHaveLength(2);
+    brandMarks.forEach((mark) => {
+      expect(mark).toHaveAttribute("src", "/assets/icons/rd.png");
+    });
+  });
+
   it("updates the accessible scroll progress indicator", () => {
     vi.spyOn(document.documentElement, "scrollHeight", "get").mockReturnValue(
       1200,

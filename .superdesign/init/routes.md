@@ -1,3 +1,21 @@
+# Routes
+
+## Framework
+
+React Router routes are defined in `apps/web/src/App.tsx`. The public landing target is `/landing` and renders `BrowserLandingPage` through the local `LandingPage` route wrapper.
+
+## Key routes
+
+- `/landing` → `apps/web/src/features/landing/BrowserLandingPage.tsx`
+- `/home` → `apps/web/src/features/home/HomePage.tsx`
+- `/learner/dashboard` → `apps/web/src/features/learner-dashboard/LearnerDashboardPage.tsx`
+- `/learner/lesson-intro` → `apps/web/src/features/lesson-intro/LessonIntroPage.tsx`
+- `/learner/lessons/1` → `apps/web/src/features/lesson/LessonOnePage.tsx`
+- `/credits-licenses` → `apps/web/src/features/legal/CreditsLicensesPage.tsx`
+
+## Full route configuration
+
+```tsx
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
@@ -446,7 +464,7 @@ function RouteLoading() {
     <main className="route-loading" aria-live="polite" aria-busy="true">
       <img
         className="route-loading__icon"
-        src="/assets/icons/rd.png"
+        src="/assets/icons/icon.png"
         alt=""
         aria-hidden="true"
       />
@@ -868,3 +886,138 @@ export function App() {
     </RouteTransitionProvider>
   );
 }
+```
+
+## Web package manifest
+
+```json
+{
+  "name": "@readirect/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "live2d:build-framework": "tsc -p tsconfig.cubism.json",
+    "live2d:generate-fallback": "node scripts/generate-clara-fallback.mjs",
+    "predev": "corepack pnpm live2d:build-framework",
+    "dev": "vite",
+    "prebuild": "corepack pnpm live2d:build-framework",
+    "build": "tsc -b && vite build",
+    "mobile:sync": "corepack pnpm build && corepack pnpm exec cap sync android",
+    "mobile:copy": "corepack pnpm build && corepack pnpm exec cap copy android",
+    "mobile:open": "corepack pnpm exec cap open android",
+    "mobile:run": "corepack pnpm exec cap run android",
+    "preview": "vite preview",
+    "pretypecheck": "corepack pnpm live2d:build-framework",
+    "typecheck": "tsc -b --pretty false",
+    "pretest": "corepack pnpm live2d:build-framework",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "demos:record": "node scripts/record-system-admin-demos.mjs",
+    "lint": "eslint --no-config-lookup --config eslint.config.js .",
+    "format": "prettier --check ."
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.0",
+    "@capacitor/app": "8.1.1",
+    "@capacitor/core": "8.5.0",
+    "@capacitor/file-transfer": "2.0.4",
+    "@capacitor/filesystem": "8.1.2",
+    "@capacitor/network": "8.0.1",
+    "@readirect/design-tokens": "workspace:*",
+    "@readirect/game-alpha": "workspace:*",
+    "@readirect/game-lobby": "workspace:*",
+    "@readirect/game-one": "workspace:*",
+    "@readirect/game-two": "workspace:*",
+    "@readirect/game-zero": "workspace:*",
+    "@tanstack/react-query": "5.101.2",
+    "@xstate/react": "6.1.0",
+    "laravel-echo": "2.4.0",
+    "motion": "12.42.2",
+    "pixi.js": "8.19.0",
+    "pusher-js": "8.5.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-hook-form": "7.82.0",
+    "react-router-dom": "7.18.2",
+    "vite-plugin-pwa": "1.3.0",
+    "workbox-background-sync": "7.4.1",
+    "workbox-cacheable-response": "7.4.1",
+    "workbox-core": "7.4.1",
+    "workbox-expiration": "7.4.1",
+    "workbox-precaching": "7.4.1",
+    "workbox-routing": "7.4.1",
+    "workbox-strategies": "7.4.1",
+    "workbox-window": "7.4.1",
+    "xstate": "5.32.5",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.61.1",
+    "@tailwindcss/vite": "4.3.3",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
+    "@types/node": "26.1.1",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "@vitest/coverage-v8": "4.1.10",
+    "eslint": "10.7.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.3",
+    "jsdom": "29.1.1",
+    "prettier": "3.9.5",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.64.0",
+    "vite": "8.1.5",
+    "vitest": "4.1.10"
+  }
+}
+```
+
+## Vite configuration
+
+```ts
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { fileURLToPath, URL } from "node:url";
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: {
+    // The Cloudflare staging tunnel terminates at Vite before proxying `/api`
+    // to Laravel. Capacitor's Android WebView uses https://localhost as its
+    // origin and sends credentialed requests, so Vite must include the
+    // credentials header on its own OPTIONS responses.
+    cors: {
+      origin: [
+        "https://localhost",
+        "http://localhost",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+      ],
+      credentials: true,
+    },
+    proxy: {
+      "/api": "http://127.0.0.1:8000",
+      "/app": {
+        target: "ws://127.0.0.1:8080",
+        ws: true,
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      "@cubism-framework": fileURLToPath(
+        new URL("./vendor/live2d/CubismWebFramework/dist", import.meta.url),
+      ),
+    },
+  },
+});
+```

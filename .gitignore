@@ -140,6 +140,7 @@ apps/web/public/assets/live2d/core/
 *.pid
 
 # Editors and operating systems
+.superdesign/tmp/
 .idea/
 .vscode/
 .DS_Store

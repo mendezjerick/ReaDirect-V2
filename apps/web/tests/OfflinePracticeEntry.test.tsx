@@ -70,7 +70,7 @@ describe("Native learner entry", () => {
     expect(
       document.querySelector<HTMLImageElement>(".native-startup-splash__icon")
         ?.src,
-    ).toContain("/assets/icons/icon.png");
+    ).toContain("/assets/icons/rd.png");
     expect(
       document.querySelector<HTMLImageElement>(
         ".native-startup-splash__background",
