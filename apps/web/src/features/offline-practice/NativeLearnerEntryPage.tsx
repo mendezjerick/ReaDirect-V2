@@ -292,6 +292,14 @@ export function NativeLearnerEntryPage({
           </div>
           <NativeStaticClara />
         </section>
+        <a
+          className="intro-page__privacy-link"
+          href="https://readirect.org/docs/privacy"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Privacy Policy
+        </a>
         {isContinuing ? <LinkStartTransition /> : null}
       </main>
     );

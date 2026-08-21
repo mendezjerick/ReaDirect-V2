@@ -121,6 +121,25 @@ describe("Native learner entry", () => {
     expect(screen.getByText("Offline home")).toBeVisible();
   });
 
+  it("provides the public privacy policy from the native intro", () => {
+    connectivityMock.mockReturnValue({
+      device: "online",
+      api: "reachable",
+      learnerSession: "signed_out",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    renderEntry();
+
+    expect(
+      screen.getByRole("link", { name: "Privacy Policy" }),
+    ).toHaveAttribute("href", "https://readirect.org/docs/privacy");
+    expect(
+      screen.getByRole("link", { name: "Privacy Policy" }),
+    ).toHaveAttribute("target", "_blank");
+  });
+
   it("does not send a session into online learning when the API is unavailable", async () => {
     loadSessionMock.mockReturnValue({ token: "cached-token" });
     connectivityMock.mockReturnValue({
