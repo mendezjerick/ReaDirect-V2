@@ -48,7 +48,7 @@ describe("PublicDocsPage", () => {
     ["testing", "Testing & Quality"],
     ["faq", "Frequently Asked Questions"],
     ["accessibility", "Accessibility"],
-    ["privacy", "Privacy & Data Overview"],
+    ["privacy", "Privacy Policy"],
   ])("renders the %s public article", (slug, title) => {
     renderDocs(`/docs/${slug}`);
     expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
@@ -81,5 +81,18 @@ describe("PublicDocsPage", () => {
       screen.getByRole("heading", { name: "Before reporting an issue" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/non-destructive check/i)).toBeInTheDocument();
+  });
+
+  it("publishes the app-specific privacy policy and audio retention terms", () => {
+    renderDocs("/docs/privacy");
+
+    expect(screen.getByText("Effective 21 August 2026")).toBeInTheDocument();
+    expect(screen.getAllByText(/readirect\.exe@gmail\.com/i)).not.toHaveLength(0);
+    expect(
+      screen.getByText(/deleted after checking or submission/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/does not sell learner data or use it for advertising/i),
+    ).toBeInTheDocument();
   });
 });

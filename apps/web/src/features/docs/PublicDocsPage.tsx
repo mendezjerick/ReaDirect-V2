@@ -74,7 +74,7 @@ const DOC_GROUPS = [
     links: [
       ["FAQ", "faq"],
       ["Accessibility", "accessibility"],
-      ["Privacy & Data", "privacy"],
+      ["Privacy Policy", "privacy"],
     ],
   },
 ] as const;
@@ -428,30 +428,57 @@ const DOC_PAGES: Record<DocSlug, DocPage> = {
   privacy: {
     slug: "privacy",
     group: "Help & support",
-    title: "Privacy & Data Overview",
-    kicker: "A public, non-legal summary",
+    title: "Privacy Policy",
+    kicker: "Effective 21 August 2026",
     description:
-      "This page explains ReaDirect’s data boundaries at a high level. It is not a lawyer-reviewed Privacy Policy.",
+      "This Privacy Policy explains how ReaDirect collects, uses, and protects information when people use the ReaDirect website and mobile app.",
     sections: [
       {
-        heading: "What data may be used",
+        heading: "Who we are",
+        paragraphs: [
+          "ReaDirect operates the ReaDirect website and mobile app. If you have a privacy question or want to request access to or deletion of personal information, contact readirect.exe@gmail.com.",
+        ],
+      },
+      {
+        heading: "Information we use",
         bullets: [
-          "Account and profile information needed to sign in and show the right workspace.",
-          "Learning activity and progress needed to resume practice and support teacher or school views.",
-          "Speech input is uploaded only for immediate recognition and scoring, then discarded. ReaDirect keeps the resulting transcript, score, and instructional evidence, not the learner's voice recording.",
+          "Account and profile information used to sign in and provide the appropriate learner, teacher, school, or administrator workspace.",
+          "Learning activity, assessment, transcript, score, and progress information used to provide reading activities, show progress, and support the teacher or school views authorized for that learner.",
           "Game-specific progress for signed-in game modules where persistence is active.",
         ],
       },
       {
-        heading: "How access is handled",
+        heading: "Microphone and voice recordings",
         paragraphs: [
-          "Learner and staff areas require authentication. Role and school boundaries are enforced in the application so learner records are not intended to be publicly exposed. Public pages do not display learner codes, credentials, private QA accounts, or database identifiers.",
+          "ReaDirect asks for microphone permission only when a learner chooses an oral-reading activity that needs a recording. A voice recording is sent over HTTPS to ReaDirect's speech-recognition service for immediate checking and scoring.",
+          "Voice recordings are deleted after checking or submission. They are not retained for teacher replay. ReaDirect may keep the resulting transcript, score, and instructional evidence needed to provide the learning service.",
         ],
       },
       {
-        heading: "Questions about data handling",
+        heading: "How we use and share information",
         paragraphs: [
-          "Schools should follow their own approved privacy, safeguarding, and data-handling processes when introducing ReaDirect. For formal privacy or data-handling questions, contact hello@readirect.org. This overview does not make regulatory certification, retention-period, or legal-compliance claims.",
+          "We use information only to operate, secure, support, and improve ReaDirect's learning activities and role-scoped progress views. ReaDirect does not sell learner data or use it for advertising.",
+          "ReaDirect uses service providers to host and operate the application, database, and speech-processing infrastructure. These providers process information only as needed to provide ReaDirect.",
+        ],
+      },
+      {
+        heading: "Security and retention",
+        paragraphs: [
+          "ReaDirect uses HTTPS for information sent between the app and its services. We keep account and learning information only for as long as it is needed to provide the service, meet school obligations, resolve support issues, or comply with applicable requirements.",
+          "Learner and staff areas require authentication, and access is scoped to the account's role and school.",
+        ],
+      },
+      {
+        heading: "Your choices and requests",
+        paragraphs: [
+          "A learner, parent or guardian, or authorized school representative may request access to, correction of, or deletion of personal information by emailing readirect.exe@gmail.com. We may need to verify the request and may retain limited information when required for legitimate security, legal, or school-record obligations.",
+          "Schools and families remain responsible for following their own approved privacy, safeguarding, and consent processes when using ReaDirect with learners.",
+        ],
+      },
+      {
+        heading: "Changes to this policy",
+        paragraphs: [
+          "We may update this Privacy Policy when ReaDirect's practices change. The effective date at the top of this page shows when it was last updated.",
         ],
       },
     ],
