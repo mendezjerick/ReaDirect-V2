@@ -4959,6 +4959,26 @@ textarea.staff-field__control {
   cursor: none;
 }
 
+.intro-page__privacy-link {
+  position: absolute;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(0.85rem, env(safe-area-inset-bottom));
+  z-index: 4;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.intro-page__privacy-link:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
 .intro-page__clara-notice {
   max-width: 18rem;
   margin: 0 auto 0.65rem;
