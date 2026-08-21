@@ -564,10 +564,6 @@ export function BrowserLandingPage() {
               © {new Date().getFullYear()} ReaDirect
             </span>
             <span>Made for young readers, families, and schools.</span>
-            <a className="browser-landing__footer-meta-clean" href="#hero">
-              Back to top ↑
-            </a>
-            <a href="#hero">Back to top ↑</a>
           </div>
         </footer>
       </div>

@@ -56,6 +56,9 @@ describe("BrowserLandingPage", () => {
     expect(
       screen.getByRole("progressbar", { name: /page reading progress/i }),
     ).toHaveAttribute("aria-valuenow", "0");
+    expect(
+      screen.queryByRole("link", { name: /back to top/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("opens the root Tap to Continue entry in a new tab", () => {
