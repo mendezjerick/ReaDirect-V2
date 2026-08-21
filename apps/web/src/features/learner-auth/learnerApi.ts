@@ -9,6 +9,21 @@ import {
   setNativeSessionCache,
 } from "../../app/nativeSecureSession";
 import { clearActivitySpeechPreparation } from "../clara-audio/activitySpeechReadiness";
+import {
+  guestLanguageContract,
+  guestSessionResponse,
+  updateGuestLanguage,
+} from "../guest/guestApi";
+import {
+  exitGuestSession,
+  guestSessionSnapshot,
+  guestToken,
+  isGuestSessionActive,
+  isGuestToken,
+  markGuestDiagnosticSkipped,
+  resetGuestProgress,
+  startGuestSession,
+} from "../guest/guestSession";
 
 const learnerProgressSchema = z.object({
   stage: z.string(),
@@ -74,7 +89,7 @@ const learnerAccountSchema = z.object({
   learner_code: z.string().regex(/^[A-Z]{2}\d{3}$/),
   full_name: z.string(),
   first_name: z.string(),
-  account_purpose: z.enum(["standard", "portal_system"]),
+  account_purpose: z.enum(["standard", "portal_system", "guest"]),
   speech_language: learnerSpeechLanguageSchema.default("en"),
   school: z.string().nullable(),
   grade_level: z.number().int().min(1).max(6).nullable(),
@@ -203,6 +218,11 @@ export async function saveLearnerSession(
   session: StoredLearnerSessionInput,
   options: SaveLearnerSessionOptions = {},
 ): Promise<void> {
+  if (session.token === guestToken) {
+    announceLearnerSessionChange();
+    return;
+  }
+
   const normalizedSession = learnerLoginResponseSchema.parse(session);
 
   if (isNativeSecureSessionAvailable()) {
@@ -243,6 +263,9 @@ export async function restoreLearnerSession(): Promise<StoredLearnerSession | nu
 }
 
 export function loadLearnerSession(): StoredLearnerSession | null {
+  const guest = guestSessionSnapshot();
+  if (guest) return learnerLoginResponseSchema.parse(guest);
+
   if (isNativeSecureSessionAvailable()) {
     const cached = getNativeSessionCache(learnerSessionStorageKey);
     if (!cached) return null;
@@ -270,6 +293,13 @@ export function loadLearnerSession(): StoredLearnerSession | null {
 }
 
 export function clearLearnerSession(): void {
+  if (isGuestSessionActive()) {
+    clearActivitySpeechPreparation(guestToken);
+    exitGuestSession();
+    announceLearnerSessionChange();
+    return;
+  }
+
   const session = loadLearnerSession();
 
   if (session) {
@@ -285,6 +315,27 @@ export function clearLearnerSession(): void {
     setBrowserSessionMarker(false);
   }
   announceLearnerSessionChange();
+}
+
+export function enterGuestMode(): StoredLearnerSession {
+  if (isNativeSecureSessionAvailable()) {
+    setNativeSessionCache(learnerSessionStorageKey, null);
+    void removeNativeSession(learnerSessionStorageKey);
+  } else {
+    window.sessionStorage.removeItem(learnerSessionStorageKey);
+    window.localStorage.removeItem(learnerSessionStorageKey);
+    setBrowserSessionMarker(false);
+  }
+  startGuestSession();
+  announceLearnerSessionChange();
+  return learnerLoginResponseSchema.parse(guestSessionSnapshot());
+}
+
+export function resetGuestLearnerProgress(): StoredLearnerSession {
+  clearActivitySpeechPreparation(guestToken);
+  resetGuestProgress();
+  announceLearnerSessionChange();
+  return learnerLoginResponseSchema.parse(guestSessionSnapshot());
 }
 
 export async function loginLearner(credentials: {
@@ -326,6 +377,12 @@ export async function loginLearner(credentials: {
 export async function getLearnerSession(
   token: string,
 ): Promise<LearnerSession> {
+  if (isGuestToken(token)) {
+    const session = guestSessionResponse();
+    if (!session) throw new LearnerSessionInvalidError();
+    return learnerSessionSchema.parse(session);
+  }
+
   const response = await fetch(apiUrl("/api/learners/session"), {
     headers: {
       Accept: "application/json",
@@ -345,6 +402,8 @@ export async function getLearnerSession(
 
 /** Keep an open browser tab's idle lease alive while the learner is present. */
 export async function heartbeatLearnerSession(token: string): Promise<void> {
+  if (isGuestToken(token)) return;
+
   const response = await fetch(apiUrl("/api/learners/session/heartbeat"), {
     method: "POST",
     headers: {
@@ -365,6 +424,10 @@ export async function heartbeatLearnerSession(token: string): Promise<void> {
 export async function skipDiagnostic(
   token: string,
 ): Promise<LearnerReadingPath> {
+  if (isGuestToken(token)) {
+    return learnerReadingPathSchema.parse(markGuestDiagnosticSkipped());
+  }
+
   const response = await fetch(
     apiUrl("/api/learners/assessments/diagnostic/skip"),
     {
@@ -386,6 +449,14 @@ export async function skipDiagnostic(
 export async function getLearnerExperienceSettings(
   token: string,
 ): Promise<LearnerExperienceSettings> {
+  if (isGuestToken(token)) {
+    return {
+      revision: "guest-local-v1",
+      display_mode: "live2d",
+      speech_mode: "published_only",
+    };
+  }
+
   const response = await fetch(apiUrl("/api/learners/experience/settings"), {
     headers: {
       Accept: "application/json",
@@ -403,6 +474,10 @@ export async function getLearnerExperienceSettings(
 export async function getLearnerSpeechLanguage(
   token: string,
 ): Promise<LearnerSpeechLanguageContract> {
+  if (isGuestToken(token)) {
+    return learnerSpeechLanguageContractSchema.parse(guestLanguageContract());
+  }
+
   const response = await fetch(apiUrl("/api/learners/tts/language"), {
     headers: {
       Accept: "application/json",
@@ -421,6 +496,12 @@ export async function updateLearnerSpeechLanguage(
   token: string,
   speechLanguage: LearnerSpeechLanguage,
 ): Promise<LearnerSpeechLanguageContract> {
+  if (isGuestToken(token)) {
+    return learnerSpeechLanguageContractSchema.parse(
+      updateGuestLanguage(speechLanguage),
+    );
+  }
+
   const response = await fetch(apiUrl("/api/learners/tts/language"), {
     method: "PUT",
     headers: {
@@ -453,6 +534,8 @@ export async function getIntroExperienceSettings(): Promise<LearnerExperienceSet
 }
 
 export async function logoutLearner(token: string): Promise<void> {
+  if (isGuestToken(token)) return;
+
   const response = await fetch(apiUrl("/api/learners/logout"), {
     method: "POST",
     headers: {

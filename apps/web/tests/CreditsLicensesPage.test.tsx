@@ -29,6 +29,23 @@ describe("CreditsLicensesPage", () => {
     expect(screen.getByText(/Shaila Patrice D. Avallenda/)).toBeVisible();
     expect(screen.getByText("OtterTale (Game Two)")).toBeVisible();
     expect(screen.getByText(/released under CC0 1.0/)).toBeVisible();
+    expect(
+      screen.getByText("Ma'am Clara (CherryGoth model)"),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "pngVtubers" })).toHaveAttribute(
+      "href",
+      "https://www.etsy.com/shop/pngVtubers",
+    );
+    expect(
+      screen.getByRole("link", {
+        name: "Customizable Goth VTuber Model Etsy listing",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://www.etsy.com/listing/4295933400/customizable-goth-vtuber-model-premade",
+    );
+    expect(screen.queryByText(/Word Rescue/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/USD 1/)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "OpenAI Whisper" })).toHaveAttribute(
       "href",
       "https://github.com/openai/whisper",

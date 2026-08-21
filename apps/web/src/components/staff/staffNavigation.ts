@@ -27,7 +27,6 @@ export const systemAdminNavigationGroups: StaffNavigationGroup[] = [
       },
       { label: "Teachers", to: "/staff/system-admin/teachers" },
       { label: "Learners", to: "/staff/system-admin/learners" },
-      { label: "Guests", to: "/staff/system-admin/guests" },
     ],
   },
   {

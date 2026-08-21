@@ -208,12 +208,6 @@ const SystemAdminLearnersPage = lazy(() =>
   ),
 );
 
-const SystemAdminGuestsPage = lazy(() =>
-  import("./features/staff-dashboard/SystemAdminGuestsPage").then((module) => ({
-    default: module.SystemAdminGuestsPage,
-  })),
-);
-
 const SystemAdminAssessmentsPage = lazy(() =>
   import("./features/staff-dashboard/SystemAdminAssessmentsPage").then(
     (module) => ({ default: module.SystemAdminAssessmentsPage }),
@@ -487,9 +481,9 @@ function LandingPage() {
 
 function LearnerGamesRoute() {
   const session = loadLearnerSession();
+  if (!session) return <Navigate to="/learner/login" replace />;
   return (
     <GameLobbyPage
-      guestUnavailable={!session}
       previewMode={session?.learner.account_purpose === "portal_system"}
     />
   );
@@ -666,10 +660,6 @@ export function App() {
                 <Route
                   path="/staff/system-admin/learners"
                   element={<SystemAdminLearnersPage />}
-                />
-                <Route
-                  path="/staff/system-admin/guests"
-                  element={<SystemAdminGuestsPage />}
                 />
                 <Route
                   path="/staff/system-admin/assessments"

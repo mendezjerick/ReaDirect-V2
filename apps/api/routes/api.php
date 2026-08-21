@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GuestMediaController;
 use App\Http\Controllers\LearnerAssessmentPartOneController;
 use App\Http\Controllers\LearnerAssessmentPartTwoController;
 use App\Http\Controllers\LearnerAuthController;
@@ -30,7 +31,6 @@ use App\Http\Controllers\StaffRealtimeController;
 use App\Http\Controllers\StaffSecurityController;
 use App\Http\Controllers\SystemAdminAgentsAiController;
 use App\Http\Controllers\SystemAdminEquivalenceController;
-use App\Http\Controllers\SystemAdminGuestController;
 use App\Http\Controllers\SystemAdminLearnerController;
 use App\Http\Controllers\SystemAdminLearnerExperienceSettingsController;
 use App\Http\Controllers\SystemAdminLearningContentController;
@@ -74,9 +74,6 @@ Route::prefix('staff')->group(function (): void {
             Route::get('/schools', [SystemAdminSchoolController::class, 'index']);
             Route::get('/teachers', [SystemAdminTeacherController::class, 'index']);
             Route::get('/learners', [SystemAdminLearnerController::class, 'index']);
-            Route::get('/guests', [SystemAdminGuestController::class, 'index']);
-            Route::patch('/guests/{guestAccount}/access', [SystemAdminGuestController::class, 'updateAccess'])
-                ->whereNumber('guestAccount');
             Route::get('/learning-content/assessments', [SystemAdminLearningContentController::class, 'assessments']);
             Route::get('/learning-content/lessons', [SystemAdminLearningContentController::class, 'lessons']);
             Route::get('/learning-content/rules', [SystemAdminLearningContentController::class, 'rules']);
@@ -143,6 +140,14 @@ Route::prefix('staff')->group(function (): void {
 Route::prefix('learners')->group(function (): void {
     Route::post('/login', [LearnerAuthController::class, 'store'])
         ->middleware('throttle:learner-login');
+});
+
+Route::prefix('guest')->group(function (): void {
+    Route::post('/speech/evaluate', [GuestMediaController::class, 'evaluate'])
+        ->middleware('throttle:30,1');
+    Route::post('/tts/speech/{speechKey}', [GuestMediaController::class, 'speech'])
+        ->middleware('throttle:120,1')
+        ->where('speechKey', '[A-Za-z0-9][A-Za-z0-9_-]*');
 });
 
 Route::prefix('learners')->middleware('learner.auth')->group(function (): void {

@@ -1,142 +1,63 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("unsupported Guest game entry", () => {
-  test("shows an immediate unavailable state and offers learner login", async ({
-    page,
-  }) => {
-    const guestApiRequests: string[] = [];
-    page.on("request", (request) => {
-      if (request.url().includes("/api/learners/games")) {
-        guestApiRequests.push(request.url());
-      }
-    });
+test.describe("browser-local Guest entry", () => {
+  test.describe.configure({ timeout: 60_000 });
 
-    await page.goto("/learner/games");
-
-    await expect(
-      page.getByRole("heading", { name: "Currently unavailable" }),
-    ).toBeVisible();
-    await expect(
-      page.getByText(
-        "Guest Mode is not available right now. Please sign in as a learner to continue.",
-      ),
-    ).toBeVisible();
-    await expect(page.getByLabel("Game username")).toHaveCount(0);
-    await expect(page.getByText("Loading...", { exact: true })).toHaveCount(0);
-    await expect(
-      page.getByRole("button", { name: "Go to Learner Login" }),
-    ).toBeEnabled();
-    await expect(page.getByRole("button", { name: "Back" })).toBeEnabled();
-    expect(guestApiRequests).toHaveLength(0);
-
-    await page.getByRole("button", { name: "Go to Learner Login" }).click();
-    await expect(page).toHaveURL(/\/learner\/login$/);
-  });
-
-  test("returns to the previous safe page with Back", async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await page.goto("/home");
-    await page.goto("/learner/games");
-    await expect(
-      page.getByRole("heading", { name: "Currently unavailable" }),
-    ).toBeVisible();
-
-    await page.getByRole("button", { name: "Back" }).click();
-    await expect(page).toHaveURL(/\/home$/);
+    await page.evaluate(() => {
+      window.localStorage.clear();
+      window.sessionStorage.clear();
+    });
+    await page.reload();
   });
 
-  test("keeps the existing lobby for an authenticated learner", async ({
+  test("opens the learner dashboard without creating a server account", async ({
     page,
   }) => {
-    await page.addInitScript(() => {
-      window.sessionStorage.setItem(
-        "readirect.learner-session",
-        JSON.stringify({
-          token: "cookie-session",
-          learner: {
-            id: 31,
-            learner_code: "GO001",
-            full_name: "Game One Learner",
-            first_name: "Game",
-            account_purpose: "standard",
-            school: "ReaDirect School",
-            grade_level: 3,
-            section: "A",
-            progress: {
-              stage: "before_diagnostic",
-              current_required_lesson_order: null,
-            },
-            achievement_keys: [],
-          },
-          reading_path: {
-            diagnostic: { status: "required", score: null },
-            lessons: [1, 2, 3, 4, 5, 6].map((order) => ({
-              order,
-              status: "not_started",
-            })),
-            completed_lesson_count: 0,
-            final_assessment: { status: "locked" },
-          },
-          session: { expires_at: "2099-01-01T00:00:00Z" },
-        }),
-      );
-    });
-    await page.route("**/api/learners/experience/settings", async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          revision: "test",
-          display_mode: "static",
-          speech_mode: "published_only",
-        }),
-      });
-    });
-    await page.route("**/api/learners/session/heartbeat", async (route) => {
-      await route.fulfill({ status: 204 });
-    });
-    await page.route("**/api/learners/games/profile", async (route) => {
-      if (route.request().method() === "POST") {
-        const { username } = route.request().postDataJSON() as {
-          username: string;
-        };
-        await route.fulfill({
-          status: 201,
-          contentType: "application/json",
-          body: JSON.stringify({
-            profile: {
-              audience: "learner",
-              username,
-              discriminator: "0042",
-              public_handle: `${username}#0042`,
-              is_active: true,
-            },
-          }),
-        });
-        return;
+    const accountRequests: string[] = [];
+    page.on("request", (request) => {
+      if (
+        /\/api\/(learners\/login|staff\/system-admin\/guests)/.test(
+          request.url(),
+        )
+      ) {
+        accountRequests.push(request.url());
       }
-
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ profile: null }),
-      });
     });
 
-    await page.goto("/learner/games");
+    await page.getByRole("button", { name: "Continue as Guest" }).click();
 
+    await expect(page).toHaveURL(/\/learner\/dashboard$/);
     await expect(
-      page.getByRole("heading", { name: "Choose a Game" }),
+      page.getByRole("heading", { name: "Welcome, Guest!" }),
+    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Local progress")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Reset progress" }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Currently unavailable" }),
-    ).toHaveCount(0);
-    await page.getByLabel("Game username").fill("Reader7");
+    expect(accountRequests).toHaveLength(0);
+  });
+
+  test("resets only Guest progress after confirmation", async ({ page }) => {
+    await page.getByRole("button", { name: "Continue as Guest" }).click();
+    await page.getByRole("button", { name: "Reset progress" }).click();
+    await expect(page.getByText("Reset all guest progress?")).toBeVisible({
+      timeout: 15_000,
+    });
+    await page
+      .getByRole("alertdialog")
+      .getByRole("button", { name: "Reset progress" })
+      .click();
+    await expect(page.getByText("Guest progress was reset.")).toBeVisible();
+  });
+
+  test("uses a local game profile identity", async ({ page }) => {
+    await page.getByRole("button", { name: "Continue as Guest" }).click();
+    await page.getByRole("button", { name: "Open Game Lobby" }).click();
+    await expect(page).toHaveURL(/\/learner\/games$/);
+    await page.getByLabel("Game username").fill("GuestRead");
     await page.getByRole("button", { name: "Enter the Lobby" }).click();
-    await expect(
-      page.getByRole("button", { name: "Open Readscape" }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Open Ottertale" }),
-    ).toBeVisible();
+    await expect(page.getByText("GuestRead#0000")).toBeVisible();
   });
 });

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("motion/react", async (importOriginal) => {
   const motion = await importOriginal<typeof import("motion/react")>();
@@ -14,6 +14,11 @@ vi.mock("motion/react", async (importOriginal) => {
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { HomePage } from "../src/features/home/HomePage";
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
+
+afterEach(() => {
+  window.sessionStorage.clear();
+  window.localStorage.clear();
+});
 
 function renderHome() {
   return render(
@@ -33,21 +38,58 @@ function renderHome() {
 }
 
 describe("HomePage", () => {
-  it("keeps the home hierarchy to one primary and one quiet action", () => {
+  it("keeps the home hierarchy to learner, guest, and staff actions", () => {
     renderHome();
 
     expect(screen.getByRole("main")).toHaveClass("learner-flow-page");
     const actions = screen.getByRole("region", { name: "Home actions" });
     const buttons = within(actions).getAllByRole("button");
 
-    expect(buttons).toHaveLength(2);
+    expect(buttons).toHaveLength(3);
     expect(
       within(actions).getByRole("button", { name: "Let's Read!" }),
     ).toHaveClass("home-page__read-button");
     expect(
+      within(actions).getByRole("button", { name: "Continue as Guest" }),
+    ).toHaveClass("home-page__guest-button");
+    expect(
       within(actions).getByRole("button", { name: "Staff login" }),
     ).toHaveClass("home-page__staff-button");
     expect(within(actions).queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("starts a browser-local guest session and opens the dashboard", () => {
+    vi.useFakeTimers();
+
+    try {
+      render(
+        <MemoryRouter initialEntries={["/home"]}>
+          <ThemeProvider>
+            <Routes>
+              <Route path="/home" element={<HomePage />} />
+              <Route
+                path="/learner/dashboard"
+                element={<div>Guest dashboard route</div>}
+              />
+            </Routes>
+          </ThemeProvider>
+        </MemoryRouter>,
+      );
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Continue as Guest" }),
+      );
+      act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
+
+      expect(screen.getByText("Guest dashboard route")).toBeVisible();
+      expect(
+        JSON.parse(
+          window.localStorage.getItem("readirect.guest-profile.v1") ?? "null",
+        ),
+      ).toMatchObject({ version: 1, active: true });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("opens the supplied About ReaDirect content from the bottom action", () => {
@@ -63,6 +105,9 @@ describe("HomePage", () => {
     expect(
       within(dialog).getByAltText("Nick Narry S. Mendoza"),
     ).toHaveAttribute("src", "/assets/profile/nick.png");
+    expect(
+      within(dialog).getByRole("heading", { name: "Credits & licences" }),
+    ).toBeVisible();
     expect(
       within(dialog).getByRole("link", { name: "View credits and licences" }),
     ).toHaveAttribute("href", "/credits-licenses");

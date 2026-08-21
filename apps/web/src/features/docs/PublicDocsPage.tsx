@@ -151,7 +151,7 @@ const DOC_PAGES: Record<DocSlug, DocPage> = {
         heading: "Games and progress",
         bullets: [
           "Games are optional practice, not a replacement for the Reading Journey.",
-          "Signed-in learners can see the games that are enabled for their account; guest game access is intentionally unavailable.",
+          "Signed-in learners and Guest Readers can open supported games. Guest game progress stays only in that browser and can be reset from the Guest dashboard.",
           "Game progress is kept separate from academic assessment and lesson progression.",
           "Use the visible sign-out action when you finish on a shared device.",
         ],

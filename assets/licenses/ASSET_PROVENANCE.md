@@ -13,9 +13,14 @@ generated for ReaDirect with the project's paid NijiJourney plan.
 
 ## Clara and Live2D
 
-The `CherryGoth` Clara model and derived static Clara renders were purchased by
-Zuki directly from the seller through Etsy for USD 1. Keep the purchase receipt
-and the seller's redistribution terms with the private deployment records.
+The `CherryGoth` source model used for Ma'am Clara and its derived static renders
+was designed by **pngVtubers** and licensed from seller **zuki**, owner of the
+[pngVtubers Etsy shop](https://www.etsy.com/shop/pngVtubers), through the
+[Customizable Goth VTuber Model listing](https://www.etsy.com/listing/4295933400/customizable-goth-vtuber-model-premade).
+The non-exclusive model terms permit editing, streaming, and personalisation,
+and prohibit resale or claiming the original model as the project team's own
+creation. Keep the purchase receipt and seller terms with the private deployment
+records.
 
 The Live2D Cubism Core and Framework remain separately licensed third-party
 runtime software. Preserve their official accompanying notices when preparing a
@@ -49,8 +54,11 @@ deployment records.
   Asbjørn Thirslund; and the included Pixel Operator font to Jayvee Enaguas
   ([HarvettFox96](https://www.dafont.com/pixel-operator.font?l[]=10&l[]=1)).
   See [the CC0 1.0 dedication](https://creativecommons.org/publicdomain/zero/1.0/).
-- Word Rescue vocabulary artwork provenance is pending final owner records.
-  Its existing review status remains non-release-ready until then.
+- Word Rescue vocabulary illustrations were generated specifically for
+  ReaDirect through the project's AI-generation workflow. They are bundled
+  project material, not artwork from an external asset pack. Their final
+  publication approval and generation records must still be completed before
+  release.
 
 ## ReaDirect identity and people
 
@@ -83,7 +91,8 @@ the private reference recordings to public application assets.
 
 ## Deferred and generated software notices
 
-The project still needs a final provenance entry for Word Rescue artwork.
+Word Rescue's source classification is recorded above; its final generation and
+publication-approval records are still required before release.
 Third-party application dependency notices are separate from asset provenance
 and should be generated from the Node, Composer, and Python lockfiles as a
 software bill of materials before the Play Store release.

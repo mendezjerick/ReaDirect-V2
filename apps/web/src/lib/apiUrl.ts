@@ -1,4 +1,5 @@
 import { productionApiOriginForHostname } from "../deployment/productionDomains";
+import { maybeHandleGuestApiRequest } from "../features/guest/guestApi";
 
 const API_PATH_PREFIX = "/api";
 
@@ -61,6 +62,8 @@ export function apiFetch(
   init?: RequestInit,
 ): Promise<Response> {
   const resolvedInput = typeof input === "string" ? apiUrl(input) : input;
+  const guestResponse = maybeHandleGuestApiRequest(resolvedInput, init);
+  if (guestResponse) return Promise.resolve(guestResponse);
 
   return globalThis.fetch(resolvedInput, {
     ...init,
@@ -109,9 +112,8 @@ export async function apiFetchWithTimeout(
   }
 
   try {
-    return await globalThis.fetch(resolvedInput, {
+    return await apiFetch(resolvedInput, {
       ...init,
-      credentials: init?.credentials ?? "include",
       signal: controller.signal,
     });
   } catch (error) {

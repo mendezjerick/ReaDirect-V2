@@ -15,6 +15,7 @@ import {
   getLearnerSession,
   loadLearnerSession,
   logoutLearner,
+  resetGuestLearnerProgress,
   saveLearnerSession,
 } from "../learner-auth/learnerApi";
 import { useLearnerExperience } from "../learner-auth/LearnerExperienceProvider";
@@ -73,12 +74,16 @@ export function LearnerDashboardPage() {
   const [selectedAchievementKey, setSelectedAchievementKey] = useState<
     (typeof readingJourneyAchievements)[number]["key"]
   >("reading.ready_reader");
+  const [confirmingReset, setConfirmingReset] = useState(false);
+  const [resetComplete, setResetComplete] = useState(false);
   const readingCommit = useButtonCommit();
   const gamesCommit = useButtonCommit();
   const learnWithClaraCommit = useButtonCommit();
   const offlineCommit = useButtonCommit();
   const logoutCommit = useButtonCommit();
+  const resetCommit = useButtonCommit();
   const storedSession = loadLearnerSession();
+  const isGuest = storedSession?.learner.account_purpose === "guest";
   const sessionQuery = useQuery({
     queryKey: ["learner-session", storedSession?.token],
     queryFn: () => getLearnerSession(storedSession?.token ?? ""),
@@ -99,7 +104,7 @@ export function LearnerDashboardPage() {
     onSettled: async () => {
       clearLearnerSession();
       await clearActiveOfflinePracticeProfile().catch(() => undefined);
-      navigate("/learner/login");
+      navigate(isGuest ? "/home" : "/learner/login");
     },
   });
   const learner = sessionQuery.data?.learner;
@@ -229,7 +234,9 @@ export function LearnerDashboardPage() {
                         ? "Journey complete"
                         : "Reading in progress"}
                 </span>
-                <strong>{learner?.learner_code}</strong>
+                <strong>
+                  {isGuest ? "Local progress" : learner?.learner_code}
+                </strong>
               </div>
               <BigButton
                 className="learner-dashboard__logout"
@@ -237,12 +244,12 @@ export function LearnerDashboardPage() {
                 size="regular"
                 committing={logoutCommit.committing}
                 busy={logoutMutation.isPending}
-                busyLabel="Signing out"
+                busyLabel={isGuest ? "Exiting" : "Signing out"}
                 onClick={() =>
                   logoutCommit.commit(() => logoutMutation.mutate())
                 }
               >
-                Sign out
+                {isGuest ? "Exit Guest Mode" : "Sign out"}
               </BigButton>
             </div>
           </header>
@@ -505,6 +512,83 @@ export function LearnerDashboardPage() {
             </p>
           </Surface>
         </div>
+
+        {isGuest ? (
+          <Surface
+            className="learner-dashboard__guest-reset"
+            kind="panel"
+            padding="normal"
+          >
+            <div>
+              <p className="learner-dashboard__eyebrow">Guest progress</p>
+              <h2>Start over on this device</h2>
+              <p>
+                Reset assessments, lessons, achievements, and game progress for
+                Guest Reader. Theme and device preferences will stay the same.
+              </p>
+              {resetComplete ? (
+                <p className="learner-dashboard__reset-success" role="status">
+                  Guest progress was reset.
+                </p>
+              ) : null}
+            </div>
+            {confirmingReset ? (
+              <div
+                className="learner-dashboard__reset-confirmation"
+                role="alertdialog"
+                aria-labelledby="guest-reset-title"
+                aria-describedby="guest-reset-description"
+              >
+                <strong id="guest-reset-title">
+                  Reset all guest progress?
+                </strong>
+                <span id="guest-reset-description">
+                  This removes browser-local guest progress and cannot be
+                  undone.
+                </span>
+                <div>
+                  <BigButton
+                    variant="quiet"
+                    size="regular"
+                    disabled={resetCommit.committing}
+                    onClick={() => setConfirmingReset(false)}
+                  >
+                    Cancel
+                  </BigButton>
+                  <BigButton
+                    className="learner-dashboard__reset-action"
+                    variant="secondary"
+                    size="regular"
+                    committing={resetCommit.committing}
+                    onClick={() =>
+                      resetCommit.commit(() => {
+                        resetGuestLearnerProgress();
+                        setSelectedAchievementKey("reading.ready_reader");
+                        setConfirmingReset(false);
+                        setResetComplete(true);
+                        void sessionQuery.refetch();
+                      })
+                    }
+                  >
+                    Reset progress
+                  </BigButton>
+                </div>
+              </div>
+            ) : (
+              <BigButton
+                className="learner-dashboard__reset-action"
+                variant="secondary"
+                size="regular"
+                onClick={() => {
+                  setResetComplete(false);
+                  setConfirmingReset(true);
+                }}
+              >
+                Reset progress
+              </BigButton>
+            )}
+          </Surface>
+        ) : null}
       </div>
     </main>
   );

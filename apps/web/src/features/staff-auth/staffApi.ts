@@ -306,34 +306,6 @@ const systemAdminLearnerDirectorySchema = z.object({
   generated_at: z.string(),
 });
 
-const systemAdminGuestSchema = z.object({
-  id: z.number().int().positive(),
-  email: z.string().email(),
-  display_name: z.string().nullable(),
-  is_active: z.boolean(),
-  email_verified_at: z.string().nullable(),
-  last_signed_in_at: z.string().nullable(),
-  active_session_count: z.number().int().nonnegative(),
-  created_at: z.string().nullable(),
-});
-
-const systemAdminGuestDirectorySchema = z.object({
-  summary: z.object({
-    total_guests: z.number().int().nonnegative(),
-    active_guests: z.number().int().nonnegative(),
-    verified_guests: z.number().int().nonnegative(),
-    pending_verification: z.number().int().nonnegative(),
-    active_sessions: z.number().int().nonnegative(),
-  }),
-  guests: z.array(systemAdminGuestSchema),
-  generated_at: z.string(),
-});
-
-const systemAdminGuestAccessResponseSchema = z.object({
-  guest: systemAdminGuestSchema,
-  revoked_sessions: z.number().int().nonnegative(),
-});
-
 const learningContentGovernanceSchema = z.object({
   read_only: z.literal(true),
   message: z.string(),
@@ -520,7 +492,6 @@ const systemAdminGamesAndPlayersSchema = z.object({
     active_player_profiles: z.number().int().nonnegative(),
     players_with_saves: z.number().int().nonnegative(),
     save_slots: z.number().int().nonnegative(),
-    guest_game_persistence_available: z.boolean(),
   }),
   games: z.array(
     z.object({
@@ -602,9 +573,6 @@ export type SystemAdminTeacherDirectory = z.infer<
 >;
 export type SystemAdminLearnerDirectory = z.infer<
   typeof systemAdminLearnerDirectorySchema
->;
-export type SystemAdminGuestDirectory = z.infer<
-  typeof systemAdminGuestDirectorySchema
 >;
 export type SystemAdminAssessmentCatalog = z.infer<
   typeof systemAdminAssessmentCatalogSchema
@@ -1448,41 +1416,6 @@ export async function getSystemAdminLearners(): Promise<SystemAdminLearnerDirect
   }
 
   return systemAdminLearnerDirectorySchema.parse(await response.json());
-}
-
-export async function getSystemAdminGuests(): Promise<SystemAdminGuestDirectory> {
-  const response = await staffFetch("/api/staff/system-admin/guests", {
-    headers: { Accept: "application/json" },
-  });
-
-  if (!response.ok) {
-    throw new Error(await readApiError(response));
-  }
-
-  return systemAdminGuestDirectorySchema.parse(await response.json());
-}
-
-export async function updateSystemAdminGuestAccess(
-  guestId: number,
-  isActive: boolean,
-): Promise<z.infer<typeof systemAdminGuestAccessResponseSchema>> {
-  const response = await staffFetch(
-    `/api/staff/system-admin/guests/${guestId}/access`,
-    {
-      method: "PATCH",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ is_active: isActive }),
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(await readApiError(response));
-  }
-
-  return systemAdminGuestAccessResponseSchema.parse(await response.json());
 }
 
 export async function getSystemAdminAssessmentCatalog(): Promise<SystemAdminAssessmentCatalog> {

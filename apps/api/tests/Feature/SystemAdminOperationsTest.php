@@ -91,7 +91,6 @@ final class SystemAdminOperationsTest extends TestCase
             ->assertJsonPath('summary.player_profiles', 1)
             ->assertJsonPath('summary.players_with_saves', 1)
             ->assertJsonPath('summary.save_slots', 1)
-            ->assertJsonPath('summary.guest_game_persistence_available', false)
             ->assertJsonPath('games.0.player_count', 1)
             ->assertJsonPath('players.0.handle', 'Reader7#4821')
             ->assertJsonPath('players.0.learner.learner_code', 'AA001')

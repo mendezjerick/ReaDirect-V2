@@ -237,11 +237,22 @@ export function AboutReaDirectDialog({ onClose }: AboutReaDirectDialogProps) {
               necessarily reflect the official policies, positions, or
               endorsements of the Department of Education or any of its offices.
             </p>
+          </section>
+
+          <section className="home-about__credits">
+            <h3>Credits &amp; licences</h3>
             <p>
-              <Link to="/credits-licenses" onClick={onClose}>
-                View credits and licences
-              </Link>
+              See the people, creative assets, audio, fonts, research
+              technologies, and open-source software that support ReaDirect.
             </p>
+            <Link
+              className="home-about__credits-link"
+              to="/credits-licenses"
+              onClick={onClose}
+            >
+              View credits and licences
+              <span aria-hidden="true">→</span>
+            </Link>
           </section>
         </div>
       </section>

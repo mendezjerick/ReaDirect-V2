@@ -32,8 +32,8 @@ export function CreditsLicensesPage() {
           </p>
           <p>
             Learning backgrounds and game-lobby thumbnails were generated for
-            ReaDirect using paid AI-generation services. Selected Game One art
-            was generated for ReaDirect with ChatGPT.
+            ReaDirect using the project&apos;s AI-generation workflows. Selected
+            Game One art was generated for ReaDirect with ChatGPT.
           </p>
         </section>
 
@@ -41,11 +41,28 @@ export function CreditsLicensesPage() {
           <h2 id="credits-assets">Visual assets</h2>
           <dl>
             <div>
-              <dt>Ma&apos;am Clara</dt>
+              <dt>Ma&apos;am Clara (CherryGoth model)</dt>
               <dd>
-                Live2D character model and derived stills licensed by the
-                ReaDirect project team. The Live2D Cubism runtime remains
-                subject to its accompanying third-party licence terms.
+                The source model was designed by{" "}
+                <a
+                  href="https://www.etsy.com/shop/pngVtubers"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  pngVtubers
+                </a>{" "}
+                and licensed from seller zuki through the{" "}
+                <a
+                  href="https://www.etsy.com/listing/4295933400/customizable-goth-vtuber-model-premade"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Customizable Goth VTuber Model Etsy listing
+                </a>
+                . ReaDirect uses the model and its derived Ma&apos;am Clara stills
+                under the seller&apos;s non-exclusive terms. The Live2D Cubism
+                runtime is licensed separately under its accompanying
+                third-party terms.
               </dd>
             </div>
             <div>
@@ -70,14 +87,6 @@ export function CreditsLicensesPage() {
                 Sofia Thirslund, Asbjørn Thirslund, and Jayvee Enaguas
                 (Pixel Operator). Attribution is preserved although not
                 required by the licence.
-              </dd>
-            </div>
-            <div>
-              <dt>Word Rescue</dt>
-              <dd>
-                Final release provenance is under review. Assets without a
-                completed release record are not approved for Play Store
-                distribution.
               </dd>
             </div>
           </dl>

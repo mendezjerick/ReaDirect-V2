@@ -30,6 +30,7 @@ import { LearnerDashboardPage } from "../src/features/learner-dashboard/LearnerD
 import { RouteTransitionProvider } from "../src/components/transitions/RouteTransitionProvider";
 import { createAppQueryClient } from "../src/app/queryClient";
 import { setNativeSessionCache } from "../src/app/nativeSecureSession";
+import { enterGuestMode } from "../src/features/learner-auth/learnerApi";
 
 const claraSpeechMocks = vi.hoisted(() => ({
   unlock: vi.fn(),
@@ -139,12 +140,55 @@ function renderDashboard(stage = "before_diagnostic") {
   );
 }
 
+function renderGuestDashboard() {
+  enterGuestMode();
+  const queryClient = createAppQueryClient();
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={["/learner/dashboard"]}>
+        <RouteTransitionProvider>
+          <Routes>
+            <Route
+              path="/learner/dashboard"
+              element={<LearnerDashboardPage />}
+            />
+            <Route path="/home" element={<div>Home route</div>} />
+          </Routes>
+        </RouteTransitionProvider>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
 describe("LearnerDashboardPage", () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    window.localStorage.clear();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
     vi.restoreAllMocks();
+  });
+
+  it("shows local identity and reset controls only for Guest Reader", () => {
+    renderGuestDashboard();
+
+    expect(screen.getByText("Welcome, Guest!")).toBeVisible();
+    expect(screen.getByText("Local progress")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Exit Guest Mode" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Reset progress" }),
+    ).toBeVisible();
+  });
+
+  it("does not expose Guest reset controls to a server learner", () => {
+    renderDashboard();
+
+    expect(
+      screen.queryByRole("button", { name: "Reset progress" }),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps the required learning action visually primary", () => {

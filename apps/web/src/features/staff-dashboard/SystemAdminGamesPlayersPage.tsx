@@ -90,17 +90,6 @@ export function SystemAdminGamesPlayersPage() {
           badge={<StaffBadge tone="neutral">Read-only database</StaffBadge>}
         />
 
-        <StaffNotice
-          tone="neutral"
-          title="Guest game persistence is not connected yet."
-        >
-          <span>
-            This directory currently contains standard Learner profiles only.
-            Portal preview data is excluded, and Guest players will remain
-            separate when their persistence contract is implemented.
-          </span>
-        </StaffNotice>
-
         {directoryQuery.isError ? (
           <StaffNotice
             tone="danger"

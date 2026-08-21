@@ -6,6 +6,7 @@ import { ThemeSelector } from "../theme/ThemeSelector";
 import { AboutReaDirectDialog } from "./AboutReaDirectDialog";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import {
+  enterGuestMode,
   learnerSessionChangedEvent,
   loadLearnerSession,
 } from "../learner-auth/learnerApi";
@@ -17,7 +18,10 @@ import {
 import { staffHomeRoute } from "../staff-auth/staffRoutes";
 
 type LandingIdentity =
-  { kind: "learner" } | { kind: "staff"; session: StaffSession } | null;
+  | { kind: "learner" }
+  | { kind: "guest" }
+  | { kind: "staff"; session: StaffSession }
+  | null;
 
 function readLandingIdentity(): LandingIdentity {
   const staff = loadStaffSession();
@@ -25,7 +29,12 @@ function readLandingIdentity(): LandingIdentity {
     return { kind: "staff", session: staff };
   }
 
-  return loadLearnerSession() ? { kind: "learner" } : null;
+  const learner = loadLearnerSession();
+  return learner
+    ? {
+        kind: learner.learner.account_purpose === "guest" ? "guest" : "learner",
+      }
+    : null;
 }
 
 function BookIcon() {
@@ -45,6 +54,7 @@ function BookIcon() {
 export function HomePage() {
   const navigate = useNavigate();
   const learnerLoginCommit = useButtonCommit();
+  const guestLoginCommit = useButtonCommit();
   const staffLoginCommit = useButtonCommit();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [identity, setIdentity] =
@@ -64,14 +74,16 @@ export function HomePage() {
   }, []);
 
   const destination =
-    identity?.kind === "learner"
+    identity?.kind === "learner" || identity?.kind === "guest"
       ? "/learner/dashboard"
       : identity?.kind === "staff"
         ? staffHomeRoute(identity.session)
         : "/learner/login";
   const primaryLabel =
-    identity?.kind === "learner"
-      ? "Let’s Keep Reading!"
+    identity?.kind === "learner" || identity?.kind === "guest"
+      ? identity.kind === "guest"
+        ? "Continue as Guest"
+        : "Let’s Keep Reading!"
       : identity?.kind === "staff"
         ? identity.session.staff.role === "system_admin"
           ? "Admin Dashboard"
@@ -85,6 +97,13 @@ export function HomePage() {
 
   const openStaffLogin = () => {
     staffLoginCommit.commit(() => navigate("/staff/login"));
+  };
+
+  const openGuestLogin = () => {
+    guestLoginCommit.commit(() => {
+      enterGuestMode();
+      navigate("/learner/dashboard");
+    });
   };
 
   return (
@@ -106,6 +125,17 @@ export function HomePage() {
         >
           {primaryLabel}
         </BigButton>
+
+        {!identity ? (
+          <BigButton
+            className="home-page__guest-button"
+            size="regular"
+            committing={guestLoginCommit.committing}
+            onClick={openGuestLogin}
+          >
+            Continue as Guest
+          </BigButton>
+        ) : null}
 
         <BigButton
           className="home-page__staff-button"

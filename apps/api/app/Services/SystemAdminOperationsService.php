@@ -109,7 +109,6 @@ final class SystemAdminOperationsService
                 'save_slots' => $profiles->sum(
                     fn (GameProfile $profile): int => $profile->saves->count(),
                 ),
-                'guest_game_persistence_available' => false,
             ],
             'games' => $games
                 ->map(fn (GameCatalog $game): array => [

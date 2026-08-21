@@ -195,7 +195,6 @@ describe("System Admin Operations workspaces", () => {
               active_player_profiles: 2,
               players_with_saves: 1,
               save_slots: 1,
-              guest_game_persistence_available: false,
             },
             games: [
               {
@@ -270,9 +269,6 @@ describe("System Admin Operations workspaces", () => {
     expect(
       screen.getByRole("heading", { name: "Games and players" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Guest game persistence is not connected yet."),
-    ).toBeVisible();
     expect(await screen.findByText("Reader7#4821")).toBeVisible();
     expect(screen.getByText("BookKid#1000")).toBeVisible();
     expect(screen.getByText("forest-gate · revision 3")).toBeVisible();
