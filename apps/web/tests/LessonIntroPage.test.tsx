@@ -6,6 +6,10 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAppQueryClient } from "../src/app/queryClient";
+import {
+  guestStorageKey,
+  startGuestSession,
+} from "../src/features/guest/guestSession";
 import { ReadingJourneyMenuPage } from "../src/features/lesson-intro/LessonIntroPage";
 import type { LearnerReadingPath } from "../src/features/learner-auth/learnerApi";
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
@@ -61,10 +65,15 @@ function LocationProbe() {
   return <div>Current route: {location.pathname}</div>;
 }
 
-function sessionResponse(readingPath: LearnerReadingPath) {
+type AccountPurpose = "standard" | "portal_system";
+
+function sessionResponse(
+  readingPath: LearnerReadingPath,
+  accountPurpose: AccountPurpose = "standard",
+) {
   return {
     reading_path: readingPath,
-    learner: learnerSession.learner,
+    learner: { ...learnerSession.learner, account_purpose: accountPurpose },
     session: learnerSession.session,
   };
 }
@@ -72,24 +81,29 @@ function sessionResponse(readingPath: LearnerReadingPath) {
 function mockSessionAndLanguage(
   readingPath: LearnerReadingPath,
   languageContract = unavailableLanguageContract,
+  accountPurpose: AccountPurpose = "standard",
 ) {
   return vi.fn((input: RequestInfo | URL) => {
     const url = String(input);
     return Promise.resolve(
       url.endsWith("/tts/language")
         ? Response.json(languageContract)
-        : Response.json(sessionResponse(readingPath)),
+        : Response.json(sessionResponse(readingPath, accountPurpose)),
     );
   });
 }
 
-function renderReadingJourney(readingPath: LearnerReadingPath = freshPath) {
+function renderReadingJourney(
+  readingPath: LearnerReadingPath = freshPath,
+  accountPurpose: AccountPurpose = "standard",
+) {
   window.sessionStorage.setItem(
     "readirect.learner-session",
     JSON.stringify({
       ...learnerSession,
       token: "cookie-session",
       reading_path: readingPath,
+      learner: { ...learnerSession.learner, account_purpose: accountPurpose },
     }),
   );
 
@@ -117,6 +131,7 @@ describe("ReadingJourneyMenuPage", () => {
 
   afterEach(() => {
     window.sessionStorage.clear();
+    window.localStorage.removeItem(guestStorageKey);
     window.localStorage.removeItem(THEME_STORAGE_KEY);
     delete document.documentElement.dataset.theme;
     vi.unstubAllGlobals();
@@ -165,9 +180,18 @@ describe("ReadingJourneyMenuPage", () => {
         name: "Final Assessment. Locked. Complete 6 more lessons",
       }),
     ).toBeDisabled();
+    const skipButton = screen.getByRole("button", {
+      name: "Skip Diagnostic",
+    });
+    expect(skipButton).toBeEnabled();
+    expect(skipButton).toHaveClass("big-button--primary");
+    const finalAssessment = screen.getByRole("region", {
+      name: "Final Assessment",
+    });
     expect(
-      screen.getByRole("button", { name: "Skip Diagnostic" }),
-    ).toBeEnabled();
+      finalAssessment.compareDocumentPosition(skipButton) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
     expect(
       container.querySelectorAll(
@@ -178,6 +202,44 @@ describe("ReadingJourneyMenuPage", () => {
     expect(container.querySelector(".clara-speech-loader")).toBeNull();
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+  });
+
+  it("offers the Diagnostic skip to Guest Reader", async () => {
+    startGuestSession();
+    renderReadingJourney();
+
+    expect(
+      await screen.findByRole("button", { name: "Skip Diagnostic" }),
+    ).toBeEnabled();
+  });
+
+  it("offers the Diagnostic skip to Kristen's portal session", async () => {
+    vi.stubGlobal(
+      "fetch",
+      mockSessionAndLanguage(
+        freshPath,
+        unavailableLanguageContract,
+        "portal_system",
+      ),
+    );
+    renderReadingJourney(freshPath, "portal_system");
+
+    expect(
+      await screen.findByRole("button", { name: "Skip Diagnostic" }),
+    ).toBeEnabled();
+  });
+
+  it("keeps the Diagnostic skip available after the assessment has started", async () => {
+    const inProgressPath: LearnerReadingPath = {
+      ...freshPath,
+      diagnostic: { status: "in_progress", score: null },
+    };
+    vi.stubGlobal("fetch", mockSessionAndLanguage(inProgressPath));
+    renderReadingJourney(inProgressPath);
+
+    expect(
+      await screen.findByRole("button", { name: "Skip Diagnostic" }),
+    ).toBeEnabled();
   });
 
   it("shows the spoken-language switch at a glance and explains availability", async () => {
@@ -335,8 +397,12 @@ describe("ReadingJourneyMenuPage", () => {
     const dialog = screen.getByRole("alertdialog", {
       name: "Skip the Diagnostic?",
     });
-    expect(dialog).toHaveTextContent("every Diagnostic item as incorrect");
-    expect(dialog).toHaveTextContent("score of 0");
+    expect(dialog).toHaveTextContent(
+      "Your submitted answers and earned points will stay",
+    );
+    expect(dialog).toHaveTextContent(
+      "Every remaining unanswered Diagnostic item will be scored as 0",
+    );
     expect(dialog).toHaveTextContent("All six reading lessons will unlock");
 
     await user.click(

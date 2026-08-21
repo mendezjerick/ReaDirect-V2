@@ -10,6 +10,7 @@ use App\Models\LearnerProgressState;
 use App\Models\LearnerSession;
 use App\Models\School;
 use App\Models\StaffUser;
+use App\Services\AssessmentContentCatalog;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
@@ -75,6 +76,10 @@ final class LearnerDiagnosticSkipTest extends TestCase
             'learner_id' => $learner->id,
             'achievement_key' => 'reading.ready_reader',
         ]);
+        $this->withToken($token)
+            ->getJson('/api/learners/session')
+            ->assertOk()
+            ->assertJsonPath('learner.achievement_keys.0', 'reading.ready_reader');
         Event::assertDispatchedTimes(StaffDataChanged::class, 1);
 
         $this->authenticateStaff($teacher);
@@ -125,9 +130,11 @@ final class LearnerDiagnosticSkipTest extends TestCase
             ->assertJsonPath('recent_assessment_activity.0.score', 0);
     }
 
-    public function test_skip_replaces_active_diagnostic_answers_with_zero_score_low_path_answers(): void
+    public function test_skip_preserves_active_diagnostic_answers_and_scores_only_the_remaining_items_as_zero(): void
     {
         [$learner, $token] = $this->authenticatedLearner('DS002');
+        $snapshot = app(AssessmentContentCatalog::class)->assessmentSnapshot();
+        $answeredItem = $snapshot['task-1a'][0];
         $run = AssessmentRun::query()->create([
             'learner_id' => $learner->id,
             'assessment_type' => AssessmentRun::TYPE_DIAGNOSTIC,
@@ -135,16 +142,17 @@ final class LearnerDiagnosticSkipTest extends TestCase
             'status' => AssessmentRun::STATUS_ACTIVE,
             'stage' => 'task-1a',
             'current_item_index' => 1,
-            'content_snapshot' => ['existing' => true],
+            'content_snapshot' => $snapshot,
         ]);
         AssessmentResponse::query()->create([
             'assessment_run_id' => $run->id,
             'task_key' => 'task-1a',
-            'item_key' => 'existing-response',
-            'item_order' => 1,
+            'item_key' => $answeredItem['item_key'],
+            'item_order' => (int) $answeredItem['sort_order'],
             'response_type' => 'speech',
             'decision' => 'CORRECT',
             'score' => 1,
+            'evidence' => ['response_committed' => true],
         ]);
 
         $first = $this->withToken($token)
@@ -156,13 +164,61 @@ final class LearnerDiagnosticSkipTest extends TestCase
 
         $this->assertSame($first->json('reading_path'), $second->json('reading_path'));
         $this->assertSame(AssessmentRun::COMPLETION_MODE_STANDARD, $run->fresh()->completion_mode);
+        $this->assertSame(1, $run->fresh()->task_1a_score);
+        $this->assertSame(1, $run->fresh()->part_one_score);
+        $this->assertSame(0, $run->fresh()->final_reading_score);
         $this->assertDatabaseCount('assessment_runs', 1);
         $this->assertDatabaseCount('assessment_responses', 20);
-        $this->assertDatabaseMissing('assessment_responses', [
+        $this->assertDatabaseHas('assessment_responses', [
             'assessment_run_id' => $run->id,
-            'item_key' => 'existing-response',
+            'item_key' => $answeredItem['item_key'],
+            'decision' => 'CORRECT',
+            'score' => 1,
         ]);
+        $this->assertSame(19, AssessmentResponse::query()
+            ->where('assessment_run_id', $run->id)
+            ->where('decision', 'INCORRECT')
+            ->where('score', 0)
+            ->count());
         $this->assertDatabaseCount('learner_achievements', 1);
+    }
+
+    public function test_portal_system_learner_can_skip_during_an_active_portal_session(): void
+    {
+        $learner = Learner::query()->create([
+            'learner_code' => 'KW000',
+            'account_purpose' => Learner::PURPOSE_PORTAL_SYSTEM,
+            'password' => 'portal-password',
+            'first_name' => 'Kristen',
+            'middle_name' => 'Rhine',
+            'last_name' => 'Wright',
+            'is_active' => true,
+        ]);
+        $token = str_repeat('k', 64);
+        LearnerSession::query()->create([
+            'learner_id' => $learner->id,
+            'token_hash' => hash('sha256', $token),
+            'session_type' => 'portal',
+            'last_seen_at' => now(),
+            'expires_at' => now()->addHour(),
+        ]);
+
+        $this->withToken($token)
+            ->postJson('/api/learners/assessments/diagnostic/skip')
+            ->assertOk()
+            ->assertJsonPath('reading_path.diagnostic', [
+                'status' => 'completed',
+                'score' => 0,
+            ]);
+
+        $this->assertDatabaseHas('learner_progress_states', [
+            'learner_id' => $learner->id,
+            'stage' => 'required_lessons',
+        ]);
+        $this->assertDatabaseHas('learner_achievements', [
+            'learner_id' => $learner->id,
+            'achievement_key' => 'reading.ready_reader',
+        ]);
     }
 
     public function test_skip_rejects_a_normally_completed_diagnostic(): void

@@ -298,6 +298,8 @@
 }
 
 .assessment-recorder__control {
+  --assessment-recorder-record-surface: var(--color-action-primary);
+
   position: relative;
   display: grid;
   width: 100%;
@@ -326,12 +328,16 @@
 
 .assessment-recorder__control:not(:disabled):active,
 .assessment-recorder__control[data-state="recording"] {
+  --assessment-recorder-record-surface: var(--color-action-primary-pressed);
+
   transform: translateY(7px);
   background: var(--color-action-primary-pressed);
   box-shadow: 0 3px 0 var(--color-action-primary-depth);
 }
 
 .assessment-recorder__control:disabled {
+  --assessment-recorder-record-surface: var(--color-button-unavailable-surface);
+
   border-color: var(--color-button-unavailable-border);
   color: var(--color-button-unavailable-text);
   background: var(--color-button-unavailable-surface);
@@ -347,7 +353,8 @@
 }
 
 .assessment-recorder__icon,
-.assessment-recorder__icon svg {
+.assessment-recorder__icon svg,
+.assessment-recorder__record-mark {
   width: clamp(2rem, 8vw, 2.8rem);
   height: clamp(2rem, 8vw, 2.8rem);
 }
@@ -366,6 +373,51 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 3.5;
+}
+
+.assessment-recorder__record-mark {
+  position: relative;
+  display: block;
+  background: currentColor;
+  clip-path: polygon(
+    25% 0,
+    75% 0,
+    75% 12.5%,
+    87.5% 12.5%,
+    87.5% 25%,
+    100% 25%,
+    100% 75%,
+    87.5% 75%,
+    87.5% 87.5%,
+    75% 87.5%,
+    75% 100%,
+    25% 100%,
+    25% 87.5%,
+    12.5% 87.5%,
+    12.5% 75%,
+    0 75%,
+    0 25%,
+    12.5% 25%,
+    12.5% 12.5%,
+    25% 12.5%
+  );
+}
+
+.assessment-recorder__record-mark::before,
+.assessment-recorder__record-mark::after {
+  position: absolute;
+  clip-path: inherit;
+  content: "";
+}
+
+.assessment-recorder__record-mark::before {
+  inset: 0.18rem;
+  background: var(--assessment-recorder-record-surface);
+}
+
+.assessment-recorder__record-mark::after {
+  inset: 30%;
+  background: currentColor;
 }
 
 .assessment-recorder__stop-icon {

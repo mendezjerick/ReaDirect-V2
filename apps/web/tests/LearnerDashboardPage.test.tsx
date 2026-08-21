@@ -30,7 +30,10 @@ import { LearnerDashboardPage } from "../src/features/learner-dashboard/LearnerD
 import { RouteTransitionProvider } from "../src/components/transitions/RouteTransitionProvider";
 import { createAppQueryClient } from "../src/app/queryClient";
 import { setNativeSessionCache } from "../src/app/nativeSecureSession";
-import { enterGuestMode } from "../src/features/learner-auth/learnerApi";
+import {
+  enterGuestMode,
+  skipDiagnostic,
+} from "../src/features/learner-auth/learnerApi";
 
 const claraSpeechMocks = vi.hoisted(() => ({
   unlock: vi.fn(),
@@ -181,6 +184,34 @@ describe("LearnerDashboardPage", () => {
     expect(
       screen.getByRole("button", { name: "Reset progress" }),
     ).toBeVisible();
+  });
+
+  it("displays Ready Reader as earned after a Guest skips the Diagnostic", async () => {
+    enterGuestMode();
+    await skipDiagnostic("guest-local-v1");
+    const queryClient = createAppQueryClient();
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/learner/dashboard"]}>
+          <RouteTransitionProvider>
+            <Routes>
+              <Route
+                path="/learner/dashboard"
+                element={<LearnerDashboardPage />}
+              />
+            </Routes>
+          </RouteTransitionProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText("1/8")).toBeVisible();
+    expect(
+      screen.getByRole("listitem", {
+        name: /Ready Reader: Complete the Diagnostic Assessment\. Earned/i,
+      }),
+    ).toHaveAttribute("data-earned", "true");
   });
 
   it("does not expose Guest reset controls to a server learner", () => {

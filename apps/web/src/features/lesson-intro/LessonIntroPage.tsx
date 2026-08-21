@@ -466,16 +466,6 @@ export function ReadingJourneyMenuPage() {
             completed={diagnostic.completed}
             onSelect={() => selectActivity(diagnostic.route)}
           />
-          {sessionQuery.data.learner.account_purpose === "standard" &&
-          path.diagnostic.status === "required" ? (
-            <button
-              className="reading-journey-menu__skip"
-              type="button"
-              onClick={() => setConfirmingSkip(true)}
-            >
-              Skip Diagnostic
-            </button>
-          ) : null}
         </section>
 
         <section
@@ -551,6 +541,21 @@ export function ReadingJourneyMenuPage() {
           />
         </section>
 
+        {["required", "in_progress"].includes(path.diagnostic.status) ? (
+          <section
+            className="reading-journey-menu__skip-section"
+            aria-label="Diagnostic options"
+          >
+            <BigButton
+              className="reading-journey-menu__skip"
+              size="regular"
+              onClick={() => setConfirmingSkip(true)}
+            >
+              Skip Diagnostic
+            </BigButton>
+          </section>
+        ) : null}
+
         {sessionQuery.isFetching ? (
           <p className="reading-journey-menu__sync" role="status">
             Updating your journey…
@@ -574,9 +579,9 @@ export function ReadingJourneyMenuPage() {
             </div>
             <h2 id="skip-diagnostic-title">Skip the Diagnostic?</h2>
             <p id="skip-diagnostic-description">
-              This records every Diagnostic item as incorrect, gives a score of
-              0, and starts you on the Full Refresher path. All six reading
-              lessons will unlock.
+              Your submitted answers and earned points will stay. Every
+              remaining unanswered Diagnostic item will be scored as 0. The
+              assessment will finish. All six reading lessons will unlock.
             </p>
             {skipMutation.isError ? (
               <p className="reading-journey-dialog__error" role="alert">

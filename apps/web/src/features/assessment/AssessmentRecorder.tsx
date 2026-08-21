@@ -1,8 +1,10 @@
 import { useAudioRecorder } from "./useAudioRecorder";
 import { PixelIcon } from "../../components/ui/PixelIcon";
 
-function MicrophoneIcon() {
-  return <PixelIcon name="microphone" />;
+function RecordMark() {
+  return (
+    <span className="assessment-recorder__record-mark" aria-hidden="true" />
+  );
 }
 
 function StopIcon() {
@@ -71,7 +73,7 @@ export function AssessmentRecorder({
           ) : recorder.state === "recorded" || recorder.state === "playing" ? (
             <PlayIcon />
           ) : (
-            <MicrophoneIcon />
+            <RecordMark />
           )}
         </span>
         <strong>{label}</strong>

@@ -241,13 +241,37 @@ export function guestSessionSnapshot(store = loadGuestStore()) {
 }
 
 export function markGuestDiagnosticSkipped(): GuestReadingPath {
-  return updateGuestStore((current) => ({
-    ...current,
-    readingPath: {
-      ...current.readingPath,
-      diagnostic: { status: "skipped", score: 0 },
-    },
-  })).readingPath;
+  return updateGuestStore((current) => {
+    const progress = current.assessments.diagnostic;
+    const score = Math.min(
+      100,
+      Math.round(
+        (progress.partOneScore / 30) * 50 +
+          progress.passageScore / 2 +
+          progress.comprehensionScore * 5,
+      ),
+    );
+
+    return {
+      ...current,
+      achievementKeys: Array.from(
+        new Set([...current.achievementKeys, "reading.ready_reader"]),
+      ),
+      assessments: {
+        ...current.assessments,
+        diagnostic: {
+          ...progress,
+          partOneStage: "part-1-results",
+          partTwoStage: "assessment-complete",
+          completed: true,
+        },
+      },
+      readingPath: {
+        ...current.readingPath,
+        diagnostic: { status: "completed", score },
+      },
+    };
+  }).readingPath;
 }
 
 export function setGuestSpeechLanguage(language: "en" | "fil-PH"): GuestStore {
