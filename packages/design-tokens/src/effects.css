@@ -25,18 +25,3 @@
   --color-link-start-fixed-prism-coral: #ff625c;
   --color-link-start-fixed-prism-glass: #dff4ff;
 }
-
-/* Gray-heavy themes need a subdued hue so unavailable states remain distinct. */
-:root[data-theme="t7"] {
-  --color-button-unavailable-surface: #5b7394;
-  --color-button-unavailable-border: #3d526e;
-  --color-button-unavailable-depth: #2d3f57;
-  --color-button-unavailable-text: #f4f7fb;
-}
-
-:root[data-theme="t8"] {
-  --color-button-unavailable-surface: #665b7d;
-  --color-button-unavailable-border: #463d59;
-  --color-button-unavailable-depth: #342d44;
-  --color-button-unavailable-text: #f6f3fa;
-}

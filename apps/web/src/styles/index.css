@@ -231,11 +231,21 @@ button {
 }
 
 .big-button--skip-vertical {
+  /*
+   * A drop shadow is painted outside of an element's layout box. Reserve that
+   * same depth above the label so it is centred in the complete, visible
+   * control rather than only in the button face.
+   */
+  --skip-button-depth: 0.375rem;
+
+  display: grid;
+  place-items: center;
   border-width: 3px;
   border-color: var(--color-action-skip-border);
+  padding: var(--skip-button-depth) 0 0;
   color: var(--color-text-primary);
   background: var(--color-action-skip-surface);
-  box-shadow: 0 6px 0 var(--color-action-skip-depth);
+  box-shadow: 0 var(--skip-button-depth) 0 var(--color-action-skip-depth);
 }
 
 .big-button--primary-vertical .big-button__icon,
@@ -313,10 +323,13 @@ button {
 
 .big-button--skip-vertical:active,
 .big-button--skip-vertical[data-press-state="committing"] {
+  --skip-button-depth: 0.125rem;
+
   transform: translateY(4px);
   background: var(--color-action-skip-pressed);
-  box-shadow: 0 2px 0 var(--color-action-skip-depth);
+  box-shadow: 0 var(--skip-button-depth) 0 var(--color-action-skip-depth);
 }
+
 
 .big-button--secondary:active,
 .big-button--secondary[data-press-state="committing"] {

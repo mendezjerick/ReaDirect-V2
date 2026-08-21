@@ -103,7 +103,7 @@ export function AssessmentRecorder({
             className="assessment-recorder__retry"
             onClick={recorder.retry}
           >
-            Retry
+            Retry recording
           </button>
         ) : submitAvailableAfterCapture &&
           recorder.audio &&

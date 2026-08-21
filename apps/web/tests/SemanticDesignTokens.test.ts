@@ -30,6 +30,10 @@ describe("fixed semantic design tokens", () => {
       "--color-action-skip-pressed:",
       "--color-action-skip-border:",
       "--color-action-skip-depth:",
+      "--color-button-unavailable-surface:",
+      "--color-button-unavailable-border:",
+      "--color-button-unavailable-depth:",
+      "--color-button-unavailable-text:",
       "--color-staff-sidebar-disabled:",
     ];
 
@@ -52,12 +56,12 @@ describe("fixed semantic design tokens", () => {
     );
   });
 
-  it("only gives T7 and T8 distinct unavailable palettes", () => {
+  it("keeps the unavailable effect palette shared across themes", () => {
     const effects = readTokenFile("effects.css");
-    expect(effects).toContain(':root[data-theme="t7"]');
-    expect(effects).toContain("--color-button-unavailable-surface: #5b7394;");
-    expect(effects).toContain(':root[data-theme="t8"]');
-    expect(effects).toContain("--color-button-unavailable-surface: #665b7d;");
-    expect(effects.match(/data-theme=/g)).toHaveLength(2);
+    expect(effects).toContain("--color-button-unavailable-surface: #777d86;");
+    expect(effects).toContain("--color-button-unavailable-border: #555b63;");
+    expect(effects).toContain("--color-button-unavailable-depth: #484d54;");
+    expect(effects).toContain("--color-button-unavailable-text: #eceef1;");
+    expect(effects).not.toContain("data-theme=");
   });
 });
