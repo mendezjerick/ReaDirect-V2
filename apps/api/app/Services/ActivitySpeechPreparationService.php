@@ -85,12 +85,12 @@ final class ActivitySpeechPreparationService
 
         return [
             ...$base,
-            'ready' => $runtime['ready'],
+            'ready' => true,
             'runtime_ready' => $runtime['ready'],
             'profiles_ready' => $runtime['profiles_ready'],
             'device' => $runtime['device'],
             ...($runtime['ready'] ? [] : [
-                'message' => 'Ma\'am Clara is still preparing her voice. Please try again.',
+                'message' => 'Dynamic voice feedback is unavailable. Prepared Clara voice lines will be used.',
             ]),
         ];
     }

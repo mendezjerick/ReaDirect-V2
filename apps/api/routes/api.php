@@ -26,6 +26,7 @@ use App\Http\Controllers\SchoolAdminReportController;
 use App\Http\Controllers\SchoolAdminTeacherController;
 use App\Http\Controllers\SchoolAdminTeacherDashboardController;
 use App\Http\Controllers\SchoolAdminWorkspaceController;
+use App\Http\Controllers\SpeechServiceReadinessController;
 use App\Http\Controllers\StaffAuthController;
 use App\Http\Controllers\StaffRealtimeController;
 use App\Http\Controllers\StaffSecurityController;
@@ -49,6 +50,9 @@ use App\Http\Controllers\TeacherLearnerController;
 use App\Http\Controllers\TeacherReportController;
 use App\Http\Controllers\TeacherWorkspaceController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/speech/readiness', SpeechServiceReadinessController::class)
+    ->middleware('throttle:60,1');
 
 Route::prefix('staff')->group(function (): void {
     Route::post('/login', [StaffAuthController::class, 'store'])

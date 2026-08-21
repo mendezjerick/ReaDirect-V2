@@ -218,7 +218,7 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_vox_failure_keeps_runtime_activity_unavailable(): void
+    public function test_vox_failure_keeps_published_activity_available_in_degraded_mode(): void
     {
         $this->publishActivity('lesson-1');
         [, $token] = $this->learnerSession('required_lessons', 1);
@@ -230,16 +230,20 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
             ->postJson('/api/learners/tts/activity-readiness', [
                 'activity' => 'lesson-1',
             ])
-            ->assertServiceUnavailable()
+            ->assertOk()
             ->assertJsonPath('activity', 'lesson-1')
-            ->assertJsonPath('ready', false)
+            ->assertJsonPath('ready', true)
             ->assertJsonPath('published_ready', true)
             ->assertJsonPath('runtime_required', true)
             ->assertJsonPath('runtime_ready', false)
-            ->assertJsonPath('profiles_ready', []);
+            ->assertJsonPath('profiles_ready', [])
+            ->assertJsonPath(
+                'message',
+                'Dynamic voice feedback is unavailable. Prepared Clara voice lines will be used.',
+            );
     }
 
-    public function test_filipino_readiness_never_accepts_an_english_runtime_response(): void
+    public function test_filipino_readiness_degrades_when_runtime_returns_the_wrong_language(): void
     {
         Config::set('speech.tts_reference_profiles_by_language.fil-PH', [
             'result',
@@ -264,8 +268,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
             ->postJson('/api/learners/tts/activity-readiness', [
                 'activity' => 'lesson-2',
             ])
-            ->assertServiceUnavailable()
+            ->assertOk()
             ->assertJsonPath('speech_language', SpeechLanguage::FILIPINO)
+            ->assertJsonPath('ready', true)
             ->assertJsonPath('published_ready', true)
             ->assertJsonPath('runtime_ready', false);
 
@@ -275,7 +280,7 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
         ]);
     }
 
-    public function test_filipino_readiness_stops_before_vox_when_a_runtime_role_is_unreviewed(): void
+    public function test_filipino_readiness_uses_published_lines_when_a_runtime_role_is_unreviewed(): void
     {
         Config::set('speech.tts_reference_profiles_by_language.fil-PH', [
             'instruction',
@@ -292,8 +297,9 @@ final class LearnerActivitySpeechReadinessTest extends TestCase
             ->postJson('/api/learners/tts/activity-readiness', [
                 'activity' => 'lesson-2',
             ])
-            ->assertServiceUnavailable()
+            ->assertOk()
             ->assertJsonPath('speech_language', SpeechLanguage::FILIPINO)
+            ->assertJsonPath('ready', true)
             ->assertJsonPath('published_ready', true)
             ->assertJsonPath('runtime_ready', false)
             ->assertJsonPath('profiles_ready', []);

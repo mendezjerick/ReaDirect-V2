@@ -19,6 +19,7 @@ import {
 } from "./features/learner-auth/learnerApi";
 import { NativeLearnerEntryPage } from "./features/offline-practice/NativeLearnerEntryPage";
 import { NativeConnectivityBanner } from "./features/connectivity/NativeConnectivityBanner";
+import { SpeechServiceGate } from "./features/speech-readiness/SpeechServiceGate";
 import { learnerGameProfileClient } from "./features/games/gameProfileApi";
 import {
   browserRootSurface,
@@ -552,11 +553,19 @@ export function App() {
               />
               <Route
                 path="/learner/assessment/part-one"
-                element={<AssessmentPartOnePage />}
+                element={
+                  <SpeechServiceGate>
+                    <AssessmentPartOnePage />
+                  </SpeechServiceGate>
+                }
               />
               <Route
                 path="/learner/assessment/part-two"
-                element={<AssessmentPartTwoPage />}
+                element={
+                  <SpeechServiceGate>
+                    <AssessmentPartTwoPage />
+                  </SpeechServiceGate>
+                }
               />
               <Route
                 path="/learner/assessment/complete"
@@ -564,21 +573,64 @@ export function App() {
               />
               <Route
                 path="/learner/final-assessment/part-one"
-                element={<AssessmentPartOnePage assessmentType="final" />}
+                element={
+                  <SpeechServiceGate>
+                    <AssessmentPartOnePage assessmentType="final" />
+                  </SpeechServiceGate>
+                }
               />
               <Route
                 path="/learner/final-assessment/part-two"
-                element={<AssessmentPartTwoPage assessmentType="final" />}
+                element={
+                  <SpeechServiceGate>
+                    <AssessmentPartTwoPage assessmentType="final" />
+                  </SpeechServiceGate>
+                }
               />
               <Route
                 path="/learner/final-assessment/complete"
                 element={<AssessmentPartTwoPage assessmentType="final" />}
               />
-              <Route path="/learner/lessons/1" element={<LessonOnePage />} />
-              <Route path="/learner/lessons/2" element={<LessonTwoPage />} />
-              <Route path="/learner/lessons/3" element={<LessonThreePage />} />
-              <Route path="/learner/lessons/4" element={<LessonFourPage />} />
-              <Route path="/learner/lessons/5" element={<LessonFivePage />} />
+              <Route
+                path="/learner/lessons/1"
+                element={
+                  <SpeechServiceGate>
+                    <LessonOnePage />
+                  </SpeechServiceGate>
+                }
+              />
+              <Route
+                path="/learner/lessons/2"
+                element={
+                  <SpeechServiceGate>
+                    <LessonTwoPage />
+                  </SpeechServiceGate>
+                }
+              />
+              <Route
+                path="/learner/lessons/3"
+                element={
+                  <SpeechServiceGate>
+                    <LessonThreePage />
+                  </SpeechServiceGate>
+                }
+              />
+              <Route
+                path="/learner/lessons/4"
+                element={
+                  <SpeechServiceGate>
+                    <LessonFourPage />
+                  </SpeechServiceGate>
+                }
+              />
+              <Route
+                path="/learner/lessons/5"
+                element={
+                  <SpeechServiceGate>
+                    <LessonFivePage />
+                  </SpeechServiceGate>
+                }
+              />
               <Route path="/learner/lessons/6" element={<LessonSixPage />} />
               <Route path="/learner/games" element={<LearnerGamesRoute />} />
               <Route
