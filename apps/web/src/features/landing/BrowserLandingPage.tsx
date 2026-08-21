@@ -365,7 +365,7 @@ export function BrowserLandingPage() {
               <h3>Support</h3>
               <p>Questions, ideas, or a learner ready to begin?</p>
               <Link to="/docs/accessibility">Accessibility</Link>
-              <Link to="/docs/privacy">Privacy &amp; data</Link>
+              <Link to="/docs/privacy">Privacy Policy</Link>
               <a href="mailto:hello@readirect.org">Contact ReaDirect</a>
             </div>
           </div>
