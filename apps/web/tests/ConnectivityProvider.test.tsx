@@ -22,6 +22,10 @@ vi.mock("@capacitor/core", () => ({
 
 import { ConnectivityProvider } from "../src/features/connectivity/ConnectivityProvider";
 import { useConnectivity } from "../src/features/connectivity/connectivityContext";
+import {
+  guestToken,
+  startGuestSession,
+} from "../src/features/guest/guestSession";
 
 function StateProbe() {
   const state = useConnectivity();
@@ -34,6 +38,11 @@ function StateProbe() {
 
 describe("ConnectivityProvider", () => {
   afterEach(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+    loadSessionMock.mockReset().mockReturnValue(null);
+    getStatusMock.mockReset();
+    addListenerMock.mockReset();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -81,6 +90,70 @@ describe("ConnectivityProvider", () => {
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent(
         /online.*unauthorized.*expired/,
+      ),
+    );
+  });
+
+  it("checks the public API for Guest Mode without reporting an expired session", async () => {
+    startGuestSession();
+    loadSessionMock.mockReturnValue({ token: guestToken });
+    getStatusMock.mockResolvedValue({
+      connected: true,
+      connectionType: "wifi",
+    });
+    addListenerMock.mockResolvedValue({ remove: vi.fn() });
+    const fetchMock = vi.fn().mockImplementation((_input, init) => {
+      const headers = init?.headers as Record<string, string> | undefined;
+      return Promise.resolve(
+        new Response("{}", {
+          status: headers?.Authorization ? 401 : 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <ConnectivityProvider>
+        <StateProbe />
+      </ConnectivityProvider>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        /online.*reachable.*present/,
+      ),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.readirect.org/api/experience/intro/settings",
+      expect.objectContaining({
+        headers: { Accept: "application/json" },
+      }),
+    );
+  });
+
+  it("never treats Guest Mode as an expired authenticated session", async () => {
+    startGuestSession();
+    loadSessionMock.mockReturnValue({ token: guestToken });
+    getStatusMock.mockResolvedValue({
+      connected: true,
+      connectionType: "wifi",
+    });
+    addListenerMock.mockResolvedValue({ remove: vi.fn() });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("{}", { status: 401 })),
+    );
+
+    render(
+      <ConnectivityProvider>
+        <StateProbe />
+      </ConnectivityProvider>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        /online.*unauthorized.*present/,
       ),
     );
   });
