@@ -29,6 +29,7 @@ vi.mock("motion/react", async (importOriginal) => {
 
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { HomePage } from "../src/features/home/HomePage";
+import { CreditsLicensesPage } from "../src/features/legal/CreditsLicensesPage";
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
 
 afterEach(() => {
@@ -53,6 +54,7 @@ function renderHome() {
             element={<div>Learner login route</div>}
           />
           <Route path="/staff/login" element={<div>Staff login route</div>} />
+          <Route path="/credits-licenses" element={<CreditsLicensesPage />} />
         </Routes>
       </ThemeProvider>
     </MemoryRouter>,
@@ -132,7 +134,7 @@ describe("HomePage", () => {
     ).toBeVisible();
     expect(
       within(dialog).getByRole("link", { name: "View credits and licences" }),
-    ).toHaveAttribute("href", "/credits-licenses");
+    ).toHaveAttribute("href", "/credits-licenses?returnTo=/home");
 
     fireEvent.click(
       within(dialog).getByRole("button", {
@@ -140,6 +142,19 @@ describe("HomePage", () => {
       }),
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("returns from Credits & licences to the switch-account lobby", () => {
+    renderHome();
+
+    fireEvent.click(screen.getByRole("button", { name: "About ReaDirect" }));
+    fireEvent.click(
+      screen.getByRole("link", { name: "View credits and licences" }),
+    );
+    fireEvent.click(screen.getByRole("link", { name: "Back to ReaDirect" }));
+
+    expect(screen.getByRole("main", { name: "ReaDirect home" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Let's Read!" })).toBeVisible();
   });
 
   it("shows the staff button press before opening staff login", () => {

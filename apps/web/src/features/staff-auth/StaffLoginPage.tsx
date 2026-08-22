@@ -255,7 +255,10 @@ export function StaffLoginPage() {
             <p className="staff-login-card__roles">
               For system administrators, school administrators, and teachers.
             </p>
-            <Link className="staff-login-card__legal" to="/credits-licenses">
+            <Link
+              className="staff-login-card__legal"
+              to="/credits-licenses?returnTo=/staff/login"
+            >
               Credits &amp; licenses
             </Link>
           </Surface>
