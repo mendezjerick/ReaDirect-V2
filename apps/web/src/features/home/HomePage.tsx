@@ -7,6 +7,7 @@ import { ThemeSelector } from "../theme/ThemeSelector";
 import { AboutReaDirectDialog } from "./AboutReaDirectDialog";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
 import {
+  clearLearnerSession,
   enterGuestMode,
   learnerSessionChangedEvent,
   loadLearnerSession,
@@ -94,7 +95,15 @@ export function HomePage() {
     });
   };
 
-  const openStaffLogin = () => {
+  const openSecondaryAction = () => {
+    if (identity?.kind === "learner" || identity?.kind === "guest") {
+      learnerLoginCommit.commit(() => {
+        clearLearnerSession();
+        navigate("/learner/login");
+      });
+      return;
+    }
+
     staffLoginCommit.commit(launchStaffPortal);
   };
 
@@ -142,8 +151,12 @@ export function HomePage() {
           className="home-page__staff-button"
           variant="secondary"
           size="regular"
-          committing={staffLoginCommit.committing}
-          onClick={openStaffLogin}
+          committing={
+            identity
+              ? learnerLoginCommit.committing
+              : staffLoginCommit.committing
+          }
+          onClick={openSecondaryAction}
         >
           {secondaryLabel}
         </BigButton>

@@ -4,6 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const isNativePlatform = vi.hoisted(() => vi.fn(() => false));
 const openNativeBrowser = vi.hoisted(() => vi.fn());
+const nativeSecureSessionPlugin = vi.hoisted(() => ({
+  get: vi.fn(async () => ({ value: null })),
+  set: vi.fn(async () => undefined),
+  remove: vi.fn(async () => undefined),
+}));
 
 vi.mock("@capacitor/core", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@capacitor/core")>();
@@ -11,6 +16,7 @@ vi.mock("@capacitor/core", async (importOriginal) => {
   return {
     ...actual,
     Capacitor: { ...actual.Capacitor, isNativePlatform },
+    registerPlugin: () => nativeSecureSessionPlugin,
   };
 });
 
@@ -29,12 +35,36 @@ vi.mock("motion/react", async (importOriginal) => {
 
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { HomePage } from "../src/features/home/HomePage";
+import { setNativeSessionCache } from "../src/app/nativeSecureSession";
+import { loadLearnerSession } from "../src/features/learner-auth/learnerApi";
 import { CreditsLicensesPage } from "../src/features/legal/CreditsLicensesPage";
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
+
+const learnerSession = {
+  token: "learner-token",
+  learner: {
+    id: 1,
+    learner_code: "KW000",
+    full_name: "Kristen Rhine Wright",
+    first_name: "Kristen",
+    account_purpose: "standard" as const,
+    speech_language: "en" as const,
+    school: null,
+    grade_level: null,
+    section: null,
+    achievement_keys: [],
+    progress: {
+      stage: "before_diagnostic",
+      current_required_lesson_order: null,
+    },
+  },
+  session: { expires_at: "2026-12-31T12:00:00+00:00" },
+};
 
 afterEach(() => {
   window.sessionStorage.clear();
   window.localStorage.clear();
+  setNativeSessionCache("readirect.learner-session", null);
 });
 
 beforeEach(() => {
@@ -247,6 +277,33 @@ describe("HomePage", () => {
 
       expect(screen.getByText("Staff login route")).toBeInTheDocument();
       expect(openNativeBrowser).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps learner switch account inside the native app", () => {
+    vi.useFakeTimers();
+    isNativePlatform.mockReturnValue(true);
+    setNativeSessionCache(
+      "readirect.learner-session",
+      JSON.stringify(learnerSession),
+    );
+
+    try {
+      renderHome();
+      const switchAccount = screen.getByRole("button", {
+        name: "Switch account",
+      });
+
+      fireEvent.click(switchAccount);
+      expect(switchAccount).toBeDisabled();
+
+      act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
+
+      expect(screen.getByText("Learner login route")).toBeVisible();
+      expect(openNativeBrowser).not.toHaveBeenCalled();
+      expect(loadLearnerSession()).toBeNull();
     } finally {
       vi.useRealTimers();
     }
