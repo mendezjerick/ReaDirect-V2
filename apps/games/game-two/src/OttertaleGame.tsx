@@ -71,6 +71,46 @@ const useGameInput = () => {
   return { keys, setVirtualKey };
 };
 
+function useLandscapeViewportReady() {
+  const isNative =
+    typeof window !== "undefined" &&
+    (
+      window as Window & {
+        Capacitor?: { isNativePlatform?: () => boolean };
+      }
+    ).Capacitor?.isNativePlatform?.() === true;
+  const [ready, setReady] = useState(
+    () => !isNative || window.innerWidth > window.innerHeight,
+  );
+
+  useEffect(() => {
+    if (!isNative) return;
+    let frame = 0;
+    const update = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const width = window.visualViewport?.width ?? window.innerWidth;
+        const height = window.visualViewport?.height ?? window.innerHeight;
+        setReady(width > height);
+      });
+    };
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    window.visualViewport?.addEventListener("resize", update);
+    window.screen.orientation?.addEventListener("change", update);
+    update();
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      window.visualViewport?.removeEventListener("resize", update);
+      window.screen.orientation?.removeEventListener("change", update);
+    };
+  }, [isNative]);
+
+  return ready;
+}
+
 const MobileButton = ({
   onDown,
   onUp,
@@ -82,6 +122,10 @@ const MobileButton = ({
 }) => (
   <button
     className="mobile-btn"
+    type="button"
+    aria-label={
+      label === "<" ? "Move left" : label === ">" ? "Move right" : "Jump"
+    }
     onPointerDown={(e) => {
       e.preventDefault();
       onDown();
@@ -830,10 +874,12 @@ export type OttertaleStageCompletion = {
 
 export function OttertaleGame({
   onExitToLobby,
+  onResetProgress,
   progress,
   onStageComplete,
 }: {
   onExitToLobby?: () => void;
+  onResetProgress?: () => void;
   progress?: OttertaleProgressSummary;
   onStageComplete?: (completion: OttertaleStageCompletion) => void;
 }) {
@@ -858,6 +904,10 @@ export function OttertaleGame({
     until: number;
   }>({ type: null, until: 0 });
   const [collectedLetters, setCollectedLetters] = useState<number[]>([]);
+  const gameWrapperRef = useRef<HTMLDivElement | null>(null);
+  const rendererViewportRef = useRef<HTMLDivElement | null>(null);
+  const menuDialogRef = useRef<HTMLElement | null>(null);
+  const landscapeViewportReady = useLandscapeViewportReady();
 
   // Fixed Type Mismatches
   const [coins, setCoins] = useState<any[]>(stageConfig.coins);
@@ -868,6 +918,21 @@ export function OttertaleGame({
   const isPaused = !!quiz || isMenuPaused || gameState !== "playing" || hasWon;
 
   const { keys, setVirtualKey } = useGameInput();
+
+  useEffect(() => {
+    if (!isMenuPaused) return;
+    const firstAction = menuDialogRef.current?.querySelector<HTMLButtonElement>(
+      "button:not([disabled])",
+    );
+    firstAction?.focus({ preventScroll: true });
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setIsMenuPaused(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isMenuPaused]);
 
   const bgmRef = useRef<HTMLAudioElement | null>(null);
 
@@ -1127,53 +1192,28 @@ export function OttertaleGame({
     );
   }
 
+  if (!landscapeViewportReady) {
+    return (
+      <div className="game-two-ottertale game-two__asset-loading" role="status">
+        Preparing the landscape game view…
+      </div>
+    );
+  }
+
   return (
     <div className="game-two-ottertale">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-        .game-two-ottertale { background-color: #111; overflow: hidden; font-family: 'Press Start 2P', monospace; }
-        
-        .game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .game-wrapper canvas { max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
-        .controls-container { position: fixed; bottom: 30px; left: 0; width: 100vw; padding: 0 40px; box-sizing: border-box; display: flex; justify-content: space-between; pointer-events: none; z-index: 100; }
-        @media (hover: hover) and (pointer: fine) { .controls-container { display: none !important; } }
-        .control-group { pointer-events: auto; display: flex; gap: 20px; }
-        
-        .mobile-btn { 
-          width: 64px; height: 64px; 
-          background-color: rgba(255, 255, 255, 0.4); 
-          border: 4px solid #fff; border-radius: 0; 
-          color: #000; font-size: 10px; font-weight: bold; 
-          font-family: 'Press Start 2P', monospace;
-          user-select: none; touch-action: none; display: flex; align-items: center; justify-content: center; cursor: pointer; 
-          -webkit-tap-highlight-color: transparent; backdrop-filter: blur(4px); 
-          box-shadow: 4px 4px 0px #000; 
-        }
-        .mobile-btn:active { background-color: rgba(255, 255, 255, 0.8); transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000; }
-        
-        @media (orientation: portrait) {
-          .controls-container { bottom: 60px; padding: 0 20px; }
-          .mobile-btn { width: 75px; height: 75px; font-size: 12px; }
-          .game-wrapper { align-items: flex-start; padding-top: 10vh; box-sizing: border-box; }
-        }
-
-        button.retro-btn {
-          font-family: 'Press Start 2P', monospace;
-          text-transform: uppercase;
-          border-radius: 0 !important;
-          border: 4px solid #fff !important;
-          box-shadow: 6px 6px 0px #000 !important;
-          transition: transform 0.1s, box-shadow 0.1s;
-        }
-        button.retro-btn:active {
-          transform: translate(3px, 3px) !important;
-          box-shadow: 3px 3px 0px #000 !important;
-        }
-      `}</style>
-
-      <div className="game-wrapper">
-        <Application width={800} height={600} background={0x808080}>
+      <div ref={gameWrapperRef} className="game-wrapper">
+        <div
+          ref={rendererViewportRef}
+          className="game-wrapper__renderer-viewport"
+          aria-hidden="true"
+        />
+        <Application
+          width={800}
+          height={600}
+          background={0x808080}
+          resizeTo={rendererViewportRef}
+        >
           <pixiContainer x={-cameraX} y={0}>
             <pixiTilingSprite
               texture={assets.groundTop}
@@ -1332,24 +1372,15 @@ export function OttertaleGame({
         !isMenuPaused &&
         !hasWon && (
           <button
-            className="retro-btn"
+            className="retro-btn ottertale-menu-button"
+            type="button"
+            aria-label="Open OtterTale menu"
             onClick={() => {
               playSFX("tap");
               setIsMenuPaused(true);
             }}
-            style={{
-              position: "fixed",
-              top: "20px",
-              right: "20px",
-              padding: "10px 16px",
-              fontSize: "12px",
-              backgroundColor: "#333",
-              color: "white",
-              cursor: "pointer",
-              zIndex: 100,
-            }}
           >
-            PAUSE
+            MENU
           </button>
         )}
 
@@ -1380,6 +1411,7 @@ export function OttertaleGame({
       {/* --- Lobby Screen --- */}
       {gameState === "lobby" && (
         <div
+          className="ottertale-screen ottertale-lobby-screen"
           style={{
             position: "fixed",
             top: 0,
@@ -1469,6 +1501,7 @@ export function OttertaleGame({
       {/* --- Stage Select Screen --- */}
       {gameState === "stageSelect" && (
         <div
+          className="ottertale-screen ottertale-stage-select-screen"
           style={{
             position: "fixed",
             top: 0,
@@ -1545,6 +1578,8 @@ export function OttertaleGame({
       {/* --- Pause Menu --- */}
       {isMenuPaused && (
         <div
+          className="ottertale-screen ottertale-pause-screen"
+          role="presentation"
           style={{
             position: "fixed",
             top: 0,
@@ -1560,54 +1595,79 @@ export function OttertaleGame({
             zIndex: 150,
           }}
         >
-          <h2
-            style={{
-              fontSize: "32px",
-              marginBottom: "40px",
-              textShadow: "4px 4px 0px #000",
-            }}
+          <section
+            ref={menuDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ottertale-menu-title"
+            className="ottertale-menu-drawer"
           >
-            PAUSED
-          </h2>
-          <div
-            style={{ display: "flex", gap: "20px", flexDirection: "column" }}
-          >
-            <button
-              className="retro-btn"
-              onClick={() => {
-                playSFX("tap");
-                setIsMenuPaused(false);
-              }}
+            <h2
+              id="ottertale-menu-title"
               style={{
-                padding: "16px 24px",
-                fontSize: "14px",
-                backgroundColor: "#2196F3",
-                color: "white",
-                cursor: "pointer",
+                fontSize: "clamp(24px, 5vw, 36px)",
+                marginBottom: "24px",
+                textShadow: "4px 4px 0px #000",
               }}
             >
-              RESUME
-            </button>
-            <button
-              className="retro-btn"
-              onClick={() => handleExitToMenu("lobby")}
-              style={{
-                padding: "16px 24px",
-                fontSize: "14px",
-                backgroundColor: "#f44336",
-                color: "white",
-                cursor: "pointer",
-              }}
-            >
-              QUIT
-            </button>
-          </div>
+              MENU
+            </h2>
+            <p className="ottertale-menu-section-label">GAME</p>
+            <div className="ottertale-menu-actions">
+              <button
+                className="retro-btn"
+                onClick={() => {
+                  playSFX("tap");
+                  setIsMenuPaused(false);
+                }}
+                style={{
+                  padding: "14px 20px",
+                  fontSize: "clamp(14px, 2.2vw, 18px)",
+                  backgroundColor: "#2196F3",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+              >
+                RESUME
+              </button>
+              <button
+                className="retro-btn"
+                onClick={() => handleExitToMenu("lobby")}
+                style={{
+                  padding: "14px 20px",
+                  fontSize: "clamp(14px, 2.2vw, 18px)",
+                  backgroundColor: "#f44336",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+              >
+                BACK TO GAME LOBBY
+              </button>
+              {onResetProgress && (
+                <button
+                  className="retro-btn ottertale-menu-danger"
+                  type="button"
+                  onClick={onResetProgress}
+                  style={{
+                    padding: "14px 20px",
+                    fontSize: "clamp(14px, 2.2vw, 18px)",
+                    backgroundColor: "#7f241b",
+                    color: "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  RESET OTTERTALE PROGRESS
+                </button>
+              )}
+            </div>
+          </section>
         </div>
       )}
 
       {/* --- Quiz Overlay --- */}
       {quiz && (
         <div
+          className="ottertale-screen ottertale-quiz-screen"
           style={{
             position: "fixed",
             top: 0,
@@ -1663,6 +1723,7 @@ export function OttertaleGame({
       {/* --- Victory Screen / Performance Review --- */}
       {hasWon && (
         <div
+          className="ottertale-screen ottertale-victory-screen"
           style={{
             position: "fixed",
             top: 0,
@@ -1814,6 +1875,7 @@ export function OttertaleGame({
       {/* --- Lose Screen --- */}
       {isDead && (
         <div
+          className="ottertale-screen ottertale-lose-screen"
           style={{
             position: "fixed",
             top: 0,

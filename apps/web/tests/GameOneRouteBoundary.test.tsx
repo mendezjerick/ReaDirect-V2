@@ -89,9 +89,14 @@ describe("Game One route boundary", () => {
       within(skipDialog).getByRole("button", { name: "Skip Tutorial" }),
     );
 
-    const exitButton = screen.getByRole("button", { name: "Exit" });
-    await waitFor(() => expect(exitButton).toBeEnabled());
-    fireEvent.click(exitButton);
+    const menuButton = screen.getByRole("button", { name: "Open game menu" });
+    await waitFor(() => expect(menuButton).toBeEnabled());
+    fireEvent.click(menuButton);
+    expect(screen.getByRole("dialog", { name: "Menu" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Resume" })).toBeVisible();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Back to Game Lobby" }),
+    );
     const exitDialog = await screen.findByRole("dialog", {
       name: "Exit the minigame?",
     });
