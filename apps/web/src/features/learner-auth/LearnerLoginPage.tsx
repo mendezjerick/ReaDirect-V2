@@ -244,7 +244,10 @@ export function LearnerLoginPage() {
             >
               Back to home
             </BigButton>
-            <Link className="learner-login-card__legal" to="/credits-licenses">
+            <Link
+              className="learner-login-card__legal"
+              to="/credits-licenses?returnTo=/learner/login"
+            >
               Credits &amp; licenses
             </Link>
           </Surface>

@@ -1,15 +1,22 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
 import { CreditsLicensesPage } from "../src/features/legal/CreditsLicensesPage";
 
-function renderCredits() {
+function renderCredits(returnTo = "/home") {
   return render(
-    <MemoryRouter initialEntries={["/credits-licenses"]}>
+    <MemoryRouter
+      initialEntries={[
+        `/credits-licenses?returnTo=${encodeURIComponent(returnTo)}`,
+      ]}
+    >
       <Routes>
         <Route path="/credits-licenses" element={<CreditsLicensesPage />} />
         <Route path="/home" element={<p>Home route</p>} />
+        <Route path="/landing" element={<p>Landing route</p>} />
+        <Route path="/learner/login" element={<p>Learner login route</p>} />
+        <Route path="/staff/login" element={<p>Staff login route</p>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -17,7 +24,7 @@ function renderCredits() {
 
 describe("CreditsLicensesPage", () => {
   it("provides public asset, voice, data, and software acknowledgements", () => {
-    renderCredits();
+    const initialRender = renderCredits();
 
     expect(screen.getByRole("banner")).toHaveClass("public-info-shell__header");
     expect(screen.getByRole("contentinfo")).toHaveClass(
@@ -52,8 +59,30 @@ describe("CreditsLicensesPage", () => {
     expect(
       screen.getByRole("link", { name: "OpenAI Whisper" }),
     ).toHaveAttribute("href", "https://github.com/openai/whisper");
-    expect(
-      screen.getAllByRole("link", { name: /Back to ReaDirect/i })[0],
-    ).toHaveAttribute("href", "/landing");
+    initialRender.unmount();
+    for (const name of [
+      "ReaDirect landing page",
+      "Back to ReaDirect",
+      /Return to landing/i,
+    ]) {
+      const { unmount } = renderCredits();
+      fireEvent.click(screen.getByRole("link", { name }));
+      expect(screen.getByText("Home route")).toBeVisible();
+      unmount();
+    }
+  });
+
+  it("returns to the source lobby or login route", () => {
+    for (const [returnTo, destination] of [
+      ["/home", "Home route"],
+      ["/landing", "Landing route"],
+      ["/learner/login", "Learner login route"],
+      ["/staff/login", "Staff login route"],
+    ]) {
+      const { unmount } = renderCredits(returnTo);
+      fireEvent.click(screen.getByRole("link", { name: "Back to ReaDirect" }));
+      expect(screen.getByText(destination)).toBeVisible();
+      unmount();
+    }
   });
 });

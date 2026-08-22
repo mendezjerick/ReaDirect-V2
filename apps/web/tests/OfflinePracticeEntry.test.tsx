@@ -121,7 +121,7 @@ describe("Native learner entry", () => {
     expect(screen.getByText("Offline home")).toBeVisible();
   });
 
-  it("provides the public privacy policy from the native intro", () => {
+  it("places the public privacy policy below the native intro action", () => {
     connectivityMock.mockReturnValue({
       device: "online",
       api: "reachable",
@@ -132,12 +132,18 @@ describe("Native learner entry", () => {
 
     renderEntry();
 
+    const privacyPolicy = screen.getByRole("link", {
+      name: "Privacy Policy",
+    });
+
+    expect(privacyPolicy).toHaveAttribute(
+      "href",
+      "https://readirect.org/docs/privacy",
+    );
+    expect(privacyPolicy).toHaveAttribute("target", "_blank");
     expect(
-      screen.getByRole("link", { name: "Privacy Policy" }),
-    ).toHaveAttribute("href", "https://readirect.org/docs/privacy");
-    expect(
-      screen.getByRole("link", { name: "Privacy Policy" }),
-    ).toHaveAttribute("target", "_blank");
+      document.querySelector(".intro-page__continue-wrap"),
+    ).toContainElement(privacyPolicy);
   });
 
   it("does not send a session into online learning when the API is unavailable", async () => {
