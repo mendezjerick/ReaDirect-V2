@@ -7,6 +7,8 @@ import "./browser-landing.css";
 
 // A verified ReaDirect Play Store listing is not configured yet.
 const PLAY_STORE_URL: string | null = null;
+const APK_DOWNLOAD_URL =
+  "https://github.com/mendezjerick/ReaDirect-V2/releases/latest/download/ReaDirect.apk";
 
 function BrandMark() {
   return (
@@ -163,11 +165,11 @@ export function BrowserLandingPage() {
               </a>
               <a
                 className="landing-button landing-button--mist"
-                href={tapToContinueHref}
+                href={APK_DOWNLOAD_URL}
                 target="_blank"
                 rel="noreferrer"
               >
-                Use in Browser
+                Download APK
               </a>
               <PlayStoreStatus
                 className="landing-button landing-button--ghost"

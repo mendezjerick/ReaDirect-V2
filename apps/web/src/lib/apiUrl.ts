@@ -1,4 +1,8 @@
-import { productionApiOriginForHostname } from "../deployment/productionDomains";
+import { Capacitor } from "@capacitor/core";
+import {
+  PRODUCTION_API_ORIGIN,
+  productionApiOriginForHostname,
+} from "../deployment/productionDomains";
 import { maybeHandleGuestApiRequest } from "../features/guest/guestApi";
 
 const API_PATH_PREFIX = "/api";
@@ -22,6 +26,24 @@ function normalizeOrigin(origin: string): string {
 
 function isAbsoluteUrl(value: string): boolean {
   return /^[a-z][a-z\d+.-]*:/i.test(value) || value.startsWith("//");
+}
+
+interface RuntimeApiOriginInput {
+  configuredOrigin: string;
+  hostname: string;
+  native: boolean;
+}
+
+export function runtimeApiOrigin({
+  configuredOrigin,
+  hostname,
+  native,
+}: RuntimeApiOriginInput): string {
+  if (native) return PRODUCTION_API_ORIGIN;
+
+  const configured = normalizeOrigin(configuredOrigin);
+  if (configured) return configured;
+  return productionApiOriginForHostname(hostname);
 }
 
 /**
@@ -49,10 +71,11 @@ export function resolveApiUrl(path: string, apiOrigin = ""): string {
 }
 
 export function apiUrl(path: string): string {
-  const configuredOrigin = import.meta.env.VITE_API_ORIGIN ?? "";
-  const runtimeOrigin =
-    configuredOrigin ||
-    productionApiOriginForHostname(globalThis.location?.hostname ?? "");
+  const runtimeOrigin = runtimeApiOrigin({
+    configuredOrigin: import.meta.env.VITE_API_ORIGIN ?? "",
+    hostname: globalThis.location?.hostname ?? "",
+    native: Capacitor.isNativePlatform(),
+  });
 
   return resolveApiUrl(path, runtimeOrigin);
 }

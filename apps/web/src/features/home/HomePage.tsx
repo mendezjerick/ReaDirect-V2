@@ -17,6 +17,10 @@ import {
   type StaffSession,
 } from "../staff-auth/staffApi";
 import { staffHomeRoute } from "../staff-auth/staffRoutes";
+import {
+  createStaffPortalRuntime,
+  openStaffPortal,
+} from "../staff-auth/staffPortal";
 
 type LandingIdentity =
   | { kind: "learner" }
@@ -44,6 +48,7 @@ export function HomePage() {
   const guestLoginCommit = useButtonCommit();
   const staffLoginCommit = useButtonCommit();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [staffPortalError, setStaffPortalError] = useState(false);
   const [identity, setIdentity] =
     useState<LandingIdentity>(readLandingIdentity);
 
@@ -82,8 +87,15 @@ export function HomePage() {
     learnerLoginCommit.commit(() => navigate(destination));
   };
 
+  const launchStaffPortal = () => {
+    setStaffPortalError(false);
+    void openStaffPortal(createStaffPortalRuntime(navigate)).catch(() => {
+      setStaffPortalError(true);
+    });
+  };
+
   const openStaffLogin = () => {
-    staffLoginCommit.commit(() => navigate("/staff/login"));
+    staffLoginCommit.commit(launchStaffPortal);
   };
 
   const openGuestLogin = () => {
@@ -135,6 +147,18 @@ export function HomePage() {
         >
           {secondaryLabel}
         </BigButton>
+
+        {staffPortalError ? (
+          <div role="alert" className="home-page__staff-portal-error">
+            <p>
+              We couldn't open staff access. Check your connection and try
+              again.
+            </p>
+            <BigButton size="regular" onClick={launchStaffPortal}>
+              Retry
+            </BigButton>
+          </div>
+        ) : null}
       </section>
 
       <button
