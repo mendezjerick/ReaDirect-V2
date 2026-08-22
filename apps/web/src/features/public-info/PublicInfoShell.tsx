@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import type { MouseEvent, ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { PixelIcon } from "../../components/ui/PixelIcon";
 
 import "./public-info-shell.css";
@@ -7,12 +7,23 @@ import "./public-info-shell.css";
 type PublicInfoShellProps = {
   children: ReactNode;
   className?: string;
+  returnTo?: string;
 };
 
-export function PublicInfoShell({ children, className }: PublicInfoShellProps) {
+export function PublicInfoShell({
+  children,
+  className,
+  returnTo = "/landing",
+}: PublicInfoShellProps) {
+  const navigate = useNavigate();
   const shellClassName = ["public-info-shell", className]
     .filter(Boolean)
     .join(" ");
+
+  const returnToSource = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    navigate(returnTo, { replace: true });
+  };
 
   return (
     <div className={shellClassName} data-route-focus tabIndex={-1}>
@@ -20,8 +31,9 @@ export function PublicInfoShell({ children, className }: PublicInfoShellProps) {
         <div className="public-info-shell__header-inner">
           <Link
             className="public-info-shell__brand"
-            to="/landing"
+            to={returnTo}
             aria-label="ReaDirect landing page"
+            onClick={returnToSource}
           >
             <img
               className="public-info-shell__mark"
@@ -33,8 +45,9 @@ export function PublicInfoShell({ children, className }: PublicInfoShellProps) {
           </Link>
           <Link
             className="public-info-shell__back"
-            to="/landing"
+            to={returnTo}
             aria-label="Back to ReaDirect"
+            onClick={returnToSource}
           >
             <PixelIcon name="arrow-left" />
             <span className="public-info-shell__back-full" aria-hidden="true">
@@ -53,7 +66,7 @@ export function PublicInfoShell({ children, className }: PublicInfoShellProps) {
         <div className="public-info-shell__footer-inner">
           <span>© {new Date().getFullYear()} ReaDirect</span>
           <span>Public guidance for learners, families, and schools.</span>
-          <Link to="/landing">
+          <Link to={returnTo} onClick={returnToSource}>
             Return to landing <PixelIcon name="arrow-up" />
           </Link>
         </div>

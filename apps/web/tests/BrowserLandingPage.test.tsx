@@ -63,7 +63,7 @@ describe("BrowserLandingPage", () => {
     );
     expect(
       screen.getByRole("link", { name: "Credits & licenses" }),
-    ).toHaveAttribute("href", "/credits-licenses");
+    ).toHaveAttribute("href", "/credits-licenses?returnTo=/landing");
     expect(
       screen.getByRole("progressbar", { name: /page reading progress/i }),
     ).toHaveAttribute("aria-valuenow", "0");
