@@ -1,6 +1,29 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const isNativePlatform = vi.hoisted(() => vi.fn(() => false));
+const openNativeBrowser = vi.hoisted(() => vi.fn());
+
+vi.mock("@capacitor/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@capacitor/core")>();
+
+  return {
+    ...actual,
+    Capacitor: { ...actual.Capacitor, isNativePlatform },
+  };
+});
+
+vi.mock("@capacitor/browser", () => ({
+  Browser: { open: openNativeBrowser },
+}));
 
 vi.mock("motion/react", async (importOriginal) => {
   const motion = await importOriginal<typeof import("motion/react")>();
@@ -18,6 +41,12 @@ import { ThemeProvider } from "../src/features/theme/ThemeProvider";
 afterEach(() => {
   window.sessionStorage.clear();
   window.localStorage.clear();
+});
+
+beforeEach(() => {
+  isNativePlatform.mockReturnValue(false);
+  openNativeBrowser.mockReset();
+  openNativeBrowser.mockResolvedValue(undefined);
 });
 
 function renderHome() {
@@ -138,6 +167,38 @@ describe("HomePage", () => {
 
       act(() => vi.advanceTimersByTime(1));
       expect(screen.getByText("Staff login route")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("opens the production staff portal from native home instead of the embedded login route", async () => {
+    isNativePlatform.mockReturnValue(true);
+    renderHome();
+    const staffButton = screen.getByRole("button", { name: "Staff login" });
+    fireEvent.click(staffButton);
+
+    expect(staffButton).toBeDisabled();
+    expect(screen.queryByText("Staff login route")).not.toBeInTheDocument();
+
+    await waitFor(() =>
+      expect(openNativeBrowser).toHaveBeenCalledWith({
+        url: "https://app.readirect.org/staff/login",
+      }),
+    );
+    expect(screen.queryByText("Staff login route")).not.toBeInTheDocument();
+  });
+
+  it("keeps browser staff login on the existing SPA route", () => {
+    vi.useFakeTimers();
+
+    try {
+      renderHome();
+      fireEvent.click(screen.getByRole("button", { name: "Staff login" }));
+      act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
+
+      expect(screen.getByText("Staff login route")).toBeInTheDocument();
+      expect(openNativeBrowser).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }

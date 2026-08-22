@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { PixelIcon } from "../../components/ui/PixelIcon";
@@ -17,6 +19,7 @@ import {
   type StaffSession,
 } from "../staff-auth/staffApi";
 import { staffHomeRoute } from "../staff-auth/staffRoutes";
+import { openStaffPortal } from "../staff-auth/staffPortal";
 
 type LandingIdentity =
   | { kind: "learner" }
@@ -83,7 +86,15 @@ export function HomePage() {
   };
 
   const openStaffLogin = () => {
-    staffLoginCommit.commit(() => navigate("/staff/login"));
+    staffLoginCommit.commit(() => {
+      void openStaffPortal({
+        native: Capacitor.isNativePlatform(),
+        openNativeBrowser: async (url) => {
+          await Browser.open({ url });
+        },
+        navigate,
+      });
+    });
   };
 
   const openGuestLogin = () => {
