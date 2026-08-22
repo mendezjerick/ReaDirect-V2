@@ -22,6 +22,38 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = (Resolve-Path -LiteralPath $PSScriptRoot).Path
+$sharedLaunchDetailsPath = Join-Path $repositoryRoot 'launch-details.example.ps1'
+$localLaunchDetailsPath = Join-Path $repositoryRoot 'launch-details.local.ps1'
+$launchDetailsPath = if (Test-Path -LiteralPath $localLaunchDetailsPath) {
+    $localLaunchDetailsPath
+}
+else {
+    $sharedLaunchDetailsPath
+}
+
+if (-not (Test-Path -LiteralPath $launchDetailsPath)) {
+    throw "Launch details were not found at '$launchDetailsPath'."
+}
+
+$launchDetails = & $launchDetailsPath
+$asrDevice = [string]$launchDetails.AsrDevice
+$asrComputeType = [string]$launchDetails.AsrComputeType
+$ttsDevice = [string]$launchDetails.TtsDevice
+$gpuCoordinationEnabled = [string]$launchDetails.GpuCoordinationEnabled
+
+if ($asrDevice -notin @('auto', 'cpu', 'cuda')) {
+    throw "AsrDevice in '$launchDetailsPath' must be auto, cpu, or cuda."
+}
+if ([string]::IsNullOrWhiteSpace($asrComputeType)) {
+    throw "AsrComputeType in '$launchDetailsPath' cannot be empty."
+}
+if ($ttsDevice -notin @('auto', 'cpu', 'cuda')) {
+    throw "TtsDevice in '$launchDetailsPath' must be auto, cpu, or cuda."
+}
+if ($gpuCoordinationEnabled -notin @('true', 'false')) {
+    throw "GpuCoordinationEnabled in '$launchDetailsPath' must be true or false."
+}
+
 $runtimeDirectory = Join-Path $repositoryRoot '.runtime\production-models'
 $logDirectory = Join-Path $runtimeDirectory 'logs'
 $manifestPath = Join-Path $runtimeDirectory 'services.json'
@@ -339,8 +371,14 @@ try {
     Write-Host ''
     Write-Host 'Starting ASR...' -ForegroundColor Cyan
     $previousAsrToken = [Environment]::GetEnvironmentVariable('ASR_SERVICE_TOKEN', 'Process')
+    $previousAsrDevice = [Environment]::GetEnvironmentVariable('MU_DEVICE', 'Process')
+    $previousAsrComputeType = [Environment]::GetEnvironmentVariable('MU_COMPUTE_TYPE', 'Process')
+    $previousAsrGpuCoordination = [Environment]::GetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', 'Process')
     try {
         [Environment]::SetEnvironmentVariable('ASR_SERVICE_TOKEN', $secrets.AsrServiceToken, 'Process')
+        [Environment]::SetEnvironmentVariable('MU_DEVICE', $asrDevice, 'Process')
+        [Environment]::SetEnvironmentVariable('MU_COMPUTE_TYPE', $asrComputeType, 'Process')
+        [Environment]::SetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', $gpuCoordinationEnabled, 'Process')
         $asr = Start-ManagedProcess `
             -Name 'ASR' `
             -Executable $asrPython `
@@ -356,14 +394,21 @@ try {
     }
     finally {
         [Environment]::SetEnvironmentVariable('ASR_SERVICE_TOKEN', $previousAsrToken, 'Process')
+        [Environment]::SetEnvironmentVariable('MU_DEVICE', $previousAsrDevice, 'Process')
+        [Environment]::SetEnvironmentVariable('MU_COMPUTE_TYPE', $previousAsrComputeType, 'Process')
+        [Environment]::SetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', $previousAsrGpuCoordination, 'Process')
     }
     Wait-ForSpeechService -Record $asr -ReadinessPath '/ready'
     Write-Host "  ASR ready on localhost:$AsrPort" -ForegroundColor Green
 
     Write-Host 'Starting TTS...' -ForegroundColor Cyan
     $previousTtsToken = [Environment]::GetEnvironmentVariable('TTS_SERVICE_TOKEN', 'Process')
+    $previousTtsDevice = [Environment]::GetEnvironmentVariable('READIRECT_TTS_DEVICE', 'Process')
+    $previousTtsGpuCoordination = [Environment]::GetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', 'Process')
     try {
         [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', $secrets.TtsServiceToken, 'Process')
+        [Environment]::SetEnvironmentVariable('READIRECT_TTS_DEVICE', $ttsDevice, 'Process')
+        [Environment]::SetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', $gpuCoordinationEnabled, 'Process')
         $tts = Start-ManagedProcess `
             -Name 'TTS' `
             -Executable $ttsPython `
@@ -379,6 +424,8 @@ try {
     }
     finally {
         [Environment]::SetEnvironmentVariable('TTS_SERVICE_TOKEN', $previousTtsToken, 'Process')
+        [Environment]::SetEnvironmentVariable('READIRECT_TTS_DEVICE', $previousTtsDevice, 'Process')
+        [Environment]::SetEnvironmentVariable('READIRECT_GPU_COORDINATION_ENABLED', $previousTtsGpuCoordination, 'Process')
     }
     Wait-ForSpeechService -Record $tts -ReadinessPath '/health'
     Write-Host "  TTS ready on localhost:$TtsPort" -ForegroundColor Green

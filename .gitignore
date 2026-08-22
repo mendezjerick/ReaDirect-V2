@@ -136,6 +136,7 @@ apps/web/public/assets/live2d/core/
 
 # Local runtime files
 .runtime/
+/launch-details.local.ps1
 *.log
 *.pid
 

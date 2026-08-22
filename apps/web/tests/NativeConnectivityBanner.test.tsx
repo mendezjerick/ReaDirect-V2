@@ -97,4 +97,45 @@ describe("NativeConnectivityBanner", () => {
     );
     expect(screen.queryByText("No Internet Connection")).toBeNull();
   });
+
+  it("does not call a present Guest Mode session expired", () => {
+    connectivityMock.mockReturnValue({
+      device: "online",
+      api: "unauthorized",
+      learnerSession: "present",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/learner/dashboard"]}>
+        <NativeConnectivityBanner />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Online Learning is unavailable right now.",
+    );
+    expect(screen.queryByText(/session has expired/i)).toBeNull();
+  });
+
+  it("shows session expiry only for an expired authenticated session", () => {
+    connectivityMock.mockReturnValue({
+      device: "online",
+      api: "unauthorized",
+      learnerSession: "expired",
+      lastCheckedAt: null,
+      refresh: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/learner/dashboard"]}>
+        <NativeConnectivityBanner />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Your online session has expired. Sign in again to continue.",
+    );
+  });
 });

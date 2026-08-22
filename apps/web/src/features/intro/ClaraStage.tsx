@@ -1,4 +1,5 @@
 import {
+  Component,
   lazy,
   Suspense,
   useCallback,
@@ -7,6 +8,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "motion/react";
@@ -40,6 +42,25 @@ interface ClaraStageProps {
 
 export type ClaraStageLoadState = "loading" | "ready" | "error";
 type ClaraStageVisualState = ClaraStageLoadState | "revealing";
+
+class ClaraRuntimeBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onError();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 export function ClaraStage({
   emotion = "default",
@@ -244,13 +265,17 @@ export function ClaraStage({
               onError={() => handleLoadStateChange("error")}
             />
           ) : effectiveDisplayMode === "live2d" ? (
-            <Suspense fallback={null}>
-              <ClaraLive2DCanvas
-                reduceMotion={Boolean(reduceMotion)}
-                presentation={presentation}
-                onStateChange={handleLoadStateChange}
-              />
-            </Suspense>
+            <ClaraRuntimeBoundary
+              onError={() => handleLoadStateChange("error")}
+            >
+              <Suspense fallback={null}>
+                <ClaraLive2DCanvas
+                  reduceMotion={Boolean(reduceMotion)}
+                  presentation={presentation}
+                  onStateChange={handleLoadStateChange}
+                />
+              </Suspense>
+            </ClaraRuntimeBoundary>
           ) : null}
         </div>
         <span className="visually-hidden" role="status">
