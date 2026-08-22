@@ -1,5 +1,20 @@
 apply plugin: 'com.android.application'
 
+def releaseKeystorePath = System.getenv('READIRECT_KEYSTORE_PATH')
+def releaseKeystorePassword = System.getenv('READIRECT_KEYSTORE_PASSWORD')
+def releaseKeyAlias = System.getenv('READIRECT_KEY_ALIAS')
+def releaseKeyPassword = System.getenv('READIRECT_KEY_PASSWORD')
+def releaseSigningReady = [
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+].every { it?.trim() }
+
+if (gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') } && !releaseSigningReady) {
+    throw new GradleException('Release signing requires READIRECT_KEYSTORE_PATH, READIRECT_KEYSTORE_PASSWORD, READIRECT_KEY_ALIAS, and READIRECT_KEY_PASSWORD.')
+}
+
 android {
     namespace = "com.readirect.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +31,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (releaseSigningReady) {
+                storeFile file(releaseKeystorePath)
+                storePassword releaseKeystorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
