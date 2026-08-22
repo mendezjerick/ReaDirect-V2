@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { StaffLoginPage } from "./StaffLoginPage";
-import { openStaffPortal } from "./staffPortal";
+import { createStaffPortalRuntime, openStaffPortal } from "./staffPortal";
 
 const browserOpenError =
   "We couldn't open the staff portal. Check your connection and try again.";
@@ -19,13 +18,7 @@ export function NativeStaffLoginRedirect() {
     setError(null);
 
     try {
-      await openStaffPortal({
-        native,
-        openNativeBrowser: async (url) => {
-          await Browser.open({ url });
-        },
-        navigate,
-      });
+      await openStaffPortal(createStaffPortalRuntime(navigate));
 
       if (native) {
         navigate("/home", { replace: true });

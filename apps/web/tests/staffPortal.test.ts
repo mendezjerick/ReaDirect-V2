@@ -1,9 +1,36 @@
 import { describe, expect, it, vi } from "vitest";
 
+const isNativePlatform = vi.hoisted(() => vi.fn(() => false));
+const openNativeBrowser = vi.hoisted(() => vi.fn());
+
+vi.mock("@capacitor/core", () => ({
+  Capacitor: { isNativePlatform },
+}));
+
+vi.mock("@capacitor/browser", () => ({
+  Browser: { open: openNativeBrowser },
+}));
+
 import {
   STAFF_PORTAL_URL,
+  createStaffPortalRuntime,
   openStaffPortal,
 } from "../src/features/staff-auth/staffPortal";
+
+describe("createStaffPortalRuntime", () => {
+  it("adapts the official Browser plugin for a native staff portal launch", async () => {
+    const navigate = vi.fn();
+    isNativePlatform.mockReturnValue(true);
+    openNativeBrowser.mockResolvedValue(undefined);
+
+    await openStaffPortal(createStaffPortalRuntime(navigate));
+
+    expect(openNativeBrowser).toHaveBeenCalledWith({
+      url: "https://app.readirect.org/staff/login",
+    });
+    expect(navigate).not.toHaveBeenCalled();
+  });
+});
 
 describe("openStaffPortal", () => {
   it("opens the production staff portal in the native browser without SPA navigation", async () => {

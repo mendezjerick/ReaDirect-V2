@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Browser } from "@capacitor/browser";
-import { Capacitor } from "@capacitor/core";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { PixelIcon } from "../../components/ui/PixelIcon";
@@ -19,7 +17,10 @@ import {
   type StaffSession,
 } from "../staff-auth/staffApi";
 import { staffHomeRoute } from "../staff-auth/staffRoutes";
-import { openStaffPortal } from "../staff-auth/staffPortal";
+import {
+  createStaffPortalRuntime,
+  openStaffPortal,
+} from "../staff-auth/staffPortal";
 
 type LandingIdentity =
   | { kind: "learner" }
@@ -47,6 +48,7 @@ export function HomePage() {
   const guestLoginCommit = useButtonCommit();
   const staffLoginCommit = useButtonCommit();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [staffPortalError, setStaffPortalError] = useState(false);
   const [identity, setIdentity] =
     useState<LandingIdentity>(readLandingIdentity);
 
@@ -85,16 +87,15 @@ export function HomePage() {
     learnerLoginCommit.commit(() => navigate(destination));
   };
 
-  const openStaffLogin = () => {
-    staffLoginCommit.commit(() => {
-      void openStaffPortal({
-        native: Capacitor.isNativePlatform(),
-        openNativeBrowser: async (url) => {
-          await Browser.open({ url });
-        },
-        navigate,
-      });
+  const launchStaffPortal = () => {
+    setStaffPortalError(false);
+    void openStaffPortal(createStaffPortalRuntime(navigate)).catch(() => {
+      setStaffPortalError(true);
     });
+  };
+
+  const openStaffLogin = () => {
+    staffLoginCommit.commit(launchStaffPortal);
   };
 
   const openGuestLogin = () => {
@@ -146,6 +147,18 @@ export function HomePage() {
         >
           {secondaryLabel}
         </BigButton>
+
+        {staffPortalError ? (
+          <div role="alert" className="home-page__staff-portal-error">
+            <p>
+              We couldn't open staff access. Check your connection and try
+              again.
+            </p>
+            <BigButton size="regular" onClick={launchStaffPortal}>
+              Retry
+            </BigButton>
+          </div>
+        ) : null}
       </section>
 
       <button

@@ -1,11 +1,4 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -172,21 +165,61 @@ describe("HomePage", () => {
     }
   });
 
-  it("opens the production staff portal from native home instead of the embedded login route", async () => {
+  it("waits for the full staff button commit before opening the native browser", async () => {
+    vi.useFakeTimers();
     isNativePlatform.mockReturnValue(true);
-    renderHome();
-    const staffButton = screen.getByRole("button", { name: "Staff login" });
-    fireEvent.click(staffButton);
 
-    expect(staffButton).toBeDisabled();
-    expect(screen.queryByText("Staff login route")).not.toBeInTheDocument();
+    try {
+      renderHome();
+      fireEvent.click(screen.getByRole("button", { name: "Staff login" }));
 
-    await waitFor(() =>
+      act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS - 1));
+      expect(openNativeBrowser).not.toHaveBeenCalled();
+
+      await act(async () => {
+        vi.advanceTimersByTime(1);
+        await Promise.resolve();
+      });
+
       expect(openNativeBrowser).toHaveBeenCalledWith({
         url: "https://app.readirect.org/staff/login",
-      }),
-    );
-    expect(screen.queryByText("Staff login route")).not.toBeInTheDocument();
+      });
+      expect(screen.queryByText("Staff login route")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("shows a native staff portal retry after the browser launch fails", async () => {
+    vi.useFakeTimers();
+    isNativePlatform.mockReturnValue(true);
+    openNativeBrowser
+      .mockRejectedValueOnce(new Error("browser unavailable"))
+      .mockResolvedValueOnce(undefined);
+
+    try {
+      renderHome();
+      fireEvent.click(screen.getByRole("button", { name: "Staff login" }));
+
+      await act(async () => {
+        vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS);
+        await Promise.resolve();
+      });
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "We couldn't open staff access. Check your connection and try again.",
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(openNativeBrowser).toHaveBeenCalledTimes(2);
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("keeps browser staff login on the existing SPA route", () => {
