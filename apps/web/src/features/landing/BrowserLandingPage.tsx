@@ -361,7 +361,9 @@ export function BrowserLandingPage() {
               <Link to="/docs/user-guide">User guide</Link>
               <Link to="/docs/testing">Testing &amp; quality</Link>
               <Link to="/docs/faq">Frequently asked questions</Link>
-              <Link to="/credits-licenses">Credits &amp; licenses</Link>
+              <Link to="/credits-licenses?returnTo=/landing">
+                Credits &amp; licenses
+              </Link>
             </div>
             <div className="browser-landing__footer-column">
               <h3>Support</h3>

@@ -248,7 +248,7 @@ export function AboutReaDirectDialog({ onClose }: AboutReaDirectDialogProps) {
             </p>
             <Link
               className="home-about__credits-link"
-              to="/credits-licenses"
+              to="/credits-licenses?returnTo=/home"
               onClick={onClose}
             >
               View credits and licences

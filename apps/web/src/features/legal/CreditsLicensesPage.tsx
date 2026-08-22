@@ -1,10 +1,27 @@
+import { useLocation } from "react-router-dom";
+
 import { PublicInfoShell } from "../public-info/PublicInfoShell";
 
 import "./credits-licenses.css";
 
+function creditsReturnTarget(search: string) {
+  const returnTo = new URLSearchParams(search).get("returnTo");
+
+  return returnTo === "/landing" ||
+    returnTo === "/learner/login" ||
+    returnTo === "/staff/login"
+    ? returnTo
+    : "/home";
+}
+
 export function CreditsLicensesPage() {
+  const { search } = useLocation();
+
   return (
-    <PublicInfoShell className="credits-licenses">
+    <PublicInfoShell
+      className="credits-licenses"
+      returnTo={creditsReturnTarget(search)}
+    >
       <article
         className="credits-licenses__inner"
         aria-labelledby="credits-licenses-title"
