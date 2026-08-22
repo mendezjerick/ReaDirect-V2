@@ -45,7 +45,7 @@ describe("BrowserLandingPage", () => {
     const apkLink = screen.getByRole("link", { name: "Download APK" });
     expect(apkLink).toHaveAttribute(
       "href",
-      "https://github.com/mendezjerick/ReaDirect-V2/releases/latest/download/ReaDirect.apk",
+      "https://github.com/mendezjerick/ReaDirect-Downloads/releases/latest/download/ReaDirect.apk",
     );
     expect(apkLink).toHaveClass("landing-button--mist");
     expect(apkLink).toHaveAttribute("target", "_blank");

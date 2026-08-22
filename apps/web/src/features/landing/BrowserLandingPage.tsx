@@ -8,7 +8,7 @@ import "./browser-landing.css";
 // A verified ReaDirect Play Store listing is not configured yet.
 const PLAY_STORE_URL: string | null = null;
 const APK_DOWNLOAD_URL =
-  "https://github.com/mendezjerick/ReaDirect-V2/releases/latest/download/ReaDirect.apk";
+  "https://github.com/mendezjerick/ReaDirect-Downloads/releases/latest/download/ReaDirect.apk";
 
 function BrandMark() {
   return (
