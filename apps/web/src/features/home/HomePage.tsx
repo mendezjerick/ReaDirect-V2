@@ -82,7 +82,12 @@ export function HomePage() {
           ? "Admin Dashboard"
           : "Staff Dashboard"
         : "Let's Read!";
-  const secondaryLabel = identity ? "Switch account" : "Staff login";
+  const secondaryLabel =
+    identity?.kind === "guest"
+      ? "Continue to login"
+      : identity
+        ? "Switch account"
+        : "Staff login";
 
   const openPrimaryAction = () => {
     learnerLoginCommit.commit(() => navigate(destination));
@@ -127,6 +132,7 @@ export function HomePage() {
       <section className="home-page__actions" aria-label="Home actions">
         <BigButton
           className="home-page__read-button"
+          data-guest={identity?.kind === "guest" ? "true" : undefined}
           leadingIcon={
             <PixelIcon className="home-page__read-icon" name="book" />
           }

@@ -36,7 +36,10 @@ vi.mock("motion/react", async (importOriginal) => {
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { HomePage } from "../src/features/home/HomePage";
 import { setNativeSessionCache } from "../src/app/nativeSecureSession";
-import { loadLearnerSession } from "../src/features/learner-auth/learnerApi";
+import {
+  enterGuestMode,
+  loadLearnerSession,
+} from "../src/features/learner-auth/learnerApi";
 import { CreditsLicensesPage } from "../src/features/legal/CreditsLicensesPage";
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
 
@@ -323,6 +326,31 @@ describe("HomePage", () => {
 
       act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
       expect(screen.getByText("Learner login route")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("restores guest mode with an image-backed action and learner login", () => {
+    vi.useFakeTimers();
+    enterGuestMode();
+
+    try {
+      renderHome();
+
+      const guestButton = screen.getByRole("button", {
+        name: "Continue as Guest",
+      });
+      expect(guestButton).toHaveAttribute("data-guest", "true");
+
+      const loginButton = screen.getByRole("button", {
+        name: "Continue to login",
+      });
+      fireEvent.click(loginButton);
+      act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
+
+      expect(screen.getByText("Learner login route")).toBeVisible();
+      expect(loadLearnerSession()).toBeNull();
     } finally {
       vi.useRealTimers();
     }
