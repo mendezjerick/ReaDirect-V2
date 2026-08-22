@@ -42,7 +42,9 @@ export function NativeConnectivityBanner() {
       : connectivity.api === "unreachable"
         ? "Online Learning is unavailable right now."
         : connectivity.api === "unauthorized"
-          ? "Your online session has expired. Sign in again to continue."
+          ? connectivity.learnerSession === "expired"
+            ? "Your online session has expired. Sign in again to continue."
+            : "Online Learning is unavailable right now."
           : null;
 
   if (!message) return null;

@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { loadLearnerSession } from "../learner-auth/learnerApi";
+import { isGuestToken } from "../guest/guestSession";
 import { registerNativeLifecycleHandler } from "../../app/nativeLifecycle";
 import {
   probeApiReachability,
@@ -45,6 +46,11 @@ export function ConnectivityProvider({ children }: PropsWithChildren) {
   const [hasLearnerSession, setHasLearnerSession] = useState(() =>
     Boolean(learnerToken()),
   );
+  const [hasAuthenticatedLearnerSession, setHasAuthenticatedLearnerSession] =
+    useState(() => {
+      const token = learnerToken();
+      return Boolean(token && !isGuestToken(token));
+    });
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
   const pausedRef = useRef(false);
   const probeControllerRef = useRef<AbortController | null>(null);
@@ -53,7 +59,10 @@ export function ConnectivityProvider({ children }: PropsWithChildren) {
     if (pausedRef.current) return;
 
     const token = learnerToken();
+    const guest = isGuestToken(token);
+    const probeToken = guest ? null : token;
     setHasLearnerSession(Boolean(token));
+    setHasAuthenticatedLearnerSession(Boolean(token && !guest));
     setDevice(await readDeviceState());
     if (pausedRef.current) return;
 
@@ -64,7 +73,7 @@ export function ConnectivityProvider({ children }: PropsWithChildren) {
 
     try {
       const result = await probeApiReachability({
-        token,
+        token: probeToken,
         signal: controller.signal,
       });
       if (!controller.signal.aborted && !pausedRef.current) {
@@ -161,7 +170,7 @@ export function ConnectivityProvider({ children }: PropsWithChildren) {
       device,
       api,
       learnerSession:
-        hasLearnerSession && api === "unauthorized"
+        hasAuthenticatedLearnerSession && api === "unauthorized"
           ? "expired"
           : hasLearnerSession
             ? "present"
@@ -169,7 +178,14 @@ export function ConnectivityProvider({ children }: PropsWithChildren) {
       lastCheckedAt,
       refresh,
     }),
-    [api, device, hasLearnerSession, lastCheckedAt, refresh],
+    [
+      api,
+      device,
+      hasAuthenticatedLearnerSession,
+      hasLearnerSession,
+      lastCheckedAt,
+      refresh,
+    ],
   );
 
   return (

@@ -13,6 +13,9 @@ $repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Pat
 $webRoot = Join-Path $repositoryRoot 'apps\web'
 $androidRoot = Join-Path $webRoot 'android'
 $apkPath = Join-Path $androidRoot 'app\build\outputs\apk\debug\app-debug.apk'
+$cubismCorePath = Join-Path $webRoot 'public\assets\live2d\core\live2dcubismcore.min.js'
+$packagedCubismCorePath = Join-Path $androidRoot 'app\src\main\assets\public\assets\live2d\core\live2dcubismcore.min.js'
+$assertCubismCoreScript = Join-Path $PSScriptRoot 'assert-mobile-live2d-core.ps1'
 
 function Assert-JsonApi {
     param([Parameter(Mandatory)][string]$Origin)
@@ -67,6 +70,8 @@ function Invoke-Checked {
 
 $normalizedApiOrigin = Assert-JsonApi -Origin $ApiOrigin
 
+& $assertCubismCoreScript -SourcePath $cubismCorePath
+
 Write-Host "Using ReaDirect staging origin: $normalizedApiOrigin" -ForegroundColor Green
 Write-Host 'Building the APK with the staging origin embedded...' -ForegroundColor Cyan
 $env:VITE_API_ORIGIN = $normalizedApiOrigin
@@ -79,6 +84,7 @@ Invoke-Checked `
     -FilePath 'corepack' `
     -Arguments @('pnpm', '--filter', '@readirect/web', 'exec', 'cap', 'sync', 'android') `
     -WorkingDirectory $repositoryRoot
+& $assertCubismCoreScript -SourcePath $cubismCorePath -PackagedPath $packagedCubismCorePath
 Invoke-Checked `
     -FilePath (Join-Path $androidRoot 'gradlew.bat') `
     -Arguments @('assembleDebug') `
