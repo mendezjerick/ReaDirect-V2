@@ -132,7 +132,7 @@ test("uses the shared learner experience settings for native online learning", a
 
   await waitFor(() =>
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/learners/experience/settings",
+      "https://api.readirect.org/api/learners/experience/settings",
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: "Bearer native-online-token",
