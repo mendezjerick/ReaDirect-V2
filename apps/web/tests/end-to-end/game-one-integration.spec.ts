@@ -159,9 +159,10 @@ test("Game One preserves the lobby and saves authenticated progress before exit"
   await expect(skipDialog).toBeVisible();
   await skipDialog.getByRole("button", { name: "Skip Tutorial" }).click();
 
-  const exitButton = page.getByRole("button", { name: "Exit" });
-  await expect(exitButton).toBeEnabled();
-  await exitButton.click();
+  const menuButton = page.getByRole("button", { name: "Open game menu" });
+  await expect(menuButton).toBeEnabled();
+  await menuButton.click();
+  await page.getByRole("button", { name: "Back to Game Lobby" }).click();
   const exitDialog = page.getByRole("dialog", {
     name: "Exit the minigame?",
   });

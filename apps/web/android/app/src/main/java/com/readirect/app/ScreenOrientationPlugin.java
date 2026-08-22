@@ -17,6 +17,12 @@ public class ScreenOrientationPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void lockLandscape(PluginCall call) {
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        call.resolve(new JSObject());
+    }
+
+    @PluginMethod
     public void unlock(PluginCall call) {
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         call.resolve(new JSObject());

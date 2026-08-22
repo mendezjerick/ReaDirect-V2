@@ -6,6 +6,28 @@ export interface NativeLifecycleHandler {
   onBackButton?: (event: BackButtonListenerEvent) => boolean | Promise<boolean>;
 }
 
+export const CLARA_DASHBOARD_ROUTE = "/learner/learn-with-clara";
+
+const CLARA_PRACTICE_ROUTES = new Set([
+  "/learner/learn-with-clara/letters",
+  "/learner/learn-with-clara/words",
+]);
+
+export function claraBackDestination(pathname: string): string | null {
+  if (pathname === CLARA_DASHBOARD_ROUTE) {
+    return "/learner/dashboard";
+  }
+
+  if (
+    CLARA_PRACTICE_ROUTES.has(pathname) ||
+    pathname.startsWith(`${CLARA_DASHBOARD_ROUTE}/practice/`)
+  ) {
+    return CLARA_DASHBOARD_ROUTE;
+  }
+
+  return null;
+}
+
 const handlers = new Set<NativeLifecycleHandler>();
 
 export function nativeBackDestination(
@@ -17,6 +39,9 @@ export function nativeBackDestination(
   if (pathname === "/home" && from === "native-mode-selection") {
     return "/learner/modes";
   }
+
+  const claraDestination = claraBackDestination(pathname);
+  if (claraDestination) return claraDestination;
 
   if (pathname !== "/learner/offline") return null;
 

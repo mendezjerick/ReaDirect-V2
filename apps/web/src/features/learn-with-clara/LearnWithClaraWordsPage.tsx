@@ -20,6 +20,7 @@ import { WordRescueIcon, type WordRescueWord } from "./wordRescueIcons";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { claraWordsCopy, isFilipino } from "./learnWithClaraCopy";
 import { LearnWithClaraClassShell } from "./LearnWithClaraClassShell";
+import { useLearnWithClaraBackNavigation } from "./useLearnWithClaraBackNavigation";
 import "./learn-with-clara-words.css";
 
 const storyMoments = [
@@ -329,6 +330,7 @@ function presentationFor(phase: ViewPhase, foundWord: string) {
 
 export function LearnWithClaraWordsPage() {
   const navigate = useNavigate();
+  useLearnWithClaraBackNavigation();
   const actionCommit = useButtonCommit();
   const session = loadLearnerSession();
   const copy = isFilipino(session?.learner.speech_language)

@@ -110,6 +110,7 @@ import {
 } from "./game/player/playableCharacters";
 import { clampInteractionPromptPosition } from "./game/layout/gameViewport";
 import { useResponsiveInputReset } from "./game/layout/useResponsiveInputReset";
+import { useGameViewportLifecycle } from "./game/layout/useGameViewportLifecycle";
 import { OrientationNotice } from "./game/layout/OrientationNotice";
 import { GameModalFocusManager } from "./game/layout/GameModalFocusManager";
 import { ReadscapeWelcomeOverlay } from "./game/ui/ReadscapeWelcomeOverlay";
@@ -216,6 +217,7 @@ function GameOneGameplay({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [pauseReasons, setPauseReasons] = useState<PauseReason[]>([]);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [audioSettingsOpen, setAudioSettingsOpen] = useState(false);
   const [audioManager] = useState(createRpgAudioManager);
@@ -313,6 +315,9 @@ function GameOneGameplay({
       position: { ...initialExplorationProgress.safePosition },
       facing: "down",
     });
+  const latestPlayerPositionRef = useRef(playerNavigation.position);
+  latestPlayerPositionRef.current = playerNavigation.position;
+  const viewport = useGameViewportLifecycle(containerRef);
   const [movementControlMode, setMovementControlMode] =
     useState<MovementControlMode>(loadMovementControlPreference);
   const [keyboardDirections, setKeyboardDirections] = useState<
@@ -758,6 +763,13 @@ function GameOneGameplay({
   useEffect(() => {
     let cancelled = false;
 
+    if (!viewport.readyForLandscape) {
+      setStatus("loading");
+      return () => {
+        cancelled = true;
+      };
+    }
+
     setStatus("loading");
     setErrorMessage(null);
 
@@ -768,7 +780,9 @@ function GameOneGameplay({
         }
 
         controllerRef.current = createKaplayGame(containerRef.current, {
-          initialPosition: explorationProgressRef.current.safePosition,
+          // Re-entering after rotation must continue from the latest world
+          // position, not the portrait mount-time safe position.
+          initialPosition: latestPlayerPositionRef.current,
           characterId: selectedCharacterId,
           onInteractionTargetChange: (target) => {
             dispatchMission({ type: "SET_AVAILABLE_INTERACTION", target });
@@ -851,7 +865,13 @@ function GameOneGameplay({
       controllerRef.current = null;
       window.speechSynthesis?.cancel();
     };
-  }, [audioManager, placeInteractionPrompt, retryKey]);
+  }, [
+    audioManager,
+    placeInteractionPrompt,
+    retryKey,
+    viewport.readyForLandscape,
+    viewport.revision,
+  ]);
 
   useEffect(() => {
     controllerRef.current?.setMissionState({
@@ -899,12 +919,24 @@ function GameOneGameplay({
     setRetryKey((value) => value + 1);
   };
 
+  const openGameMenu = () => {
+    if (status !== "ready" || tutorialState.active || shopOpen) return;
+    setPauseReason("manual", true);
+    setMenuOpen(true);
+  };
+
+  const closeGameMenu = (resume = true) => {
+    setMenuOpen(false);
+    if (resume) setPauseReason("manual", false);
+  };
+
   const openExitDialog = () => {
     previousFocusRef.current =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
     setPauseReason("exit-dialog", true);
+    setMenuOpen(false);
     setExitDialogOpen(true);
   };
 
@@ -941,12 +973,14 @@ function GameOneGameplay({
   };
 
   const openLanguageSelection = () => {
+    closeGameMenu(false);
     setDraftLanguage(missionState.language);
     setLanguageSelectionRequired(false);
     setLanguageSelectionOpen(true);
   };
 
   const openCharacterSelection = () => {
+    closeGameMenu(false);
     setDraftCharacterId(selectedCharacterId);
     setCharacterSelectionRequired(false);
     setCharacterSelectionOpen(true);
@@ -1029,93 +1063,104 @@ function GameOneGameplay({
         className="game-route__stage"
       >
         <header className="game-topbar game-topbar--controls-only">
-          <div className="game-system-controls">
-            <button
-              type="button"
-              onClick={openCharacterSelection}
-              disabled={tutorialState.active || shopOpen}
-              aria-label={`Change character: ${getPlayableCharacter(selectedCharacterId).name[missionState.language]}`}
-              className="game-character-button"
-            >
-              <span
-                className="game-command-icon game-command-icon--character"
-                aria-hidden="true"
-              />
-              <span className="game-character-label-full">
-                Choose Character
-              </span>
-              <span className="game-character-label-short" aria-hidden="true">
-                Choose
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={openLanguageSelection}
-              disabled={tutorialState.active}
-              aria-label={`${copy.changeLanguage}: ${missionState.language === "en" ? "English" : "Filipino"}`}
-              className="game-system-button game-language-button"
-            >
-              <span
-                className="game-command-icon game-command-icon--language"
-                aria-hidden="true"
-              >
-                A
-              </span>
-              <span className="game-language-label-full">
-                {missionState.language === "en" ? "English" : "Filipino"}
-              </span>
-              <span className="game-language-label-short" aria-hidden="true">
-                {missionState.language === "en" ? "EN" : "FIL"}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setAudioSettingsOpen(true)}
-              disabled={tutorialState.active}
-              className="game-system-button"
-            >
-              <span
-                className="game-command-icon game-command-icon--sound"
-                aria-hidden="true"
-              >
-                SFX
-              </span>
-              <span>{copy.sound}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPauseReason("manual", true)}
-              disabled={
-                status !== "ready" ||
-                missionState.activityCompleted ||
-                tutorialState.active
-              }
-              className="game-system-button game-system-button--primary"
-            >
-              <span
-                className="game-command-icon game-command-icon--pause"
-                aria-hidden="true"
-              >
-                ||
-              </span>
-              <span>{copy.pause}</span>
-            </button>
-            <button
-              type="button"
-              onClick={openExitDialog}
-              disabled={tutorialState.active}
-              className="game-system-button"
-            >
-              <span
-                className="game-command-icon game-command-icon--exit"
-                aria-hidden="true"
-              >
-                X
-              </span>
-              <span>{copy.exit}</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            className="game-menu-trigger"
+            aria-label="Open game menu"
+            aria-expanded={menuOpen}
+            aria-controls="game-one-menu"
+            onClick={openGameMenu}
+            disabled={status !== "ready" || tutorialState.active || shopOpen}
+          >
+            <span aria-hidden="true">☰</span>
+            <span>Menu</span>
+          </button>
         </header>
+
+        {menuOpen && (
+          <div
+            className="game-menu-backdrop"
+            role="presentation"
+            onClick={() => closeGameMenu(true)}
+          >
+            <aside
+              id="game-one-menu"
+              className="game-menu-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="game-one-menu-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="game-menu-drawer__header">
+                <div>
+                  <p className="game-menu-drawer__eyebrow">READSCAPE</p>
+                  <h2 id="game-one-menu-title">Menu</h2>
+                </div>
+                <button
+                  type="button"
+                  className="game-menu-drawer__close"
+                  aria-label="Close game menu"
+                  onClick={() => closeGameMenu(true)}
+                >
+                  ×
+                </button>
+              </div>
+              <button
+                type="button"
+                className="game-menu-drawer__resume"
+                onClick={() => closeGameMenu(true)}
+              >
+                Resume
+              </button>
+              <p className="game-menu-drawer__section">Settings</p>
+              <div className="game-menu-drawer__stack">
+                <button type="button" onClick={openCharacterSelection}>
+                  Choose Character
+                </button>
+                <button type="button" onClick={openLanguageSelection}>
+                  Language
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeGameMenu(false);
+                    setAudioSettingsOpen(true);
+                  }}
+                >
+                  Sound
+                </button>
+              </div>
+              <p className="game-menu-drawer__section">Game</p>
+              <div className="game-menu-drawer__stack">
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeGameMenu(false);
+                    dispatchGuided({ type: "REQUEST_HELP" });
+                  }}
+                >
+                  Help
+                </button>
+                <button type="button" onClick={openExitDialog}>
+                  Back to Game Lobby
+                </button>
+              </div>
+              <p className="game-menu-drawer__section game-menu-drawer__section--danger">
+                Danger zone
+              </p>
+              <button
+                type="button"
+                className="game-menu-drawer__danger"
+                onClick={() => {
+                  closeGameMenu(false);
+                  void replayMission();
+                }}
+              >
+                Reset Readscape Progress
+              </button>
+            </aside>
+          </div>
+        )}
 
         <div className="game-route__canvas-layer">
           <div
@@ -1165,7 +1210,7 @@ function GameOneGameplay({
             />
           )}
 
-          {isPaused && status !== "error" && !exitDialogOpen && (
+          {isPaused && !menuOpen && status !== "error" && !exitDialogOpen && (
             <StatusOverlay
               title={pauseTitle}
               text={copy.pauseMessage}
@@ -1440,84 +1485,86 @@ function GameOneGameplay({
             </div>
           )}
 
-        {!isPaused && !exitDialogOpen && !shopOpen && (
-          <>
-            <DialogueOverlay state={missionState} dispatch={dispatchGuided} />
-            <ReadingIntroOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-            />
-            <StoryPresentationOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-            />
-            <MissionActionOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-            />
-            <QuestionIntroOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-            />
-            <QuestionOverlay state={missionState} dispatch={dispatchGuided} />
-            <HeartRecoveryOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-            />
-            <DeferredQuestionOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-            />
-            <DeferredResumeOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-            />
-            <QuestionsCompletedOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-            />
-            <HelpOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-              onOpenMap={() => {
-                setMapOpen(true);
-                audioManager.mapChanged();
-              }}
-              onShowTutorial={() => {
-                dispatchTutorial({
-                  type: "REOPEN",
-                  step: tutorialStepForMissionStage(missionState.stage),
-                });
-              }}
-            />
-            {journeyBagOpen && (
-              <JourneyBagOverlay
-                language={missionState.language}
-                missionId={missionState.missionId}
-                missionIndex={missionState.missionIndex}
-                completedInteractionIds={
-                  explorationProgress.completedInteractionIds
-                }
-                caughtResultIds={explorationProgress.caughtResultIds}
-                onClose={() => setJourneyBagOpen(false)}
+        {!exitDialogOpen &&
+          !shopOpen &&
+          (!isPaused || missionState.helpOpen) && (
+            <>
+              <DialogueOverlay state={missionState} dispatch={dispatchGuided} />
+              <ReadingIntroOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
               />
-            )}
-            <RemainingQuestionsOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-              onDashboard={exitToDashboard}
-            />
-            <MissionResultOverlay
-              state={missionState}
-              dispatch={dispatchGuided}
-            />
-            <CompletionOverlay
-              state={missionState}
-              onReplay={replayMission}
-              onDashboard={exitToDashboard}
-            />
-          </>
-        )}
+              <StoryPresentationOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+              />
+              <MissionActionOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+              />
+              <QuestionIntroOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+              />
+              <QuestionOverlay state={missionState} dispatch={dispatchGuided} />
+              <HeartRecoveryOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+              />
+              <DeferredQuestionOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+              />
+              <DeferredResumeOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+              />
+              <QuestionsCompletedOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+              />
+              <HelpOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+                onOpenMap={() => {
+                  setMapOpen(true);
+                  audioManager.mapChanged();
+                }}
+                onShowTutorial={() => {
+                  dispatchTutorial({
+                    type: "REOPEN",
+                    step: tutorialStepForMissionStage(missionState.stage),
+                  });
+                }}
+              />
+              {journeyBagOpen && (
+                <JourneyBagOverlay
+                  language={missionState.language}
+                  missionId={missionState.missionId}
+                  missionIndex={missionState.missionIndex}
+                  completedInteractionIds={
+                    explorationProgress.completedInteractionIds
+                  }
+                  caughtResultIds={explorationProgress.caughtResultIds}
+                  onClose={() => setJourneyBagOpen(false)}
+                />
+              )}
+              <RemainingQuestionsOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+                onDashboard={exitToDashboard}
+              />
+              <MissionResultOverlay
+                state={missionState}
+                dispatch={dispatchGuided}
+              />
+              <CompletionOverlay
+                state={missionState}
+                onReplay={replayMission}
+                onDashboard={exitToDashboard}
+              />
+            </>
+          )}
         {status === "ready" &&
           !isPaused &&
           !exitDialogOpen &&

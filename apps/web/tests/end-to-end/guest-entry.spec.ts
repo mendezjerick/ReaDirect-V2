@@ -39,6 +39,24 @@ test.describe("browser-local Guest entry", () => {
     expect(accountRequests).toHaveLength(0);
   });
 
+  test("restores guest actions after returning to the home screen", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Continue as Guest" }).click();
+    await expect(page).toHaveURL(/\/learner\/dashboard$/);
+
+    await page.goto("/home");
+    await expect(
+      page.getByRole("button", { name: "Continue as Guest" }),
+    ).toHaveAttribute("data-guest", "true");
+    await expect(
+      page.getByRole("button", { name: "Continue to login" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Continue to login" }).click();
+    await expect(page).toHaveURL(/\/learner\/login$/);
+  });
+
   test("resets only Guest progress after confirmation", async ({ page }) => {
     await page.getByRole("button", { name: "Continue as Guest" }).click();
     await page.getByRole("button", { name: "Reset progress" }).click();

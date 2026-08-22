@@ -6,6 +6,7 @@ import { PixelIcon } from "../../components/ui/PixelIcon";
 import { unlockClaraAudio } from "../clara-audio/claraSpeech";
 import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { claraMenuCopy, isFilipino } from "./learnWithClaraCopy";
+import { useLearnWithClaraBackNavigation } from "./useLearnWithClaraBackNavigation";
 import "./learn-with-clara-menu.css";
 
 const claraTopics = [
@@ -68,6 +69,7 @@ function TopicIcon({ topic }: { topic: ClaraTopicKey }) {
 
 export function LearnWithClaraMenuPage() {
   const navigate = useNavigate();
+  useLearnWithClaraBackNavigation();
   const session = loadLearnerSession();
   const copy = isFilipino(session?.learner.speech_language)
     ? claraMenuCopy.fil

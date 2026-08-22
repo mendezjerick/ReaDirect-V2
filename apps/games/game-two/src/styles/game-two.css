@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
 .game-two {
   background: var(--color-surface-page);
   min-height: 100vh;
@@ -11,15 +13,311 @@
 }
 
 .game-two:has(.game-two-ottertale) {
+  --ottertale-safe-top: env(safe-area-inset-top, 0px);
+  --ottertale-safe-right: env(safe-area-inset-right, 0px);
+  --ottertale-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ottertale-safe-left: env(safe-area-inset-left, 0px);
+  position: relative;
   display: block;
   min-height: 100svh;
+  height: 100dvh;
   padding: 0;
   overflow: hidden;
+  background: #111;
 }
 
 .game-two-ottertale {
-  min-height: 100svh;
+  position: relative;
+  min-height: 100%;
   width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #111;
+  color: #fff;
+  font-family: "Press Start 2P", monospace;
+}
+
+/* The world keeps its 800x600 coordinate system. Only its viewport changes. */
+.game-two-ottertale .game-wrapper {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #111;
+}
+
+.game-two-ottertale .game-wrapper__renderer-viewport {
+  position: absolute;
+  z-index: 0;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  pointer-events: none;
+}
+
+.game-two-ottertale .game-wrapper canvas {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.game-two-ottertale .controls-container {
+  position: fixed;
+  z-index: 100;
+  right: 0;
+  bottom: max(0.8rem, var(--ottertale-safe-bottom));
+  left: 0;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0 max(0.8rem, var(--ottertale-safe-right)) 0
+    max(0.8rem, var(--ottertale-safe-left));
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .game-two-ottertale .controls-container {
+    display: none;
+  }
+}
+
+.game-two-ottertale .control-group {
+  display: flex;
+  flex: 0 0 auto;
+  gap: clamp(0.45rem, 2vw, 0.85rem);
+  pointer-events: auto;
+}
+
+.game-two-ottertale .mobile-btn {
+  display: grid;
+  width: clamp(3.1rem, 12vw, 4.75rem);
+  min-width: 3.1rem;
+  height: clamp(3.1rem, 12vw, 4.75rem);
+  min-height: 3.1rem;
+  place-items: center;
+  border: clamp(2px, 0.7vw, 4px) solid #fff;
+  border-radius: 0;
+  background: rgb(255 255 255 / 40%);
+  box-shadow: clamp(2px, 0.8vw, 4px) clamp(2px, 0.8vw, 4px) 0 #000;
+  color: #000;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(0.65rem, 2.3vw, 0.9rem);
+  font-weight: 700;
+  line-height: 1;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.game-two-ottertale .mobile-btn:active {
+  background: rgb(255 255 255 / 80%);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+.game-two-ottertale .ottertale-pause-button {
+  position: fixed;
+  z-index: 110;
+  top: max(0.8rem, var(--ottertale-safe-top));
+  right: max(0.8rem, var(--ottertale-safe-right));
+  min-width: clamp(4.5rem, 15vw, 6.5rem);
+  min-height: 2.8rem;
+  padding: 0.55rem 0.8rem;
+  border: 3px solid #fff !important;
+  border-radius: 0 !important;
+  background: #333 !important;
+  box-shadow: 4px 4px 0 #000 !important;
+  color: #fff !important;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(0.62rem, 2vw, 0.85rem) !important;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+/* Reset is a utility action; keep it away from the primary touch controls. */
+.game-two:has(.ottertale-menu-button) .game-two__reset-link {
+  top: calc(max(0.8rem, var(--ottertale-safe-top)) + 3.75rem);
+  right: max(0.8rem, var(--ottertale-safe-right));
+  bottom: auto;
+  width: min(11rem, 30vw);
+  min-height: 2.45rem;
+  padding: 0.35rem 0.55rem;
+  font-size: clamp(0.52rem, 1.35vw, 0.7rem);
+  line-height: 1.25;
+  text-align: center;
+}
+
+.game-two:has(.ottertale-menu-button) .game-two__lobby-link,
+.game-two:has(.ottertale-menu-button) .game-two__reset-link {
+  display: none;
+}
+
+.game-two:has(.game-two-ottertale) .game-two__lobby-link {
+  min-height: 2.45rem;
+  padding: 0.45rem 0.65rem;
+  font-size: clamp(0.58rem, 1.5vw, 0.72rem);
+  line-height: 1.2;
+}
+
+.game-two-ottertale button.retro-btn {
+  border-radius: 0 !important;
+  border: 4px solid #fff !important;
+  box-shadow: 6px 6px 0 #000 !important;
+  font-family: "Press Start 2P", monospace;
+  line-height: 1.35;
+  text-transform: uppercase;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
+}
+
+.game-two-ottertale button.retro-btn:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: 3px 3px 0 #000 !important;
+}
+
+/* Full-screen menus keep their action groups bounded and scrollable. */
+.game-two-ottertale .ottertale-screen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 200;
+  display: flex !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0;
+  height: 100% !important;
+  min-height: 100svh;
+  max-height: 100dvh;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: auto;
+  padding: max(1.25rem, var(--ottertale-safe-top))
+    max(1.25rem, var(--ottertale-safe-right))
+    max(1.25rem, var(--ottertale-safe-bottom))
+    max(1.25rem, var(--ottertale-safe-left));
+  text-align: center;
+}
+
+.game-two-ottertale .ottertale-screen h1,
+.game-two-ottertale .ottertale-screen h2 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.25 !important;
+}
+
+.game-two-ottertale .ottertale-screen h1 {
+  margin: 0 0 clamp(1.25rem, 5vh, 2.5rem) !important;
+  font-size: clamp(1.45rem, 7vw, 2.4rem) !important;
+}
+
+.game-two-ottertale .ottertale-screen h2 {
+  margin: 0 0 clamp(1rem, 4vh, 2rem) !important;
+  font-size: clamp(1rem, 5vw, 1.65rem) !important;
+}
+
+.game-two-ottertale .ottertale-screen > div {
+  width: min(100%, 25rem);
+  min-width: 0;
+}
+
+.game-two-ottertale .ottertale-screen > div > button,
+.game-two-ottertale .ottertale-screen > button {
+  width: 100%;
+  max-width: 25rem;
+  min-height: clamp(2.9rem, 8vh, 4rem);
+  padding: 0.7rem 0.85rem !important;
+  font-size: clamp(0.62rem, 2.2vw, 0.95rem) !important;
+  overflow-wrap: anywhere;
+}
+
+@media (orientation: portrait) {
+  .game-two-ottertale .game-wrapper__renderer-viewport {
+    top: 0;
+    left: 0;
+    width: auto;
+    height: 100%;
+  }
+
+  .game-two-ottertale .game-wrapper {
+    align-items: flex-start;
+    justify-items: start;
+  }
+
+  /* Fill the tall phone viewport without changing the 4:3 world ratio.
+     The viewport crops the world horizontally instead of stretching it. */
+  .game-two-ottertale .game-wrapper canvas {
+    width: auto;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+  }
+
+  .game-two-ottertale .controls-container {
+    bottom: max(0.75rem, var(--ottertale-safe-bottom));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .game-two-ottertale .game-wrapper__renderer-viewport {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+  }
+
+  .game-two-ottertale .game-wrapper {
+    align-items: end;
+    justify-items: start;
+  }
+
+  /* Short landscape screens use their width for the world and crop only the
+     vertical edges, keeping platforms and sprites proportional. */
+  .game-two-ottertale .game-wrapper canvas {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    max-width: none;
+    max-height: none;
+  }
+
+  .game-two-ottertale .mobile-btn {
+    width: clamp(3rem, 14vh, 4.1rem);
+    height: clamp(3rem, 14vh, 4.1rem);
+  }
+}
+
+@media (max-width: 360px) {
+  .game-two-ottertale .controls-container {
+    gap: 0.5rem;
+    padding-inline: max(0.55rem, var(--ottertale-safe-left))
+      max(0.55rem, var(--ottertale-safe-right));
+  }
+
+  .game-two-ottertale .mobile-btn {
+    width: clamp(2.85rem, 12vw, 3.6rem);
+    height: clamp(2.85rem, 12vw, 3.6rem);
+    min-width: 2.85rem;
+    min-height: 2.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-two-ottertale button.retro-btn {
+    transition: none;
+  }
 }
 
 .game-two__asset-loading,
@@ -207,5 +505,99 @@
 @media (prefers-reduced-motion: reduce) {
   .game-two button {
     transition: none;
+  }
+}
+
+/* OtterTale keeps gameplay controls visible and moves utility actions into a
+   single, safe-area-aware menu drawer. */
+.game-two-ottertale .ottertale-menu-button {
+  position: fixed;
+  z-index: 110;
+  top: max(0.8rem, var(--ottertale-safe-top));
+  right: max(0.8rem, var(--ottertale-safe-right));
+  min-width: clamp(4.8rem, 15vw, 7rem);
+  min-height: 2.9rem;
+  padding: 0.6rem 0.85rem;
+  border: 3px solid #fff !important;
+  border-radius: 0 !important;
+  background: #333 !important;
+  box-shadow: 4px 4px 0 #000 !important;
+  color: #fff !important;
+  font-size: clamp(0.72rem, 2.1vw, 1rem) !important;
+  line-height: 1.2;
+}
+
+.game-two-ottertale .ottertale-menu-button:focus-visible,
+.game-two-ottertale .ottertale-menu-button:hover {
+  outline: 3px solid #ffd166;
+  outline-offset: 3px;
+}
+
+.game-two-ottertale .ottertale-pause-screen {
+  align-items: stretch !important;
+  justify-content: flex-end !important;
+  background: rgb(0 0 0 / 72%) !important;
+  padding: max(0.75rem, var(--ottertale-safe-top))
+    max(0.75rem, var(--ottertale-safe-right))
+    max(0.75rem, var(--ottertale-safe-bottom))
+    max(0.75rem, var(--ottertale-safe-left));
+}
+
+.game-two-ottertale .ottertale-menu-drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(22rem, 88vw, 38vw);
+  max-height: 100%;
+  overflow: auto;
+  margin-left: auto;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 4px solid #fff;
+  background: #171717;
+  color: #fff;
+  box-shadow: -6px 6px 0 #000;
+  text-align: left;
+}
+
+.game-two-ottertale .ottertale-menu-drawer h2 {
+  text-align: left;
+}
+
+.game-two-ottertale .ottertale-menu-section-label {
+  margin: 0 0 0.55rem;
+  color: #ffd166;
+  font-size: clamp(0.76rem, 1.8vw, 0.95rem);
+  letter-spacing: 0.08em;
+}
+
+.game-two-ottertale .ottertale-menu-actions {
+  display: grid;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.game-two-ottertale .ottertale-menu-actions .retro-btn {
+  width: 100%;
+  min-height: 3rem;
+  font-size: clamp(0.8rem, 2.1vw, 1rem) !important;
+  overflow-wrap: anywhere;
+}
+
+.game-two-ottertale .ottertale-menu-danger {
+  border-color: #ff8b79 !important;
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .game-two-ottertale .ottertale-menu-drawer {
+    width: min(21rem, 38vw);
+  }
+
+  .game-two-ottertale .mobile-btn {
+    font-size: clamp(0.78rem, 2.4vh, 1rem);
+  }
+}
+
+@media (orientation: portrait) {
+  .game-two-ottertale .ottertale-menu-drawer {
+    width: min(22rem, 88vw);
   }
 }

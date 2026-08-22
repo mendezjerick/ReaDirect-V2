@@ -251,6 +251,7 @@ export function GameTwoRoutePage({
         progress={visibleProgress}
         onStageComplete={handleStageComplete}
         onExitToLobby={backToLobby}
+        onResetProgress={resetProgress}
       />
       <button
         className="game-two__reset-link"
