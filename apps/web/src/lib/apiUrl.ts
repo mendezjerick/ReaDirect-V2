@@ -39,9 +39,10 @@ export function runtimeApiOrigin({
   hostname,
   native,
 }: RuntimeApiOriginInput): string {
+  if (native) return PRODUCTION_API_ORIGIN;
+
   const configured = normalizeOrigin(configuredOrigin);
   if (configured) return configured;
-  if (native) return PRODUCTION_API_ORIGIN;
   return productionApiOriginForHostname(hostname);
 }
 

@@ -21,12 +21,22 @@ describe("runtimeApiOrigin", () => {
     ).toBe("https://api.readirect.org");
   });
 
-  it("keeps an explicit build origin ahead of runtime defaults", () => {
+  it("ignores a non-production configured origin for native runtime", () => {
     expect(
       runtimeApiOrigin({
         configuredOrigin: "https://staging.readirect.org/",
         hostname: "localhost",
         native: true,
+      }),
+    ).toBe("https://api.readirect.org");
+  });
+
+  it("keeps an explicit build origin ahead of browser runtime defaults", () => {
+    expect(
+      runtimeApiOrigin({
+        configuredOrigin: "https://staging.readirect.org/",
+        hostname: "localhost",
+        native: false,
       }),
     ).toBe("https://staging.readirect.org");
   });
