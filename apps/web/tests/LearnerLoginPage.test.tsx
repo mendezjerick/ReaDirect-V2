@@ -121,6 +121,39 @@ describe("LearnerLoginPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("shows a safe message when learner login receives HTML", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response("<!doctype html><title>Proxy error</title>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        }),
+      ),
+    );
+    renderLogin();
+
+    fireEvent.change(screen.getByLabelText("Learner Code"), {
+      target: { value: "kw000" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "rhine359" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Let's go!" }));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BUTTON_PRESS_COMMIT_MS);
+      await Promise.resolve();
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "ReaDirect received an unexpected server response. Please try again.",
+    );
+    expect(screen.queryByText(/Unexpected token/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Proxy error/)).not.toBeInTheDocument();
+  });
+
   it("stores a remembered learner session outside tab-only storage", async () => {
     await saveLearnerSession(
       {

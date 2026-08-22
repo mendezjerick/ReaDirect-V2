@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { readApiJson } from "../../lib/apiResponse";
 import { apiFetchWithNormalTimeout as fetch, apiUrl } from "../../lib/apiUrl";
 import {
   getNativeSessionCache,
@@ -258,7 +259,7 @@ export async function restoreLearnerSession(): Promise<StoredLearnerSession | nu
     headers: { Accept: "application/json" },
   });
   if (!response.ok) return null;
-  const session = learnerSessionSchema.parse(await response.json());
+  const session = learnerSessionSchema.parse(await readApiJson(response));
   return { ...session, token: browserSessionToken };
 }
 
@@ -371,7 +372,7 @@ export async function loginLearner(credentials: {
     throw new Error(await readApiError(response));
   }
 
-  return learnerLoginResponseSchema.parse(await response.json());
+  return learnerLoginResponseSchema.parse(await readApiJson(response));
 }
 
 export async function getLearnerSession(
@@ -397,7 +398,7 @@ export async function getLearnerSession(
     throw new Error(await readApiError(response));
   }
 
-  return learnerSessionSchema.parse(await response.json());
+  return learnerSessionSchema.parse(await readApiJson(response));
 }
 
 /** Keep an open browser tab's idle lease alive while the learner is present. */
