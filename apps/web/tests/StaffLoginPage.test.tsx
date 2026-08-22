@@ -283,6 +283,43 @@ describe("StaffLoginPage", () => {
     expect(await screen.findByText("Dashboard route")).toBeInTheDocument();
   });
 
+  it("shows a safe message when staff login receives HTML", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response("<!doctype html><title>Proxy error</title>", {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          }),
+        ),
+      );
+      renderStaffLogin();
+
+      fireEvent.change(screen.getByLabelText("Username or email"), {
+        target: { value: "system-admin-test" },
+      });
+      fireEvent.change(screen.getByLabelText("Password"), {
+        target: { value: "local-test-password" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(BUTTON_PRESS_COMMIT_MS);
+        await Promise.resolve();
+      });
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "ReaDirect received an unexpected server response. Please try again.",
+      );
+      expect(screen.queryByText(/Unexpected token/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Proxy error/)).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("binds and persists a remembered session to this browser", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(

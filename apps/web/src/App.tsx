@@ -11,6 +11,7 @@ import {
 import { RouteTransitionProvider } from "./components/transitions/RouteTransitionProvider";
 import { RequireStaffRole } from "./components/staff/RequireStaffRole";
 import { HomePage } from "./features/home/HomePage";
+import { NativeStaffLoginRedirect } from "./features/staff-auth/NativeStaffLoginRedirect";
 import { IntroPage } from "./features/intro/IntroPage";
 import { LearnerExperienceProvider } from "./features/learner-auth/LearnerExperienceProvider";
 import {
@@ -170,12 +171,6 @@ const GameZeroRoutePage = lazy(() =>
 const GameTwoHostPage = lazy(() =>
   import("./features/games/GameTwoHostPage").then((module) => ({
     default: module.GameTwoHostPage,
-  })),
-);
-
-const StaffLoginPage = lazy(() =>
-  import("./features/staff-auth/StaffLoginPage").then((module) => ({
-    default: module.StaffLoginPage,
   })),
 );
 
@@ -680,7 +675,10 @@ export function App() {
                   </RequireSkeletonGameProfile>
                 }
               />
-              <Route path="/staff/login" element={<StaffLoginPage />} />
+              <Route
+                path="/staff/login"
+                element={<NativeStaffLoginRedirect />}
+              />
               <Route
                 element={
                   <RequireStaffRole

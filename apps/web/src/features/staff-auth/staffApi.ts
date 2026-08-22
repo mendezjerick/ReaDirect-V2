@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { readApiJson } from "../../lib/apiResponse";
 import { apiFetchWithNormalTimeout as fetch } from "../../lib/apiUrl";
 import {
   getNativeSessionCache,
@@ -787,7 +788,9 @@ export async function restoreStaffSession(): Promise<StaffSession | null> {
     },
   });
   if (!response.ok) return null;
-  const identity = staffIdentitySessionSchema.parse(await response.json());
+  const identity = staffIdentitySessionSchema.parse(
+    await readApiJson(response),
+  );
   return { ...identity, token: browserSessionToken };
 }
 
@@ -902,7 +905,9 @@ export async function getCurrentStaffSession(): Promise<StaffSession> {
     throw new Error(await readApiError(response));
   }
 
-  const identity = staffIdentitySessionSchema.parse(await response.json());
+  const identity = staffIdentitySessionSchema.parse(
+    await readApiJson(response),
+  );
   const refreshedSession = storedStaffSessionSchema.parse({
     ...identity,
     token: currentSession.token,
@@ -1347,7 +1352,7 @@ export async function loginStaff(credentials: {
     throw new Error(await readApiError(response));
   }
 
-  return staffSessionSchema.parse(await response.json());
+  return staffSessionSchema.parse(await readApiJson(response));
 }
 
 function getStaffDeviceId(): string {

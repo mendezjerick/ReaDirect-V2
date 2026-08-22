@@ -7,7 +7,50 @@ import {
   ApiRequestTimeoutError,
   NORMAL_API_TIMEOUT_MS,
   resolveApiUrl,
+  runtimeApiOrigin,
 } from "../src/lib/apiUrl";
+
+describe("runtimeApiOrigin", () => {
+  it("uses the production API for a native Capacitor runtime", () => {
+    expect(
+      runtimeApiOrigin({
+        configuredOrigin: "",
+        hostname: "localhost",
+        native: true,
+      }),
+    ).toBe("https://api.readirect.org");
+  });
+
+  it("ignores a non-production configured origin for native runtime", () => {
+    expect(
+      runtimeApiOrigin({
+        configuredOrigin: "https://staging.readirect.org/",
+        hostname: "localhost",
+        native: true,
+      }),
+    ).toBe("https://api.readirect.org");
+  });
+
+  it("keeps an explicit build origin ahead of browser runtime defaults", () => {
+    expect(
+      runtimeApiOrigin({
+        configuredOrigin: "https://staging.readirect.org/",
+        hostname: "localhost",
+        native: false,
+      }),
+    ).toBe("https://staging.readirect.org");
+  });
+
+  it("preserves same-origin local browser requests", () => {
+    expect(
+      runtimeApiOrigin({
+        configuredOrigin: "",
+        hostname: "localhost",
+        native: false,
+      }),
+    ).toBe("");
+  });
+});
 
 describe("resolveApiUrl", () => {
   it("keeps API paths relative when no origin is configured", () => {

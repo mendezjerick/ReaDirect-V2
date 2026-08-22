@@ -42,9 +42,17 @@ describe("BrowserLandingPage", () => {
     expect(
       screen.getAllByRole("link", { name: /contact/i })[0],
     ).toHaveAttribute("href", "#contact");
+    const apkLink = screen.getByRole("link", { name: "Download APK" });
+    expect(apkLink).toHaveAttribute(
+      "href",
+      "https://github.com/mendezjerick/ReaDirect-V2/releases/latest/download/ReaDirect.apk",
+    );
+    expect(apkLink).toHaveClass("landing-button--mist");
+    expect(apkLink).toHaveAttribute("target", "_blank");
+    expect(apkLink).toHaveAttribute("rel", "noreferrer");
     expect(
-      screen.getAllByRole("link", { name: /use in browser/i }).length,
-    ).toBeGreaterThan(0);
+      screen.queryByRole("link", { name: /use in browser/i }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getAllByText(/download on play store/i).length,
     ).toBeGreaterThan(1);
@@ -65,11 +73,7 @@ describe("BrowserLandingPage", () => {
     renderLanding();
 
     const joinLinks = screen.getAllByRole("link", { name: /join/i });
-    const browserLinks = screen.getAllByRole("link", {
-      name: /use in browser/i,
-    });
-
-    [...joinLinks, ...browserLinks].forEach((link) => {
+    joinLinks.forEach((link) => {
       expect(link).toHaveAttribute("href", "/?entry=tap");
       expect(link).toHaveAttribute("target", "_blank");
       expect(link).toHaveAttribute("rel", "noreferrer");
