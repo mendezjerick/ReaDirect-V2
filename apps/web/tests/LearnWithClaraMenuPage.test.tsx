@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -154,6 +154,16 @@ describe("LearnWithClaraMenuPage", () => {
     renderMenu();
 
     fireEvent.click(screen.getByRole("button", { name: "Back to dashboard" }));
+
+    expect(screen.getByText("Dashboard route")).toBeInTheDocument();
+  });
+
+  it("uses the learner dashboard as the browser Back parent", () => {
+    renderMenu();
+
+    act(() => {
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
 
     expect(screen.getByText("Dashboard route")).toBeInTheDocument();
   });

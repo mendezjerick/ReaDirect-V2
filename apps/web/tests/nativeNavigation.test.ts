@@ -23,4 +23,22 @@ describe("native navigation policy", () => {
     expect(isApprovedGameRoute("/learner/lessons/1")).toBe(false);
     expect(isApprovedGameRoute("/learner/games")).toBe(false);
   });
+
+  it("keeps Clara practice modules under the Clara dashboard", () => {
+    for (const route of [
+      "/learner/learn-with-clara/letters",
+      "/learner/learn-with-clara/words",
+      "/learner/learn-with-clara/practice/phrases",
+      "/learner/learn-with-clara/practice/sentences",
+      "/learner/learn-with-clara/practice/comprehension",
+    ]) {
+      expect(nativeBackDestination(route)).toBe(
+        "/learner/learn-with-clara",
+      );
+    }
+
+    expect(nativeBackDestination("/learner/learn-with-clara")).toBe(
+      "/learner/dashboard",
+    );
+  });
 });
