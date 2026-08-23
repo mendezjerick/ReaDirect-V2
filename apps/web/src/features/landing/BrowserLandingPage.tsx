@@ -5,8 +5,8 @@ import { PixelIcon } from "../../components/ui/PixelIcon";
 import { webAppEntryHref } from "../../deployment/productionDomains";
 import "./browser-landing.css";
 
-// A verified ReaDirect Play Store listing is not configured yet.
-const PLAY_STORE_URL: string | null = null;
+const PLAY_STORE_URL =
+  "https://play.google.com/store/apps/details?id=com.readirect.app";
 const APK_DOWNLOAD_URL =
   "https://github.com/mendezjerick/ReaDirect-Downloads/releases/latest/download/ReaDirect.apk";
 
@@ -25,6 +25,35 @@ function ArrowIcon() {
   return <PixelIcon className="browser-landing__arrow" name="arrow-right" />;
 }
 
+function PlayStoreIcon() {
+  return (
+    <svg
+      className="browser-landing__play-store-icon"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      data-testid="play-store-icon"
+      focusable="false"
+    >
+      <path
+        fill="var(--play-store-blue)"
+        d="M3.2 2.2C2.5 2.6 2 3.3 2 4.2v15.6c0 .9.5 1.6 1.2 2L14.3 12 3.2 2.2Z"
+      />
+      <path
+        fill="var(--play-store-green)"
+        d="m14.3 12 3-2.5-13-7.3c-.4-.2-.8-.2-1.1 0L14.3 12Z"
+      />
+      <path
+        fill="var(--play-store-red)"
+        d="m14.3 12-11.1 9.8c.3.2.7.2 1.1 0l13-7.3-3-2.5Z"
+      />
+      <path
+        fill="var(--play-store-yellow)"
+        d="m14.3 12 3 2.5 3.4-1.9c.9-.5.9-1.7 0-2.2l-3.4-1.9-3 2.5Z"
+      />
+    </svg>
+  );
+}
+
 function PlayStoreStatus({
   className,
   label,
@@ -39,6 +68,7 @@ function PlayStoreStatus({
       target="_blank"
       rel="noreferrer"
     >
+      <PlayStoreIcon />
       {label}
     </a>
   ) : (
