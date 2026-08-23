@@ -62,13 +62,27 @@ describe("Reading Reminder schedule mapping", () => {
 
     expect(notification).toMatchObject({
       id: READING_REMINDER_NOTIFICATION_IDS.MON,
-      title: "Ready to read?",
-      body: "Open ReaDirect when you're ready for a few minutes of reading practice.",
+      title: "Monday reading warm-up",
+      body: "Start the week with a few minutes of reading practice.",
       channelId: "reading-reminders-v1",
       isExactNotification: false,
       autoCancel: true,
-      schedule: { on: { weekday: 2, hour: 18, minute: 0 } },
+      schedule: {
+        allowWhileIdle: true,
+        on: { weekday: 2, hour: 18, minute: 0 },
+      },
     });
     expect(notification).not.toHaveProperty("extra");
+  });
+
+  it("gives each scheduled weekday a distinct privacy-safe message", () => {
+    const notifications = buildReadingReminderNotifications({
+      ...baseSettings,
+      repeat: "daily",
+      days: [],
+    });
+    const messages = notifications.map(({ title, body }) => `${title}|${body}`);
+
+    expect(new Set(messages).size).toBe(notifications.length);
   });
 });

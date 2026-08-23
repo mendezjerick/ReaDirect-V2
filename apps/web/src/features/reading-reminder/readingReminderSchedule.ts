@@ -46,6 +46,40 @@ const WEEKDAY_NUMBERS: Record<ReadingReminderDay, Weekday> = {
   SAT: 7,
 };
 
+const READING_REMINDER_MESSAGES: Record<
+  ReadingReminderDay,
+  { title: string; body: string }
+> = {
+  SUN: {
+    title: "Sunday story time",
+    body: "Take a calm moment to read with ReaDirect.",
+  },
+  MON: {
+    title: "Monday reading warm-up",
+    body: "Start the week with a few minutes of reading practice.",
+  },
+  TUE: {
+    title: "Tuesday reading trail",
+    body: "Keep your reading journey moving with ReaDirect.",
+  },
+  WED: {
+    title: "Midweek reading moment",
+    body: "Pause for a small, confidence-building reading win.",
+  },
+  THU: {
+    title: "Thursday reading boost",
+    body: "A short reading practice can brighten your day.",
+  },
+  FRI: {
+    title: "Friday reading finish",
+    body: "Finish the week with a few friendly pages.",
+  },
+  SAT: {
+    title: "Saturday story break",
+    body: "Make room for a relaxed reading adventure today.",
+  },
+};
+
 export function getReadingReminderDays(
   settings: Pick<ReadingReminderPreference, "repeat" | "days">,
 ): ReadingReminderDay[] {
@@ -67,21 +101,27 @@ export function buildReadingReminderNotifications(
 ): LocalNotificationSchema[] {
   const { hour, minute } = parseTime(settings.time);
 
-  return getReadingReminderDays(settings).map((day) => ({
-    id: READING_REMINDER_NOTIFICATION_IDS[day],
-    title: "Ready to read?",
-    body: "Open ReaDirect when you're ready for a few minutes of reading practice.",
-    channelId: READING_REMINDER_CHANNEL_ID,
-    autoCancel: true,
-    isExactNotification: false,
-    schedule: {
-      on: {
-        weekday: WEEKDAY_NUMBERS[day],
-        hour,
-        minute,
+  return getReadingReminderDays(settings).map((day) => {
+    const message = READING_REMINDER_MESSAGES[day];
+
+    return {
+      id: READING_REMINDER_NOTIFICATION_IDS[day],
+      ...message,
+      channelId: READING_REMINDER_CHANNEL_ID,
+      autoCancel: true,
+      isExactNotification: false,
+      schedule: {
+        // Wake the device from idle without requesting exact-alarm access.
+        // Android may still apply its inexact delivery window.
+        allowWhileIdle: true,
+        on: {
+          weekday: WEEKDAY_NUMBERS[day],
+          hour,
+          minute,
+        },
       },
-    },
-  }));
+    };
+  });
 }
 
 export function getReadingReminderIds(
