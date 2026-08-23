@@ -348,7 +348,7 @@ export function applySimulatorProgressPreset(
 
     next = skipOfflineDiagnostic(
       next,
-      offlineJourneyContent.assessments.diagnostic.items.length,
+      offlineJourneyContent.assessments.diagnostic.items.map(({ key }) => key),
       now,
     );
     if (preset === "unlocked") return next;

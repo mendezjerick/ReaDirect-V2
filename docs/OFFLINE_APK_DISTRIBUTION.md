@@ -65,21 +65,22 @@ This command:
 - Production native libraries: `arm64-v8a` and `armeabi-v7a`.
 - Manifest: microphone permission only, apart from AndroidX's app-scoped
   dynamic-receiver permission; no Internet, network-state, or Wi-Fi permission.
-- TypeScript typecheck, 324 web tests, Java compilation, Android JVM tests,
+- TypeScript typecheck, 328 web tests, Java compilation, Android JVM tests,
   both production native builds, Android lint, R8, and resource shrinking: pass.
 - Dynamic Clara readiness remains stable across the intro's parent rerender;
   the Live2D renderer no longer tears down and restarts after reporting ready.
 - After the Diagnostic is completed or skipped, all six lessons are selectable.
   Each lesson stores independent item checkpoints and an interrupted lesson is
   resumable from the Journey page.
-- Version 1.4 is installed as **ReaDirect Offline** (`com.readirect.offline`,
-  `versionCode` 5) while retaining the existing signing and upgrade identity.
+- Version 1.5 is installed as **ReaDirect Offline** (`com.readirect.offline`,
+  `versionCode` 6) while retaining the existing signing and upgrade identity.
   It reuses main's responsive intro, dashboard, Journey, assessment,
   lesson, recorder, theme, and language-control presentation. APK-only code
   supplies local data and removes login, games, Learn with Clara, and online
   actions.
-- All three theme backgrounds, all main learner fonts, the Journey book icon,
-  and themed Static Clara stills are integrity-pinned and packaged locally.
+- All eight current theme backgrounds, all main learner fonts, and themed
+  Static Clara stills are integrity-pinned and packaged locally. Pixel UI
+  icons are compiled directly into the offline interface.
 
 ## Installed offline smoke test
 

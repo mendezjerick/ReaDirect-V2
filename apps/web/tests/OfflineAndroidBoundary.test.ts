@@ -10,15 +10,15 @@ function read(relativePath: string) {
 }
 
 describe("offline Android native boundary", () => {
-  it("ships as the upgrade-compatible ReaDirect Offline 1.4 application", () => {
+  it("ships as the upgrade-compatible ReaDirect Offline 1.5 application", () => {
     const capacitorConfig = read("capacitor.config.ts");
     const appBuild = read("android-apk/app/build.gradle");
     const strings = read("android-apk/app/src/main/res/values/strings.xml");
 
     expect(capacitorConfig).toContain('appName: "ReaDirect Offline"');
     expect(appBuild).toContain('applicationId "com.readirect.offline"');
-    expect(appBuild).toContain("versionCode 5");
-    expect(appBuild).toContain('versionName "1.4"');
+    expect(appBuild).toContain("versionCode 6");
+    expect(appBuild).toContain('versionName "1.5"');
     expect(strings).toContain(
       '<string name="app_name">ReaDirect Offline</string>',
     );
@@ -27,6 +27,19 @@ describe("offline Android native boundary", () => {
     );
     expect(strings).toContain(
       '<string name="package_name">com.readirect.offline</string>',
+    );
+  });
+
+  it("uses the current ReaDirect launcher and splash artwork", () => {
+    const manifest = read("android-apk/app/src/main/AndroidManifest.xml");
+    const styles = read("android-apk/app/src/main/res/values/styles.xml");
+
+    expect(manifest).toContain('android:icon="@mipmap/readirect_app_icon"');
+    expect(manifest).toContain(
+      'android:roundIcon="@mipmap/readirect_app_icon"',
+    );
+    expect(styles).toContain(
+      '<item name="windowSplashScreenAnimatedIcon">@drawable/readirect_splash_icon</item>',
     );
   });
 

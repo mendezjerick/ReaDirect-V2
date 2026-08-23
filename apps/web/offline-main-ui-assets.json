@@ -4,38 +4,98 @@
     {
       "source": "assets/backgrounds/T1desktop.png",
       "output": "assets/backgrounds/T1desktop.png",
-      "bytes": 1027825,
-      "sha256": "b0e7788e6ef4cca06399499b452ca6f451b868faa657efde235ab8b291f84f97"
+      "bytes": 1422914,
+      "sha256": "dd3909eca48812cdf548a37545b0472d901e6b6edabb15710a1254b01406d16e"
     },
     {
       "source": "assets/backgrounds/T1mobile.png",
       "output": "assets/backgrounds/T1mobile.png",
-      "bytes": 1474766,
-      "sha256": "740b6b45c6cd85f1aac1f80e740f387a98a415982334157246c26b96b0c1f29e"
+      "bytes": 1435158,
+      "sha256": "fa80efc7822747fe275f66f2d9a11dd84469092cd33c9475d9c9cd90b4a73f34"
     },
     {
-      "source": "assets/backgrounds/T2desktop.jpg",
-      "output": "assets/backgrounds/T2desktop.jpg",
-      "bytes": 463787,
-      "sha256": "71118d12a3cd0537dff90da4691954910352aacf68bf8eef0dfb94efba9f0238"
+      "source": "assets/backgrounds/T2desktop.png",
+      "output": "assets/backgrounds/T2desktop.png",
+      "bytes": 1298595,
+      "sha256": "149c4195d3869e1f06ab93d7aaf51105d4704b7befe79af9eab6287f3bdb5c89"
     },
     {
-      "source": "assets/backgrounds/T2mobile.jpg",
-      "output": "assets/backgrounds/T2mobile.jpg",
-      "bytes": 512153,
-      "sha256": "9d251afdcd97e127f094b6e65e9650474ee73cdc5043c469bfff2e7951e5627f"
+      "source": "assets/backgrounds/T2mobile.png",
+      "output": "assets/backgrounds/T2mobile.png",
+      "bytes": 1509029,
+      "sha256": "4c437a1dfe42ead5589ea2c03126b7fdb6612f99c3d94edd37b894389551fa12"
     },
     {
       "source": "assets/backgrounds/T3desktop.png",
       "output": "assets/backgrounds/T3desktop.png",
-      "bytes": 3208821,
-      "sha256": "50efcd6fda6ee3cbd654936d74a6954932607eb80c34020ddce2946e7ba21e3b"
+      "bytes": 1614492,
+      "sha256": "f523e109a019a83183e84e4f2b861e905d618a1ac72df034dcbbb2acbbb8f386"
     },
     {
       "source": "assets/backgrounds/T3mobile.png",
       "output": "assets/backgrounds/T3mobile.png",
-      "bytes": 13295996,
-      "sha256": "e23be7f6e057408cfadc3e3802bb3b8eff6518c55e4fd3cae2ba94e40f36654a"
+      "bytes": 1531753,
+      "sha256": "a423b6e30c57b48854c6e28ca8fcb01e38bd619b205ea5340bcad6f8bd0ccf5f"
+    },
+    {
+      "source": "assets/backgrounds/T4desktop.png",
+      "output": "assets/backgrounds/T4desktop.png",
+      "bytes": 1026352,
+      "sha256": "c8f1e7644844f8f9a68a2b11da445910fde4cf17dd56daa4c896e9ebc38221e6"
+    },
+    {
+      "source": "assets/backgrounds/T4mobile.png",
+      "output": "assets/backgrounds/T4mobile.png",
+      "bytes": 1137704,
+      "sha256": "5eb232acb3e5c5782b1e05734094658f11020d03c6b180e84539cef00b0152cb"
+    },
+    {
+      "source": "assets/backgrounds/T5desktop.png",
+      "output": "assets/backgrounds/T5desktop.png",
+      "bytes": 1451851,
+      "sha256": "1f8b4ecf486fa4217a7c95a3c54872777ffcc7aca82379cbf6d5fa00fcdfe5d2"
+    },
+    {
+      "source": "assets/backgrounds/T5mobile.png",
+      "output": "assets/backgrounds/T5mobile.png",
+      "bytes": 1383666,
+      "sha256": "6bd4f09fcc5aebba90432691c27184ed6e0d11191cc46a18b1d2230bdd80a238"
+    },
+    {
+      "source": "assets/backgrounds/T6desktop.png",
+      "output": "assets/backgrounds/T6desktop.png",
+      "bytes": 2024223,
+      "sha256": "9bcabfe7cae457ea39e7c93cd6e3246e108345b169185d1306359f3193bd4429"
+    },
+    {
+      "source": "assets/backgrounds/T6mobile.png",
+      "output": "assets/backgrounds/T6mobile.png",
+      "bytes": 1890105,
+      "sha256": "568d62841c169d3b86676ea0ba45c6b59cf9cbbe20ce8c0b5e336babb84ee5fb"
+    },
+    {
+      "source": "assets/backgrounds/T7desktop.png",
+      "output": "assets/backgrounds/T7desktop.png",
+      "bytes": 1403010,
+      "sha256": "475b6b9f4e0b5af65a7c1e283bb7b3b15743b554909aca575ada28d88fb4f43f"
+    },
+    {
+      "source": "assets/backgrounds/T7mobile.png",
+      "output": "assets/backgrounds/T7mobile.png",
+      "bytes": 1491154,
+      "sha256": "8df52a8f0da23002e08b7dd3fc52174009f95ffb22991f42b1888f9a128f9088"
+    },
+    {
+      "source": "assets/backgrounds/T8desktop.png",
+      "output": "assets/backgrounds/T8desktop.png",
+      "bytes": 1273524,
+      "sha256": "180a55e5c56a2d075f6b05b95661a888960dbefad17f07bfe4d91c1d3bea034a"
+    },
+    {
+      "source": "assets/backgrounds/T8mobile.png",
+      "output": "assets/backgrounds/T8mobile.png",
+      "bytes": 1101062,
+      "sha256": "42385f456b6e6de2fb8455d0fab0461b192136da31c6ac4fd2ccda0fd7df19a0"
     },
     {
       "source": "assets/fonts/fredoka-variable.woff2",
@@ -62,12 +122,6 @@
       "sha256": "222e2b84bc00b0e31ec5354f17853e3478ee808a3d117ae59a9b9997e45f77da"
     },
     {
-      "source": "assets/icons/book.png",
-      "output": "assets/icons/book.png",
-      "bytes": 621,
-      "sha256": "cbda5c3bcdd815f13ea036cb64d88d6312f4c67d66a0ea3e65840c353a90c0de"
-    },
-    {
       "source": "assets/live2d/clara/stills/clara-t2.png",
       "output": "assets/live2d/clara/stills/clara-t2.png",
       "bytes": 160991,
@@ -78,6 +132,36 @@
       "output": "assets/live2d/clara/stills/clara-t3.png",
       "bytes": 162293,
       "sha256": "a3c40be5ef013d1702dc3a89af9a5e4c6f1e6fbc8afb3904396803d0436c234f"
+    },
+    {
+      "source": "assets/live2d/clara/stills/clara-t4.png",
+      "output": "assets/live2d/clara/stills/clara-t4.png",
+      "bytes": 159592,
+      "sha256": "61a2741ae097f5097ba06af763074bd5ca6d32a8aa7fb906fd3f074dee3ce8b2"
+    },
+    {
+      "source": "assets/live2d/clara/stills/clara-t5.png",
+      "output": "assets/live2d/clara/stills/clara-t5.png",
+      "bytes": 154788,
+      "sha256": "77d07ba286b15467180eccee7cd406df86cebd60568def03c4074da72bf23303"
+    },
+    {
+      "source": "assets/live2d/clara/stills/clara-t6.png",
+      "output": "assets/live2d/clara/stills/clara-t6.png",
+      "bytes": 159174,
+      "sha256": "4c272cbc9efc341c402a2318dfa65754048a271f1773d9f77452604de346bd68"
+    },
+    {
+      "source": "assets/live2d/clara/stills/clara-t7.png",
+      "output": "assets/live2d/clara/stills/clara-t7.png",
+      "bytes": 159029,
+      "sha256": "4ca04f7b1b842a2b72aed63d6b81eecd32a756500cac782b74e35c59d91c3842"
+    },
+    {
+      "source": "assets/live2d/clara/stills/clara-t8.png",
+      "output": "assets/live2d/clara/stills/clara-t8.png",
+      "bytes": 153520,
+      "sha256": "b91bf8c6fad51af9330be230d8763263a9d1d0bf0ba5924d41d988aaf954e5c8"
     }
   ]
 }

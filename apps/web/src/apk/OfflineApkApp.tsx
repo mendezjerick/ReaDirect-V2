@@ -119,7 +119,9 @@ export function OfflineApkApp({
           const learner = await runtime.repository.update((state, now) =>
             skipOfflineDiagnostic(
               state,
-              offlineJourneyContent.assessments.diagnostic.items.length,
+              offlineJourneyContent.assessments.diagnostic.items.map(
+                ({ key }) => key,
+              ),
               now,
             ),
           );

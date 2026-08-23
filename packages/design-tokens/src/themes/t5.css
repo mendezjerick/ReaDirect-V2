@@ -1,0 +1,67 @@
+/* Theme 5: volcano. Ember, ash, and lava-rock tones mirror the artwork at distinct depths. */
+:root[data-theme="t5"] {
+  --asset-learner-flow-background-mobile: url("/assets/backgrounds/T5mobile.png");
+  --asset-learner-flow-background-desktop: url("/assets/backgrounds/T5desktop.png");
+
+  --color-surface-page: #fff0e8;
+  --color-surface-frame: #f4c7b6;
+  --color-surface-panel: #fff9f5;
+  --color-surface-notice: #ffeadf;
+  --color-surface-muted: #f4e1dc;
+  --color-learner-background-veil: color-mix(
+    in srgb,
+    var(--color-surface-page) 18%,
+    var(--color-transparent)
+  );
+
+  --color-text-primary: #331d2c;
+  --color-text-secondary: #5f3540;
+  --color-text-muted: #80545b;
+  --color-text-on-action: #fff8f2;
+
+  --color-border-warm: #d98768;
+  --color-border-soft: #efcabb;
+  --color-border-strong: #833e36;
+  --color-frame-depth: #bd6650;
+
+  --color-action-primary: #c64b20;
+  --color-action-primary-hover: #ad3c18;
+  --color-action-primary-pressed: #923014;
+  --color-action-primary-depth: #6e2415;
+  --color-action-secondary: #fff9f5;
+  --color-action-secondary-hover: #ffe2d3;
+
+  --color-staff-page: #f7e4dd;
+  --color-staff-sidebar: #2c1c2e;
+  --color-staff-sidebar-active: #59303a;
+  --color-staff-sidebar-hover: #422534;
+  --color-staff-sidebar-text: #fff5ee;
+  --color-staff-sidebar-muted: #d9b6b0;
+  --color-staff-navigation-overlay: color-mix(
+    in srgb,
+    var(--color-staff-sidebar) 68%,
+    var(--color-transparent)
+  );
+  --color-staff-card-depth: #ddbbb0;
+  --color-staff-chart-track: #edd2c9;
+  --color-staff-chart-fill: #c64b20;
+
+  --color-accent-coral-soft: #eb7954;
+  --color-accent-sun: #ffb347;
+
+  --color-clara-hair: #8c3f35;
+  --color-clara-hair-outline: #4f2529;
+  --color-clara-hair-highlight: #d9825f;
+  --color-clara-hair-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 72%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-hair-deep-shadow: color-mix(
+    in srgb,
+    var(--color-clara-hair) 44%,
+    var(--color-live2d-recolor-base)
+  );
+  --color-clara-hoodie: #2c1d2d;
+  --color-clara-strings: #ffd1aa;
+}

@@ -975,7 +975,7 @@
   }
 
   .offline-journey-menu[data-diagnostic-skip-available="true"]
-    .reading-journey-menu__footer {
+    .reading-journey-menu__skip-section {
     position: fixed;
     right: max(1rem, env(safe-area-inset-right));
     bottom: max(0.65rem, env(safe-area-inset-bottom));

@@ -1,27 +1,21 @@
 import { useAudioRecorder } from "./useAudioRecorder";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 
 export type AssessmentRecorderViewState =
   "idle" | "recording" | "recorded" | "playing" | "processing";
 
-function MicrophoneIcon() {
+function RecordMark() {
   return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <rect x="17" y="7" width="14" height="24" rx="7" />
-      <path d="M11 24c0 8 5 13 13 13s13-5 13-13M24 37v6M17 43h14" />
-    </svg>
+    <span className="assessment-recorder__record-mark" aria-hidden="true" />
   );
 }
 
 function StopIcon() {
-  return <span className="assessment-recorder__stop-icon" aria-hidden="true" />;
+  return <PixelIcon name="stop" />;
 }
 
 function PlayIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="m16 10 24 14-24 14V10Z" />
-    </svg>
-  );
+  return <PixelIcon name="play" />;
 }
 
 export function AssessmentDockActionIcon({
@@ -30,14 +24,9 @@ export function AssessmentDockActionIcon({
   kind: "submit" | "next";
 }) {
   return kind === "submit" ? (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="m11 25 8 8 18-19" />
-      <path d="M8 8h32v32H8z" />
-    </svg>
+    <PixelIcon name="clipboard-check" />
   ) : (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M9 24h28M27 13l11 11-11 11" />
-    </svg>
+    <PixelIcon name="arrow-right" />
   );
 }
 
@@ -135,7 +124,7 @@ export function AssessmentRecorderView({
           ) : state === "recorded" || state === "playing" ? (
             <PlayIcon />
           ) : (
-            <MicrophoneIcon />
+            <RecordMark />
           )}
         </span>
         <strong>{label}</strong>
@@ -154,7 +143,7 @@ export function AssessmentRecorderView({
             className="assessment-recorder__retry"
             onClick={onRetry}
           >
-            Retry?
+            Retry recording
           </button>
         ) : submitAvailableAfterCapture && hasCapture && !hasPlayed ? (
           <span className="assessment-recorder__capture-note">

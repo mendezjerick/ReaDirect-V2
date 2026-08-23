@@ -1,7 +1,7 @@
 /* Theme 2: winter blue. Every override remains semantic and theme-scoped. */
 :root[data-theme="t2"] {
-  --asset-learner-flow-background-mobile: url("/assets/backgrounds/T2mobile.jpg");
-  --asset-learner-flow-background-desktop: url("/assets/backgrounds/T2desktop.jpg");
+  --asset-learner-flow-background-mobile: url("/assets/backgrounds/T2mobile.png");
+  --asset-learner-flow-background-desktop: url("/assets/backgrounds/T2desktop.png");
 
   --color-transparent: transparent;
 
@@ -32,24 +32,12 @@
   --color-action-primary-depth: #1d3760;
   --color-action-secondary: #ffffff;
   --color-action-secondary-hover: #f1f6ff;
-  --color-result-label-surface: #57555b;
-  --color-result-label-text: #ffffff;
-
-  --color-success: #247451;
-  --color-success-soft: #e8f6ef;
-  --color-warning: #9a5a00;
-  --color-warning-soft: #fff4d6;
-  --color-danger: #b42318;
-  --color-danger-soft: #feeceb;
-  --color-focus: #1769d2;
-
   --color-staff-page: #e9f0f8;
   --color-staff-sidebar: #163156;
   --color-staff-sidebar-active: #264b76;
   --color-staff-sidebar-hover: #1f4066;
   --color-staff-sidebar-text: #f9fbff;
   --color-staff-sidebar-muted: #c2d1e4;
-  --color-staff-sidebar-disabled: #7f96b2;
   --color-staff-navigation-overlay: color-mix(
     in srgb,
     var(--color-staff-sidebar) 68%,

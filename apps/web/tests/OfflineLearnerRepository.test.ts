@@ -14,6 +14,7 @@ import {
   createInitialOfflineLearnerState,
   getOfflineJourneyStage,
   resetOfflineJourneyProgress,
+  saveOfflineAssessmentCheckpoint,
   saveOfflineLessonCheckpoint,
   skipOfflineDiagnostic,
   updateOfflineLearnerProfile,
@@ -217,21 +218,99 @@ describe("offline learner repository", () => {
     );
     await repository.initialize();
 
+    const itemKeys = Array.from(
+      { length: 36 },
+      (_, index) => `diagnostic-${index + 1}`,
+    );
     const state = await repository.update((current, now) =>
-      skipOfflineDiagnostic(current, 36, now),
+      skipOfflineDiagnostic(current, itemKeys, now),
     );
 
     expect(state.journey.diagnostic).toMatchObject({
       status: "completed",
-      currentPhase: "skipped",
+      currentPhase: "assessment-complete",
       score: 0,
       maximum: 36,
     });
+    expect(state.journey.diagnostic.completedItemKeys).toEqual(itemKeys);
+    expect(state.journey.diagnostic.responses).toHaveLength(36);
+    expect(state.journey.diagnostic.responses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          itemKey: "diagnostic-1",
+          kind: "skipped",
+          outcome: "skipped",
+          attempts: 0,
+        }),
+      ]),
+    );
     expect(state.journey.lessons.map(({ status }) => status)).toEqual(
       Array(6).fill("available"),
     );
     expect(getOfflineJourneyStage(state)).toBe("lesson-1");
     expect(state.journey.achievements[0]?.key).toBe("reading.ready_reader");
+  });
+
+  it("preserves submitted Diagnostic answers and earned points when skipped", async () => {
+    const storage = new MemoryLearnerStore();
+    const repository = new OfflineLearnerRepository(
+      storage,
+      clock(...times),
+      () => profileId,
+    );
+    await repository.initialize();
+    const itemKeys = ["diagnostic-1", "diagnostic-2", "diagnostic-3"];
+
+    await repository.update((state, now) =>
+      saveOfflineAssessmentCheckpoint(
+        state,
+        "diagnostic",
+        {
+          currentPhase: "letters",
+          currentItemKey: "diagnostic-2",
+          completedItemKeys: ["diagnostic-1"],
+          response: {
+            itemKey: "diagnostic-1",
+            kind: "choice",
+            value: "A",
+            outcome: "correct",
+            attempts: 1,
+          },
+        },
+        now,
+      ),
+    );
+
+    const state = await repository.update((current, now) =>
+      skipOfflineDiagnostic(current, itemKeys, now),
+    );
+
+    expect(state.journey.diagnostic).toMatchObject({
+      status: "completed",
+      currentPhase: "assessment-complete",
+      score: 1,
+      maximum: 3,
+      completedItemKeys: itemKeys,
+    });
+    expect(state.journey.diagnostic.responses[0]).toMatchObject({
+      itemKey: "diagnostic-1",
+      kind: "choice",
+      value: "A",
+      outcome: "correct",
+      attempts: 1,
+    });
+    expect(state.journey.diagnostic.responses.slice(1)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          itemKey: "diagnostic-2",
+          outcome: "skipped",
+        }),
+        expect.objectContaining({
+          itemKey: "diagnostic-3",
+          outcome: "skipped",
+        }),
+      ]),
+    );
   });
 
   it("resets only journey progress and preserves setup and profile", async () => {

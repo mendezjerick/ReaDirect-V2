@@ -117,7 +117,9 @@ describe("offline journey activity", () => {
     expect(onLearnerChange).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Play" }));
-    expect(await screen.findByRole("button", { name: "Retry?" })).toBeEnabled();
+    expect(
+      await screen.findByRole("button", { name: "Retry recording" }),
+    ).toBeEnabled();
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Submit" })).toBeEnabled(),
     );

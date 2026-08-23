@@ -35,6 +35,9 @@ describe("offline Journey menu", () => {
       screen.getByRole("navigation", { name: "Choose a theme" }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole("button", { name: "Use Space theme" }),
+    ).toBeEnabled();
+    expect(
       screen.getByRole("switch", { name: "English or Filipino" }),
     ).toBeEnabled();
     expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
@@ -54,17 +57,20 @@ describe("offline Journey menu", () => {
     const skipButton = screen.getByRole("button", {
       name: "Skip Diagnostic",
     });
-    expect(skipButton).toHaveClass("big-button", "big-button--secondary");
+    expect(skipButton).toHaveClass("big-button", "big-button--primary");
     fireEvent.click(skipButton);
     expect(onSkipDiagnostic).not.toHaveBeenCalled();
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog")).toHaveTextContent(
+      "submitted answers and earned points will stay",
+    );
     fireEvent.click(
       screen.getByRole("button", { name: "Skip and unlock lessons" }),
     );
     expect(onSkipDiagnostic).toHaveBeenCalledOnce();
   });
 
-  it("places skip Diagnostic after the final assessment at the Journey footer", () => {
+  it("places skip Diagnostic after the final assessment", () => {
     renderJourney({
       learner: createInitialOfflineLearnerState({ id: profileId, now }),
       onBack: () => undefined,
@@ -84,13 +90,29 @@ describe("offline Journey menu", () => {
       finalAssessment.compareDocumentPosition(skipButton) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    expect(screen.getByRole("main", { name: "My Reading Journey" })).toHaveClass(
-      "offline-journey-menu",
-    );
-    expect(screen.getByRole("main", { name: "My Reading Journey" })).toHaveAttribute(
-      "data-diagnostic-skip-available",
-      "true",
-    );
+    expect(
+      screen.getByRole("main", { name: "My Reading Journey" }),
+    ).toHaveClass("offline-journey-menu");
+    expect(
+      screen.getByRole("main", { name: "My Reading Journey" }),
+    ).toHaveAttribute("data-diagnostic-skip-available", "true");
+  });
+
+  it("keeps skip Diagnostic available after the learner has started it", () => {
+    const learner = createInitialOfflineLearnerState({ id: profileId, now });
+    learner.journey.diagnostic.status = "in_progress";
+
+    renderJourney({
+      learner,
+      onBack: () => undefined,
+      onSelectActivity: () => undefined,
+      onSkipDiagnostic: vi.fn(),
+      onLanguageChange: vi.fn(),
+    });
+
+    expect(
+      screen.getByRole("button", { name: "Skip Diagnostic" }),
+    ).toBeEnabled();
   });
 
   it("lets the learner directly select any lesson after the Diagnostic", () => {

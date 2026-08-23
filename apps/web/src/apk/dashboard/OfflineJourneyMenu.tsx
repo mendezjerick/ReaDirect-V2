@@ -47,7 +47,7 @@ export function OfflineJourneyMenu({
       aria-labelledby="reading-journey-title"
       data-screen="journey"
       data-diagnostic-skip-available={
-        diagnostic.status === "available" || undefined
+        ["available", "in_progress"].includes(diagnostic.status) || undefined
       }
       tabIndex={-1}
     >
@@ -119,18 +119,14 @@ export function OfflineJourneyMenu({
             title="Diagnostic Assessment"
             description={
               diagnostic.status === "completed"
-                ? diagnostic.currentPhase === "skipped"
-                  ? "Skipped · Score 0"
-                  : `Completed${diagnostic.score === null ? "" : ` · Score ${diagnostic.score}`}`
+                ? `Completed${diagnostic.score === null ? "" : ` · Score ${diagnostic.score}`}`
                 : diagnostic.status === "in_progress"
                   ? "Continue from your saved place"
                   : "Find your best starting point"
             }
             statusLabel={
               diagnostic.status === "completed"
-                ? diagnostic.currentPhase === "skipped"
-                  ? "Skipped"
-                  : "Completed"
+                ? "Completed"
                 : diagnostic.status === "in_progress"
                   ? "Resume"
                   : "Start"
@@ -243,17 +239,19 @@ export function OfflineJourneyMenu({
           />
         </section>
 
-        {diagnostic.status === "available" ? (
-          <footer className="reading-journey-menu__footer">
+        {["available", "in_progress"].includes(diagnostic.status) ? (
+          <section
+            className="reading-journey-menu__skip-section"
+            aria-label="Diagnostic options"
+          >
             <BigButton
               className="reading-journey-menu__skip"
-              variant="secondary"
               size="regular"
               onClick={() => setConfirmingSkip(true)}
             >
               Skip Diagnostic
             </BigButton>
-          </footer>
+          </section>
         ) : null}
       </div>
 
@@ -273,8 +271,9 @@ export function OfflineJourneyMenu({
             </div>
             <h2 id="skip-diagnostic-title">Skip the Diagnostic?</h2>
             <p id="skip-diagnostic-description">
-              This records the Diagnostic as skipped with a score of 0 and
-              unlocks all six reading lessons.
+              Your submitted answers and earned points will stay. Every
+              remaining unanswered Diagnostic item will be scored as 0. The
+              assessment will finish. All six reading lessons will unlock.
             </p>
             {skipError ? (
               <p className="reading-journey-dialog__error" role="alert">

@@ -456,14 +456,18 @@
   stroke-width: 2.4;
 }
 
-.reading-journey-menu__skip.big-button {
-  min-width: min(100%, 14rem);
+.reading-journey-menu__skip-section {
+  display: grid;
+  width: 100%;
 }
 
-.reading-journey-menu__footer {
-  display: flex;
-  justify-content: center;
-  padding-block: 0.5rem 1rem;
+.reading-journey-menu__skip.big-button {
+  width: 100%;
+  min-height: 2.85rem;
+  padding-block: 0.5rem;
+  border-radius: var(--radius-control);
+  font-size: var(--font-body);
+  box-shadow: 0 5px 0 var(--color-action-primary-depth);
 }
 
 .reading-journey-menu__sync {

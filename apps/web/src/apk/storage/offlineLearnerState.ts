@@ -519,21 +519,45 @@ export function completeOfflineAssessment(
 
 export function skipOfflineDiagnostic(
   state: OfflineLearnerState,
-  maximum: number,
+  itemKeys: readonly string[],
   now: string,
 ): OfflineLearnerState {
-  if (!Number.isInteger(maximum) || maximum < 1) {
+  const uniqueItemKeys = [...new Set(itemKeys)];
+  if (
+    uniqueItemKeys.length < 1 ||
+    uniqueItemKeys.length !== itemKeys.length ||
+    uniqueItemKeys.some((itemKey) => itemKey.length < 1 || itemKey.length > 160)
+  ) {
     throw new Error("The diagnostic requires a valid item count.");
   }
   if (state.journey.diagnostic.status === "completed") return state;
 
   const next = cloneState(state);
-  next.journey.diagnostic.status = "completed";
-  next.journey.diagnostic.currentPhase = "skipped";
-  next.journey.diagnostic.currentItemKey = null;
-  next.journey.diagnostic.score = 0;
-  next.journey.diagnostic.maximum = maximum;
-  next.journey.diagnostic.completedAt = now;
+  const diagnostic = next.journey.diagnostic;
+  const responseByItemKey = new Map(
+    diagnostic.responses.map((response) => [response.itemKey, response]),
+  );
+
+  diagnostic.responses = uniqueItemKeys.map(
+    (itemKey) =>
+      responseByItemKey.get(itemKey) ?? {
+        itemKey,
+        kind: "skipped" as const,
+        value: null,
+        outcome: "skipped" as const,
+        attempts: 0,
+        updatedAt: now,
+      },
+  );
+  diagnostic.status = "completed";
+  diagnostic.currentPhase = "assessment-complete";
+  diagnostic.currentItemKey = null;
+  diagnostic.completedItemKeys = uniqueItemKeys;
+  diagnostic.score = diagnostic.responses.filter(
+    ({ outcome }) => outcome === "correct",
+  ).length;
+  diagnostic.maximum = uniqueItemKeys.length;
+  diagnostic.completedAt = now;
   unlockAllLessons(next);
   unlockAchievement(next, offlineAchievementKeys[0], now);
   next.journey.updatedAt = now;

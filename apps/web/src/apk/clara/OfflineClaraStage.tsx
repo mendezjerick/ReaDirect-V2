@@ -45,12 +45,19 @@ export function OfflineClaraStage({
   onLoadStateChangeRef.current = onLoadStateChange;
   const displayedMode =
     allowedMode === "dynamic" && !runtimeFailed ? "dynamic" : "static";
+  const themedStaticSources = {
+    t2: "/assets/live2d/clara/stills/clara-t2.png",
+    t3: "/assets/live2d/clara/stills/clara-t3.png",
+    t4: "/assets/live2d/clara/stills/clara-t4.png",
+    t5: "/assets/live2d/clara/stills/clara-t5.png",
+    t6: "/assets/live2d/clara/stills/clara-t6.png",
+    t7: "/assets/live2d/clara/stills/clara-t7.png",
+    t8: "/assets/live2d/clara/stills/clara-t8.png",
+  } as const;
   const staticSource =
-    theme === "t2"
-      ? "/assets/live2d/clara/stills/clara-t2.png"
-      : theme === "t3"
-        ? "/assets/live2d/clara/stills/clara-t3.png"
-        : "/assets/live2d/clara/stills/clara-default.png";
+    theme === "t1"
+      ? "/assets/live2d/clara/stills/clara-default.png"
+      : themedStaticSources[theme];
 
   useEffect(() => {
     let active = true;

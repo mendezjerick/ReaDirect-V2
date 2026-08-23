@@ -1,9 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { OfflineClaraStage } from "../src/apk/clara/OfflineClaraStage";
 import { resolveOfflineClaraMode } from "../src/apk/clara/offlineClaraRuntime";
+import { ThemeProvider } from "../src/features/theme/ThemeProvider";
+import { THEME_STORAGE_KEY } from "../src/features/theme/theme";
 
 import type { ClaraSelection } from "../src/apk/clara/claraCapability";
 
@@ -25,6 +27,11 @@ const staticSelection: ClaraSelection = {
 };
 
 describe("offline Clara stage", () => {
+  afterEach(() => {
+    window.localStorage.removeItem(THEME_STORAGE_KEY);
+    delete document.documentElement.dataset.theme;
+  });
+
   it("never loads Dynamic Clara when the current device selection locks it", () => {
     const loadDynamic = vi.fn();
     const { container } = render(
@@ -74,6 +81,21 @@ describe("offline Clara stage", () => {
       container.querySelector('[data-live2d-state="ready"]'),
     ).toBeInTheDocument();
     expect(loadDynamic).not.toHaveBeenCalled();
+  });
+
+  it("uses the packaged Clara portrait for the selected current theme", () => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, "t8");
+
+    const { container } = render(
+      <ThemeProvider>
+        <OfflineClaraStage savedMode="static" selection={staticSelection} />
+      </ThemeProvider>,
+    );
+
+    expect(container.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/live2d/clara/stills/clara-t8.png",
+    );
   });
 
   it("loads the animated canvas only when both saved and current modes allow it", async () => {

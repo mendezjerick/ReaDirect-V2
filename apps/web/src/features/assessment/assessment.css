@@ -4,6 +4,7 @@
   width: 100%;
   height: 100vh;
   height: 100svh;
+  height: 100dvh;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: clamp(0.5rem, 1.5vh, 0.8rem);
   overflow: hidden;
@@ -286,6 +287,8 @@
 }
 
 .assessment-recorder {
+  --assessment-recorder-review-slot-height: clamp(3.25rem, 7svh, 4rem);
+
   display: grid;
   width: 100%;
   height: 100%;
@@ -296,7 +299,21 @@
   justify-items: stretch;
 }
 
+.assessment-recorder:has(.assessment-recorder__retry) {
+  grid-template-rows:
+    minmax(0, 1fr)
+    var(--assessment-recorder-review-slot-height)
+    auto;
+}
+
+.assessment-recorder:has(.assessment-recorder__retry)
+  .assessment-recorder__review-slot {
+  margin-top: 0;
+}
+
 .assessment-recorder__control {
+  --assessment-recorder-record-surface: var(--color-action-primary);
+
   position: relative;
   display: grid;
   width: 100%;
@@ -325,12 +342,16 @@
 
 .assessment-recorder__control:not(:disabled):active,
 .assessment-recorder__control[data-state="recording"] {
+  --assessment-recorder-record-surface: var(--color-action-primary-pressed);
+
   transform: translateY(7px);
   background: var(--color-action-primary-pressed);
   box-shadow: 0 3px 0 var(--color-action-primary-depth);
 }
 
 .assessment-recorder__control:disabled {
+  --assessment-recorder-record-surface: var(--color-button-unavailable-surface);
+
   border-color: var(--color-button-unavailable-border);
   color: var(--color-button-unavailable-text);
   background: var(--color-button-unavailable-surface);
@@ -346,7 +367,8 @@
 }
 
 .assessment-recorder__icon,
-.assessment-recorder__icon svg {
+.assessment-recorder__icon svg,
+.assessment-recorder__record-mark {
   width: clamp(2rem, 8vw, 2.8rem);
   height: clamp(2rem, 8vw, 2.8rem);
 }
@@ -365,6 +387,51 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 3.5;
+}
+
+.assessment-recorder__record-mark {
+  position: relative;
+  display: block;
+  background: currentColor;
+  clip-path: polygon(
+    25% 0,
+    75% 0,
+    75% 12.5%,
+    87.5% 12.5%,
+    87.5% 25%,
+    100% 25%,
+    100% 75%,
+    87.5% 75%,
+    87.5% 87.5%,
+    75% 87.5%,
+    75% 100%,
+    25% 100%,
+    25% 87.5%,
+    12.5% 87.5%,
+    12.5% 75%,
+    0 75%,
+    0 25%,
+    12.5% 25%,
+    12.5% 12.5%,
+    25% 12.5%
+  );
+}
+
+.assessment-recorder__record-mark::before,
+.assessment-recorder__record-mark::after {
+  position: absolute;
+  clip-path: inherit;
+  content: "";
+}
+
+.assessment-recorder__record-mark::before {
+  inset: 0.18rem;
+  background: var(--assessment-recorder-record-surface);
+}
+
+.assessment-recorder__record-mark::after {
+  inset: 30%;
+  background: currentColor;
 }
 
 .assessment-recorder__stop-icon {
@@ -420,8 +487,11 @@
 }
 
 .assessment-recorder__review-slot {
+  display: grid;
+  width: 100%;
   min-height: 1.25rem;
   margin-top: 0.55rem;
+  place-items: center;
 }
 
 .assessment-recorder__review-slot:empty,
@@ -430,13 +500,41 @@
 }
 
 .assessment-recorder__retry {
-  border: 0;
-  padding: 0.15rem 0.4rem;
-  color: var(--color-action-primary-depth);
-  background: var(--color-transparent);
+  display: grid;
+  width: min(100%, 24rem);
+  min-height: 2.4rem;
+  border: 2px solid var(--color-action-primary-depth);
+  border-radius: var(--radius-control);
+  padding: 0.2rem 0.65rem;
+  color: var(--color-text-primary);
+  background: var(--color-action-secondary);
+  box-shadow: 0 3px 0 var(--color-frame-depth);
+  font-family: var(--font-display-family);
   font-weight: 700;
-  text-decoration: underline;
+  line-height: 1;
+  place-items: center;
+  text-align: center;
+  text-transform: uppercase;
   cursor: pointer;
+  transition:
+    transform 120ms ease-out,
+    box-shadow 120ms ease-out,
+    background-color 120ms ease-out;
+}
+
+.assessment-recorder__retry:hover,
+.assessment-recorder__retry:focus-visible {
+  background: var(--color-action-secondary-hover);
+}
+
+.assessment-recorder__retry:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.assessment-recorder__retry:active {
+  box-shadow: 0 1px 0 var(--color-frame-depth);
+  transform: translateY(2px);
 }
 
 .assessment-recorder__capture-note {
@@ -616,6 +714,13 @@
 .assessment-action-slot[data-assessment-action-split] .big-button {
   min-height: 0;
   padding-block: 0.45rem;
+}
+
+.assessment-action-slot[data-assessment-action-split]
+  > .big-button--skip-vertical {
+  display: grid;
+  place-items: center;
+  padding: var(--skip-button-depth) 0 0;
 }
 
 .assessment-action-slot[data-assessment-action-split]
@@ -1746,8 +1851,8 @@
   }
 
   .assessment-page.learner-flow-page .assessment-recorder__retry {
-    min-height: 1.75rem;
-    padding: 0.1rem 0.45rem;
+    min-height: 2.15rem;
+    padding-block: 0.12rem;
   }
 
   .assessment-page.learner-flow-page .assessment-recorder__error {
@@ -1794,6 +1899,12 @@
     .big-button {
     min-height: 0;
     padding-block: 0.2rem;
+  }
+
+  .assessment-page.learner-flow-page
+    .assessment-action-slot[data-assessment-action-split]
+    > .big-button--skip-vertical {
+    padding: var(--skip-button-depth) 0 0;
   }
 
   .assessment-page.learner-flow-page .assessment-action-slot .big-button__icon {
@@ -2186,6 +2297,12 @@
     padding-block: 0.18rem;
   }
 
+  .assessment-page.learner-flow-page:has(.assessment-recorder-panel)
+    .assessment-action-slot[data-assessment-action-split]
+    > .big-button--skip-vertical {
+    padding: var(--skip-button-depth) 0 0;
+  }
+
   .assessment-page.learner-flow-page:has(.assessment-passage)
     .assessment-passage
     p {
@@ -2421,12 +2538,14 @@
   }
 
   .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
-    .assessment-result__segments > div {
+    .assessment-result__segments
+    > div {
     padding-block: 0.25rem;
   }
 
   .assessment-page.learner-flow-page:has(.assessment-item-panel--result)
-    .assessment-result__score strong {
+    .assessment-result__score
+    strong {
     font-size: clamp(3rem, 15svh, 4rem);
   }
 

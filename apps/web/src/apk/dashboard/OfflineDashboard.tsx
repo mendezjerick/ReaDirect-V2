@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { BigButton } from "../../components/ui/BigButton";
+import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
 import { ReadingJourneyAchievementIcon } from "../../features/achievements/ReadingJourneyAchievementIcon";
 import { readingJourneyAchievements } from "../../features/achievements/readingJourneyAchievements";
@@ -9,22 +10,11 @@ import "../../features/learner-dashboard/learner-dashboard.css";
 import type { OfflineLearnerState } from "../storage/offlineLearnerState";
 
 function LearningIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M7 10c7-1 12 1 17 5v25c-5-4-10-6-17-5V10Z" />
-      <path d="M41 10c-7-1-12 1-17 5v25c5-4 10-6 17-5V10Z" />
-      <path d="M12 17c3 0 5 .6 8 2M12 23c3 0 5 .6 8 2M36 17c-3 0-5 .6-8 2M36 23c-3 0-5 .6-8 2" />
-    </svg>
-  );
+  return <PixelIcon name="book" />;
 }
 
 function TrophyIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M15 8h18v8c0 8-4 13-9 13s-9-5-9-13V8Z" />
-      <path d="M15 12H8v3c0 6 4 9 9 9M33 12h7v3c0 6-4 9-9 9M24 29v7M17 40h14M20 36h8" />
-    </svg>
-  );
+  return <PixelIcon name="trophy" />;
 }
 
 export function OfflineDashboard({
