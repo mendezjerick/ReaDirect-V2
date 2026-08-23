@@ -37,6 +37,8 @@ final class ProductionDeploymentSeeder extends Seeder
             $this->call(PortalSystemLearnerSeeder::class);
         }
 
+        $this->call(DuhatProductionDatasetSeeder::class);
+
         $this->call(GameCatalogSeeder::class);
 
         if (! $this->hasCompleteVoice(
