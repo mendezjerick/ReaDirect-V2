@@ -40,6 +40,10 @@ export function nativeBackDestination(
     return "/learner/modes";
   }
 
+  if (pathname === "/learner/settings/reading-reminder") {
+    return "/learner/dashboard";
+  }
+
   const claraDestination = claraBackDestination(pathname);
   if (claraDestination) return claraDestination;
 

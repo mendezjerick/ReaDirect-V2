@@ -272,7 +272,8 @@
 
 .learner-dashboard__games-action,
 .learner-dashboard__clara-action,
-.learner-dashboard__offline-action {
+.learner-dashboard__offline-action,
+.learner-dashboard__reading-reminder-action {
   width: 100%;
 }
 

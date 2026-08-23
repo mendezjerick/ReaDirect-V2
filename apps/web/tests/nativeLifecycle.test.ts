@@ -14,10 +14,16 @@ const backEvent = { canGoBack: false } as BackButtonListenerEvent;
 describe("native lifecycle handler registry", () => {
   it("returns from Offline Practice to the mode chooser instead of startup", () => {
     expect(nativeBackDestination("/learner/offline")).toBe("/learner/modes");
-    expect(
-      nativeBackDestination("/learner/offline", "?from=dashboard"),
-    ).toBe("/learner/dashboard");
+    expect(nativeBackDestination("/learner/offline", "?from=dashboard")).toBe(
+      "/learner/dashboard",
+    );
     expect(nativeBackDestination("/learner/modes")).toBeNull();
+  });
+
+  it("returns Reading Reminder settings to the learner dashboard", () => {
+    expect(nativeBackDestination("/learner/settings/reading-reminder")).toBe(
+      "/learner/dashboard",
+    );
   });
 
   it("notifies pause and resume handlers", async () => {

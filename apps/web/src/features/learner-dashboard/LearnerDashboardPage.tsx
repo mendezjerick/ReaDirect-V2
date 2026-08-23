@@ -35,6 +35,7 @@ export function LearnerDashboardPage() {
   const gamesCommit = useButtonCommit();
   const learnWithClaraCommit = useButtonCommit();
   const offlineCommit = useButtonCommit();
+  const readingReminderCommit = useButtonCommit();
   const logoutCommit = useButtonCommit();
   const resetCommit = useButtonCommit();
   const storedSession = loadLearnerSession();
@@ -113,6 +114,12 @@ export function LearnerDashboardPage() {
 
   const openOfflinePractice = () => {
     offlineCommit.commit(() => navigate("/learner/offline?from=dashboard"));
+  };
+
+  const openReadingReminder = () => {
+    readingReminderCommit.commit(() =>
+      navigate("/learner/settings/reading-reminder"),
+    );
   };
 
   if (!storedSession || sessionQuery.isError) {
@@ -336,6 +343,35 @@ export function LearnerDashboardPage() {
                 onClick={openOfflinePractice}
               >
                 Open Offline Downloads
+              </BigButton>
+            </Surface>
+          ) : null}
+
+          {isNativePlatform ? (
+            <Surface
+              className="learner-dashboard__utility-card learner-dashboard__reading-reminder-card learner-dashboard__entrance"
+              kind="panel"
+              padding="normal"
+            >
+              <div className="learner-dashboard__utility-heading">
+                <span className="learner-dashboard__utility-icon">
+                  <PixelIcon name="clock" />
+                </span>
+                <div>
+                  <p className="learner-dashboard__eyebrow">Your device</p>
+                  <h2>Reading Reminder</h2>
+                </div>
+              </div>
+              <p>Get a gentle reminder to practice reading.</p>
+              <BigButton
+                className="learner-dashboard__reading-reminder-action"
+                aria-label="Open Reading Reminder"
+                variant="secondary"
+                size="regular"
+                committing={readingReminderCommit.committing}
+                onClick={openReadingReminder}
+              >
+                Set Reminder
               </BigButton>
             </Surface>
           ) : null}

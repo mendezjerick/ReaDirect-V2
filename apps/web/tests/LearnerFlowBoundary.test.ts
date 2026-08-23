@@ -32,6 +32,7 @@ const expectedLearnerRoutes = [
   "/learner/offline",
   "/learner/offline/category/:categoryKey",
   "/learner/offline/:packId",
+  "/learner/settings/reading-reminder",
 ].sort();
 
 const learnerFeatureDirectories = [
