@@ -36,16 +36,17 @@ export function NativeConnectivityBanner() {
     return null;
   }
 
+  // API reachability is intentionally handled by the Online Learning/Offline
+  // Mode chooser. Once a learner has entered the app, a Render cold start
+  // should not look like the learner lost internet access or make the rest of
+  // the experience appear unavailable.
   const message =
     connectivity.device === "offline"
       ? "No Internet Connection"
-      : connectivity.api === "unreachable"
-        ? "Online Learning is unavailable right now."
-        : connectivity.api === "unauthorized"
-          ? connectivity.learnerSession === "expired"
-            ? "Your online session has expired. Sign in again to continue."
-            : "Online Learning is unavailable right now."
-          : null;
+      : connectivity.api === "unauthorized" &&
+          connectivity.learnerSession === "expired"
+        ? "Your online session has expired. Sign in again to continue."
+        : null;
 
   if (!message) return null;
 
