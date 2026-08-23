@@ -1619,6 +1619,204 @@
   }
 }
 
+/* Game menu: one safe-area-aware entry point replaces the five-button toolbar. */
+.game-route .game-menu-trigger {
+  pointer-events: auto;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 5.4rem;
+  min-height: 2.9rem;
+  padding: 0.55rem 0.8rem;
+  border: 2px solid #facc15;
+  border-radius: 0.7rem;
+  background: #13251d;
+  color: #fff8db;
+  font-size: clamp(0.82rem, 2.2vmin, 1rem);
+  font-weight: 900;
+  box-shadow: 0 0.2rem 0 #07110c;
+}
+
+.game-route .game-menu-trigger:focus-visible,
+.game-route .game-menu-trigger:hover:not(:disabled) {
+  outline: 3px solid #facc15;
+  outline-offset: 3px;
+  filter: brightness(1.1);
+}
+
+.game-route .game-menu-backdrop {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgb(3 12 8 / 72%);
+  padding: max(0.6rem, var(--safe-top)) max(0.6rem, var(--safe-right))
+    max(0.6rem, var(--safe-bottom)) max(0.6rem, var(--safe-left));
+}
+
+.game-route .game-menu-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: min(22rem, 88vw, 38vw);
+  min-width: min(18rem, 88vw);
+  max-height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+  border: 3px solid #facc15;
+  border-radius: 0.9rem;
+  background: #10251b;
+  color: #fff8db;
+  box-shadow:
+    -0.35rem 0.35rem 0 #07110c,
+    0 1rem 3rem rgb(0 0 0 / 35%);
+}
+
+.game-route .game-menu-drawer__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgb(250 204 21 / 48%);
+}
+
+.game-route .game-menu-drawer__eyebrow,
+.game-route .game-menu-drawer__section {
+  margin: 0;
+  color: #facc15;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-route .game-menu-drawer h2 {
+  margin: 0.15rem 0 0;
+  font-size: clamp(1.35rem, 4vmin, 1.8rem);
+}
+
+.game-route .game-menu-drawer__close {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border: 2px solid #fff8db;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.game-route .game-menu-drawer button:not(.game-menu-drawer__close) {
+  min-height: 2.85rem;
+  padding: 0.65rem 0.75rem;
+  border: 2px solid rgb(255 248 219 / 75%);
+  border-radius: 0.55rem;
+  background: #1d4935;
+  color: #fff8db;
+  font-size: clamp(0.86rem, 2.4vmin, 1rem);
+  font-weight: 800;
+  text-align: left;
+}
+
+.game-route .game-menu-drawer button:hover,
+.game-route .game-menu-drawer button:focus-visible {
+  outline: 3px solid #facc15;
+  outline-offset: 2px;
+  filter: brightness(1.1);
+}
+
+.game-route .game-menu-drawer__resume {
+  background: #facc15 !important;
+  color: #13251d !important;
+  text-align: center !important;
+}
+
+.game-route .game-menu-drawer__stack {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.game-route .game-menu-drawer__section--danger {
+  margin-top: 0.3rem;
+  color: #ffb4a6;
+}
+
+.game-route .game-menu-drawer__danger {
+  border-color: #ff8b79 !important;
+  background: #63261d !important;
+}
+
+/* Landscape owns a useful left HUD column; the world keeps the remaining
+   width and the action dock stays in its own bottom-right lane. */
+@media (orientation: landscape) {
+  .game-route .navigation-hud {
+    width: min(20rem, 30vw);
+    max-width: min(20rem, 30vw);
+  }
+
+  .game-route .navigation-hud .minimap-shell {
+    width: clamp(8rem, 28vh, 12.5rem);
+    height: clamp(8rem, 28vh, 12.5rem);
+  }
+
+  .game-route .navigation-hud .navigation-mission-panel {
+    max-height: min(10.5rem, calc(100dvh - 18rem));
+    padding: 0.7rem;
+  }
+
+  .game-route .navigation-hud .navigation-objective {
+    font-size: clamp(0.94rem, 2.3vh, 1.15rem);
+    line-height: 1.3;
+  }
+
+  .game-route .navigation-hud .navigation-mission-progress {
+    font-size: clamp(0.78rem, 1.8vh, 0.92rem);
+  }
+
+  .game-route .adventure-dock {
+    width: min(16rem, 27vw);
+    right: max(var(--hud-edge-gap), var(--safe-right));
+    bottom: calc(max(var(--hud-edge-gap), var(--safe-bottom)) + 0.25rem);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .game-route .game-menu-drawer {
+    width: min(20rem, 38vw);
+  }
+
+  .game-route .navigation-hud {
+    top: calc(max(0.35rem, var(--safe-top)) + 3.5rem);
+    width: min(18rem, 31vw);
+    max-width: min(18rem, 31vw);
+  }
+
+  .game-route .navigation-hud .minimap-shell {
+    width: clamp(8rem, 31vh, 10.75rem);
+    height: clamp(8rem, 31vh, 10.75rem);
+  }
+
+  .game-route .navigation-hud .navigation-mission-panel {
+    max-height: min(8.5rem, calc(100dvh - 13.75rem));
+  }
+
+  .game-route .adventure-dock {
+    width: min(15rem, 26vw);
+  }
+}
+
+@media (orientation: portrait) {
+  .game-route .game-menu-drawer {
+    width: min(22rem, 88vw);
+    min-width: 0;
+  }
+}
+
 @media (max-width: 360px) {
   .game-route .game-system-controls {
     gap: 0.15rem;
@@ -1999,5 +2197,96 @@
   .game-route .adventure-dock__button--quests {
     min-height: clamp(3.25rem, 21vh, 4rem);
     font-size: clamp(0.68rem, 2.3vh, 0.84rem);
+  }
+}
+
+/* Last rule wins: keep the five phone utility actions inside the viewport. */
+@media (orientation: portrait) and (max-width: 700px) {
+  .game-route .game-topbar--controls-only {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    padding: max(0.55rem, var(--safe-top)) max(0.55rem, var(--safe-right))
+      0.55rem max(0.55rem, var(--safe-left));
+  }
+
+  .game-route .game-topbar--controls-only .game-system-controls {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: clamp(0.2rem, 1vw, 0.4rem);
+    justify-self: stretch;
+  }
+
+  .game-route .game-topbar--controls-only .game-system-button,
+  .game-route .game-topbar--controls-only .game-character-button {
+    grid-column: auto !important;
+    width: 100%;
+    min-width: 0;
+    min-height: clamp(2.75rem, 12vw, 3.5rem);
+    padding: 0.25rem 0.2rem;
+    font-size: clamp(0.56rem, 2.05vw, 0.78rem);
+    line-height: 1.05;
+    white-space: normal;
+  }
+
+  .game-route .game-topbar--controls-only .game-command-icon {
+    width: clamp(0.95rem, 4vw, 1.25rem);
+    height: clamp(0.95rem, 4vw, 1.25rem);
+    font-size: 0.42rem;
+  }
+
+  .game-route .game-topbar--controls-only .game-command-icon--sound {
+    width: clamp(1.15rem, 4.8vw, 1.45rem);
+  }
+
+  .game-route .game-topbar--controls-only .game-character-label-full,
+  .game-route .game-topbar--controls-only .game-language-label-full {
+    display: none;
+  }
+
+  .game-route .game-topbar--controls-only .game-character-label-short,
+  .game-route .game-topbar--controls-only .game-language-label-short {
+    display: inline;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 360px) {
+  .game-route .game-topbar--controls-only .game-system-controls {
+    gap: 0.18rem;
+  }
+
+  .game-route .game-topbar--controls-only .game-system-button,
+  .game-route .game-topbar--controls-only .game-character-button {
+    min-height: 2.6rem;
+    font-size: 0.52rem;
+  }
+}
+
+/* Short landscape phones need a clear vertical lane above the D-pad. Keep
+   the minimap, but collapse its optional label and make the mission copy a
+   bounded scroll region so it cannot cover movement controls. */
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 915px) {
+  .game-route .navigation-hud {
+    top: calc(max(0.35rem, var(--safe-top)) + 3.55rem);
+  }
+
+  .game-route .navigation-hud .minimap-shell {
+    width: 6rem;
+    height: 6rem;
+  }
+
+  .game-route .navigation-hud .minimap-location {
+    display: none;
+  }
+
+  .game-route .navigation-hud .navigation-mission-panel {
+    max-height: 4.5rem;
+    overflow: auto;
+  }
+
+  .game-route .movement-controls {
+    bottom: max(0rem, var(--safe-bottom));
   }
 }

@@ -20,6 +20,7 @@ import {
 } from "./features/learner-auth/learnerApi";
 import { NativeLearnerEntryPage } from "./features/offline-practice/NativeLearnerEntryPage";
 import { NativeConnectivityBanner } from "./features/connectivity/NativeConnectivityBanner";
+import { ReadingReminderCoordinator } from "./features/reading-reminder/ReadingReminderCoordinator";
 import { SpeechServiceGate } from "./features/speech-readiness/SpeechServiceGate";
 import { learnerGameProfileClient } from "./features/games/gameProfileApi";
 import {
@@ -48,6 +49,12 @@ const CreditsLicensesPage = lazy(() =>
 const LearnerDashboardPage = lazy(() =>
   import("./features/learner-dashboard/LearnerDashboardPage").then(
     (module) => ({ default: module.LearnerDashboardPage }),
+  ),
+);
+
+const ReadingReminderSettingsPage = lazy(() =>
+  import("./features/reading-reminder/ReadingReminderSettingsPage").then(
+    (module) => ({ default: module.ReadingReminderSettingsPage }),
   ),
 );
 
@@ -494,6 +501,7 @@ export function App() {
       >
         <LearnerExperienceProvider>
           <NativeConnectivityBanner />
+          <ReadingReminderCoordinator />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
               <Route path="/" element={<RootPage />} />
@@ -513,6 +521,10 @@ export function App() {
               <Route
                 path="/learner/dashboard"
                 element={<LearnerDashboardPage />}
+              />
+              <Route
+                path="/learner/settings/reading-reminder"
+                element={<ReadingReminderSettingsPage />}
               />
               <Route
                 path="/learner/offline"

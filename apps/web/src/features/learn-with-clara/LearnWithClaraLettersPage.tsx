@@ -25,6 +25,7 @@ import {
   startLearnWithClaraLetters,
   type LearnWithClaraLettersState,
 } from "./learnWithClaraLettersFlow";
+import { useLearnWithClaraBackNavigation } from "./useLearnWithClaraBackNavigation";
 
 type ViewPhase = "welcome" | "lesson";
 type LineState = "preparing" | "speaking" | "finished" | "error";
@@ -127,6 +128,7 @@ function WelcomeVisual({
 
 export function LearnWithClaraLettersPage() {
   const navigate = useNavigate();
+  useLearnWithClaraBackNavigation();
   const actionCommit = useButtonCommit();
   const session = loadLearnerSession();
   const copy = isFilipino(session?.learner.speech_language)

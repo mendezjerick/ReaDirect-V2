@@ -77,7 +77,7 @@ describe("NativeConnectivityBanner", () => {
     expect(screen.queryByRole("status")).toBeNull();
   });
 
-  it("distinguishes an unavailable API from missing internet", () => {
+  it("does not persist API cold-start failures after entering the learner flow", () => {
     connectivityMock.mockReturnValue({
       device: "online",
       api: "unreachable",
@@ -92,13 +92,10 @@ describe("NativeConnectivityBanner", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Online Learning is unavailable right now.",
-    );
-    expect(screen.queryByText("No Internet Connection")).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
   });
 
-  it("does not call a present Guest Mode session expired", () => {
+  it("does not show an API warning for a present Guest Mode session", () => {
     connectivityMock.mockReturnValue({
       device: "online",
       api: "unauthorized",
@@ -113,10 +110,7 @@ describe("NativeConnectivityBanner", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Online Learning is unavailable right now.",
-    );
-    expect(screen.queryByText(/session has expired/i)).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("shows session expiry only for an expired authenticated session", () => {

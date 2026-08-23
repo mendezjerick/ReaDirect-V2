@@ -2,6 +2,7 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 
 interface NativeScreenOrientationPlugin {
   lockPortrait(): Promise<void>;
+  lockLandscape(): Promise<void>;
   unlock(): Promise<void>;
 }
 
@@ -23,9 +24,10 @@ export async function applyNativeOrientation(pathname: string): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
 
   if (isApprovedGameRoute(pathname)) {
-    // Games may use either portrait or landscape. Let Android's sensor and
-    // the learner's device preference decide instead of forcing a rotation.
-    await ScreenOrientation.unlock();
+    // The games own their viewport in landscape while active. The lifecycle
+    // provider calls this again with the application route on exit, restoring
+    // the normal portrait policy.
+    await ScreenOrientation.lockLandscape();
     return;
   }
 

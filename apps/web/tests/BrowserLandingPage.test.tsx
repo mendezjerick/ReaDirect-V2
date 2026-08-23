@@ -53,10 +53,21 @@ describe("BrowserLandingPage", () => {
     expect(
       screen.queryByRole("link", { name: /use in browser/i }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getAllByText(/download on play store/i).length,
-    ).toBeGreaterThan(1);
-    expect(screen.getAllByText(/coming soon/i).length).toBeGreaterThan(0);
+    const playStoreLinks = screen.getAllByRole("link", {
+      name: "Download on Play Store",
+    });
+    expect(playStoreLinks.length).toBeGreaterThan(1);
+    playStoreLinks.forEach((link) => {
+      expect(link).toHaveAttribute(
+        "href",
+        "https://play.google.com/store/apps/details?id=com.readirect.app",
+      );
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noreferrer");
+    });
+    expect(screen.getAllByTestId("play-store-icon")).toHaveLength(
+      playStoreLinks.length,
+    );
     expect(screen.getByRole("link", { name: "Documentation" })).toHaveAttribute(
       "href",
       "/docs",

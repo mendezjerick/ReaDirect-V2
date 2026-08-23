@@ -14,6 +14,7 @@ import { loadLearnerSession } from "../learner-auth/learnerApi";
 import { ClaraStage } from "../intro/ClaraStage";
 import { LearnWithClaraClassShell } from "./LearnWithClaraClassShell";
 import { claraPracticeCopy, isFilipino } from "./learnWithClaraCopy";
+import { useLearnWithClaraBackNavigation } from "./useLearnWithClaraBackNavigation";
 import "./learn-with-clara-practice.css";
 
 type PracticeKey = "phrases" | "sentences" | "comprehension";
@@ -483,6 +484,7 @@ function ComprehensionPractice({
 
 export function LearnWithClaraPracticePage() {
   const navigate = useNavigate();
+  useLearnWithClaraBackNavigation();
   const { practiceKey } = useParams<{ practiceKey: string }>();
   const session = loadLearnerSession();
   const copy = isFilipino(session?.learner.speech_language)

@@ -4401,6 +4401,64 @@ textarea.staff-field__control {
   font-size: clamp(1.75rem, 8vw, 2.25rem);
 }
 
+.home-page__read-button[data-guest="true"] {
+  border-color: color-mix(
+    in srgb,
+    var(--color-action-primary-depth) 82%,
+    var(--color-surface-panel)
+  );
+  background-image:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--color-action-primary-depth) 46%,
+        var(--color-transparent)
+      ),
+      color-mix(
+        in srgb,
+        var(--color-action-primary) 22%,
+        var(--color-transparent)
+      )
+    ),
+    var(--asset-home-background-mobile);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow: 0 6px 0
+    color-mix(
+      in srgb,
+      var(--color-action-primary-depth) 82%,
+      var(--color-surface-panel)
+    );
+  text-shadow: 0 2px 3px var(--color-action-primary-depth);
+}
+
+.home-page__read-button[data-guest="true"]:active,
+.home-page__read-button[data-guest="true"][data-press-state="committing"] {
+  background-image:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--color-action-primary-depth) 58%,
+        var(--color-transparent)
+      ),
+      color-mix(
+        in srgb,
+        var(--color-action-primary-pressed) 30%,
+        var(--color-transparent)
+      )
+    ),
+    var(--asset-home-background-mobile);
+  box-shadow: 0 2px 0
+    color-mix(
+      in srgb,
+      var(--color-action-primary-depth) 82%,
+      var(--color-surface-panel)
+    );
+}
+
 .home-page__read-icon {
   flex: 0 0 auto;
   width: clamp(2rem, 9vw, 2.5rem);
@@ -5393,6 +5451,43 @@ textarea.staff-field__control {
   .home-page__actions {
     width: min(100%, 27rem);
     padding: 2rem;
+  }
+
+  .home-page__read-button[data-guest="true"] {
+    background-image:
+      linear-gradient(
+        135deg,
+        color-mix(
+          in srgb,
+          var(--color-action-primary-depth) 46%,
+          var(--color-transparent)
+        ),
+        color-mix(
+          in srgb,
+          var(--color-action-primary) 22%,
+          var(--color-transparent)
+        )
+      ),
+      var(--asset-home-background-desktop);
+  }
+
+  .home-page__read-button[data-guest="true"]:active,
+  .home-page__read-button[data-guest="true"][data-press-state="committing"] {
+    background-image:
+      linear-gradient(
+        135deg,
+        color-mix(
+          in srgb,
+          var(--color-action-primary-depth) 58%,
+          var(--color-transparent)
+        ),
+        color-mix(
+          in srgb,
+          var(--color-action-primary-pressed) 30%,
+          var(--color-transparent)
+        )
+      ),
+      var(--asset-home-background-desktop);
   }
 
   .surface--padding-compact {

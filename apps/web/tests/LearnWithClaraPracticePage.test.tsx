@@ -206,6 +206,16 @@ describe("LearnWithClaraPracticePage", () => {
     expect(screen.getByRole("button", { name: "Retry" })).toBeVisible();
   });
 
+  it("uses the Clara dashboard as the browser Back parent", () => {
+    renderPractice("comprehension");
+
+    act(() => {
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+
+    expect(screen.getByText("Practice menu")).toBeInTheDocument();
+  });
+
   it("shows Filipino Clara guidance when Filipino is selected", async () => {
     renderPractice("phrases", "fil-PH");
 

@@ -13,6 +13,10 @@
   --landing-cabin: #704846;
   --landing-mist: #eaf7ee;
   --landing-white: #f5fbef;
+  --play-store-blue: #4285f4;
+  --play-store-green: #34a853;
+  --play-store-red: #ea4335;
+  --play-store-yellow: #fbbc04;
   min-width: 320px;
   min-height: 100vh;
   overflow: hidden;
@@ -269,6 +273,12 @@
 
 .browser-landing__play-store-status {
   cursor: not-allowed;
+}
+
+.browser-landing__play-store-icon {
+  width: 1.35em;
+  height: 1.35em;
+  flex: 0 0 auto;
 }
 
 .browser-landing__play-store-status small {
