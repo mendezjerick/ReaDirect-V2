@@ -136,6 +136,10 @@ function renderDashboard(stage = "before_diagnostic") {
               path="/learner/offline"
               element={<div>Offline practice route</div>}
             />
+            <Route
+              path="/learner/settings/reading-reminder"
+              element={<div>Reading reminder settings route</div>}
+            />
           </Routes>
         </RouteTransitionProvider>
       </MemoryRouter>
@@ -352,6 +356,29 @@ describe("LearnerDashboardPage", () => {
     );
 
     expect(screen.getByText("Offline practice route")).toBeInTheDocument();
+  });
+
+  it("shows Reading Reminder only as a native learner utility", () => {
+    vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+    setNativeSessionCache(
+      "readirect.learner-session",
+      JSON.stringify({ ...learnerSession, token: "cookie-session" }),
+    );
+
+    renderDashboard();
+
+    expect(
+      screen.getByRole("heading", { name: "Reading Reminder" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("Get a gentle reminder to practice reading."),
+    ).toBeVisible();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Reading Reminder" }),
+    );
+
+    expect(screen.getByText("Reading reminder settings route")).toBeVisible();
   });
 
   it("opens the Reading Journey without preparing Clara", () => {

@@ -1,0 +1,251 @@
+.reading-reminder-page {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-y: auto;
+  padding: max(0.85rem, env(safe-area-inset-top))
+    max(0.85rem, env(safe-area-inset-right))
+    max(1.75rem, env(safe-area-inset-bottom))
+    max(0.85rem, env(safe-area-inset-left));
+  color: var(--color-text-primary);
+}
+
+.reading-reminder-page__shell {
+  width: min(100%, 42rem);
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.reading-reminder-page__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  border: 2px solid var(--color-border-warm);
+  box-shadow: 0 4px 0 var(--color-frame-depth);
+}
+
+.reading-reminder-page__back {
+  min-width: 5rem;
+  min-height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-control);
+  padding: 0.55rem 0.7rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface-frame);
+  font-family: var(--font-display-family);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reading-reminder-page__back svg {
+  width: 1.2rem;
+}
+
+.reading-reminder-page__back:focus-visible,
+.reading-reminder-page__switch:focus-visible,
+.reading-reminder-page__day:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.reading-reminder-page__eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--color-action-primary);
+  font-family: var(--font-display-family);
+  font-size: var(--font-support);
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.reading-reminder-page h1,
+.reading-reminder-page h2 {
+  margin: 0;
+  font-family: var(--font-display-family);
+  line-height: 1.08;
+}
+
+.reading-reminder-page h1 {
+  font-size: var(--font-page-title);
+}
+
+.reading-reminder-page h2 {
+  font-size: var(--font-panel-title);
+}
+
+.reading-reminder-page__header p:last-child,
+.reading-reminder-page__switch-row p {
+  margin: 0.45rem 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-support);
+  line-height: 1.4;
+}
+
+.reading-reminder-page__form {
+  display: grid;
+  gap: 1.2rem;
+  border: 2px solid var(--color-border-warm);
+  box-shadow: var(--shadow-panel-depth);
+}
+
+.reading-reminder-page__switch-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+}
+
+.reading-reminder-page__switch {
+  min-width: 4.75rem;
+  min-height: 3rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-pill);
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface-muted);
+  font-family: var(--font-display-family);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reading-reminder-page__switch[aria-checked="true"] {
+  color: var(--color-surface-frame);
+  border-color: var(--color-action-primary-depth);
+  background: var(--color-success);
+}
+
+.reading-reminder-page fieldset {
+  min-width: 0;
+  display: grid;
+  gap: 0.65rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-notice);
+  padding: 0.9rem;
+}
+
+.reading-reminder-page legend {
+  padding-inline: 0.3rem;
+  color: var(--color-action-primary);
+  font-family: var(--font-display-family);
+  font-weight: 700;
+}
+
+.reading-reminder-page fieldset:disabled {
+  opacity: 0.62;
+}
+
+.reading-reminder-page label[for="reading-reminder-time"] {
+  color: var(--color-text-secondary);
+  font-size: var(--font-support);
+  font-weight: 700;
+}
+
+.reading-reminder-page input[type="time"] {
+  width: 100%;
+  min-height: 3rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-control);
+  padding: 0.6rem 0.75rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface-frame);
+  font: inherit;
+}
+
+.reading-reminder-page input[type="time"]:focus-visible,
+.reading-reminder-page input[type="radio"]:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.reading-reminder-page__radio-grid,
+.reading-reminder-page__day-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.reading-reminder-page__radio-grid label {
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-control);
+  padding: 0.55rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface-frame);
+  font-size: var(--font-support);
+  font-weight: 700;
+}
+
+.reading-reminder-page__day {
+  min-width: 0;
+  min-height: 3rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-control);
+  color: var(--color-text-primary);
+  background: var(--color-surface-frame);
+  font-family: var(--font-display-family);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reading-reminder-page__day[data-selected] {
+  color: var(--color-surface-frame);
+  border-color: var(--color-action-primary-depth);
+  background: var(--color-action-primary);
+}
+
+.reading-reminder-page__message {
+  margin: 0;
+  border-radius: var(--radius-notice);
+  padding: 0.75rem 0.85rem;
+  font-size: var(--font-support);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.reading-reminder-page__message--error {
+  border: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-surface-frame);
+}
+
+.reading-reminder-page__message--success {
+  border: 2px solid var(--color-success);
+  color: var(--color-success);
+  background: var(--color-surface-frame);
+}
+
+@media (max-width: 26rem) {
+  .reading-reminder-page__header {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .reading-reminder-page__back {
+    justify-self: start;
+  }
+
+  .reading-reminder-page__radio-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 48rem) {
+  .reading-reminder-page {
+    padding: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-reminder-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
