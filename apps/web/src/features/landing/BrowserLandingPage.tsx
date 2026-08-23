@@ -9,6 +9,8 @@ const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.readirect.app";
 const APK_DOWNLOAD_URL =
   "https://github.com/mendezjerick/ReaDirect-Downloads/releases/latest/download/ReaDirect.apk";
+const OFFLINE_APK_DOWNLOAD_URL =
+  "https://github.com/mendezjerick/ReaDirect-Downloads/releases/latest/download/ReaDirect-Offline.apk";
 
 function BrandMark() {
   return (
@@ -229,9 +231,14 @@ export function BrowserLandingPage() {
               ReaDirect offline mode is designed to help learners stay in the
               rhythm of small, confidence-building wins.
             </p>
-            <span className="browser-landing__offline-note">
-              Offline access is coming soon
-            </span>
+            <a
+              className="browser-landing__offline-note"
+              href={OFFLINE_APK_DOWNLOAD_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Download Offline APK
+            </a>
           </div>
         </section>
 

@@ -50,6 +50,16 @@ describe("BrowserLandingPage", () => {
     expect(apkLink).toHaveClass("landing-button--mist");
     expect(apkLink).toHaveAttribute("target", "_blank");
     expect(apkLink).toHaveAttribute("rel", "noreferrer");
+    const offlineApkLink = screen.getByRole("link", {
+      name: "Download Offline APK",
+    });
+    expect(offlineApkLink).toHaveAttribute(
+      "href",
+      "https://github.com/mendezjerick/ReaDirect-Downloads/releases/latest/download/ReaDirect-Offline.apk",
+    );
+    expect(offlineApkLink).toHaveClass("browser-landing__offline-note");
+    expect(offlineApkLink).toHaveAttribute("target", "_blank");
+    expect(offlineApkLink).toHaveAttribute("rel", "noreferrer");
     expect(
       screen.queryByRole("link", { name: /use in browser/i }),
     ).not.toBeInTheDocument();
