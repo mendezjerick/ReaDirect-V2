@@ -148,3 +148,4 @@ apps/web/public/assets/live2d/core/
 Thumbs.db
 apps/api/database/database.sqlite
 database.sqlite
+apps/api/database/database.sqlite
