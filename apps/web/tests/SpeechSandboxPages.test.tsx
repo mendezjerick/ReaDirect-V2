@@ -342,12 +342,19 @@ describe("system-admin speech sandboxes", () => {
     ).toBeVisible();
     expect(screen.getByText("Raw token differences")).toBeVisible();
     expect(
+      screen.getByRole("img", {
+        name: "Recognition outcomes: 2 exact and 1 mismatched out of 3 attempts.",
+      }),
+    ).toBeVisible();
+    expect(screen.getByText("Most frequent confusions")).toBeVisible();
+    expect(
+      screen.getByRole("progressbar", { name: /cat recognized as cap/ }),
+    ).toHaveAttribute("aria-valuenow", "1");
+    expect(
       screen.getByRole("heading", { name: "Fixture sources" }),
     ).toBeVisible();
     expect(screen.getAllByText("Jezreel R. Ramos")[0]).toBeVisible();
-    expect(
-      screen.getAllByText("Shaila Patrice D. Avallenda")[0],
-    ).toBeVisible();
+    expect(screen.getAllByText("Shaila Patrice D. Avallenda")[0]).toBeVisible();
     expect(screen.getByText("Kaggle negative fixture set")).toBeVisible();
     await user.selectOptions(
       screen.getByLabelText("Binary evaluation scope"),

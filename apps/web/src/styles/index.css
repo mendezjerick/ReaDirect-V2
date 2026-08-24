@@ -3595,6 +3595,198 @@ textarea.staff-field__control {
   font-size: clamp(1.15rem, 4vw, 1.45rem);
 }
 
+.confusion-overview {
+  min-width: 0;
+  margin-top: 1rem;
+}
+
+.confusion-overview__layout {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: center;
+}
+
+.confusion-overview__donut {
+  position: relative;
+  width: min(100%, 10.5rem);
+  aspect-ratio: 1;
+  justify-self: center;
+}
+
+.confusion-overview__donut svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.confusion-overview__ring {
+  fill: none;
+  stroke-width: 14;
+}
+
+.confusion-overview__ring--track {
+  stroke: var(--color-surface-muted);
+}
+
+.confusion-overview__ring--exact {
+  stroke: var(--color-success);
+}
+
+.confusion-overview__ring--mismatch {
+  stroke: var(--color-danger);
+}
+
+.confusion-overview__donut-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  color: var(--color-text-primary);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.confusion-overview__donut-label strong {
+  font-family: var(--font-display-family);
+  font-size: clamp(1.3rem, 5vw, 1.8rem);
+}
+
+.confusion-overview__donut-label span {
+  margin-top: 0.2rem;
+  color: var(--color-text-muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.confusion-overview__legend,
+.confusion-overview__pairs ol {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.confusion-overview__legend li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: 0.72rem;
+}
+
+.confusion-overview__legend strong {
+  color: var(--color-text-primary);
+  font-family: var(--font-display-family);
+  font-size: 0.85rem;
+}
+
+.confusion-overview__legend small {
+  color: var(--color-text-muted);
+  font-family: var(--font-reading-family);
+  font-size: 0.65rem;
+}
+
+.confusion-overview__swatch {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+}
+
+.confusion-overview__swatch--exact {
+  background: var(--color-success);
+}
+
+.confusion-overview__swatch--mismatch {
+  background: var(--color-danger);
+}
+
+.confusion-overview__pairs {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.confusion-overview__pairs-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.65rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.confusion-overview__pairs-heading small {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.confusion-overview__pairs li {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.6fr) minmax(5rem, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+}
+
+.confusion-overview__pairs li > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.confusion-overview__pairs li > strong {
+  min-width: 1.2rem;
+  color: var(--color-text-primary);
+  font-family: var(--font-display-family);
+  text-align: right;
+}
+
+.confusion-overview__bar {
+  height: 0.55rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+}
+
+.confusion-overview__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-danger);
+}
+
+.confusion-overview__pairs > p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 28rem) {
+  .confusion-overview__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .confusion-overview__donut {
+    width: min(9rem, 55vw);
+  }
+}
+
 .fixture-provenance {
   min-width: 0;
   margin-top: 1rem;
