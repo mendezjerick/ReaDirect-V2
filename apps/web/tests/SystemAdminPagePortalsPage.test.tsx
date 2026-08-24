@@ -11,7 +11,11 @@ vi.mock("motion/react", async (importOriginal) => {
 import { createAppQueryClient } from "../src/app/queryClient";
 import { BUTTON_PRESS_COMMIT_MS } from "../src/components/ui/useButtonCommit";
 import { SystemAdminPagePortalsPage } from "../src/features/staff-dashboard/SystemAdminPagePortalsPage";
-import { saveStaffSession } from "../src/features/staff-auth/staffApi";
+import {
+  getPortalSystemLearner,
+  PAGE_PORTAL_API_TIMEOUT_MS,
+  saveStaffSession,
+} from "../src/features/staff-auth/staffApi";
 
 const readingPath = {
   diagnostic: { status: "required" as const, score: null },
@@ -191,6 +195,30 @@ describe("SystemAdminPagePortalsPage", () => {
     expect(
       screen.getByRole("button", { name: "Open Words portal" }),
     ).toBeEnabled();
+  });
+
+  it("allows the portal API to recover from a production cold start", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn(
+      (_input: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const request = getPortalSystemLearner(1);
+    const failure = expect(request).rejects.toThrow(
+      "We couldn't connect right now. Please try again.",
+    );
+    await vi.advanceTimersByTimeAsync(PAGE_PORTAL_API_TIMEOUT_MS);
+    await failure;
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("requires confirmation and preserves the button animation before reset", async () => {

@@ -132,6 +132,23 @@ describe("OfflinePracticeHomePage", () => {
     expect(screen.queryByText(/^Category [1-6]$/)).not.toBeInTheDocument();
   });
 
+  it("keeps offline sign-in actions on Offline Practice when the device is offline", async () => {
+    renderPage();
+
+    await screen.findByRole("heading", { name: "No packs downloaded yet" });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Sign in to download" }),
+    );
+
+    expect(screen.queryByText("Login")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/sign in needs an internet connection/i),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Offline Downloads" }),
+    ).toBeVisible();
+  });
+
   it("returns to the learning mode chooser without replaying startup", async () => {
     renderPage();
 

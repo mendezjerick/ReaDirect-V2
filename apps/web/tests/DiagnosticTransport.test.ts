@@ -199,4 +199,21 @@ describe("Diagnostic authenticated transport", () => {
     );
   });
 
+  it("pins Learn with Clara speech requests to the English catalog", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(new Blob(["wave"]), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      prepareClaraSpeech("learn-with-clara-phrases-item-1", "cookie-session", {
+        language: "en",
+      }),
+    ).resolves.toBeInstanceOf(Blob);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/learners/tts/speech/learn-with-clara-phrases-item-1?language=en",
+      expect.objectContaining({ credentials: "include" }),
+    );
+  });
 });

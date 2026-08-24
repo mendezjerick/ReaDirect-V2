@@ -1,7 +1,10 @@
 import { z } from "zod";
 
 import { readApiJson } from "../../lib/apiResponse";
-import { apiFetchWithNormalTimeout as fetch } from "../../lib/apiUrl";
+import {
+  apiFetchWithNormalTimeout as fetch,
+  apiFetchWithTimeout,
+} from "../../lib/apiUrl";
 import {
   getNativeSessionCache,
   isNativeSecureSessionAvailable,
@@ -716,6 +719,12 @@ export type PortalLaunchResponse = z.infer<typeof portalLaunchResponseSchema>;
 const staffSessionStorageKey = "readirect.staff-session";
 const staffDeviceStorageKey = "readirect.staff-device";
 const browserSessionToken = "cookie-session";
+/**
+ * Page Portal reads and launches can wake the production API and prepare a
+ * complete persisted learner checkpoint. Give those operations a longer,
+ * explicit budget without slowing ordinary staff requests or speech pages.
+ */
+export const PAGE_PORTAL_API_TIMEOUT_MS = 60_000;
 export const staffSessionChangedEvent = "readirect:staff-session-changed";
 const browserSessionMarker = "readirect_staff_signed_in";
 
@@ -871,6 +880,7 @@ function discardStaffSession(): void {
 export async function staffFetch(
   input: RequestInfo | URL,
   init: RequestInit = {},
+  timeoutMs?: number,
 ): Promise<Response> {
   const session = loadStaffSession();
   const headers = new Headers(init.headers);
@@ -881,7 +891,10 @@ export async function staffFetch(
     }
   }
 
-  const response = await fetch(input, { ...init, headers });
+  const response =
+    timeoutMs === undefined
+      ? await fetch(input, { ...init, headers })
+      : await apiFetchWithTimeout(input, { ...init, headers }, timeoutMs);
 
   if (response.status === 401) {
     discardStaffSession();
@@ -1578,6 +1591,7 @@ export async function getPortalSystemLearner(
   const response = await staffFetch(
     `/api/staff/system-admin/${staffUserId}/page-portals`,
     { headers: { Accept: "application/json" } },
+    PAGE_PORTAL_API_TIMEOUT_MS,
   );
 
   if (!response.ok) {
@@ -1596,6 +1610,7 @@ export async function resetPortalSystemLearner(
       method: "POST",
       headers: { Accept: "application/json" },
     },
+    PAGE_PORTAL_API_TIMEOUT_MS,
   );
 
   if (!response.ok) {
@@ -1619,6 +1634,7 @@ export async function launchPortalSystemLearner(
       },
       body: JSON.stringify({ target_key: targetKey }),
     },
+    PAGE_PORTAL_API_TIMEOUT_MS,
   );
 
   if (!response.ok) {

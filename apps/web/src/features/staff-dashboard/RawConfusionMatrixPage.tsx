@@ -4,7 +4,10 @@ import { useMemo, useState } from "react";
 import { SpeechSandboxShell } from "../../components/staff/SpeechSandboxShell";
 import { useSystemAdminSpeechSession } from "../../components/staff/useSystemAdminSpeechSession";
 import { Surface } from "../../components/ui/Surface";
-import { getRawConfusionMatrix } from "./speechSandboxApi";
+import {
+  getRawConfusionMatrix,
+  type RawConfusionMatrix,
+} from "./speechSandboxApi";
 
 const emptyToken = "__none__";
 
@@ -33,6 +36,9 @@ const binaryScopeNotes = {
 
 type BinaryScope = keyof typeof binaryScopeLabels;
 
+type ConfusionSummary = RawConfusionMatrix["summary"];
+type ConfusionCell = RawConfusionMatrix["confusions"][number];
+
 function displayToken(token: string): string {
   return token === emptyToken ? "∅" : token;
 }
@@ -43,6 +49,143 @@ function sortedTokens(tokens: Iterable<string>): string[] {
     if (right === emptyToken) return -1;
     return left.localeCompare(right);
   });
+}
+
+function percent(value: number, total: number): string {
+  return total > 0 ? `${((value / total) * 100).toFixed(1)}%` : "0%";
+}
+
+function ConfusionOverviewChart({
+  summary,
+  confusions,
+}: {
+  summary: ConfusionSummary;
+  confusions: ConfusionCell[];
+}) {
+  const exact = summary.exact_attempts;
+  const mismatched = summary.mismatched_attempts;
+  const total = exact + mismatched;
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+  const exactLength = total > 0 ? (exact / total) * circumference : 0;
+  const mismatchedLength = total > 0 ? (mismatched / total) * circumference : 0;
+  const topConfusions = confusions.slice(0, 5);
+  const largestConfusion = Math.max(
+    1,
+    ...topConfusions.map((confusion) => confusion.count),
+  );
+
+  return (
+    <Surface
+      kind="panel"
+      padding="normal"
+      className="staff-data-card confusion-overview"
+    >
+      <header className="staff-data-card__header">
+        <div>
+          <p>At-a-glance quality view</p>
+          <h2>Recognition outcome</h2>
+        </div>
+        <span>{total} attempts</span>
+      </header>
+
+      <div className="confusion-overview__layout">
+        <div
+          className="confusion-overview__donut"
+          role="img"
+          aria-label={`Recognition outcomes: ${exact} exact and ${mismatched} mismatched out of ${total} attempts.`}
+        >
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle
+              className="confusion-overview__ring confusion-overview__ring--track"
+              cx="60"
+              cy="60"
+              r={radius}
+            />
+            {total > 0 ? (
+              <>
+                <circle
+                  className="confusion-overview__ring confusion-overview__ring--exact"
+                  cx="60"
+                  cy="60"
+                  r={radius}
+                  strokeDasharray={`${exactLength} ${circumference - exactLength}`}
+                />
+                <circle
+                  className="confusion-overview__ring confusion-overview__ring--mismatch"
+                  cx="60"
+                  cy="60"
+                  r={radius}
+                  strokeDasharray={`${mismatchedLength} ${circumference - mismatchedLength}`}
+                  strokeDashoffset={-exactLength}
+                />
+              </>
+            ) : null}
+          </svg>
+          <div className="confusion-overview__donut-label">
+            <strong>{percent(exact, total)}</strong>
+            <span>exact</span>
+          </div>
+        </div>
+
+        <ul
+          className="confusion-overview__legend"
+          aria-label="Recognition outcome legend"
+        >
+          <li>
+            <span className="confusion-overview__swatch confusion-overview__swatch--exact" />
+            <span>Raw exact</span>
+            <strong>
+              {exact} <small>{percent(exact, total)}</small>
+            </strong>
+          </li>
+          <li>
+            <span className="confusion-overview__swatch confusion-overview__swatch--mismatch" />
+            <span>Mismatched</span>
+            <strong>
+              {mismatched} <small>{percent(mismatched, total)}</small>
+            </strong>
+          </li>
+        </ul>
+
+        <div className="confusion-overview__pairs">
+          <div className="confusion-overview__pairs-heading">
+            <span>Most frequent confusions</span>
+            <small>Expected → raw Mu</small>
+          </div>
+          {topConfusions.length ? (
+            <ol>
+              {topConfusions.map((confusion) => (
+                <li key={`${confusion.expected}-${confusion.recognized}`}>
+                  <span>
+                    {displayToken(confusion.expected)} →{" "}
+                    {displayToken(confusion.recognized)}
+                  </span>
+                  <div
+                    className="confusion-overview__bar"
+                    role="progressbar"
+                    aria-label={`${displayToken(confusion.expected)} recognized as ${displayToken(confusion.recognized)}`}
+                    aria-valuemin={0}
+                    aria-valuemax={largestConfusion}
+                    aria-valuenow={confusion.count}
+                  >
+                    <span
+                      style={{
+                        width: `${(confusion.count / largestConfusion) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <strong>{confusion.count}</strong>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p>No mismatched pairs in this filter.</p>
+          )}
+        </div>
+      </div>
+    </Surface>
+  );
 }
 
 export function RawConfusionMatrixPage() {
@@ -138,6 +281,13 @@ export function RawConfusionMatrixPage() {
           <strong>{summary ? totalDifferences : "—"}</strong>
         </Surface>
       </section>
+
+      {matrix ? (
+        <ConfusionOverviewChart
+          summary={matrix.summary}
+          confusions={matrix.confusions}
+        />
+      ) : null}
 
       <Surface
         kind="panel"

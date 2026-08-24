@@ -57,6 +57,25 @@ test.describe("browser-local Guest entry", () => {
     await expect(page).toHaveURL(/\/learner\/login$/);
   });
 
+  test("returns Guest Dashboard sign-out to the public lobby", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Continue as Guest" }).click();
+    await expect(page).toHaveURL(/\/learner\/dashboard$/);
+
+    await page.getByRole("button", { name: "Exit Guest Mode" }).click();
+    await expect(page).toHaveURL(/\/home$/);
+    await expect(
+      page.getByRole("button", { name: "Let's Read!" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Continue as Guest" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Staff login" }),
+    ).toBeVisible();
+  });
+
   test("resets only Guest progress after confirmation", async ({ page }) => {
     await page.getByRole("button", { name: "Continue as Guest" }).click();
     await page.getByRole("button", { name: "Reset progress" }).click();

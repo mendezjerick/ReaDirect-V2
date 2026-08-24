@@ -372,6 +372,20 @@ export function OfflinePracticeHomePage() {
     }
   };
 
+  const signInToDownload = () => {
+    const deviceIsOffline =
+      connectivity.device === "offline" ||
+      (typeof navigator !== "undefined" && navigator.onLine === false);
+    if (deviceIsOffline) {
+      setMessage(
+        "Sign in needs an internet connection. You can continue with Offline Practice using packs already saved on this device.",
+      );
+      return;
+    }
+
+    navigate(`/learner/login?returnTo=${encodeURIComponent(offlineHomePath)}`);
+  };
+
   const deletePack = async (pack: OfflinePackRecord) => {
     if (!window.confirm(`Delete the ${pack.title} download?`)) return;
     await repositoryRef.current.deletePack(pack.packId);
@@ -608,14 +622,7 @@ export function OfflinePracticeHomePage() {
                         in this category.
                       </p>
                       {connectivity.learnerSession !== "present" ? (
-                        <BigButton
-                          size="regular"
-                          onClick={() =>
-                            navigate(
-                              `/learner/login?returnTo=${encodeURIComponent(offlineHomePath)}`,
-                            )
-                          }
-                        >
+                        <BigButton size="regular" onClick={signInToDownload}>
                           Sign in to download
                         </BigButton>
                       ) : null}
@@ -639,14 +646,7 @@ export function OfflinePracticeHomePage() {
                     offline practice time.
                   </p>
                   {connectivity.learnerSession !== "present" ? (
-                    <BigButton
-                      size="regular"
-                      onClick={() =>
-                        navigate(
-                          `/learner/login?returnTo=${encodeURIComponent(offlineHomePath)}`,
-                        )
-                      }
-                    >
+                    <BigButton size="regular" onClick={signInToDownload}>
                       Sign in to download
                     </BigButton>
                   ) : null}

@@ -464,6 +464,10 @@
 }
 
 .game-route .pause-panel__actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   min-height: 3rem;
   border: 3px solid #176b4d;
   border-radius: 0.35rem;
@@ -1619,7 +1623,8 @@
   }
 }
 
-/* Game menu: one safe-area-aware entry point replaces the five-button toolbar. */
+/* Readscape menu: a compact arcade cabinet inspired panel that keeps the
+   existing game actions, but gives them a clear visual hierarchy. */
 .game-route .game-menu-trigger {
   pointer-events: auto;
   justify-self: end;
@@ -1630,29 +1635,35 @@
   min-width: 5.4rem;
   min-height: 2.9rem;
   padding: 0.55rem 0.8rem;
-  border: 2px solid #facc15;
+  border: 3px solid #fffdf2;
   border-radius: 0.7rem;
-  background: #13251d;
-  color: #fff8db;
+  background: #29245a;
+  color: #fffdf2;
   font-size: clamp(0.82rem, 2.2vmin, 1rem);
   font-weight: 900;
-  box-shadow: 0 0.2rem 0 #07110c;
+  box-shadow: 0 0.25rem 0 #171438;
+}
+
+.game-route .game-menu-trigger svg,
+.game-route .game-menu-drawer svg,
+.game-route .pause-panel__actions svg {
+  flex: 0 0 auto;
 }
 
 .game-route .game-menu-trigger:focus-visible,
 .game-route .game-menu-trigger:hover:not(:disabled) {
-  outline: 3px solid #facc15;
+  outline: 3px solid #ffd457;
   outline-offset: 3px;
-  filter: brightness(1.1);
+  background: #443ca2;
 }
 
 .game-route .game-menu-backdrop {
   position: fixed;
   z-index: 90;
   inset: 0;
-  display: flex;
-  justify-content: flex-end;
-  background: rgb(3 12 8 / 72%);
+  display: grid;
+  place-items: center;
+  background: rgb(11 8 32 / 78%);
   padding: max(0.6rem, var(--safe-top)) max(0.6rem, var(--safe-right))
     max(0.6rem, var(--safe-bottom)) max(0.6rem, var(--safe-left));
 }
@@ -1660,20 +1671,20 @@
 .game-route .game-menu-drawer {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
-  width: min(22rem, 88vw, 38vw);
-  min-width: min(18rem, 88vw);
+  gap: 0.75rem;
+  width: min(48rem, calc(100vw - 2rem));
+  min-width: 0;
   max-height: 100%;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 1rem;
-  border: 3px solid #facc15;
-  border-radius: 0.9rem;
-  background: #10251b;
-  color: #fff8db;
+  padding: clamp(1rem, 3vmin, 1.7rem);
+  border: 4px solid #29245a;
+  border-radius: 1.3rem;
+  background: linear-gradient(155deg, #78c7ff 0%, #6764f5 55%, #4d43d8 100%);
+  color: #29245a;
   box-shadow:
-    -0.35rem 0.35rem 0 #07110c,
-    0 1rem 3rem rgb(0 0 0 / 35%);
+    0 0.45rem 0 #171438,
+    0 1.5rem 3.5rem rgb(0 0 0 / 44%);
 }
 
 .game-route .game-menu-drawer__header {
@@ -1681,74 +1692,93 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 0.55rem;
-  border-bottom: 1px solid rgb(250 204 21 / 48%);
+  padding: 0.25rem 0.25rem 0.75rem;
+  border-bottom: 3px solid rgb(41 36 90 / 65%);
 }
 
 .game-route .game-menu-drawer__eyebrow,
 .game-route .game-menu-drawer__section {
   margin: 0;
-  color: #facc15;
-  font-size: 0.72rem;
+  color: #29245a;
+  font-size: 0.78rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .game-route .game-menu-drawer h2 {
   margin: 0.15rem 0 0;
-  font-size: clamp(1.35rem, 4vmin, 1.8rem);
+  color: #fffdf2;
+  font-size: clamp(2rem, 7vmin, 3.2rem);
+  line-height: 0.95;
+  text-shadow: 3px 3px 0 #29245a;
 }
 
 .game-route .game-menu-drawer__close {
+  display: grid;
   min-width: 2.75rem;
   min-height: 2.75rem;
-  border: 2px solid #fff8db;
-  border-radius: 0.5rem;
-  background: transparent;
-  color: inherit;
-  font-size: 1.5rem;
-  font-weight: 900;
+  place-items: center;
+  border: 3px solid #29245a;
+  border-radius: 0.6rem;
+  background: #7cc8ff;
+  color: #29245a;
+  box-shadow: 3px 3px 0 #29245a;
 }
 
 .game-route .game-menu-drawer button:not(.game-menu-drawer__close) {
-  min-height: 2.85rem;
-  padding: 0.65rem 0.75rem;
-  border: 2px solid rgb(255 248 219 / 75%);
-  border-radius: 0.55rem;
-  background: #1d4935;
-  color: #fff8db;
-  font-size: clamp(0.86rem, 2.4vmin, 1rem);
-  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 3.2rem;
+  padding: 0.7rem 0.85rem;
+  border: 3px solid #29245a;
+  border-radius: 0.75rem;
+  background: #fffdf2;
+  color: #29245a;
+  font-size: clamp(1rem, 2.5vmin, 1.25rem);
+  font-weight: 900;
+  line-height: 1;
   text-align: left;
+  box-shadow: 0 0.22rem 0 #29245a;
 }
 
 .game-route .game-menu-drawer button:hover,
 .game-route .game-menu-drawer button:focus-visible {
-  outline: 3px solid #facc15;
+  outline: 3px solid #fffdf2;
   outline-offset: 2px;
-  filter: brightness(1.1);
+  background: #e6e5ff;
+}
+
+.game-route .game-menu-drawer button:active {
+  transform: translateY(2px);
+  box-shadow: 0 0.08rem 0 #29245a;
 }
 
 .game-route .game-menu-drawer__resume {
-  background: #facc15 !important;
-  color: #13251d !important;
+  justify-content: center;
+  min-height: 4.2rem !important;
+  background: #fffdf2 !important;
+  color: #29245a !important;
+  font-size: clamp(1.35rem, 4vmin, 1.9rem) !important;
   text-align: center !important;
 }
 
 .game-route .game-menu-drawer__stack {
   display: grid;
-  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
 }
 
 .game-route .game-menu-drawer__section--danger {
   margin-top: 0.3rem;
-  color: #ffb4a6;
+  color: #fffdf2;
 }
 
 .game-route .game-menu-drawer__danger {
-  border-color: #ff8b79 !important;
-  background: #63261d !important;
+  border-color: #592047 !important;
+  background: #f6a7c8 !important;
+  color: #592047 !important;
 }
 
 /* Landscape owns a useful left HUD column; the world keeps the remaining
@@ -1787,7 +1817,7 @@
 
 @media (orientation: landscape) and (max-height: 600px) {
   .game-route .game-menu-drawer {
-    width: min(20rem, 38vw);
+    width: min(44rem, calc(100vw - 2rem));
   }
 
   .game-route .navigation-hud {
@@ -1812,8 +1842,19 @@
 
 @media (orientation: portrait) {
   .game-route .game-menu-drawer {
-    width: min(22rem, 88vw);
+    width: min(40rem, calc(100vw - 1rem));
     min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .game-route .game-menu-drawer {
+    width: min(100%, calc(100vw - 1rem));
+    padding: 0.85rem;
+  }
+
+  .game-route .game-menu-drawer__stack {
+    grid-template-columns: 1fr;
   }
 }
 

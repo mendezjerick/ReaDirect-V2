@@ -133,6 +133,7 @@ describe("LearnWithClaraPracticePage", () => {
       expect(speechMocks.prepare).toHaveBeenCalledWith(
         "learn-with-clara-phrases-item-1",
         "cookie-session",
+        { language: "en" },
       );
     });
 
@@ -154,6 +155,7 @@ describe("LearnWithClaraPracticePage", () => {
       expect(speechMocks.prepare).toHaveBeenCalledWith(
         "learn-with-clara-phrases-item-2",
         "cookie-session",
+        { language: "en" },
       );
       expect(speechMocks.play).toHaveBeenCalledTimes(3);
     });
@@ -222,6 +224,14 @@ describe("LearnWithClaraPracticePage", () => {
     expect(screen.getByText("Handa na ang iyong pagsasanay.")).toBeVisible();
     fireEvent.click(
       screen.getByRole("button", { name: "Simulan ang pagsasanay" }),
+    );
+
+    await waitFor(() =>
+      expect(speechMocks.prepare).toHaveBeenCalledWith(
+        "learn-with-clara-phrases-item-1",
+        "cookie-session",
+        { language: "en" },
+      ),
     );
 
     expect(

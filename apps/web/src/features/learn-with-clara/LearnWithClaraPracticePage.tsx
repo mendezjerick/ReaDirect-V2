@@ -537,9 +537,9 @@ export function LearnWithClaraPracticePage() {
 
     const preloadItem = phase === "welcome" ? items[0] : items[current + 1];
     if (preloadItem) {
-      void prepareClaraSpeech(preloadItem.speechKey, session.token).catch(
-        () => undefined,
-      );
+      void prepareClaraSpeech(preloadItem.speechKey, session.token, {
+        language: "en",
+      }).catch(() => undefined);
     }
   }, [current, items, phase, session?.token]);
 
@@ -553,7 +553,7 @@ export function LearnWithClaraPracticePage() {
     setPreparedSpeech(null);
     setSpeechLevel(0);
 
-    void prepareClaraSpeech(activeSpeechKey, session.token)
+    void prepareClaraSpeech(activeSpeechKey, session.token, { language: "en" })
       .then((speech) => {
         if (active) {
           setPreparedSpeech({ key: activeSpeechKey, blob: speech });
