@@ -73,6 +73,7 @@ import {
 } from "./game/navigation/NavigationHud";
 import { isSwimmableRiverPoint } from "./game/map/prototypeMap";
 import { AudioSettingsOverlay } from "./game/audio/AudioSettingsOverlay";
+import { GameOneVectorIcon } from "./game/ui/GameOneVectorIcon";
 import {
   createRpgAudioManager,
   type AudioPreferences,
@@ -1072,7 +1073,7 @@ function GameOneGameplay({
             onClick={openGameMenu}
             disabled={status !== "ready" || tutorialState.active || shopOpen}
           >
-            <span aria-hidden="true">☰</span>
+            <GameOneVectorIcon name="menu" size={20} />
             <span>Menu</span>
           </button>
         </header>
@@ -1102,23 +1103,27 @@ function GameOneGameplay({
                   aria-label="Close game menu"
                   onClick={() => closeGameMenu(true)}
                 >
-                  ×
+                  <GameOneVectorIcon name="close" size={22} />
                 </button>
               </div>
               <button
                 type="button"
                 className="game-menu-drawer__resume"
+                aria-label="Resume"
                 onClick={() => closeGameMenu(true)}
               >
-                Resume
+                <GameOneVectorIcon name="play" size={24} />
+                <span>Resume Readscape</span>
               </button>
               <p className="game-menu-drawer__section">Settings</p>
               <div className="game-menu-drawer__stack">
                 <button type="button" onClick={openCharacterSelection}>
-                  Choose Character
+                  <GameOneVectorIcon name="character" size={22} />
+                  <span>Choose Character</span>
                 </button>
                 <button type="button" onClick={openLanguageSelection}>
-                  Language
+                  <GameOneVectorIcon name="language" size={22} />
+                  <span>Language</span>
                 </button>
                 <button
                   type="button"
@@ -1127,7 +1132,8 @@ function GameOneGameplay({
                     setAudioSettingsOpen(true);
                   }}
                 >
-                  Sound
+                  <GameOneVectorIcon name="sound" size={22} />
+                  <span>Sound</span>
                 </button>
               </div>
               <p className="game-menu-drawer__section">Game</p>
@@ -1139,10 +1145,12 @@ function GameOneGameplay({
                     dispatchGuided({ type: "REQUEST_HELP" });
                   }}
                 >
-                  Help
+                  <GameOneVectorIcon name="help" size={22} />
+                  <span>Help</span>
                 </button>
                 <button type="button" onClick={openExitDialog}>
-                  Back to Game Lobby
+                  <GameOneVectorIcon name="exit" size={22} />
+                  <span>Back to Game Lobby</span>
                 </button>
               </div>
               <p className="game-menu-drawer__section game-menu-drawer__section--danger">
@@ -1156,7 +1164,8 @@ function GameOneGameplay({
                   void replayMission();
                 }}
               >
-                Reset Readscape Progress
+                <GameOneVectorIcon name="reset" size={22} />
+                <span>Reset Readscape Progress</span>
               </button>
             </aside>
           </div>
@@ -1226,6 +1235,7 @@ function GameOneGameplay({
                   disabled={activePauseReason !== "manual"}
                   className="pause-panel__resume"
                 >
+                  <GameOneVectorIcon name="play" size={22} />
                   {copy.resume}
                 </button>
                 <button
@@ -1239,6 +1249,7 @@ function GameOneGameplay({
                   }}
                   className="pause-panel__utility"
                 >
+                  <GameOneVectorIcon name="tutorial" size={22} />
                   {copy.showTutorial}
                 </button>
                 <button
@@ -1246,6 +1257,7 @@ function GameOneGameplay({
                   onClick={openLanguageSelection}
                   className="pause-panel__utility"
                 >
+                  <GameOneVectorIcon name="language" size={22} />
                   {copy.changeLanguage}
                 </button>
                 <button
@@ -1253,6 +1265,7 @@ function GameOneGameplay({
                   onClick={openExitDialog}
                   className="pause-panel__exit"
                 >
+                  <GameOneVectorIcon name="exit" size={22} />
                   {copy.exit}
                 </button>
               </div>

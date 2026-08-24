@@ -1,8 +1,8 @@
 .game-route {
-  --game-ui-font: "Pixelfy Sans", system-ui, sans-serif;
-  --pixel-ink: #13251d;
+  --game-ui-font: "Jersey 20", "Pixelify Sans", system-ui, sans-serif;
+  --pixel-ink: #24214f;
   --pixel-green: #176b4d;
-  --pixel-gold: #facc15;
+  --pixel-gold: #ffd457;
   --pixel-paper: #fffdf2;
   --pixel-border: 3px;
 }
