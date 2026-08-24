@@ -177,6 +177,37 @@ final class LearnerSpeechLanguageTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_learn_with_clara_can_pin_playback_to_the_english_catalog(): void
+    {
+        $englishVoice = $this->publishVoice(SpeechLanguage::ENGLISH, 'clara-sh-v1');
+        $filipinoVoice = $this->publishVoice(
+            SpeechLanguage::FILIPINO,
+            'clara-sh-fil-v1',
+        );
+        $this->publishLine(
+            $englishVoice,
+            'learn-with-clara-phrases-item-1',
+            'RIFF-english-clara-phrase',
+            'sh/learn-with-clara/phrases-1.wav',
+        );
+        $this->publishLine(
+            $filipinoVoice,
+            'learn-with-clara-phrases-item-1',
+            'RIFF-filipino-clara-phrase',
+            'sh-fil/learn-with-clara/phrases-1.wav',
+        );
+        [, $token] = $this->learnerSession(SpeechLanguage::FILIPINO);
+
+        $this->withToken($token)
+            ->post('/api/learners/tts/speech/learn-with-clara-phrases-item-1?language=en')
+            ->assertOk()
+            ->assertHeader('X-ReaDirect-TTS-Voice', 'clara-sh-v1')
+            ->assertHeader('X-ReaDirect-TTS-Language', SpeechLanguage::ENGLISH)
+            ->assertContent('RIFF-english-clara-phrase');
+
+        Http::assertNothingSent();
+    }
+
     public function test_readiness_never_borrows_english_lines_for_filipino(): void
     {
         $englishVoice = $this->publishVoice(SpeechLanguage::ENGLISH, 'clara-sh-v1');

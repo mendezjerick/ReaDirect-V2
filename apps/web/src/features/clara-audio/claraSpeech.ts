@@ -154,6 +154,14 @@ export interface ClaraSpeechPlaybackOptions {
   modelState: "loading" | "ready" | "error";
 }
 
+export interface PrepareClaraSpeechOptions {
+  /**
+   * Learn with Clara currently uses the approved English catalog only.
+   * Other learner activities continue to use the learner's selected language.
+   */
+  language?: "en";
+}
+
 function getAudioContext(): AudioContext {
   audioContext ??= new AudioContext();
   return audioContext;
@@ -185,11 +193,13 @@ export function unlockClaraAudio(): void {
 export function prepareClaraSpeech(
   speechKey: ClaraSpeechKey,
   token: string,
+  options: PrepareClaraSpeechOptions = {},
 ): Promise<Blob> {
   const deliveryVersion = speechKey.startsWith("lesson-6-")
     ? `${SPEECH_DELIVERY_VERSION}:${LESSON_SIX_SPEECH_DELIVERY_VERSION}`
     : SPEECH_DELIVERY_VERSION;
-  const requestKey = `${deliveryVersion}:${token}:${speechKey}`;
+  const language = options.language;
+  const requestKey = `${deliveryVersion}:${token}:${speechKey}:${language ?? "session"}`;
   const existingRequest = speechRequests.get(requestKey);
 
   if (existingRequest) {
@@ -197,7 +207,7 @@ export function prepareClaraSpeech(
   }
 
   const request = apiFetchWithTimeout(
-    `/api/learners/tts/speech/${speechKey}`,
+    `/api/learners/tts/speech/${speechKey}${language ? `?language=${language}` : ""}`,
     {
       method: "POST",
       headers: {

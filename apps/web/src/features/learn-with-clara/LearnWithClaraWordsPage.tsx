@@ -378,7 +378,7 @@ export function LearnWithClaraWordsPage() {
     setPreparedSpeech(null);
     setSpeechLevel(0);
 
-    void prepareClaraSpeech(activeSpeechKey, session.token)
+    void prepareClaraSpeech(activeSpeechKey, session.token, { language: "en" })
       .then((speech) => {
         if (active) {
           setPreparedSpeech({ key: activeSpeechKey, blob: speech });

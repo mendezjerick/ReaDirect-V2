@@ -112,6 +112,7 @@ describe("LearnWithClaraLettersPage", () => {
       expect(speechMocks.prepare).toHaveBeenCalledWith(
         "learn-with-clara-letters-find-a",
         "cookie-session",
+        { language: "en" },
       ),
     );
     speechMocks.prepare.mockClear();
@@ -123,6 +124,7 @@ describe("LearnWithClaraLettersPage", () => {
       expect(speechMocks.prepare).toHaveBeenCalledWith(
         "learn-with-clara-letters-parade-opening",
         "cookie-session",
+        { language: "en" },
       ),
     );
     await waitFor(() => expect(speechMocks.play).toHaveBeenCalled());
@@ -158,6 +160,7 @@ describe("LearnWithClaraLettersPage", () => {
     expect(speechMocks.prepare).toHaveBeenCalledWith(
       "learn-with-clara-letters-find-a",
       "cookie-session",
+      { language: "en" },
     );
   });
 

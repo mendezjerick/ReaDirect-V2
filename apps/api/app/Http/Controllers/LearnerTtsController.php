@@ -79,7 +79,19 @@ final class LearnerTtsController extends Controller
     {
         $session = $this->sessionResolver->resolve($request);
 
-        return $this->publishedSpeech($session, $speechKey);
+        // Learn with Clara uses the approved English catalog regardless of the
+        // learner's global spoken-language preference. Other TTS routes still
+        // resolve the language stored on the learner session.
+        $languageOverride = str_starts_with($speechKey, 'learn-with-clara-')
+            && $request->query('language') === SpeechLanguage::ENGLISH
+                ? SpeechLanguage::ENGLISH
+                : null;
+
+        return $this->publishedSpeech(
+            $session,
+            $speechKey,
+            languageOverride: $languageOverride,
+        );
     }
 
     private function publishedSpeech(
@@ -87,8 +99,11 @@ final class LearnerTtsController extends Controller
         string $speechKey,
         string $source = 'published',
         array $headers = [],
+        ?string $languageOverride = null,
     ): Response|JsonResponse {
-        $language = SpeechLanguage::normalize($session->learner->speech_language);
+        $language = SpeechLanguage::normalize(
+            $languageOverride ?? $session->learner->speech_language,
+        );
         $voice = $this->publishedVoices->forLanguage($language);
         if ($voice === null) {
             abort(404, 'That Clara speech language is not available.');
