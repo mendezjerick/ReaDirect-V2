@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { BigButton } from "../../components/ui/BigButton";
 import { PixelIcon } from "../../components/ui/PixelIcon";
+import { Surface } from "../../components/ui/Surface";
 import { ThemeSelector } from "../theme/ThemeSelector";
 import { AboutReaDirectDialog } from "./AboutReaDirectDialog";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
@@ -14,6 +15,7 @@ import {
 } from "../learner-auth/learnerApi";
 import {
   loadStaffSession,
+  clearStaffSession,
   staffSessionChangedEvent,
   type StaffSession,
 } from "../staff-auth/staffApi";
@@ -46,9 +48,10 @@ function readLandingIdentity(): LandingIdentity {
 export function HomePage() {
   const navigate = useNavigate();
   const learnerLoginCommit = useButtonCommit();
-  const guestLoginCommit = useButtonCommit();
+  const accountSwitchCommit = useButtonCommit();
   const staffLoginCommit = useButtonCommit();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [confirmingSwitchAccount, setConfirmingSwitchAccount] = useState(false);
   const [staffPortalError, setStaffPortalError] = useState(false);
   const [identity, setIdentity] =
     useState<LandingIdentity>(readLandingIdentity);
@@ -101,8 +104,13 @@ export function HomePage() {
   };
 
   const openSecondaryAction = () => {
-    if (identity?.kind === "learner" || identity?.kind === "guest") {
-      learnerLoginCommit.commit(() => {
+    if (identity?.kind === "learner") {
+      setConfirmingSwitchAccount(true);
+      return;
+    }
+
+    if (identity?.kind === "guest") {
+      accountSwitchCommit.commit(() => {
         clearLearnerSession();
         navigate("/learner/login");
       });
@@ -112,11 +120,18 @@ export function HomePage() {
     staffLoginCommit.commit(launchStaffPortal);
   };
 
-  const openGuestLogin = () => {
-    guestLoginCommit.commit(() => {
-      enterGuestMode();
-      navigate("/learner/dashboard");
+  const confirmSwitchAccount = () => {
+    accountSwitchCommit.commit(() => {
+      clearLearnerSession();
+      clearStaffSession();
+      setConfirmingSwitchAccount(false);
+      navigate("/home");
     });
+  };
+
+  const openGuestLogin = () => {
+    enterGuestMode();
+    navigate("/learner/dashboard");
   };
 
   return (
@@ -146,7 +161,6 @@ export function HomePage() {
           <BigButton
             className="home-page__guest-button"
             size="regular"
-            committing={guestLoginCommit.committing}
             onClick={openGuestLogin}
           >
             Continue as Guest
@@ -158,8 +172,8 @@ export function HomePage() {
           variant="secondary"
           size="regular"
           committing={
-            identity
-              ? learnerLoginCommit.committing
+            identity?.kind === "learner" || identity?.kind === "guest"
+              ? accountSwitchCommit.committing
               : staffLoginCommit.committing
           }
           onClick={openSecondaryAction}
@@ -192,6 +206,44 @@ export function HomePage() {
 
       {aboutOpen ? (
         <AboutReaDirectDialog onClose={() => setAboutOpen(false)} />
+      ) : null}
+
+      {confirmingSwitchAccount ? (
+        <div className="home-page__dialog-backdrop">
+          <Surface
+            className="home-page__dialog"
+            kind="frame"
+            padding="roomy"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="switch-account-title"
+            aria-describedby="switch-account-description"
+          >
+            <h2 id="switch-account-title">Switch account?</h2>
+            <p id="switch-account-description">
+              Are you sure you want to switch account? Your current session will
+              be logged out.
+            </p>
+            <div className="home-page__dialog-actions">
+              <BigButton
+                variant="secondary"
+                size="regular"
+                autoFocus
+                disabled={accountSwitchCommit.committing}
+                onClick={() => setConfirmingSwitchAccount(false)}
+              >
+                Cancel
+              </BigButton>
+              <BigButton
+                size="regular"
+                committing={accountSwitchCommit.committing}
+                onClick={confirmSwitchAccount}
+              >
+                Switch account
+              </BigButton>
+            </div>
+          </Surface>
+        </div>
       ) : null}
     </main>
   );

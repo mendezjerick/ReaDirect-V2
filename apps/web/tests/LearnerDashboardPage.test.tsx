@@ -1,6 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Capacitor } from "@capacitor/core";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -32,8 +32,10 @@ import { createAppQueryClient } from "../src/app/queryClient";
 import { setNativeSessionCache } from "../src/app/nativeSecureSession";
 import {
   enterGuestMode,
+  loadLearnerSession,
   skipDiagnostic,
 } from "../src/features/learner-auth/learnerApi";
+import { loadStaffSession } from "../src/features/staff-auth/staffApi";
 
 const claraSpeechMocks = vi.hoisted(() => ({
   unlock: vi.fn(),
@@ -140,6 +142,7 @@ function renderDashboard(stage = "before_diagnostic") {
               path="/learner/settings/reading-reminder"
               element={<div>Reading reminder settings route</div>}
             />
+            <Route path="/home" element={<div>Public home route</div>} />
           </Routes>
         </RouteTransitionProvider>
       </MemoryRouter>
@@ -224,6 +227,18 @@ describe("LearnerDashboardPage", () => {
     expect(
       screen.queryByRole("button", { name: "Reset progress" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("returns a signed-out learner to the public home lobby", async () => {
+    renderDashboard();
+
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+
+    await waitFor(() =>
+      expect(screen.getByText("Public home route")).toBeVisible(),
+    );
+    expect(loadLearnerSession()).toBeNull();
+    expect(loadStaffSession()).toBeNull();
   });
 
   it("keeps the required learning action visually primary", () => {

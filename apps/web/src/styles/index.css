@@ -4588,6 +4588,65 @@ textarea.staff-field__control {
   box-shadow: 0 8px 0 var(--color-frame-depth);
 }
 
+.home-page__dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  padding: 1rem;
+  place-items: center;
+  background: color-mix(
+    in srgb,
+    var(--color-text-primary) 48%,
+    var(--color-transparent)
+  );
+  backdrop-filter: blur(0.35rem);
+}
+
+.home-page__dialog {
+  display: grid;
+  width: min(100%, 34rem);
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+  animation: home-page-dialog-in 180ms ease-out both;
+}
+
+.home-page__dialog h2,
+.home-page__dialog p {
+  margin: 0;
+}
+
+.home-page__dialog h2 {
+  font-size: clamp(1.7rem, 4vw, 2.25rem);
+}
+
+.home-page__dialog p {
+  color: var(--color-text-secondary);
+  font-family: var(--font-reading-family);
+  font-size: var(--font-support);
+  line-height: 1.45;
+}
+
+.home-page__dialog-actions {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+@keyframes home-page-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .home-page__read-button {
   width: 100%;
   font-size: clamp(1.75rem, 8vw, 2.25rem);
@@ -5155,6 +5214,10 @@ textarea.staff-field__control {
 
   .theme-selector__choice {
     flex: none;
+  }
+
+  .home-page__dialog-actions {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -6193,6 +6256,7 @@ textarea.staff-field__control {
   .home-page__staff-button,
   .intro-page__continue,
   .theme-selector__choice,
+  .home-page__dialog,
   .vector-cursor {
     transition: none;
   }

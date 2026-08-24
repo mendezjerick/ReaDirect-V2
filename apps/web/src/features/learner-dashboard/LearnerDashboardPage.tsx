@@ -19,6 +19,7 @@ import {
   resetGuestLearnerProgress,
   saveLearnerSession,
 } from "../learner-auth/learnerApi";
+import { clearStaffSession } from "../staff-auth/staffApi";
 import { useLearnerExperience } from "../learner-auth/LearnerExperienceProvider";
 import "./learner-dashboard.css";
 
@@ -59,8 +60,9 @@ export function LearnerDashboardPage() {
     mutationFn: () => logoutLearner(storedSession?.token ?? ""),
     onSettled: async () => {
       clearLearnerSession();
+      clearStaffSession();
       await clearActiveOfflinePracticeProfile().catch(() => undefined);
-      navigate(isGuest ? "/home" : "/learner/login");
+      navigate("/home");
     },
   });
   const learner = sessionQuery.data?.learner;

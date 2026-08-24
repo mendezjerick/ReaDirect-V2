@@ -3,6 +3,7 @@ import { useState, type PropsWithChildren, type ReactNode } from "react";
 import { StaffButton } from "./StaffButton";
 import { PixelIcon } from "../ui/PixelIcon";
 import { StaffNavigation } from "./SystemAdminNavigation";
+import { clearLearnerSession } from "../../features/learner-auth/learnerApi";
 import {
   systemAdminNavigationGroups,
   type StaffNavigationGroup,
@@ -33,6 +34,11 @@ export function StaffShell({
   children,
 }: StaffShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const exitStaffView = () => {
+    clearLearnerSession();
+    onExit();
+  };
 
   const brand = (
     <div className="staff-sidebar__brand">
@@ -68,7 +74,7 @@ export function StaffShell({
           tone="secondary"
           size="regular"
           committing={exitCommitting}
-          onClick={onExit}
+          onClick={exitStaffView}
         >
           Exit staff view
         </StaffButton>
@@ -102,7 +108,7 @@ export function StaffShell({
             tone="quiet"
             size="regular"
             committing={exitCommitting}
-            onClick={onExit}
+            onClick={exitStaffView}
           >
             Exit
           </StaffButton>
@@ -143,7 +149,7 @@ export function StaffShell({
                 tone="secondary"
                 size="regular"
                 committing={exitCommitting}
-                onClick={onExit}
+                onClick={exitStaffView}
               >
                 Exit staff view
               </StaffButton>

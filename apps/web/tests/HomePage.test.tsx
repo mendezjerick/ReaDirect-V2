@@ -39,6 +39,7 @@ import { setNativeSessionCache } from "../src/app/nativeSecureSession";
 import {
   enterGuestMode,
   loadLearnerSession,
+  saveLearnerSession,
 } from "../src/features/learner-auth/learnerApi";
 import { CreditsLicensesPage } from "../src/features/legal/CreditsLicensesPage";
 import { ThemeProvider } from "../src/features/theme/ThemeProvider";
@@ -115,38 +116,29 @@ describe("HomePage", () => {
     expect(within(actions).queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("starts a browser-local guest session and opens the dashboard", () => {
-    vi.useFakeTimers();
+  it("starts a browser-local guest session and opens the dashboard directly", () => {
+    render(
+      <MemoryRouter initialEntries={["/home"]}>
+        <ThemeProvider>
+          <Routes>
+            <Route path="/home" element={<HomePage />} />
+            <Route
+              path="/learner/dashboard"
+              element={<div>Guest dashboard route</div>}
+            />
+          </Routes>
+        </ThemeProvider>
+      </MemoryRouter>,
+    );
 
-    try {
-      render(
-        <MemoryRouter initialEntries={["/home"]}>
-          <ThemeProvider>
-            <Routes>
-              <Route path="/home" element={<HomePage />} />
-              <Route
-                path="/learner/dashboard"
-                element={<div>Guest dashboard route</div>}
-              />
-            </Routes>
-          </ThemeProvider>
-        </MemoryRouter>,
-      );
+    fireEvent.click(screen.getByRole("button", { name: "Continue as Guest" }));
 
-      fireEvent.click(
-        screen.getByRole("button", { name: "Continue as Guest" }),
-      );
-      act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
-
-      expect(screen.getByText("Guest dashboard route")).toBeVisible();
-      expect(
-        JSON.parse(
-          window.localStorage.getItem("readirect.guest-profile.v1") ?? "null",
-        ),
-      ).toMatchObject({ version: 1, active: true });
-    } finally {
-      vi.useRealTimers();
-    }
+    expect(screen.getByText("Guest dashboard route")).toBeVisible();
+    expect(
+      JSON.parse(
+        window.localStorage.getItem("readirect.guest-profile.v1") ?? "null",
+      ),
+    ).toMatchObject({ version: 1, active: true });
   });
 
   it("opens the supplied About ReaDirect content from the bottom action", () => {
@@ -285,7 +277,7 @@ describe("HomePage", () => {
     }
   });
 
-  it("keeps learner switch account inside the native app", () => {
+  it("confirms learner Switch account before returning to the public lobby", () => {
     vi.useFakeTimers();
     isNativePlatform.mockReturnValue(true);
     setNativeSessionCache(
@@ -300,11 +292,31 @@ describe("HomePage", () => {
       });
 
       fireEvent.click(switchAccount);
-      expect(switchAccount).toBeDisabled();
+      const dialog = screen.getByRole("alertdialog", {
+        name: "Switch account?",
+      });
+      expect(dialog).toHaveTextContent(
+        "Are you sure you want to switch account? Your current session will be logged out.",
+      );
+      fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+      expect(loadLearnerSession()).not.toBeNull();
+
+      fireEvent.click(switchAccount);
+      const confirmDialog = screen.getByRole("alertdialog", {
+        name: "Switch account?",
+      });
+      fireEvent.click(
+        within(confirmDialog).getByRole("button", { name: "Switch account" }),
+      );
 
       act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
 
-      expect(screen.getByText("Learner login route")).toBeVisible();
+      expect(screen.getByRole("button", { name: "Let's Read!" })).toBeVisible();
+      expect(
+        screen.getByRole("button", { name: "Continue as Guest" }),
+      ).toBeVisible();
+      expect(screen.getByRole("button", { name: "Staff login" })).toBeVisible();
       expect(openNativeBrowser).not.toHaveBeenCalled();
       expect(loadLearnerSession()).toBeNull();
     } finally {
@@ -326,6 +338,29 @@ describe("HomePage", () => {
 
       act(() => vi.advanceTimersByTime(BUTTON_PRESS_COMMIT_MS));
       expect(screen.getByText("Learner login route")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps Switch account active while opening the learner dashboard", async () => {
+    await saveLearnerSession(learnerSession);
+    vi.useFakeTimers();
+
+    try {
+      renderHome();
+      const primary = screen.getByRole("button", {
+        name: /Keep Reading/,
+      });
+      const switchAccount = screen.getByRole("button", {
+        name: "Switch account",
+      });
+
+      fireEvent.click(primary);
+
+      expect(primary).toBeDisabled();
+      expect(switchAccount).toBeEnabled();
+      expect(switchAccount).toHaveAttribute("data-press-state", "idle");
     } finally {
       vi.useRealTimers();
     }
