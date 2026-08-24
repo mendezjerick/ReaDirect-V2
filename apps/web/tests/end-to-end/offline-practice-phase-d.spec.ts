@@ -45,3 +45,24 @@ test("Offline Practice renders a usable empty state while the API is unavailable
 
   expect(consoleErrors).toEqual([]);
 });
+
+test("Offline Practice does not redirect to online sign-in while the device is offline", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/learner/offline");
+  await expect(
+    page.getByRole("heading", { name: "No packs downloaded yet" }),
+  ).toBeVisible();
+
+  await context.setOffline(true);
+  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  await expect(page.getByText("Your device is offline.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Sign in to download" }).click();
+
+  await expect(page).not.toHaveURL(/\/learner\/login/);
+  await expect(
+    page.getByText(/sign in needs an internet connection/i),
+  ).toBeVisible();
+});
