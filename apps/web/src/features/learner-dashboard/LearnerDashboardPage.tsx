@@ -7,6 +7,7 @@ import { BigButton } from "../../components/ui/BigButton";
 import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
 import { useButtonCommit } from "../../components/ui/useButtonCommit";
+import { clearAllAccountSessions } from "../../app/accountSessions";
 import { ReadingJourneyAchievementIcon } from "../achievements/ReadingJourneyAchievementIcon";
 import { readingJourneyAchievements } from "../achievements/readingJourneyAchievements";
 import { unlockClaraAudio } from "../clara-audio/claraSpeech";
@@ -19,7 +20,6 @@ import {
   resetGuestLearnerProgress,
   saveLearnerSession,
 } from "../learner-auth/learnerApi";
-import { clearStaffSession } from "../staff-auth/staffApi";
 import { useLearnerExperience } from "../learner-auth/LearnerExperienceProvider";
 import "./learner-dashboard.css";
 
@@ -59,8 +59,7 @@ export function LearnerDashboardPage() {
   const logoutMutation = useMutation({
     mutationFn: () => logoutLearner(storedSession?.token ?? ""),
     onSettled: async () => {
-      clearLearnerSession();
-      clearStaffSession();
+      clearAllAccountSessions();
       await clearActiveOfflinePracticeProfile().catch(() => undefined);
       navigate("/home");
     },
