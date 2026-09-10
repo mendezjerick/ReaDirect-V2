@@ -641,8 +641,10 @@ function lessonSupport(progress: GuestLessonProgress, lessonNumber: number) {
 
 function lessonTeaching(progress: GuestLessonProgress) {
   const responded = progress.response !== null;
+  const attemptCount = progress.attemptCount ?? (responded ? 1 : 0);
+  const canRetry = responded && progress.response === "incorrect" && attemptCount < 2;
   return {
-    state: responded ? "ADVANCING" : "LISTENING",
+    state: responded && !canRetry ? "ADVANCING" : "LISTENING",
     outcome:
       progress.response === "correct"
         ? "INDEPENDENT_CORRECT"
@@ -651,16 +653,16 @@ function lessonTeaching(progress: GuestLessonProgress) {
           : progress.response === "incorrect"
             ? "NOT_YET_CORRECT"
             : null,
-    academic_attempt_count: responded ? 1 : 0,
+    academic_attempt_count: attemptCount,
     technical_retry_count: 0,
     highest_scaffold_used: "none",
     independent_mastery: progress.response === "correct",
     diagnosis_key:
       progress.response === "incorrect" ? "guest_local_mismatch" : null,
     review_recommended: progress.response === "incorrect",
-    can_record: !responded,
+    can_record: !responded || canRetry,
     can_continue_support: false,
-    can_advance: responded,
+    can_advance: responded && !canRetry,
   };
 }
 
@@ -682,14 +684,14 @@ function lessonResponse(progress: GuestLessonProgress) {
         : progress.response === "skipped"
           ? "SKIPPED"
           : "NOT_YET_CORRECT",
-    academic_attempt_count: 1,
+    academic_attempt_count: progress.attemptCount ?? 1,
     technical_retry_count: 0,
     highest_scaffold_used: "none",
     independent_mastery: progress.response === "correct",
     diagnosis_key:
       progress.response === "incorrect" ? "guest_local_mismatch" : null,
     review_recommended: progress.response === "incorrect",
-    attempt_count: 1,
+    attempt_count: progress.attemptCount ?? 1,
   };
 }
 
@@ -709,13 +711,13 @@ function lessonCompletion(lessonNumber: number) {
     achievement_name: definition.achievementName,
     completed_lesson_count: completedLessonCount,
     final_assessment_ready: completedLessonCount === 6,
-    score: definition.items.length,
+    score: store?.lessons[String(lessonNumber)]?.score ?? 0,
     maximum: definition.items.length,
     segments: [
       {
         mission_key: "mission-1",
         label: definition.title,
-        score: definition.items.length,
+        score: store?.lessons[String(lessonNumber)]?.score ?? 0,
         maximum: definition.items.length,
         status: "Complete",
       },
@@ -798,6 +800,8 @@ function buildLessonState(
 function buildLessonSixState(progress: GuestLessonProgress) {
   const item = lessonSixItems[progress.itemIndex];
   const responded = progress.response !== null;
+  const attemptCount = progress.attemptCount ?? (responded ? 1 : 0);
+  const canRetry = responded && progress.response === "incorrect" && attemptCount < 2;
   const store = loadGuestStore();
   const speechSlugs = [
     "who-lena",
@@ -857,7 +861,7 @@ function buildLessonSixState(progress: GuestLessonProgress) {
               : progress.response === "skipped"
                 ? "SKIPPED"
                 : "DEMONSTRATED",
-          attempt_count: 1,
+          attempt_count: attemptCount,
           wrong_choice_count: progress.response === "incorrect" ? 1 : 0,
           assistance_level:
             progress.response === "incorrect" ? "demonstration" : "none",
@@ -866,8 +870,8 @@ function buildLessonSixState(progress: GuestLessonProgress) {
         }
       : null,
     teaching: {
-      can_choose: !responded,
-      can_advance: responded,
+      can_choose: !responded || canRetry,
+      can_advance: responded && !canRetry,
       assistance_level:
         progress.response === "incorrect" ? "demonstration" : "none",
       show_evidence: responded,
@@ -906,10 +910,18 @@ function ensureLesson(
   const key = String(lessonNumber);
   const current = loadGuestStore();
   const existing = current?.lessons[key];
-  if (existing) return existing;
+  if (existing) {
+    return {
+      ...existing,
+      score: existing.score ?? 0,
+      attemptCount: existing.attemptCount ?? (existing.response ? 1 : 0),
+    };
+  }
   const created: GuestLessonProgress = {
     runId: 100 + lessonNumber,
     itemIndex: 0,
+    score: 0,
+    attemptCount: 0,
     response: null,
     finalTranscript: null,
     status: "active",
@@ -1182,6 +1194,8 @@ async function handleLesson(
       const correct = lessonSixItems[progress.itemIndex]?.[7];
       progress = updateLesson(lessonNumber, (current) => ({
         ...current,
+        score: (current.score ?? 0) + (choice === correct ? 1 : 0),
+        attemptCount: (current.attemptCount ?? 0) + 1,
         response: choice === correct ? "correct" : "incorrect",
       }));
     } else {
@@ -1201,15 +1215,18 @@ async function handleLesson(
       );
       progress = updateLesson(lessonNumber, (current) => ({
         ...current,
+        score: (current.score ?? 0) + (result.correct ? 1 : 0),
+        attemptCount: (current.attemptCount ?? 0) + 1,
         response: result.correct ? "correct" : "incorrect",
         finalTranscript: result.transcript,
-        status: lessonNumber === 5 ? "review" : current.status,
+        status: lessonNumber === 5 && result.correct ? "review" : current.status,
       }));
     }
   } else if (url.pathname.endsWith("/skip")) {
     progress = updateLesson(lessonNumber, (current) => ({
       ...current,
       response: "skipped",
+      attemptCount: Math.max(1, current.attemptCount ?? 0),
       finalTranscript: null,
       status: lessonNumber === 5 ? "review" : current.status,
     }));
@@ -1233,6 +1250,7 @@ async function handleLesson(
       progress = updateLesson(lessonNumber, (current) => ({
         ...current,
         status: "completed",
+        attemptCount: 0,
         response: null,
       }));
       const achievementKey =
@@ -1244,6 +1262,7 @@ async function handleLesson(
       progress = updateLesson(lessonNumber, (current) => ({
         ...current,
         itemIndex: current.itemIndex + 1,
+        attemptCount: 0,
         response: null,
         finalTranscript: null,
       }));

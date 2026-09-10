@@ -6,7 +6,10 @@ import {
   resetGuestLearnerProgress,
 } from "../src/features/learner-auth/learnerApi";
 import { apiFetch } from "../src/lib/apiUrl";
-import { updateGuestStore } from "../src/features/guest/guestSession";
+import {
+  loadGuestStore,
+  updateGuestStore,
+} from "../src/features/guest/guestSession";
 import { prepareLessonFeedback } from "../src/features/lesson/lessonApi";
 
 afterEach(() => {
@@ -127,7 +130,8 @@ describe("browser-local guest mode", () => {
         language: "en",
       });
       expect(new Headers(options.headers).has("Authorization")).toBe(false);
-      expect(state.teaching.can_advance).toBe(true);
+      expect(state.teaching.can_advance).toBe(false);
+      expect(state.teaching.can_record).toBe(true);
     },
   );
 
@@ -251,5 +255,106 @@ describe("browser-local guest mode", () => {
     ).json();
     expect(lessonSix.support.speech_key).toBe("lesson-6-question-who-lena");
     expect(networkFetch).not.toHaveBeenCalled();
+  });
+
+  it("allows one retry after incorrect feedback and scores the final outcome", async () => {
+    const networkFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            correct: false,
+            transcript: "B",
+            usable: true,
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            correct: true,
+            transcript: "A",
+            usable: true,
+          }),
+        ),
+      );
+    vi.stubGlobal("fetch", networkFetch);
+    enterGuestMode();
+
+    await apiFetch("/api/learners/lessons/lesson-1/start", {
+      method: "POST",
+      headers: guestHeaders(),
+    });
+
+    const first = new FormData();
+    first.append("audio", new Blob(["first"], { type: "audio/webm" }));
+    const afterFirst = await (
+      await apiFetch("/api/learners/lessons/lesson-1/101/submit", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${loadLearnerSession()!.token}` },
+        body: first,
+      })
+    ).json();
+    expect(afterFirst.response.attempt_count).toBe(1);
+    expect(afterFirst.teaching.can_record).toBe(true);
+    expect(afterFirst.teaching.can_advance).toBe(false);
+
+    const retry = new FormData();
+    retry.append("audio", new Blob(["retry"], { type: "audio/webm" }));
+    const afterRetry = await (
+      await apiFetch("/api/learners/lessons/lesson-1/101/submit", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${loadLearnerSession()!.token}` },
+        body: retry,
+      })
+    ).json();
+    expect(afterRetry.response.attempt_count).toBe(2);
+    expect(afterRetry.teaching.can_record).toBe(false);
+    expect(afterRetry.teaching.can_advance).toBe(true);
+
+    expect(loadGuestStore()?.lessons["1"].score).toBe(1);
+    expect(loadGuestStore()?.lessons["1"].attemptCount).toBe(2);
+  });
+
+  it("does not award a point when the initial attempt and retry are incorrect", async () => {
+    const networkFetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          correct: false,
+          transcript: "B",
+          usable: true,
+        }),
+      ),
+    );
+    vi.stubGlobal("fetch", networkFetch);
+    enterGuestMode();
+
+    await apiFetch("/api/learners/lessons/lesson-1/start", {
+      method: "POST",
+      headers: guestHeaders(),
+    });
+    for (const recording of ["first", "retry"]) {
+      const body = new FormData();
+      body.append("audio", new Blob([recording], { type: "audio/webm" }));
+      await apiFetch("/api/learners/lessons/lesson-1/101/submit", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${loadLearnerSession()!.token}` },
+        body,
+      });
+    }
+
+    const state = await (
+      await apiFetch("/api/learners/lessons/lesson-1/101/start", {
+        headers: guestHeaders(),
+      })
+    ).json();
+    expect(state.response.attempt_count).toBe(2);
+    expect(state.teaching.can_advance).toBe(true);
+    await apiFetch("/api/learners/lessons/lesson-1/101/advance", {
+      method: "POST",
+      headers: guestHeaders(),
+      body: "{}",
+    });
+    expect(loadGuestStore()?.lessons["1"].score).toBe(0);
   });
 });

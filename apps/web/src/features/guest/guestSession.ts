@@ -41,6 +41,8 @@ export interface GuestAssessmentProgress {
 export interface GuestLessonProgress {
   runId: number;
   itemIndex: number;
+  score?: number;
+  attemptCount?: number;
   response: "correct" | "incorrect" | "skipped" | null;
   finalTranscript: string | null;
   status: "active" | "review" | "completed";
