@@ -615,7 +615,19 @@ function lessonSupport(progress: GuestLessonProgress, lessonNumber: number) {
               : null;
   return {
     sequence_key: `guest-lesson-${lessonNumber}-${progress.itemIndex}-${progress.response ?? "start"}-${progress.status}`,
-    speech: speechKey ? [{ kind: "published", speech_key: speechKey }] : [],
+    speech:
+      progress.status === "active" &&
+      progress.response === "incorrect" &&
+      lessonNumber <= 4
+        ? [
+            {
+              kind: "runtime_feedback",
+              response_id: progress.runId * 100 + progress.itemIndex + 1,
+            },
+          ]
+        : speechKey
+          ? [{ kind: "published", speech_key: speechKey }]
+          : [],
     display_mode:
       progress.status === "completed"
         ? "completion"
@@ -1327,6 +1339,69 @@ function handleGames(url: URL, init?: RequestInit): Response {
   return json(gameSaveResponse(gameKey, store.gameSaves[gameKey] ?? null));
 }
 
+async function guestLessonFeedback(
+  input: RequestInfo | URL,
+  init: RequestInit | undefined,
+  url: URL,
+): Promise<Response> {
+  const store = loadGuestStore();
+  const responseId = Number(url.pathname.split("/").pop());
+  const entry = Object.entries(store?.lessons ?? {}).find(
+    ([key, progress]) =>
+      Number(key) >= 1 &&
+      Number(key) <= 4 &&
+      progress.status === "active" &&
+      progress.response === "incorrect" &&
+      progress.runId * 100 + progress.itemIndex + 1 === responseId,
+  );
+  if (!entry)
+    return json(
+      { message: "That guest response is no longer available." },
+      404,
+    );
+  const [lesson, progress] = entry;
+  const language = store?.speechLanguage ?? "en";
+  // Keep fallback within the caller's existing timeout; never send the local token.
+  const controller = new AbortController();
+  const abort = () => controller.abort(init?.signal?.reason);
+  if (init?.signal?.aborted) abort();
+  else init?.signal?.addEventListener("abort", abort, { once: true });
+  const timeout = globalThis.setTimeout(() => controller.abort(), 20_000);
+  try {
+    const response = await globalThis.fetch(
+      mediaUrl(input, "/api/guest/tts/lesson-feedback"),
+      {
+        method: "POST",
+        headers: { Accept: "audio/wav", "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lesson: Number(lesson),
+          transcript: progress.finalTranscript,
+          language,
+        }),
+        credentials: "include",
+        signal: controller.signal,
+      },
+    );
+    if (response.ok) return response;
+  } catch (error) {
+    if (init?.signal?.aborted) throw error;
+  } finally {
+    globalThis.clearTimeout(timeout);
+    init?.signal?.removeEventListener("abort", abort);
+  }
+  init?.signal?.throwIfAborted();
+  return globalThis.fetch(
+    mediaUrl(input, `/api/guest/tts/speech/lesson-${lesson}-feedback-not-yet`) +
+      `?language=${encodeURIComponent(language)}`,
+    {
+      method: "POST",
+      headers: { Accept: "audio/wav" },
+      credentials: "include",
+      signal: init?.signal,
+    },
+  );
+}
+
 export function maybeHandleGuestApiRequest(
   input: RequestInfo | URL,
   init?: RequestInit,
@@ -1340,6 +1415,10 @@ export function maybeHandleGuestApiRequest(
 
   const url = requestPath(input);
   if (!url.pathname.startsWith("/api/learners/")) return null;
+
+  if (url.pathname.startsWith("/api/learners/tts/lesson-feedback/")) {
+    return guestLessonFeedback(input, init, url);
+  }
 
   if (url.pathname.includes("/assessments/")) {
     return handleAssessment(input, init, url);

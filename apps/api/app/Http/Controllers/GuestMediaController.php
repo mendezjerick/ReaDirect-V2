@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\TtsSpeechLine;
+use App\Services\IsolatedLetterPronunciation;
 use App\Services\LearnerAssessmentAsr;
+use App\Services\LearnerSpeechPolicy;
 use App\Services\PublishedTtsVoiceResolver;
+use App\Services\RuntimeSpeechTemplateRenderer;
 use App\Support\SpeechLanguage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use RuntimeException;
@@ -66,6 +70,60 @@ final class GuestMediaController extends Controller
             'transcript' => $transcript,
             'usable' => $usable,
         ]);
+    }
+
+    public function feedback(
+        Request $request,
+        RuntimeSpeechTemplateRenderer $templates,
+        IsolatedLetterPronunciation $letters,
+        LearnerSpeechPolicy $policy,
+    ): Response|JsonResponse {
+        // ASVS 2.2.1/2.2.2: bound public input; callers cannot select a URL or template.
+        $validated = $request->validate([
+            'lesson' => ['required', 'integer', 'between:1,4'],
+            'transcript' => ['nullable', 'string', 'max:500'],
+            'language' => ['required', Rule::in(SpeechLanguage::codes())],
+        ]);
+        if ($policy->isPublishedOnly()) {
+            return response()->json(['message' => 'Prepared feedback is available.'], 409);
+        }
+        $lesson = (int) $validated['lesson'];
+        $language = $validated['language'];
+        $transcript = trim((string) ($validated['transcript'] ?? ''));
+        if ($lesson === 1 && preg_match('/^[A-Z]$/i', $transcript)) {
+            $text = $templates->render($language, 'feedback.you_said_letter', [
+                'spoken' => $letters->spokenForm($transcript),
+            ]);
+        } elseif ($lesson !== 1 && $transcript !== '' && strtoupper($transcript) !== 'UNKNOWN') {
+            $text = $templates->render($language, 'feedback.you_said_transcript', ['final' => $transcript]);
+        } else {
+            $unit = [1 => 'letter', 2 => 'word', 3 => 'phrase', 4 => 'sentence'][$lesson];
+            $text = $templates->render($language, "feedback.unclear_{$unit}");
+        }
+        // Stateless guest feedback never resolves a learner record (ASVS 8.2.2).
+        try {
+            $speech = Http::accept('audio/wav')
+                ->withToken((string) config('speech.tts_token'))
+                ->connectTimeout(3)
+                ->timeout(15)
+                ->post(rtrim((string) config('speech.tts_url'), '/').'/synthesize', [
+                    'text' => $text, 'reference' => 'result', 'language' => $language,
+                ]);
+            if ($speech->successful()
+                && ($speech->header('X-ReaDirect-TTS-Language') ?: 'en') === $language
+                && str_starts_with($speech->body(), 'RIFF')) {
+                return response($speech->body(), 200, [
+                    'Content-Type' => 'audio/wav',
+                    'Cache-Control' => 'private, no-store',
+                    'X-ReaDirect-TTS-Source' => 'guest-runtime',
+                    'X-ReaDirect-TTS-Language' => $language,
+                ]);
+            }
+        } catch (Throwable) {
+            // ASVS 16.5.1/16.5.2: no transcript or service details in errors; client plays prepared audio.
+        }
+
+        return response()->json(['message' => 'Prepared feedback is available.'], 503);
     }
 
     public function speech(Request $request, string $speechKey): Response|JsonResponse

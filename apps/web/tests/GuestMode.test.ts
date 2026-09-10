@@ -6,8 +6,11 @@ import {
   resetGuestLearnerProgress,
 } from "../src/features/learner-auth/learnerApi";
 import { apiFetch } from "../src/lib/apiUrl";
+import { updateGuestStore } from "../src/features/guest/guestSession";
+import { prepareLessonFeedback } from "../src/features/lesson/lessonApi";
 
 afterEach(() => {
+  vi.useRealTimers();
   window.localStorage.clear();
   window.sessionStorage.clear();
   vi.unstubAllGlobals();
@@ -24,6 +27,153 @@ function guestHeaders(): HeadersInit {
 }
 
 describe("browser-local guest mode", () => {
+  it("uses a submitted recording's transcript for dynamic feedback", async () => {
+    const networkFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ correct: false, transcript: "B", usable: true }),
+        ),
+      )
+      .mockResolvedValueOnce(new Response("RIFF-feedback"));
+    vi.stubGlobal("fetch", networkFetch);
+    enterGuestMode();
+    const body = new FormData();
+    body.append("audio", new Blob(["recording"], { type: "audio/webm" }));
+    const state = await (
+      await apiFetch("/api/learners/lessons/lesson-1/101/submit", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${loadLearnerSession()!.token}` },
+        body,
+      })
+    ).json();
+    await prepareLessonFeedback(
+      loadLearnerSession()!.token,
+      state.support.speech[0].response_id,
+    );
+    expect(JSON.parse(networkFetch.mock.calls[1][1].body).transcript).toBe("B");
+  });
+
+  it("falls back when dynamic feedback exceeds its time budget", async () => {
+    vi.useFakeTimers();
+    const networkFetch = vi
+      .fn()
+      .mockImplementationOnce(
+        (_url, options) =>
+          new Promise((_resolve, reject) => {
+            options.signal.addEventListener("abort", () =>
+              reject(new DOMException("Aborted", "AbortError")),
+            );
+          }),
+      )
+      .mockResolvedValueOnce(new Response("RIFF-published"));
+    vi.stubGlobal("fetch", networkFetch);
+    const state = await incorrectGuestLesson(2);
+    const pending = prepareLessonFeedback(
+      loadLearnerSession()!.token,
+      state.response.id,
+    );
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(await (await pending).text()).toBe("RIFF-published");
+    expect(networkFetch).toHaveBeenCalledTimes(2);
+  });
+
+  async function incorrectGuestLesson(lesson: number) {
+    enterGuestMode();
+    await apiFetch(`/api/learners/lessons/lesson-${lesson}/start`, {
+      method: "POST",
+      headers: guestHeaders(),
+    });
+    updateGuestStore((store) => ({
+      ...store,
+      lessons: {
+        ...store.lessons,
+        [lesson]: {
+          ...store.lessons[String(lesson)],
+          response: "incorrect",
+          finalTranscript: "bed",
+        },
+      },
+    }));
+    return (
+      await apiFetch(`/api/learners/lessons/lesson-${lesson}/start`, {
+        method: "POST",
+        headers: guestHeaders(),
+      })
+    ).json();
+  }
+
+  it.each([1, 2, 3, 4])(
+    "routes lesson %s guest feedback to the public endpoint",
+    async (lesson) => {
+      const networkFetch = vi
+        .fn()
+        .mockResolvedValue(new Response("RIFF-feedback"));
+      vi.stubGlobal("fetch", networkFetch);
+      const state = await incorrectGuestLesson(lesson);
+      expect(state.support.speech).toEqual([
+        { kind: "runtime_feedback", response_id: state.response.id },
+      ]);
+      const audio = await prepareLessonFeedback(
+        loadLearnerSession()!.token,
+        state.response.id,
+      );
+      expect(await audio.text()).toBe("RIFF-feedback");
+      const [url, options] = networkFetch.mock.calls[0];
+      expect(new URL(url).pathname).toBe("/api/guest/tts/lesson-feedback");
+      expect(JSON.parse(options.body)).toEqual({
+        lesson,
+        transcript: "bed",
+        language: "en",
+      });
+      expect(new Headers(options.headers).has("Authorization")).toBe(false);
+      expect(state.teaching.can_advance).toBe(true);
+    },
+  );
+
+  it.each([404, 409, 429, 503])(
+    "falls back to prepared feedback on HTTP %s",
+    async (status) => {
+      const networkFetch = vi
+        .fn()
+        .mockResolvedValueOnce(new Response(null, { status }))
+        .mockResolvedValueOnce(new Response("RIFF-published"));
+      vi.stubGlobal("fetch", networkFetch);
+      const state = await incorrectGuestLesson(2);
+      const audio = await prepareLessonFeedback(
+        loadLearnerSession()!.token,
+        state.response.id,
+      );
+      expect(await audio.text()).toBe("RIFF-published");
+      expect(networkFetch.mock.calls[1][0]).toContain(
+        "/api/guest/tts/speech/lesson-2-feedback-not-yet?language=en",
+      );
+    },
+  );
+
+  it("does not intercept signed-in learner feedback", async () => {
+    const networkFetch = vi
+      .fn()
+      .mockResolvedValue(new Response("RIFF-learner"));
+    vi.stubGlobal("fetch", networkFetch);
+    await prepareLessonFeedback("real-learner-token", 42);
+    expect(networkFetch.mock.calls[0][0]).toContain(
+      "/api/learners/tts/lesson-feedback/42",
+    );
+  });
+
+  it("rejects stale guest response IDs without contacting the learner API", async () => {
+    const networkFetch = vi.fn();
+    vi.stubGlobal("fetch", networkFetch);
+    await incorrectGuestLesson(2);
+    const response = await apiFetch("/api/learners/tts/lesson-feedback/999", {
+      method: "POST",
+      headers: guestHeaders(),
+    });
+    expect(response.status).toBe(404);
+    expect(networkFetch).not.toHaveBeenCalled();
+  });
+
   it("keeps profiles and game saves local, then resets only guest progress", async () => {
     const networkFetch = vi.fn();
     vi.stubGlobal("fetch", networkFetch);

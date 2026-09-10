@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\TtsSpeechLine;
 use App\Models\TtsVoiceVersion;
+use App\Services\LearnerLightweightModeSettings;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -11,6 +12,64 @@ use Tests\TestCase;
 
 final class GuestMediaTest extends TestCase
 {
+    public function test_guest_feedback_uses_existing_templates_without_creating_learner_records(): void
+    {
+        Http::fake(['*/synthesize' => Http::response('RIFF-feedback', 200, [
+            'Content-Type' => 'audio/wav', 'X-ReaDirect-TTS-Language' => 'en',
+        ])]);
+        $this->postJson('/api/guest/tts/lesson-feedback', [
+            'lesson' => 1, 'transcript' => 'B', 'language' => 'en',
+        ])->assertOk()->assertContent('RIFF-feedback')->assertHeader('X-ReaDirect-TTS-Source', 'guest-runtime');
+        Http::assertSent(fn ($request) => $request['text'] === 'You said bee.' && $request['reference'] === 'result');
+        $this->assertDatabaseCount('learners', 0);
+        $this->assertDatabaseCount('learner_sessions', 0);
+        $this->assertDatabaseCount('lesson_responses', 0);
+    }
+
+    public function test_guest_feedback_supports_filipino_and_unclear_speech(): void
+    {
+        Http::fake(['*/synthesize' => Http::response('RIFF-feedback', 200, ['X-ReaDirect-TTS-Language' => 'fil-PH'])]);
+        $this->postJson('/api/guest/tts/lesson-feedback', [
+            'lesson' => 2, 'transcript' => 'bed', 'language' => 'fil-PH',
+        ])->assertOk();
+        Http::assertSent(fn ($request) => $request['text'] === 'Ang sinabi mo ay bed.' && $request['language'] === 'fil-PH');
+        $this->postJson('/api/guest/tts/lesson-feedback', [
+            'lesson' => 4, 'transcript' => null, 'language' => 'fil-PH',
+        ])->assertOk();
+        Http::assertSent(fn ($request) => $request['text'] === 'Hindi ako nakarinig ng malinaw na pangungusap. Maaari mong subukan ang susunod.');
+    }
+
+    public function test_guest_feedback_validates_input_before_synthesis(): void
+    {
+        Http::fake();
+        foreach ([['lesson' => 5], ['transcript' => str_repeat('a', 501)], ['language' => 'invalid']] as $invalid) {
+            $this->postJson('/api/guest/tts/lesson-feedback', array_replace([
+                'lesson' => 2, 'transcript' => 'bed', 'language' => 'en',
+            ], $invalid))->assertUnprocessable();
+        }
+        Http::assertNothingSent();
+    }
+
+    public function test_guest_feedback_degrades_safely_when_tts_fails(): void
+    {
+        Http::fake(['*/synthesize' => Http::response('unavailable', 503)]);
+        $this->postJson('/api/guest/tts/lesson-feedback', [
+            'lesson' => 2, 'transcript' => 'bed', 'language' => 'en',
+        ])->assertStatus(503)->assertJsonPath('message', 'Prepared feedback is available.');
+    }
+
+    public function test_guest_feedback_respects_published_only_policy(): void
+    {
+        app(LearnerLightweightModeSettings::class)->update([
+            'enabled' => true, 'static_clara' => true, 'published_speech_only' => true,
+        ]);
+        Http::fake();
+        $this->postJson('/api/guest/tts/lesson-feedback', [
+            'lesson' => 2, 'transcript' => 'bed', 'language' => 'en',
+        ])->assertStatus(409);
+        Http::assertNothingSent();
+    }
+
     public function test_guest_speech_evaluation_is_stateless_and_needs_no_account(): void
     {
         Http::fake([

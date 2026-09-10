@@ -147,6 +147,8 @@ Route::prefix('learners')->group(function (): void {
 });
 
 Route::prefix('guest')->group(function (): void {
+    Route::post('/tts/lesson-feedback', [GuestMediaController::class, 'feedback'])
+        ->middleware('throttle:30,1');
     Route::post('/speech/evaluate', [GuestMediaController::class, 'evaluate'])
         ->middleware('throttle:30,1');
     Route::post('/tts/speech/{speechKey}', [GuestMediaController::class, 'speech'])
