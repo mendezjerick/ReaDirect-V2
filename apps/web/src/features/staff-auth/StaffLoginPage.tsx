@@ -243,7 +243,6 @@ export function StaffLoginPage() {
 
               <BigButton
                 className="staff-login-form__submit"
-                size="regular"
                 committing={signInCommit.committing}
                 busy={loginMutation.isPending}
                 busyLabel="Signing in"

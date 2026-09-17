@@ -5,7 +5,6 @@ const learnerViewports = [
   { name: "mobile-primary", width: 390, height: 844 },
   { name: "mobile-large", width: 412, height: 915 },
   { name: "tablet", width: 768, height: 1024 },
-  { name: "desktop-short", width: 1366, height: 690 },
   { name: "desktop", width: 1366, height: 768 },
   { name: "desktop-large", width: 1920, height: 1080 },
 ] as const;

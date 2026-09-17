@@ -226,7 +226,6 @@ export function LearnerLoginPage() {
 
               <BigButton
                 className="learner-login-form__submit"
-                size="regular"
                 type="submit"
                 committing={loginCommit.committing}
                 busy={loginMutation.isPending}
