@@ -29,6 +29,9 @@ for (const loginPage of loginPages) {
       const submit = main.querySelector<HTMLButtonElement>(
         'form button[type="submit"]',
       );
+      const card = main.querySelector<HTMLElement>(
+        ".learner-login-card, .staff-login-card",
+      );
       const documentElement = document.documentElement;
 
       return {
@@ -38,6 +41,7 @@ for (const loginPage of loginPages) {
         scrollWidth: documentElement.scrollWidth,
         overflowY: getComputedStyle(main).overflowY,
         submitHeight: submit?.getBoundingClientRect().height ?? 0,
+        cardBottom: card?.getBoundingClientRect().bottom ?? 0,
       };
     });
 
@@ -48,6 +52,9 @@ for (const loginPage of loginPages) {
 
     const viewportWidth = page.viewportSize()?.width ?? 0;
     if (viewportWidth >= 768) {
+      expect(pageMetrics.cardBottom).toBeLessThanOrEqual(
+        pageMetrics.clientHeight,
+      );
       expect(pageMetrics.scrollHeight).toBeLessThanOrEqual(
         pageMetrics.clientHeight,
       );

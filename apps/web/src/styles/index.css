@@ -694,6 +694,25 @@ button {
   }
 }
 
+@media (min-width: 48rem) and (max-height: 48rem) {
+  .staff-login-page {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .staff-login-page .staff-login-page__stage {
+    gap: 0.5rem;
+  }
+
+  .staff-login-page .staff-login-card {
+    padding: 0.5rem;
+  }
+
+  .staff-login-page .staff-login-card > .surface {
+    padding: 1rem 1.5rem;
+  }
+}
+
 .staff-shell {
   min-height: 100vh;
   min-height: 100svh;

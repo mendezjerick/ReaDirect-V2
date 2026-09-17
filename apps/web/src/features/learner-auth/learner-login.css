@@ -164,3 +164,14 @@
     text-align: left;
   }
 }
+
+@media (min-width: 48rem) and (max-height: 48rem) {
+  .learner-login-page {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .learner-login-card > .surface {
+    padding: 1.5rem;
+  }
+}
