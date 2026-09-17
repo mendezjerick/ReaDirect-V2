@@ -17,8 +17,8 @@ async function expectCompactCard(
     throw new Error("Expected a desktop login card and viewport.");
   }
 
-  expect(box.height).toBeGreaterThanOrEqual(560);
-  expect(box.height).toBeLessThanOrEqual(620);
+  expect(box.height).toBeGreaterThanOrEqual(480);
+  expect(box.height).toBeLessThanOrEqual(520);
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
 }
 
