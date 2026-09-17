@@ -3,6 +3,7 @@
   width: 100%;
   min-height: 100vh;
   min-height: 100svh;
+  min-height: 100dvh;
   place-items: center;
   overflow-y: auto;
   padding: max(1rem, env(safe-area-inset-top))
@@ -118,6 +119,7 @@
 
 .learner-login-form__submit {
   width: 100%;
+  min-height: 3.5rem;
   margin-top: 0.3rem;
 }
 
@@ -141,10 +143,24 @@
 
 @media (min-width: 48rem) {
   .learner-login-page {
-    padding: 2rem;
+    padding: 1rem max(2rem, env(safe-area-inset-right)) 1rem
+      max(2rem, env(safe-area-inset-left));
   }
 
   .learner-login-card > .surface {
-    padding: 2.5rem;
+    gap: 1.25rem;
+    padding: 2rem;
+  }
+
+  .learner-login-form {
+    gap: 1rem;
+  }
+
+  .learner-login-card__header {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 1rem;
+    text-align: left;
   }
 }

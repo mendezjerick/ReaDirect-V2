@@ -505,6 +505,8 @@ button {
 .staff-login-page {
   min-height: 100vh;
   min-height: 100svh;
+  min-height: 100dvh;
+  overflow-y: auto;
   padding-top: max(1rem, env(safe-area-inset-top));
   padding-right: max(1rem, env(safe-area-inset-right));
   padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
@@ -633,7 +635,7 @@ button {
 
 .staff-login-form__submit {
   width: 100%;
-  min-height: 4rem;
+  min-height: 3.5rem;
   margin-top: 0.25rem;
   font-size: 1.25rem;
 }
@@ -684,6 +686,12 @@ button {
   font-size: 0.8125rem;
   line-height: 1.5;
   text-align: center;
+}
+
+@media (min-width: 48rem) {
+  .staff-login-card > .surface {
+    padding: 1.5rem 2rem;
+  }
 }
 
 .staff-shell {
