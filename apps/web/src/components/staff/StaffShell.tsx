@@ -3,6 +3,7 @@ import { useState, type PropsWithChildren, type ReactNode } from "react";
 import { StaffButton } from "./StaffButton";
 import { PixelIcon } from "../ui/PixelIcon";
 import { StaffNavigation } from "./SystemAdminNavigation";
+import { StaffSchoolYearSwitcher } from "./StaffSchoolYearSwitcher";
 import { clearLearnerSession } from "../../features/learner-auth/learnerApi";
 import {
   systemAdminNavigationGroups,
@@ -156,6 +157,10 @@ export function StaffShell({
             </aside>
           </>
         ) : null}
+
+        <div className="staff-shell__toolbar">
+          <StaffSchoolYearSwitcher />
+        </div>
 
         {children}
       </div>

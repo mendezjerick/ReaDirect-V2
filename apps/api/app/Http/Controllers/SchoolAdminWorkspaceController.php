@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\StaffRealtimeTopic;
 use App\Models\Learner;
 use App\Models\School;
+use App\Models\SchoolYear;
 use App\Models\StaffAuditLog;
 use App\Models\StaffUser;
 use App\Services\SchoolAdminOverviewService;
@@ -94,16 +95,33 @@ final class SchoolAdminWorkspaceController extends Controller
 
         $validated = $request->validate([
             'school_name' => ['required', 'string', 'min:2', 'max:180'],
+            'school_year' => ['sometimes', 'nullable', 'string', 'regex:/^\d{4}-\d{4}$/'],
         ]);
 
         $schoolName = preg_replace('/\s+/', ' ', trim($validated['school_name']));
         $normalizedName = mb_strtolower($schoolName);
+        $schoolYearLabel = $validated['school_year'] ?? SchoolYear::DEFAULT_LABEL;
+        try {
+            $schoolYear = SchoolYear::parseLabel($schoolYearLabel);
+        } catch (\InvalidArgumentException $exception) {
+            throw ValidationException::withMessages([
+                'school_year' => $exception->getMessage(),
+            ]);
+        }
 
-        $school = DB::transaction(function () use ($staffUser, $schoolName, $normalizedName): School {
+        $school = DB::transaction(function () use ($staffUser, $schoolName, $normalizedName, $schoolYear): School {
             $school = School::query()->firstOrCreate(
                 ['normalized_name' => $normalizedName],
                 ['name' => $schoolName],
             );
+
+            if ($school->wasRecentlyCreated) {
+                $initialYear = $school->schoolYears()->firstOrFail();
+                $initialYear->update($schoolYear + [
+                    'is_current' => true,
+                    'status' => SchoolYear::STATUS_CURRENT,
+                ]);
+            }
 
             $staffUser->school()->associate($school);
             $staffUser->save();

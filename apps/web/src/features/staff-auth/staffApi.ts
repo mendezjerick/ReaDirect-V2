@@ -59,6 +59,26 @@ const staffAccountResponseSchema = z.object({
   staff: staffAccountSchema,
 });
 
+const staffSchoolYearSchema = z.object({
+  id: z.number().int().positive().nullable(),
+  label: z.string().regex(/^\d{4}-\d{4}$/),
+  start_year: z.number().int(),
+  end_year: z.number().int(),
+  is_current: z.boolean(),
+  status: z.enum(["current", "planned", "closed"]),
+});
+
+const staffSchoolYearsResponseSchema = z.object({
+  school_years: z.array(staffSchoolYearSchema),
+  selected_school_year: staffSchoolYearSchema.nullable(),
+});
+
+const createdStaffSchoolYearResponseSchema = z.object({
+  school_year: staffSchoolYearSchema,
+});
+
+export type StaffSchoolYear = z.infer<typeof staffSchoolYearSchema>;
+
 const schoolAssessmentActivitySchema = z.object({
   id: z.number().int().positive(),
   learner_id: z.number().int().positive(),
@@ -553,6 +573,8 @@ const apiErrorSchema = z.object({
       username: z.array(z.string()).optional(),
       temporary_password: z.array(z.string()).optional(),
       school_name: z.array(z.string()).optional(),
+      school_year: z.array(z.string()).optional(),
+      label: z.array(z.string()).optional(),
       grade_level: z.array(z.string()).optional(),
       section: z.array(z.string()).optional(),
       first_name: z.array(z.string()).optional(),
@@ -718,6 +740,7 @@ export type PortalLaunchResponse = z.infer<typeof portalLaunchResponseSchema>;
 
 const staffSessionStorageKey = "readirect.staff-session";
 const staffDeviceStorageKey = "readirect.staff-device";
+const staffSchoolYearStorageKey = "readirect.staff-school-year";
 const browserSessionToken = "cookie-session";
 /**
  * Page Portal reads and launches can wake the production API and prepare a
@@ -727,6 +750,28 @@ const browserSessionToken = "cookie-session";
 export const PAGE_PORTAL_API_TIMEOUT_MS = 60_000;
 export const staffSessionChangedEvent = "readirect:staff-session-changed";
 const browserSessionMarker = "readirect_staff_signed_in";
+
+let activeStaffSchoolYear: string | null = null;
+
+export function getActiveStaffSchoolYear(): string | null {
+  if (activeStaffSchoolYear !== null) return activeStaffSchoolYear;
+  if (typeof window === "undefined") return null;
+
+  const stored = window.sessionStorage.getItem(staffSchoolYearStorageKey);
+  return stored && /^\d{4}-\d{4}$/.test(stored) ? stored : null;
+}
+
+export function setActiveStaffSchoolYear(label: string | null): void {
+  activeStaffSchoolYear = label;
+  if (typeof window === "undefined") return;
+
+  if (label === null) {
+    window.sessionStorage.removeItem(staffSchoolYearStorageKey);
+    return;
+  }
+
+  window.sessionStorage.setItem(staffSchoolYearStorageKey, label);
+}
 
 const storedStaffSessionSchema = staffIdentitySessionSchema.extend({
   token: z.string().min(1),
@@ -758,6 +803,11 @@ function announceStaffSessionChange(): void {
 }
 
 export async function saveStaffSession(session: StaffSession): Promise<void> {
+  const previousSession = loadStaffSession();
+  if (!previousSession || previousSession.staff.id !== session.staff.id) {
+    setActiveStaffSchoolYear(null);
+  }
+
   if (isNativeSecureSessionAvailable()) {
     const serialized = JSON.stringify(session);
     setNativeSessionCache(staffSessionStorageKey, serialized);
@@ -851,6 +901,7 @@ export function clearStaffSession(): void {
     window.localStorage.removeItem(staffSessionStorageKey);
     setBrowserSessionMarker(false);
   }
+  setActiveStaffSchoolYear(null);
   announceStaffSessionChange();
 
   if (session) {
@@ -874,6 +925,7 @@ function discardStaffSession(): void {
     window.localStorage.removeItem(staffSessionStorageKey);
     setBrowserSessionMarker(false);
   }
+  setActiveStaffSchoolYear(null);
   announceStaffSessionChange();
 }
 
@@ -891,16 +943,44 @@ export async function staffFetch(
     }
   }
 
+  const scopedInput = addStaffSchoolYear(input);
   const response =
     timeoutMs === undefined
-      ? await fetch(input, { ...init, headers })
-      : await apiFetchWithTimeout(input, { ...init, headers }, timeoutMs);
+      ? await fetch(scopedInput, { ...init, headers })
+      : await apiFetchWithTimeout(scopedInput, { ...init, headers }, timeoutMs);
 
   if (response.status === 401) {
     discardStaffSession();
   }
 
   return response;
+}
+
+function addStaffSchoolYear(input: RequestInfo | URL): RequestInfo | URL {
+  const label = getActiveStaffSchoolYear();
+  if (!label || typeof window === "undefined") return input;
+
+  if (typeof input !== "string" && !(input instanceof URL)) return input;
+
+  const inputUrl =
+    input instanceof URL ? input : new URL(input, window.location.origin);
+  if (
+    !inputUrl.pathname.startsWith("/api/staff/") ||
+    inputUrl.pathname === "/api/staff/school-years" ||
+    inputUrl.pathname === "/api/staff/session" ||
+    inputUrl.pathname === "/api/staff/session/heartbeat" ||
+    inputUrl.pathname === "/api/staff/logout" ||
+    /^\/api\/staff\/school-admin\/\d+\/school$/.test(inputUrl.pathname)
+  ) {
+    return input;
+  }
+
+  inputUrl.searchParams.set("school_year", label);
+  if (typeof input === "string" && input.startsWith("/")) {
+    return `${inputUrl.pathname}${inputUrl.search}${inputUrl.hash}`;
+  }
+
+  return inputUrl;
 }
 
 export async function getCurrentStaffSession(): Promise<StaffSession> {
@@ -947,6 +1027,8 @@ async function readApiError(response: Response): Promise<string> {
     parsed.data.errors?.username?.[0] ??
     parsed.data.errors?.temporary_password?.[0] ??
     parsed.data.errors?.school_name?.[0] ??
+    parsed.data.errors?.school_year?.[0] ??
+    parsed.data.errors?.label?.[0] ??
     parsed.data.errors?.grade_level?.[0] ??
     parsed.data.errors?.section?.[0] ??
     parsed.data.errors?.first_name?.[0] ??
@@ -1647,6 +1729,7 @@ export async function launchPortalSystemLearner(
 export async function completeSchoolAdminSetup(input: {
   staffUserId: number;
   schoolName: string;
+  schoolYear?: string;
 }): Promise<StaffSession> {
   const response = await staffFetch(
     `/api/staff/school-admin/${input.staffUserId}/school`,
@@ -1656,7 +1739,10 @@ export async function completeSchoolAdminSetup(input: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ school_name: input.schoolName }),
+      body: JSON.stringify({
+        school_name: input.schoolName,
+        school_year: input.schoolYear,
+      }),
     },
   );
 
@@ -1727,4 +1813,39 @@ export async function acknowledgeTeacherAssignment(
   }
 
   return teacherAssignmentAcknowledgementSchema.parse(await response.json());
+}
+
+export async function getStaffSchoolYears(): Promise<{
+  school_years: StaffSchoolYear[];
+  selected_school_year: StaffSchoolYear | null;
+}> {
+  const response = await staffFetch("/api/staff/school-years", {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return staffSchoolYearsResponseSchema.parse(await response.json());
+}
+
+export async function createStaffSchoolYear(
+  label: string,
+): Promise<StaffSchoolYear> {
+  const response = await staffFetch("/api/staff/school-years", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ label }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return createdStaffSchoolYearResponseSchema.parse(await response.json())
+    .school_year;
 }

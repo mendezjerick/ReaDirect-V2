@@ -62,6 +62,7 @@ abstract class TestCase extends BaseTestCase
         Schema::dropIfExists('learner_sessions');
         Schema::dropIfExists('learner_progress_states');
         Schema::dropIfExists('learners');
+        Schema::dropIfExists('school_years');
         Schema::dropIfExists('learner_code_counters');
         Schema::dropIfExists('staff_users');
         Schema::dropIfExists('schools');
@@ -71,6 +72,19 @@ abstract class TestCase extends BaseTestCase
             $table->string('name', 180)->unique();
             $table->string('normalized_name', 180)->unique();
             $table->timestamps();
+        });
+
+        Schema::create('school_years', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('school_id')->constrained()->cascadeOnDelete();
+            $table->string('label', 9);
+            $table->unsignedSmallInteger('start_year');
+            $table->unsignedSmallInteger('end_year');
+            $table->boolean('is_current')->default(false)->index();
+            $table->string('status', 24)->default('planned');
+            $table->timestamps();
+            $table->unique(['school_id', 'label']);
+            $table->index(['school_id', 'is_current']);
         });
 
         Schema::create('jobs', function (Blueprint $table): void {
@@ -240,6 +254,7 @@ abstract class TestCase extends BaseTestCase
             $table->string('suffix', 20)->nullable();
             $table->string('lrn', 50)->nullable();
             $table->foreignId('school_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('school_year_id')->nullable()->constrained('school_years')->nullOnDelete();
             $table->foreignId('teacher_id')->nullable()->constrained('staff_users')->cascadeOnDelete();
             $table->unsignedTinyInteger('grade_level')->nullable();
             $table->string('section', 80)->nullable();

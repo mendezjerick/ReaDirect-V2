@@ -5,6 +5,7 @@ use App\Http\Middleware\AuthenticateLearnerSession;
 use App\Http\Middleware\AuthenticateStaffSession;
 use App\Http\Middleware\EnforceHttps;
 use App\Http\Middleware\RequireStaffRole;
+use App\Http\Middleware\ResolveStaffSchoolYear;
 use App\Http\Middleware\TrustHosts;
 use App\Http\Middleware\TrustProxies;
 use Illuminate\Foundation\Application;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'learner.auth' => AuthenticateLearnerSession::class,
             'staff.auth' => AuthenticateStaffSession::class,
             'staff.role' => RequireStaffRole::class,
+            'staff.school_year' => ResolveStaffSchoolYear::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

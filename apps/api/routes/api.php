@@ -29,6 +29,7 @@ use App\Http\Controllers\SchoolAdminWorkspaceController;
 use App\Http\Controllers\SpeechServiceReadinessController;
 use App\Http\Controllers\StaffAuthController;
 use App\Http\Controllers\StaffRealtimeController;
+use App\Http\Controllers\StaffSchoolYearController;
 use App\Http\Controllers\StaffSecurityController;
 use App\Http\Controllers\SystemAdminAgentsAiController;
 use App\Http\Controllers\SystemAdminEquivalenceController;
@@ -58,7 +59,7 @@ Route::prefix('staff')->group(function (): void {
     Route::post('/login', [StaffAuthController::class, 'store'])
         ->middleware('throttle:10,1');
 
-    Route::middleware('staff.auth')->group(function (): void {
+    Route::middleware(['staff.auth', 'staff.school_year'])->group(function (): void {
         Route::get('/session', [StaffAuthController::class, 'show']);
         Route::post('/session/heartbeat', [StaffAuthController::class, 'heartbeat']);
         Route::post('/logout', [StaffAuthController::class, 'destroy']);
@@ -72,6 +73,8 @@ Route::prefix('staff')->group(function (): void {
             ->middleware('throttle:staff-security-code-verify');
         Route::get('/realtime/config', [StaffRealtimeController::class, 'config']);
         Route::post('/realtime/probe', [StaffRealtimeController::class, 'probe']);
+        Route::get('/school-years', [StaffSchoolYearController::class, 'index']);
+        Route::post('/school-years', [StaffSchoolYearController::class, 'store']);
 
         Route::middleware('staff.role:system_admin')->prefix('system-admin')->group(function (): void {
             Route::get('/overview', [SystemAdminOverviewController::class, 'show']);

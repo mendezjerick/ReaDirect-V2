@@ -6,6 +6,7 @@ export type PixelIconName =
   | "arrow-up"
   | "book"
   | "book-shield"
+  | "calendar"
   | "check"
   | "check-circle"
   | "clara"
@@ -59,6 +60,8 @@ const iconPaths: Record<PixelIconName, string> = {
   book: "M2 4h8v2h2v15h-2v-2H2zm12 2h2V4h8v15h-8v2h-2zM5 8v2h5V8zm0 4v2h5v-2zm9-4v2h5V8zm0 4v2h5v-2z",
   "book-shield":
     "M2 4h8v2h2v15h-2v-2H2zm12 2h2V4h6v7h-3V8h-5zm3 6h6v7h-2v2h-2v-2h-2zm2 2v3h2v-3zM5 8v2h5V8zm0 4v2h5v-2z",
+  calendar:
+    "M4 3h3v3h10V3h3v3h2v15H2V6h2zm1 8v7h14v-7zm2 2h3v3H7zm5 0h3v3h-3zm5 0h2v3h-2z",
   check: "M3 11h4v4h3v3h4v-3h3v-3h3V7h-4v3h-3v3h-2v-2H7V8H3z",
   "check-circle":
     "M7 2h10v2h3v3h2v10h-2v3h-3v2H7v-2H4v-3H2V7h2V4h3zm0 5H5v10h2v2h10v-2h2V7h-2V5H7zm0 4h3v3h2v-2h2v-2h4v4h-2v2h-2v2h-4v-2H8v-2H7z",

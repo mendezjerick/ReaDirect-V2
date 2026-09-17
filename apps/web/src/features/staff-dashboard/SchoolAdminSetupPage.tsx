@@ -19,6 +19,7 @@ import {
 
 interface SchoolSetupForm {
   school_name: string;
+  school_year: string;
 }
 
 export function SchoolAdminSetupPage() {
@@ -38,7 +39,7 @@ export function SchoolAdminSetupPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<SchoolSetupForm>({
-    defaultValues: { school_name: "" },
+    defaultValues: { school_name: "", school_year: "2025-2026" },
   });
 
   const returnToLogin = () => {
@@ -88,11 +89,12 @@ export function SchoolAdminSetupPage() {
     );
   }
 
-  const submitSchool = handleSubmit(({ school_name }) => {
+  const submitSchool = handleSubmit(({ school_name, school_year }) => {
     continueCommit.commit(() =>
       setupMutation.mutate({
         staffUserId: session.staff.id,
         schoolName: school_name,
+        schoolYear: school_year,
       }),
     );
   });
@@ -136,6 +138,29 @@ export function SchoolAdminSetupPage() {
                 minLength: {
                   value: 2,
                   message: "Use at least 2 characters.",
+                },
+              })}
+            />
+
+            <TextField
+              label="First school year"
+              type="text"
+              inputMode="numeric"
+              placeholder="2025-2026"
+              required
+              error={errors.school_year?.message}
+              {...register("school_year", {
+                required: "Enter the first school year.",
+                pattern: {
+                  value: /^\d{4}-\d{4}$/,
+                  message: "Use the YYYY-YYYY format.",
+                },
+                validate: (value) => {
+                  const [start, end] = value.split("-").map(Number);
+                  return (
+                    end === start + 1 ||
+                    "School years must use adjacent calendar years."
+                  );
                 },
               })}
             />

@@ -739,6 +739,199 @@ button {
   min-width: 0;
 }
 
+.staff-shell__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem max(1rem, env(safe-area-inset-right)) 0;
+  padding-left: max(1rem, env(safe-area-inset-left));
+}
+
+.staff-school-year-switcher {
+  position: relative;
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  padding: 0.45rem 0.55rem 0.45rem 0.7rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface-panel);
+  box-shadow: 0 2px 8px rgb(28 36 51 / 8%);
+}
+
+.staff-school-year-switcher__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.staff-school-year-switcher__icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 1.9rem;
+  height: 1.9rem;
+  place-items: center;
+  border-radius: 0.5rem;
+  color: var(--color-action-primary-depth);
+  background: var(--color-action-secondary-hover);
+}
+
+.staff-school-year-switcher__icon .pixel-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.staff-school-year-switcher__copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.08rem;
+}
+
+.staff-school-year-switcher__label {
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+}
+
+.staff-school-year-switcher__hint {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.staff-school-year-switcher__select,
+.staff-school-year-switcher__create-form input {
+  min-height: 2.35rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  color: var(--color-text-primary);
+  background: var(--color-surface-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.staff-school-year-switcher__select {
+  max-width: 12rem;
+  padding: 0.45rem 2rem 0.45rem 0.7rem;
+}
+
+.staff-school-year-switcher__select:focus-visible,
+.staff-school-year-switcher__create-toggle:focus-visible,
+.staff-school-year-switcher__create-form input:focus-visible,
+.staff-school-year-switcher__create-form button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.staff-school-year-switcher__select:disabled,
+.staff-school-year-switcher__create-form input:disabled,
+.staff-school-year-switcher__create-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.staff-school-year-switcher__status {
+  max-width: 15rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.staff-school-year-switcher__create {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.staff-school-year-switcher__create-toggle,
+.staff-school-year-switcher__create-form button {
+  min-height: 2.35rem;
+  border: 1px solid var(--color-action-primary-depth);
+  border-radius: var(--radius-control);
+  padding: 0.45rem 0.7rem;
+  color: var(--color-text-on-action);
+  background: var(--color-action-primary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.staff-school-year-switcher__create-toggle:hover,
+.staff-school-year-switcher__create-form button:hover {
+  background: var(--color-action-primary-hover);
+}
+
+.staff-school-year-switcher__create-form {
+  position: absolute;
+  top: calc(100% + 0.65rem);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  width: min(18rem, calc(100vw - 2rem));
+  gap: 0.55rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  padding: 0.8rem;
+  background: var(--color-surface-panel);
+  box-shadow: 0 8px 24px rgb(28 36 51 / 16%);
+}
+
+.staff-school-year-switcher__create-form label {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.staff-school-year-switcher__create-form input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+}
+
+.staff-school-year-switcher__create-form button {
+  width: 100%;
+}
+
+@media (max-width: 40rem) {
+  .staff-shell__toolbar {
+    padding-top: 0.65rem;
+  }
+
+  .staff-school-year-switcher {
+    width: 100%;
+    align-items: stretch;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .staff-school-year-switcher__identity {
+    flex: 1 1 12rem;
+  }
+
+  .staff-school-year-switcher__select,
+  .staff-school-year-switcher__status {
+    flex: 1 1 10rem;
+    max-width: none;
+  }
+
+  .staff-school-year-switcher__create-form {
+    position: static;
+    margin-top: 0.55rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .staff-shell__toolbar {
+    padding: 1rem 3rem 0;
+  }
+}
+
 .staff-mobile-header {
   position: sticky;
   top: 0;
