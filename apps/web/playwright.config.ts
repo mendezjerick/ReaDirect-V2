@@ -2,6 +2,8 @@ import { defineConfig } from "@playwright/test";
 
 const learnerViewports = [
   { name: "mobile-small", width: 360, height: 800 },
+  { name: "mobile-tiny", width: 360, height: 640 },
+  { name: "mobile-short", width: 375, height: 667 },
   { name: "mobile-primary", width: 390, height: 844 },
   { name: "mobile-large", width: 412, height: 915 },
   { name: "tablet", width: 768, height: 1024 },
