@@ -686,6 +686,66 @@ button {
   text-align: center;
 }
 
+@media (max-width: 47.99rem) {
+  .staff-login-page__stage {
+    gap: 0.75rem;
+  }
+
+  .staff-login-card {
+    padding: 0.5rem;
+  }
+
+  .staff-login-card > .surface {
+    padding: 1rem;
+  }
+
+  .staff-login-card__header {
+    gap: 0.75rem;
+  }
+
+  .staff-login-card__mark {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .staff-login-card__eyebrow {
+    margin-bottom: 0.3rem;
+  }
+
+  .staff-login-card h1 {
+    font-size: 2.25rem;
+  }
+
+  .staff-login-card__intro {
+    margin-top: 0.5rem;
+    line-height: 1.4;
+  }
+
+  .staff-login-form {
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .staff-login-form .text-field__control,
+  .staff-login-form .text-field__input {
+    min-height: 3rem;
+  }
+
+  .staff-login-form .text-field__input {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .staff-login-form .staff-login-form__submit {
+    min-height: 3.5rem;
+    padding: 0.7rem 1.25rem;
+    font-size: 1.1rem;
+  }
+
+  .staff-login-card__roles {
+    margin-top: 0.75rem;
+  }
+}
+
 .staff-shell {
   min-height: 100vh;
   min-height: 100svh;

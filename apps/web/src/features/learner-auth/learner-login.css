@@ -139,6 +139,41 @@
   font-weight: 750;
 }
 
+@media (max-width: 47.99rem) {
+  .learner-login-card > .surface {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .learner-login-card__header {
+    gap: 0.75rem;
+  }
+
+  .learner-login-card__icon {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  .learner-login-form {
+    gap: 0.75rem;
+  }
+
+  .learner-login-form .text-field__control,
+  .learner-login-form .text-field__input {
+    min-height: 3rem;
+  }
+
+  .learner-login-form .text-field__input {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .learner-login-form .learner-login-form__submit {
+    min-height: 3.5rem;
+    padding: 0.7rem 1.25rem;
+    font-size: 1.15rem;
+  }
+}
+
 @media (min-width: 48rem) {
   .learner-login-page {
     padding: 1rem 2rem;
