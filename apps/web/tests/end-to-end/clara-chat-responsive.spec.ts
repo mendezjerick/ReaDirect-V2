@@ -99,6 +99,7 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
       const visibleSelectors = [
         ".clara-chat",
         ".clara-chat__navbar",
+        ".clara-chat__catalogue-button",
         ".clara-chat__theme-switch",
         ".theme-selector",
         ".theme-selector__choice",
@@ -195,8 +196,43 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
     expect(metrics.rects[".clara-chat__send"]?.height).toBeGreaterThanOrEqual(
       43.5,
     );
+    expect(
+      metrics.rects[".clara-chat__catalogue-button"]?.width,
+    ).toBeGreaterThanOrEqual(43.5);
+    expect(
+      metrics.rects[".clara-chat__catalogue-button"]?.height,
+    ).toBeGreaterThanOrEqual(43.5);
     expect(metrics.fonts.every((font) => font.includes("Jersey 20"))).toBe(
       true,
     );
   }
+
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.getByRole("button", { name: "Open word catalogue" }).click();
+
+  const catalogue = page.getByRole("region", { name: "Word catalogue" });
+  await expect(catalogue).toBeVisible();
+  await expect(
+    catalogue.getByRole("button", { name: "Ask Clara to say dog" }),
+  ).toBeVisible();
+  expect(
+    await catalogue.getByRole("button", { name: /Ask Clara to say/ }).count(),
+  ).toBe(49);
+
+  const catalogueBounds = await catalogue.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      left: rect.left,
+      right: rect.right,
+      top: rect.top,
+      bottom: rect.bottom,
+    };
+  });
+  expect(catalogueBounds.left).toBeGreaterThanOrEqual(0);
+  expect(catalogueBounds.right).toBeLessThanOrEqual(320);
+  expect(catalogueBounds.top).toBeGreaterThanOrEqual(0);
+  expect(catalogueBounds.bottom).toBeLessThanOrEqual(568);
+
+  await page.keyboard.press("Escape");
+  await expect(catalogue).not.toBeVisible();
 });

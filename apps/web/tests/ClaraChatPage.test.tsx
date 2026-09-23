@@ -98,6 +98,9 @@ describe("ClaraChatPage", () => {
 
     expect(screen.getByRole("heading", { name: "Clara Chat" })).toBeVisible();
     expect(
+      screen.getByRole("button", { name: "Open word catalogue" }),
+    ).toBeVisible();
+    expect(
       screen.getByRole("navigation", { name: "Choose a theme" }),
     ).toBeVisible();
     expect(screen.getByTestId("clara-stage")).toBeVisible();
@@ -159,5 +162,34 @@ describe("ClaraChatPage", () => {
         { language: "en" },
       ),
     );
+  });
+
+  it("opens the full word catalogue and lets learners choose a word", async () => {
+    renderChat();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open word catalogue" }),
+    );
+
+    const catalogue = screen.getByRole("region", { name: "Word catalogue" });
+    expect(catalogue).toBeVisible();
+    expect(
+      screen.getAllByRole("button", { name: /Ask Clara to say/ }),
+    ).toHaveLength(49);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Ask Clara to say dog" }),
+    );
+
+    await waitFor(() =>
+      expect(speechMocks.prepare).toHaveBeenCalledWith(
+        "lesson-2-word-demo-dog",
+        "cookie-session",
+        { language: "en" },
+      ),
+    );
+    expect(
+      screen.queryByRole("region", { name: "Word catalogue" }),
+    ).not.toBeInTheDocument();
   });
 });
