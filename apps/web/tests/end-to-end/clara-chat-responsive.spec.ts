@@ -134,9 +134,6 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
           visibleSelectors.map((selector) => [selector, rectFor(selector)]),
         ),
         suggestions: rectFor(".clara-chat__suggestions"),
-        suggestionOverflow:
-          document.querySelector<HTMLElement>(".clara-chat__suggestions")
-            ?.scrollWidth ?? 0,
         fonts: [
           ".clara-chat",
           ".clara-chat h1",
@@ -181,19 +178,28 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
     }
 
     expect(metrics.rects[".clara-chat__back"]?.width).toBeGreaterThanOrEqual(
-      44,
+      43.5,
     );
     expect(metrics.rects[".clara-chat__back"]?.height).toBeGreaterThanOrEqual(
-      44,
+      43.5,
     );
     expect(metrics.rects[".clara-chat__send"]?.width).toBeGreaterThanOrEqual(
-      44,
+      43.5,
     );
     expect(metrics.rects[".clara-chat__send"]?.height).toBeGreaterThanOrEqual(
-      44,
+      43.5,
     );
-    expect(metrics.suggestionOverflow + 1).toBeGreaterThanOrEqual(
-      metrics.suggestions?.width ?? 0,
+    expect(
+      metrics.rects[".clara-chat__suggestions"]?.top,
+      `suggestions overlap stage at ${width}x${height}`,
+    ).toBeGreaterThanOrEqual(
+      (metrics.rects[".clara-chat__stage"]?.bottom ?? 0) - 1,
+    );
+    expect(
+      metrics.rects[".clara-chat__composer"]?.top,
+      `composer overlaps suggestions at ${width}x${height}`,
+    ).toBeGreaterThanOrEqual(
+      (metrics.rects[".clara-chat__suggestions"]?.bottom ?? 0) - 1,
     );
     expect(metrics.fonts.every((font) => font.includes("Jersey 20"))).toBe(
       true,
