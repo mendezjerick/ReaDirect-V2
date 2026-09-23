@@ -12,6 +12,11 @@
     max(0.8rem, env(safe-area-inset-bottom))
     max(0.65rem, env(safe-area-inset-left));
   color: var(--color-text-primary);
+  background-color: var(--color-surface-page);
+  background-image: var(--asset-learner-flow-background-mobile);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   font-family: "Jersey 20", var(--font-pixel-family);
 }
 
@@ -295,7 +300,8 @@
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   gap: clamp(0.55rem, 1.35vw, 1rem);
-  overflow: hidden;
+  padding-bottom: 0.35rem;
+  overflow: visible;
 }
 
 .clara-chat__stage {
@@ -465,6 +471,10 @@
 }
 
 @media (min-width: 48rem) {
+  .clara-chat {
+    background-image: var(--asset-learner-flow-background-desktop);
+  }
+
   .clara-chat__composer {
     padding-inline: 1rem;
   }
