@@ -235,4 +235,30 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
 
   await page.keyboard.press("Escape");
   await expect(catalogue).not.toBeVisible();
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const desktopSurfaceMetrics = await page.evaluate(() => {
+    const pageSurface = document.querySelector<HTMLElement>(".clara-chat");
+    const workspace = document.querySelector<HTMLElement>(
+      ".clara-chat__workspace",
+    );
+    const composer = document.querySelector<HTMLElement>(
+      ".clara-chat__composer",
+    );
+    if (!pageSurface || !workspace || !composer) {
+      return null;
+    }
+
+    return {
+      backgroundImage: getComputedStyle(pageSurface).backgroundImage,
+      workspaceBottom: workspace.getBoundingClientRect().bottom,
+      composerShadowBottom: composer.getBoundingClientRect().bottom + 4,
+    };
+  });
+
+  expect(desktopSurfaceMetrics).not.toBeNull();
+  expect(desktopSurfaceMetrics?.backgroundImage).toContain("T1desktop.png");
+  expect(desktopSurfaceMetrics?.composerShadowBottom).toBeLessThanOrEqual(
+    (desktopSurfaceMetrics?.workspaceBottom ?? 0) + 0.5,
+  );
 });
