@@ -125,7 +125,7 @@
   min-width: 0;
   min-height: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto auto;
   overflow: hidden;
 }
 
@@ -161,18 +161,18 @@
 }
 
 .clara-chat__clara .clara-stage {
-  width: clamp(15rem, 48vw, 31rem);
-  height: 100%;
+  width: clamp(13rem, 34vw, 25rem);
+  height: min(76%, 34rem);
   max-width: 100%;
   aspect-ratio: auto;
   margin: 0;
-  transform: translateY(clamp(1.5rem, 5vh, 3.75rem));
+  transform: translateY(clamp(1rem, 4vh, 2.5rem));
 }
 
 .clara-chat__dialogue {
   position: absolute;
   inset: clamp(0.65rem, 2.5vw, 1.5rem) var(--clara-chat-gutter)
-    clamp(4.35rem, 10svh, 6rem);
+    clamp(0.65rem, 2vw, 1.5rem);
   z-index: 3;
   display: flex;
   flex-direction: column;
@@ -209,6 +209,7 @@
 
 .clara-chat__bubble--learner {
   align-self: flex-end;
+  margin-inline-end: clamp(0.45rem, 2vw, 1rem);
   color: var(--color-text-on-action);
   background: var(--color-action-primary);
   border-color: var(--color-action-primary-depth);
@@ -264,10 +265,7 @@
 }
 
 .clara-chat__suggestions {
-  position: absolute;
-  right: var(--clara-chat-gutter);
-  bottom: 0.6rem;
-  left: var(--clara-chat-gutter);
+  position: relative;
   z-index: 4;
   display: flex;
   align-items: center;
@@ -276,7 +274,14 @@
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
-  padding: 0.2rem;
+  margin: 0.35rem var(--clara-chat-gutter) 0;
+  padding: 0.3rem 0.2rem 0.45rem;
+  border: 2px solid
+    color-mix(in srgb, var(--color-border-warm) 80%, transparent);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface-frame) 90%, transparent);
+  box-shadow: 0 2px 0
+    color-mix(in srgb, var(--color-frame-depth) 70%, transparent);
   overscroll-behavior-inline: contain;
   scrollbar-color: var(--color-action-primary) var(--color-surface-muted);
   scrollbar-width: thin;
@@ -300,7 +305,7 @@
 .clara-chat__composer {
   position: relative;
   z-index: 5;
-  margin-top: clamp(-0.55rem, -1vw, -0.3rem);
+  margin-top: 0.35rem;
   border-color: var(--color-action-primary-depth) !important;
   background: var(--color-surface-frame) !important;
   box-shadow: 0 4px 0 var(--color-action-primary-depth) !important;
@@ -397,12 +402,9 @@
   }
 
   .clara-chat__clara .clara-stage {
-    width: clamp(14.5rem, 72vw, 21rem);
-    transform: translateY(2.35rem);
-  }
-
-  .clara-chat__dialogue {
-    bottom: clamp(5rem, 13svh, 6.1rem);
+    width: clamp(13rem, 52vw, 18rem);
+    height: min(66%, 21rem);
+    transform: translateY(1rem);
   }
 }
 
@@ -421,8 +423,8 @@
   }
 
   .clara-chat__suggestions {
-    right: clamp(1rem, 8vw, 7rem);
-    left: clamp(1rem, 8vw, 7rem);
+    width: min(100% - 2rem, 72rem);
+    margin-inline: auto;
     justify-content: center;
   }
 
@@ -437,22 +439,13 @@
   }
 
   .clara-chat__suggestions {
-    right: clamp(2rem, 11vw, 10rem);
-    left: clamp(2rem, 11vw, 10rem);
+    width: min(100% - 4rem, 72rem);
   }
 }
 
 @media (max-height: 42rem) {
   .clara-chat__clara .clara-stage {
     transform: translateY(2rem);
-  }
-
-  .clara-chat__dialogue {
-    bottom: 4.8rem;
-  }
-
-  .clara-chat__suggestions {
-    bottom: 0.35rem;
   }
 }
 

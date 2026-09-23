@@ -442,27 +442,27 @@ export function ClaraChatPage() {
                 </article>
               ))}
             </div>
-
-            <div
-              className="clara-chat__suggestions"
-              aria-label="Suggested prompts"
-            >
-              <span>Try a prompt</span>
-              {[
-                { label: "Show A", value: "A" },
-                { label: "Practice cat", value: "cat" },
-                { label: "See options", value: "help" },
-              ].map((choice) => (
-                <button
-                  key={choice.value}
-                  type="button"
-                  onClick={() => submit(choice.value)}
-                >
-                  {choice.label}
-                </button>
-              ))}
-            </div>
           </section>
+
+          <div
+            className="clara-chat__suggestions"
+            aria-label="Suggested prompts"
+          >
+            <span>Try a prompt</span>
+            {[
+              { label: "Show A", value: "A" },
+              { label: "Practice cat", value: "cat" },
+              { label: "See options", value: "help" },
+            ].map((choice) => (
+              <button
+                key={choice.value}
+                type="button"
+                onClick={() => submit(choice.value)}
+              >
+                {choice.label}
+              </button>
+            ))}
+          </div>
 
           <Surface
             className="clara-chat__composer"
