@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { PixelIcon } from "../../components/ui/PixelIcon";
 import { Surface } from "../../components/ui/Surface";
+import { ThemeSelector } from "../theme/ThemeSelector";
 import {
   playClaraSpeech,
   prepareClaraSpeech,
@@ -68,11 +69,13 @@ const WORDS = [
   "pot",
 ] as const;
 
+const FALLBACK_SPEECH_KEY: ClaraSpeechKey = "lesson-2-technical-retry";
+
 function normalize(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function speechKeyFor(value: string): ClaraSpeechKey | null {
+function speechKeyFor(value: string): ClaraSpeechKey {
   const normalized = normalize(value);
   const letterCandidate = normalized.replace(
     /^(?:show me|letter|practice|try)\s+/,
@@ -96,7 +99,7 @@ function speechKeyFor(value: string): ClaraSpeechKey | null {
     return `lesson-2-word-demo-${wordCandidate}` as ClaraSpeechKey;
   }
 
-  return null;
+  return FALLBACK_SPEECH_KEY;
 }
 
 export function ClaraChatPage() {
@@ -229,14 +232,12 @@ export function ClaraChatPage() {
     setInput("");
 
     const speechKey = speechKeyFor(trimmed);
-    if (speechKey) {
-      unlockClaraAudio();
-      speechNonceRef.current += 1;
-      setSpeechRequest({
-        key: speechKey,
-        nonce: speechNonceRef.current,
-      });
-    }
+    unlockClaraAudio();
+    speechNonceRef.current += 1;
+    setSpeechRequest({
+      key: speechKey,
+      nonce: speechNonceRef.current,
+    });
   };
 
   const speechStatus =
@@ -279,6 +280,10 @@ export function ClaraChatPage() {
             {speechStatus}
           </span>
         </Surface>
+
+        <div className="clara-chat__theme-switch">
+          <ThemeSelector />
+        </div>
 
         <div className="clara-chat__workspace">
           <section className="clara-chat__stage" aria-label="Clara">
