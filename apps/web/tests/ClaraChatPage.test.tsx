@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { ThemeProvider } from "../src/features/theme/ThemeProvider";
+
 const speechMocks = vi.hoisted(() => ({
   prepare: vi.fn(() => Promise.resolve(new Blob(["audio"]))),
   play: vi.fn(async () => ({
@@ -71,20 +73,23 @@ function renderChat() {
   );
 
   return render(
-    <MemoryRouter initialEntries={["/learner/learn-with-clara/chat"]}>
-      <Routes>
-        <Route
-          path="/learner/learn-with-clara/chat"
-          element={<ClaraChatPage />}
-        />
-      </Routes>
-    </MemoryRouter>,
+    <ThemeProvider>
+      <MemoryRouter initialEntries={["/learner/learn-with-clara/chat"]}>
+        <Routes>
+          <Route
+            path="/learner/learn-with-clara/chat"
+            element={<ClaraChatPage />}
+          />
+        </Routes>
+      </MemoryRouter>
+    </ThemeProvider>,
   );
 }
 
 describe("ClaraChatPage", () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    window.localStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -92,6 +97,9 @@ describe("ClaraChatPage", () => {
     renderChat();
 
     expect(screen.getByRole("heading", { name: "Clara Chat" })).toBeVisible();
+    expect(
+      screen.getByRole("navigation", { name: "Choose a theme" }),
+    ).toBeVisible();
     expect(screen.getByTestId("clara-stage")).toBeVisible();
     expect(
       screen.getByPlaceholderText("Type a letter or reading word..."),
@@ -118,6 +126,7 @@ describe("ClaraChatPage", () => {
         { language: "en" },
       ),
     );
+    await waitFor(() => expect(speechMocks.play).toHaveBeenCalled());
   });
 
   it("resolves a typed word to the existing word demo speech key", async () => {
@@ -130,6 +139,22 @@ describe("ClaraChatPage", () => {
     await waitFor(() =>
       expect(speechMocks.prepare).toHaveBeenCalledWith(
         "lesson-2-word-demo-dog",
+        "cookie-session",
+        { language: "en" },
+      ),
+    );
+  });
+
+  it("uses the existing technical retry voice line for unknown text", async () => {
+    renderChat();
+
+    const input = screen.getByLabelText("Type a letter or reading word");
+    fireEvent.change(input, { target: { value: "zzzz" } });
+    fireEvent.submit(input.closest("form") as HTMLFormElement);
+
+    await waitFor(() =>
+      expect(speechMocks.prepare).toHaveBeenCalledWith(
+        "lesson-2-technical-retry",
         "cookie-session",
         { language: "en" },
       ),

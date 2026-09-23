@@ -99,6 +99,9 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
       const visibleSelectors = [
         ".clara-chat",
         ".clara-chat__navbar",
+        ".clara-chat__theme-switch",
+        ".theme-selector",
+        ".theme-selector__choice",
         ".clara-chat__stage",
         ".clara-chat__clara .clara-stage",
         ".clara-chat__composer",
