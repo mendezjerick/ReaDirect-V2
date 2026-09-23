@@ -9,6 +9,7 @@ export interface NativeLifecycleHandler {
 export const CLARA_DASHBOARD_ROUTE = "/learner/learn-with-clara";
 
 const CLARA_PRACTICE_ROUTES = new Set([
+  "/learner/learn-with-clara/chat",
   "/learner/learn-with-clara/letters",
   "/learner/learn-with-clara/words",
 ]);

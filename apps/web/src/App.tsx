@@ -112,6 +112,12 @@ const LearnWithClaraMenuPage = lazy(() =>
   ),
 );
 
+const ClaraChatPage = lazy(() =>
+  import("./features/clara-chat/ClaraChatPage").then((module) => ({
+    default: module.ClaraChatPage,
+  })),
+);
+
 const AssessmentPartOnePage = lazy(() =>
   import("./features/assessment/AssessmentPartOnePage").then((module) => ({
     default: module.AssessmentPartOnePage,
@@ -545,6 +551,10 @@ export function App() {
               <Route
                 path="/learner/learn-with-clara"
                 element={<LearnWithClaraMenuPage />}
+              />
+              <Route
+                path="/learner/learn-with-clara/chat"
+                element={<ClaraChatPage />}
               />
               <Route
                 path="/learner/learn-with-clara/letters"
