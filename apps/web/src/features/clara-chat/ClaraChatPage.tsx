@@ -68,73 +68,23 @@ const WORDS = [
   "pot",
 ] as const;
 
-type ChatChoice = {
-  label: string;
-  value: string;
-};
-
-type ChatMessage = {
-  id: number;
-  sender: "clara" | "learner";
-  text: string;
-  choices?: ChatChoice[];
-  speechKey?: ClaraSpeechKey;
-};
-
-type ClaraResponse = Omit<ChatMessage, "id" | "sender">;
-
-const welcomeMessage: ChatMessage = {
-  id: 0,
-  sender: "clara",
-  text: "Hello, Reader! Choose a letter or one of our reading words to practice with me.",
-};
-
 function normalize(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function letterResponse(letter: string): ClaraResponse {
-  const uppercase = letter.toUpperCase();
-  const nextLetter = LETTERS[(LETTERS.indexOf(uppercase) + 1) % LETTERS.length];
-
-  return {
-    text: `This is ${uppercase}. Say the letter name with me.`,
-    speechKey: `lesson-1-letter-demo-${uppercase}` as ClaraSpeechKey,
-    choices: [
-      { label: `Try ${nextLetter}`, value: nextLetter },
-      { label: "Try a word", value: "cat" },
-      { label: "All letters", value: "letters" },
-    ],
-  };
-}
-
-function wordResponse(word: string): ClaraResponse {
-  const nextWord =
-    WORDS[(WORDS.indexOf(word as (typeof WORDS)[number]) + 1) % WORDS.length];
-
-  return {
-    text: `Let’s read “${word}” together. Say the whole word.`,
-    speechKey: `lesson-2-word-demo-${word}` as ClaraSpeechKey,
-    choices: [
-      { label: `Try ${nextWord}`, value: nextWord },
-      { label: "Try a letter", value: "A" },
-      { label: "All words", value: "words" },
-    ],
-  };
-}
-
-function responseFor(value: string): ClaraResponse {
+function speechKeyFor(value: string): ClaraSpeechKey | null {
   const normalized = normalize(value);
   const letterCandidate = normalized.replace(
     /^(?:show me|letter|practice|try)\s+/,
     "",
   );
+  const uppercase = letterCandidate.toUpperCase();
 
   if (
     letterCandidate.length === 1 &&
     LETTERS.includes(letterCandidate.toUpperCase())
   ) {
-    return letterResponse(letterCandidate);
+    return `lesson-1-letter-demo-${uppercase}` as ClaraSpeechKey;
   }
 
   const wordCandidate = normalized.replace(
@@ -143,66 +93,15 @@ function responseFor(value: string): ClaraResponse {
   );
 
   if (WORDS.includes(wordCandidate as (typeof WORDS)[number])) {
-    return wordResponse(wordCandidate);
+    return `lesson-2-word-demo-${wordCandidate}` as ClaraSpeechKey;
   }
 
-  if (
-    normalized === "letters" ||
-    normalized === "show all letters" ||
-    normalized.includes("what letters")
-  ) {
-    return {
-      text: "We can practice all 26 letters. Pick one below, then I will say its letter name.",
-      choices: LETTERS.slice(0, 8).map((letter) => ({
-        label: letter,
-        value: letter,
-      })),
-    };
-  }
-
-  if (
-    normalized === "words" ||
-    normalized === "show all words" ||
-    normalized.includes("what words")
-  ) {
-    return {
-      text: "We have 49 reading words ready. Start with one of these, or type another word you know.",
-      choices: ["bag", "cat", "dog", "map", "pig", "pot"].map((word) => ({
-        label: word,
-        value: word,
-      })),
-    };
-  }
-
-  if (
-    normalized === "help" ||
-    normalized === "what can i practice" ||
-    normalized === "what can i practice?"
-  ) {
-    return {
-      text: "I can practice any letter from A to Z and the reading words in your lessons. Try typing A, cat, or dog.",
-      choices: [
-        { label: "Show me A", value: "A" },
-        { label: "Practice dog", value: "dog" },
-        { label: "Show all words", value: "words" },
-      ],
-    };
-  }
-
-  return {
-    text: "I can help with one letter or one of our reading words. Try typing A, cat, or dog.",
-    choices: [
-      { label: "Show A", value: "A" },
-      { label: "Practice cat", value: "cat" },
-      { label: "See options", value: "help" },
-    ],
-  };
+  return null;
 }
 
 export function ClaraChatPage() {
   const navigate = useNavigate();
   const session = loadLearnerSession();
-  const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
   const [input, setInput] = useState("");
   const [claraReady, setClaraReady] = useState(false);
   const [speechLevel, setSpeechLevel] = useState(0);
@@ -218,21 +117,13 @@ export function ClaraChatPage() {
     blob: Blob;
   } | null>(null);
   const playbackRef = useRef<ClaraSpeechPlayback | null>(null);
-  const messageListRef = useRef<HTMLDivElement>(null);
-  const messageIdRef = useRef(1);
+  const speechNonceRef = useRef(0);
 
   useEffect(() => {
     if (!session?.token) {
       navigate("/learner/login", { replace: true });
     }
   }, [navigate, session?.token]);
-
-  useEffect(() => {
-    const messageList = messageListRef.current;
-    if (messageList) {
-      messageList.scrollTop = messageList.scrollHeight;
-    }
-  }, [messages]);
 
   useEffect(() => {
     if (!session?.token || !speechRequest) {
@@ -335,25 +226,15 @@ export function ClaraChatPage() {
       return;
     }
 
-    unlockClaraAudio();
-    const response = responseFor(trimmed);
-    const claraMessage: ChatMessage = {
-      id: messageIdRef.current + 1,
-      sender: "clara",
-      ...response,
-    };
-    messageIdRef.current += 2;
-    setMessages((current) => [
-      ...current,
-      { id: claraMessage.id - 1, sender: "learner", text: trimmed },
-      claraMessage,
-    ]);
     setInput("");
 
-    if (response.speechKey) {
+    const speechKey = speechKeyFor(trimmed);
+    if (speechKey) {
+      unlockClaraAudio();
+      speechNonceRef.current += 1;
       setSpeechRequest({
-        key: response.speechKey,
-        nonce: claraMessage.id,
+        key: speechKey,
+        nonce: speechNonceRef.current,
       });
     }
   };
@@ -400,10 +281,7 @@ export function ClaraChatPage() {
         </Surface>
 
         <div className="clara-chat__workspace">
-          <section
-            className="clara-chat__stage"
-            aria-label="Clara conversation"
-          >
+          <section className="clara-chat__stage" aria-label="Clara">
             <div className="clara-chat__clara" aria-hidden="true">
               <ClaraStage
                 emotion={speechState === "speaking" ? "happy" : "default"}
@@ -415,54 +293,7 @@ export function ClaraChatPage() {
                 onLoadStateChange={(state) => setClaraReady(state === "ready")}
               />
             </div>
-
-            <div className="clara-chat__dialogue" ref={messageListRef}>
-              {messages.slice(-5).map((message) => (
-                <article
-                  className={`clara-chat__bubble clara-chat__bubble--${message.sender}`}
-                  key={message.id}
-                >
-                  <span className="clara-chat__bubble-label">
-                    {message.sender === "clara" ? "Clara" : "You"}
-                  </span>
-                  <p>{message.text}</p>
-                  {message.choices?.length ? (
-                    <div className="clara-chat__bubble-choices">
-                      {message.choices.map((choice) => (
-                        <button
-                          key={`${message.id}-${choice.value}`}
-                          type="button"
-                          onClick={() => submit(choice.value)}
-                        >
-                          {choice.label}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                </article>
-              ))}
-            </div>
           </section>
-
-          <div
-            className="clara-chat__suggestions"
-            aria-label="Suggested prompts"
-          >
-            <span>Try a prompt</span>
-            {[
-              { label: "Show A", value: "A" },
-              { label: "Practice cat", value: "cat" },
-              { label: "See options", value: "help" },
-            ].map((choice) => (
-              <button
-                key={choice.value}
-                type="button"
-                onClick={() => submit(choice.value)}
-              >
-                {choice.label}
-              </button>
-            ))}
-          </div>
 
           <Surface
             className="clara-chat__composer"
@@ -497,10 +328,6 @@ export function ClaraChatPage() {
                 <PixelIcon name="arrow-right" />
               </button>
             </form>
-            <p className="clara-chat__composer-note">
-              Read-only practice: Clara uses letters and words from your
-              lessons.
-            </p>
           </Surface>
         </div>
       </div>
