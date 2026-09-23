@@ -96,15 +96,13 @@ describe("ClaraChatPage", () => {
     expect(
       screen.getByPlaceholderText("Type a letter or reading word..."),
     ).toBeVisible();
-    expect(screen.getAllByRole("button", { name: "Show me A" })).toHaveLength(
-      2,
-    );
+    expect(screen.getAllByRole("button", { name: "Show A" })).toHaveLength(1);
   });
 
   it("resolves a letter prompt to the existing letter demo speech key", async () => {
     renderChat();
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Show me A" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Show A" }));
 
     expect(
       screen.getByText("This is A. Say the letter name with me."),

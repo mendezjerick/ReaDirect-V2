@@ -87,11 +87,6 @@ const welcomeMessage: ChatMessage = {
   id: 0,
   sender: "clara",
   text: "Hello, Reader! Choose a letter or one of our reading words to practice with me.",
-  choices: [
-    { label: "Show me A", value: "A" },
-    { label: "Practice cat", value: "cat" },
-    { label: "What can I practice?", value: "What can I practice?" },
-  ],
 };
 
 function normalize(value: string): string {
@@ -107,8 +102,8 @@ function letterResponse(letter: string): ClaraResponse {
     speechKey: `lesson-1-letter-demo-${uppercase}` as ClaraSpeechKey,
     choices: [
       { label: `Try ${nextLetter}`, value: nextLetter },
-      { label: "Practice a word", value: "cat" },
-      { label: "Show all letters", value: "letters" },
+      { label: "Try a word", value: "cat" },
+      { label: "All letters", value: "letters" },
     ],
   };
 }
@@ -122,8 +117,8 @@ function wordResponse(word: string): ClaraResponse {
     speechKey: `lesson-2-word-demo-${word}` as ClaraSpeechKey,
     choices: [
       { label: `Try ${nextWord}`, value: nextWord },
-      { label: "Practice a letter", value: "A" },
-      { label: "Show all words", value: "words" },
+      { label: "Try a letter", value: "A" },
+      { label: "All words", value: "words" },
     ],
   };
 }
@@ -197,9 +192,9 @@ function responseFor(value: string): ClaraResponse {
   return {
     text: "I can help with one letter or one of our reading words. Try typing A, cat, or dog.",
     choices: [
-      { label: "Show me A", value: "A" },
+      { label: "Show A", value: "A" },
       { label: "Practice cat", value: "cat" },
-      { label: "What can I practice?", value: "help" },
+      { label: "See options", value: "help" },
     ],
   };
 }
@@ -365,12 +360,12 @@ export function ClaraChatPage() {
 
   const speechStatus =
     speechState === "preparing"
-      ? "Preparing Clara"
+      ? "Preparing"
       : speechState === "speaking"
-        ? "Clara is speaking"
+        ? "Speaking"
         : speechState === "error"
-          ? "Tap a word to try again"
-          : "Ready to practice";
+          ? "Try again"
+          : "Ready";
 
   return (
     <main
@@ -454,9 +449,9 @@ export function ClaraChatPage() {
             >
               <span>Try a prompt</span>
               {[
-                { label: "Show me A", value: "A" },
+                { label: "Show A", value: "A" },
                 { label: "Practice cat", value: "cat" },
-                { label: "What can I practice?", value: "help" },
+                { label: "See options", value: "help" },
               ].map((choice) => (
                 <button
                   key={choice.value}
