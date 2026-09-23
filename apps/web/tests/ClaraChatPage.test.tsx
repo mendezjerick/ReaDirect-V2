@@ -88,7 +88,7 @@ describe("ClaraChatPage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders Clara with deterministic prompt strips and a typed composer", () => {
+  it("renders Clara with only the typed composer", () => {
     renderChat();
 
     expect(screen.getByRole("heading", { name: "Clara Chat" })).toBeVisible();
@@ -96,17 +96,21 @@ describe("ClaraChatPage", () => {
     expect(
       screen.getByPlaceholderText("Type a letter or reading word..."),
     ).toBeVisible();
-    expect(screen.getAllByRole("button", { name: "Show A" })).toHaveLength(1);
+    expect(
+      screen.queryByLabelText("Suggested prompts"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Clara conversation"),
+    ).not.toBeInTheDocument();
   });
 
   it("resolves a letter prompt to the existing letter demo speech key", async () => {
     renderChat();
 
-    fireEvent.click(screen.getByRole("button", { name: "Show A" }));
+    const input = screen.getByLabelText("Type a letter or reading word");
+    fireEvent.change(input, { target: { value: "A" } });
+    fireEvent.submit(input.closest("form") as HTMLFormElement);
 
-    expect(
-      screen.getByText("This is A. Say the letter name with me."),
-    ).toBeVisible();
     await waitFor(() =>
       expect(speechMocks.prepare).toHaveBeenCalledWith(
         "lesson-1-letter-demo-A",
@@ -123,9 +127,6 @@ describe("ClaraChatPage", () => {
     fireEvent.change(input, { target: { value: "dog" } });
     fireEvent.submit(input.closest("form") as HTMLFormElement);
 
-    expect(
-      screen.getByText("Let’s read “dog” together. Say the whole word."),
-    ).toBeVisible();
     await waitFor(() =>
       expect(speechMocks.prepare).toHaveBeenCalledWith(
         "lesson-2-word-demo-dog",

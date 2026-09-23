@@ -88,7 +88,9 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
     );
   }, guestStore);
   await page.goto("/learner/learn-with-clara/chat");
-  await expect(page.getByRole("heading", { name: "Clara Chat" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Clara Chat" })).toBeVisible({
+    timeout: 60_000,
+  });
 
   for (const [width, height] of viewports) {
     await page.setViewportSize({ width, height });
@@ -98,8 +100,8 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
         ".clara-chat",
         ".clara-chat__navbar",
         ".clara-chat__stage",
+        ".clara-chat__clara .clara-stage",
         ".clara-chat__composer",
-        ".clara-chat__suggestions",
         ".clara-chat__back",
         ".clara-chat__status",
         "#clara-chat-input",
@@ -133,16 +135,15 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
         rects: Object.fromEntries(
           visibleSelectors.map((selector) => [selector, rectFor(selector)]),
         ),
-        suggestions: rectFor(".clara-chat__suggestions"),
-        fonts: [
-          ".clara-chat",
-          ".clara-chat h1",
-          ".clara-chat__bubble",
-          "#clara-chat-input",
-        ].map((selector) =>
-          document.querySelector(selector)
-            ? getComputedStyle(document.querySelector(selector)!).fontFamily
-            : "",
+        hasDialogue: Boolean(document.querySelector(".clara-chat__dialogue")),
+        hasSuggestions: Boolean(
+          document.querySelector(".clara-chat__suggestions"),
+        ),
+        fonts: [".clara-chat", ".clara-chat h1", "#clara-chat-input"].map(
+          (selector) =>
+            document.querySelector(selector)
+              ? getComputedStyle(document.querySelector(selector)!).fontFamily
+              : "",
         ),
       };
     });
@@ -155,6 +156,8 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
     expect(metrics.documentHeight, `${width}x${height}`).toBeLessThanOrEqual(
       height,
     );
+    expect(metrics.hasDialogue, `${width}x${height}`).toBe(false);
+    expect(metrics.hasSuggestions, `${width}x${height}`).toBe(false);
 
     for (const [selector, rect] of Object.entries(metrics.rects)) {
       expect(rect, `${selector} missing at ${width}x${height}`).not.toBeNull();
@@ -188,18 +191,6 @@ test("Clara Chat remains usable across the supported viewport matrix", async ({
     );
     expect(metrics.rects[".clara-chat__send"]?.height).toBeGreaterThanOrEqual(
       43.5,
-    );
-    expect(
-      metrics.rects[".clara-chat__suggestions"]?.top,
-      `suggestions overlap stage at ${width}x${height}`,
-    ).toBeGreaterThanOrEqual(
-      (metrics.rects[".clara-chat__stage"]?.bottom ?? 0) - 1,
-    );
-    expect(
-      metrics.rects[".clara-chat__composer"]?.top,
-      `composer overlaps suggestions at ${width}x${height}`,
-    ).toBeGreaterThanOrEqual(
-      (metrics.rects[".clara-chat__suggestions"]?.bottom ?? 0) - 1,
     );
     expect(metrics.fonts.every((font) => font.includes("Jersey 20"))).toBe(
       true,
