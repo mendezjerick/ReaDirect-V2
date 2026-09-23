@@ -131,6 +131,10 @@ function renderDashboard(stage = "before_diagnostic") {
               element={<div>Learn with Clara route</div>}
             />
             <Route
+              path="/learner/learn-with-clara/chat"
+              element={<div>Clara Chat route</div>}
+            />
+            <Route
               path="/learner/lesson-intro"
               element={<div>Lesson intro route</div>}
             />
@@ -277,13 +281,23 @@ describe("LearnerDashboardPage", () => {
     ).toBeEnabled();
   });
 
-  it("places Learn with Ma'am Clara after Games and before Achievements on web", () => {
+  it("places Clara Chat below Reading Journey and above Games", () => {
     renderDashboard();
 
     const headings = screen
       .getAllByRole("heading", { level: 2 })
       .map((heading) => heading.textContent);
 
+    const journeyIndex = headings.findIndex(
+      (heading) =>
+        heading?.includes("Choose your next reading activity") ||
+        heading?.includes("Your Reading Journey is complete"),
+    );
+    expect(journeyIndex).toBeGreaterThanOrEqual(0);
+    expect(journeyIndex).toBeLessThan(headings.indexOf("Clara Chat"));
+    expect(headings.indexOf("Clara Chat")).toBeLessThan(
+      headings.indexOf("Games"),
+    );
     expect(headings.indexOf("Games")).toBeLessThan(
       headings.indexOf("Learn with Ma'am Clara"),
     );
@@ -336,6 +350,15 @@ describe("LearnerDashboardPage", () => {
 
     expect(claraSpeechMocks.unlock).toHaveBeenCalledOnce();
     expect(screen.getByText("Learn with Clara route")).toBeInTheDocument();
+  });
+
+  it("opens Clara Chat from the dashboard without changing learner progress", () => {
+    renderDashboard("before_diagnostic");
+
+    fireEvent.click(screen.getByRole("button", { name: "Open Clara Chat" }));
+
+    expect(claraSpeechMocks.unlock).toHaveBeenCalledOnce();
+    expect(screen.getByText("Clara Chat route")).toBeInTheDocument();
   });
 
   it("opens the game lobby from the secondary game action", () => {

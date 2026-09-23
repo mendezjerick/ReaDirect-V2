@@ -33,6 +33,7 @@ export function LearnerDashboardPage() {
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
   const readingCommit = useButtonCommit();
+  const claraChatCommit = useButtonCommit();
   const gamesCommit = useButtonCommit();
   const learnWithClaraCommit = useButtonCommit();
   const offlineCommit = useButtonCommit();
@@ -98,6 +99,15 @@ export function LearnerDashboardPage() {
 
   const openGames = () => {
     gamesCommit.commit(() => navigate("/learner/games"));
+  };
+
+  const openClaraChat = () => {
+    if (!storedSession?.token) {
+      return;
+    }
+
+    unlockClaraAudio();
+    claraChatCommit.commit(() => navigate("/learner/learn-with-clara/chat"));
   };
 
   const openLearnWithClara = () => {
@@ -255,6 +265,38 @@ export function LearnerDashboardPage() {
           <p className="learner-dashboard__notice" aria-live="polite">
             {readingCommit.committing ? "Opening your journey..." : ""}
           </p>
+        </Surface>
+
+        <Surface
+          className="learner-dashboard__chat-entry learner-dashboard__entrance"
+          kind="frame"
+          padding="normal"
+        >
+          <div className="learner-dashboard__chat-entry-copy">
+            <div className="learner-dashboard__utility-heading">
+              <span className="learner-dashboard__utility-icon">
+                <PixelIcon name="speech" />
+              </span>
+              <div>
+                <p className="learner-dashboard__eyebrow">Ask Clara</p>
+                <h2>Clara Chat</h2>
+              </div>
+            </div>
+            <p>
+              Practice a letter or one of your reading words with Ma&apos;am
+              Clara.
+            </p>
+          </div>
+          <BigButton
+            className="learner-dashboard__chat-action"
+            aria-label="Open Clara Chat"
+            variant="primary"
+            size="regular"
+            committing={claraChatCommit.committing}
+            onClick={openClaraChat}
+          >
+            Open Clara Chat
+          </BigButton>
         </Surface>
 
         <div className="learner-dashboard__quick-grid">
