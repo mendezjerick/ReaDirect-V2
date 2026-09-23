@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { PixelIcon } from "../../components/ui/PixelIcon";
@@ -106,6 +106,7 @@ export function ClaraChatPage() {
   const navigate = useNavigate();
   const session = loadLearnerSession();
   const [input, setInput] = useState("");
+  const [catalogueOpen, setCatalogueOpen] = useState(false);
   const [claraReady, setClaraReady] = useState(false);
   const [speechLevel, setSpeechLevel] = useState(0);
   const [speechState, setSpeechState] = useState<
@@ -121,12 +122,43 @@ export function ClaraChatPage() {
   } | null>(null);
   const playbackRef = useRef<ClaraSpeechPlayback | null>(null);
   const speechNonceRef = useRef(0);
+  const catalogueButtonRef = useRef<HTMLButtonElement>(null);
+  const catalogueRef = useRef<HTMLDivElement>(null);
+  const cataloguePanelId = useId();
+  const catalogueTitleId = useId();
 
   useEffect(() => {
     if (!session?.token) {
       navigate("/learner/login", { replace: true });
     }
   }, [navigate, session?.token]);
+
+  useEffect(() => {
+    if (!catalogueOpen) {
+      return;
+    }
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setCatalogueOpen(false);
+        catalogueButtonRef.current?.focus();
+      }
+    };
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Node && !catalogueRef.current?.contains(target)) {
+        setCatalogueOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("pointerdown", closeOnOutsidePointer);
+    };
+  }, [catalogueOpen]);
 
   useEffect(() => {
     if (!session?.token || !speechRequest) {
@@ -279,6 +311,59 @@ export function ClaraChatPage() {
           <span className="clara-chat__status" aria-live="polite">
             {speechStatus}
           </span>
+          <div className="clara-chat__catalogue" ref={catalogueRef}>
+            <button
+              ref={catalogueButtonRef}
+              className="clara-chat__catalogue-button"
+              type="button"
+              aria-label={
+                catalogueOpen ? "Close word catalogue" : "Open word catalogue"
+              }
+              aria-expanded={catalogueOpen}
+              aria-controls={cataloguePanelId}
+              onClick={() => setCatalogueOpen((open) => !open)}
+            >
+              <PixelIcon name="book" />
+            </button>
+            {catalogueOpen ? (
+              <section
+                id={cataloguePanelId}
+                className="clara-chat__catalogue-panel"
+                role="region"
+                aria-labelledby={catalogueTitleId}
+              >
+                <header className="clara-chat__catalogue-header">
+                  <div>
+                    <h2 id={catalogueTitleId}>Word catalogue</h2>
+                    <p>Choose a lesson word for Clara to say.</p>
+                  </div>
+                  <button
+                    className="clara-chat__catalogue-close"
+                    type="button"
+                    aria-label="Close word catalogue"
+                    onClick={() => setCatalogueOpen(false)}
+                  >
+                    <PixelIcon name="close" />
+                  </button>
+                </header>
+                <div className="clara-chat__catalogue-list">
+                  {WORDS.map((word) => (
+                    <button
+                      key={word}
+                      type="button"
+                      aria-label={`Ask Clara to say ${word}`}
+                      onClick={() => {
+                        setCatalogueOpen(false);
+                        submit(word);
+                      }}
+                    >
+                      {word}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
         </Surface>
 
         <div className="clara-chat__theme-switch">

@@ -63,10 +63,12 @@
 }
 
 .clara-chat__navbar {
+  position: relative;
+  z-index: 20;
   min-width: 0;
   min-height: 4.25rem;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(0, auto);
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, auto) auto;
   align-items: center;
   gap: clamp(0.55rem, 1.8vw, 1rem);
   animation: clara-chat-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -146,6 +148,144 @@
   font-size: clamp(0.9rem, 2.2vw, 1.05rem);
   line-height: 0.95;
   text-align: center;
+}
+
+.clara-chat__catalogue {
+  position: relative;
+  justify-self: end;
+}
+
+.clara-chat__catalogue-button,
+.clara-chat__catalogue-close {
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+  background: var(--color-action-secondary);
+  box-shadow: 0 3px 0 var(--color-frame-depth);
+  cursor: pointer;
+  transition:
+    transform 140ms ease-out,
+    background-color 140ms ease-out,
+    box-shadow 140ms ease-out;
+}
+
+.clara-chat__catalogue-button {
+  width: clamp(2.75rem, 8vw, 3.35rem);
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  aspect-ratio: 1;
+  border-radius: 0.9rem;
+  padding: 0;
+}
+
+.clara-chat__catalogue-button svg {
+  width: 64%;
+  height: 64%;
+}
+
+.clara-chat__catalogue-button[aria-expanded="true"] {
+  color: var(--color-text-on-action);
+  background: var(--color-action-primary);
+  border-color: var(--color-action-primary-depth);
+}
+
+.clara-chat__catalogue-button:focus-visible,
+.clara-chat__catalogue-close:focus-visible,
+.clara-chat__catalogue-list button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.clara-chat__catalogue-panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  z-index: 30;
+  width: min(27rem, calc(100vw - 1.5rem));
+  max-height: min(72svh, 36rem);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  overflow: hidden;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-frame);
+  padding: 0.8rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface-panel);
+  box-shadow: 0 5px 0 var(--color-frame-depth);
+  transform-origin: top right;
+  animation: clara-chat-catalogue-enter 160ms ease-out both;
+}
+
+.clara-chat__catalogue-header {
+  display: flex;
+  min-width: 0;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.clara-chat__catalogue-header h2 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: clamp(1.3rem, 3.6vw, 1.75rem);
+  line-height: 1;
+}
+
+.clara-chat__catalogue-header p {
+  margin: 0.3rem 0 0;
+  color: var(--color-text-secondary);
+  font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+  line-height: 1.05;
+}
+
+.clara-chat__catalogue-close {
+  width: 2.55rem;
+  min-width: 2.55rem;
+  height: 2.55rem;
+  border-radius: 0.7rem;
+  padding: 0.55rem;
+}
+
+.clara-chat__catalogue-close svg {
+  width: 100%;
+  height: 100%;
+}
+
+.clara-chat__catalogue-list {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: 0.4rem;
+  overflow-y: auto;
+  padding: 0.15rem 0.2rem 0.2rem 0.05rem;
+  scrollbar-color: var(--color-action-primary) var(--color-surface-muted);
+}
+
+.clara-chat__catalogue-list button {
+  min-width: 0;
+  min-height: 2.65rem;
+  border: 2px solid var(--color-border-warm);
+  border-radius: var(--radius-control);
+  padding: 0.35rem 0.5rem;
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+  background: var(--color-surface-muted);
+  font: inherit;
+  font-size: clamp(1rem, 2.5vw, 1.15rem);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 140ms ease-out,
+    background-color 140ms ease-out,
+    box-shadow 140ms ease-out;
+}
+
+.clara-chat__catalogue-list button:active {
+  box-shadow: 0 1px 0 var(--color-frame-depth);
+  transform: translateY(2px);
 }
 
 .clara-chat__workspace {
@@ -281,17 +421,31 @@
   }
 
   .clara-chat__navbar {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     row-gap: 0.28rem;
     padding-block: 0.65rem;
   }
 
+  .clara-chat__catalogue {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
   .clara-chat__status {
     grid-column: 2;
+    grid-row: 2;
     justify-self: start;
     width: fit-content;
     max-width: 100%;
     padding-block: 0.24rem;
+  }
+
+  .clara-chat__catalogue-panel {
+    width: min(22rem, calc(100vw - 2rem));
+  }
+
+  .clara-chat__catalogue-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .clara-chat__clara .clara-stage {
@@ -326,7 +480,11 @@
 @media (prefers-reduced-motion: reduce) {
   .clara-chat__navbar,
   .clara-chat__back,
-  .clara-chat__send {
+  .clara-chat__send,
+  .clara-chat__catalogue-button,
+  .clara-chat__catalogue-close,
+  .clara-chat__catalogue-list button,
+  .clara-chat__catalogue-panel {
     animation: none;
     transition: none;
   }
@@ -335,6 +493,22 @@
 @media (hover: hover) {
   .clara-chat__back:hover {
     background: var(--color-action-secondary-hover);
+    transform: translateY(-1px);
+  }
+
+  .clara-chat__catalogue-button:hover,
+  .clara-chat__catalogue-close:hover {
+    background: var(--color-action-secondary-hover);
+    transform: translateY(-1px);
+  }
+
+  .clara-chat__catalogue-button[aria-expanded="true"]:hover {
+    background: var(--color-action-primary-hover);
+  }
+
+  .clara-chat__catalogue-list button:hover {
+    background: var(--color-action-secondary);
+    box-shadow: 0 3px 0 var(--color-frame-depth);
     transform: translateY(-1px);
   }
 
@@ -353,5 +527,17 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes clara-chat-catalogue-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.3rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
